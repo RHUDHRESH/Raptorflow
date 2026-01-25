@@ -42,13 +42,13 @@ async function debugEndpoint(path) {
 // Test specific endpoints
 async function main() {
   console.log('🔍 Debugging API endpoints...\n');
-  
+
   await debugEndpoint('/api/health');
   console.log('\n' + '='.repeat(50) + '\n');
-  
+
   await debugEndpoint('/api/auth/session-management');
   console.log('\n' + '='.repeat(50) + '\n');
-  
+
   await debugEndpoint('/api/create-payment');
 }
 

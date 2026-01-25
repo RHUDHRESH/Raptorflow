@@ -30,22 +30,22 @@ const footer = `
 -- ============================================================================
 
 -- Check if tables exist
-SELECT table_name, table_type 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN ('profiles', 'subscriptions', 'payments', 'email_logs', 'workspaces')
 ORDER BY table_name;
 
 -- Check RLS policies
-SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual 
-FROM pg_policies 
-WHERE schemaname = 'public' 
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual
+FROM pg_policies
+WHERE schemaname = 'public'
 ORDER BY tablename, policyname;
 
 -- Check indexes
-SELECT indexname, tablename 
-FROM pg_indexes 
-WHERE schemaname = 'public' 
+SELECT indexname, tablename
+FROM pg_indexes
+WHERE schemaname = 'public'
 AND tablename IN ('profiles', 'subscriptions', 'payments', 'email_logs', 'workspaces')
 ORDER BY tablename, indexname;
 

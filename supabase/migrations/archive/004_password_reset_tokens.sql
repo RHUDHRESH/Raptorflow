@@ -43,7 +43,7 @@ CREATE POLICY "password_reset_tokens_update_own" ON public.password_reset_tokens
 CREATE OR REPLACE FUNCTION public.cleanup_expired_tokens()
 RETURNS void AS $$
 BEGIN
-  DELETE FROM public.password_reset_tokens 
+  DELETE FROM public.password_reset_tokens
   WHERE expires_at < NOW() OR (used_at IS NOT NULL AND used_at < NOW() - INTERVAL '1 hour');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

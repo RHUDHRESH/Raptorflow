@@ -1,6 +1,6 @@
 /**
  * 🔐 OAUTH BUTTON - Quiet Luxury Edition
- * 
+ *
  * Google OAuth integration using Supabase Auth.
  * Clean, premium design following RaptorFlow guidelines.
  */

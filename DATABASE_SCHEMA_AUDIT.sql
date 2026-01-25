@@ -4,26 +4,26 @@
 -- =================================================================
 
 -- Get all tables in public schema
-SELECT 
+SELECT
     table_name,
     table_type
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+FROM information_schema.tables
+WHERE table_schema = 'public'
 ORDER BY table_name;
 
 -- Get all columns for each table (run this after seeing table list)
-SELECT 
+SELECT
     table_name,
     column_name,
     data_type,
     is_nullable,
     column_default
-FROM information_schema.columns 
+FROM information_schema.columns
 WHERE table_schema = 'public'
 ORDER BY table_name, ordinal_position;
 
 -- Get all existing RLS policies
-SELECT 
+SELECT
     schemaname,
     tablename,
     policyname,
@@ -31,43 +31,43 @@ SELECT
     roles,
     cmd,
     qual
-FROM pg_policies 
+FROM pg_policies
 WHERE schemaname = 'public'
 ORDER BY tablename, policyname;
 
 -- Get all existing indexes
-SELECT 
+SELECT
     schemaname,
     tablename,
     indexname,
     indexdef
-FROM pg_indexes 
+FROM pg_indexes
 WHERE schemaname = 'public'
 ORDER BY tablename, indexname;
 
 -- Get all functions
-SELECT 
+SELECT
     proname,
     pronamespace::regschema as schema_name,
     prosrc as source_code,
     prolang::reglanguage as language
-FROM pg_proc 
+FROM pg_proc
 WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
 ORDER BY proname;
 
 -- Check RLS status on all tables
-SELECT 
+SELECT
     schemaname,
     tablename,
     rowsecurity
-FROM pg_tables 
+FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY tablename;
 
 -- Check extensions
-SELECT 
+SELECT
     extname,
     extnamespace::regschema as schema_name,
     extversion
-FROM pg_extension 
+FROM pg_extension
 ORDER BY extname;

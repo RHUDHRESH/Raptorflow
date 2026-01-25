@@ -9,7 +9,7 @@
 
 export const BUCKETS = {
   WORKSPACE_UPLOADS: 'workspace-uploads',
-  WORKSPACE_EXPORTS: 'workspace-exports', 
+  WORKSPACE_EXPORTS: 'workspace-exports',
   WORKSPACE_BACKUPS: 'workspace-backups',
   WORKSPACE_ASSETS: 'workspace-assets',
   WORKSPACE_LOGS: 'workspace-logs',
@@ -35,7 +35,7 @@ export function generateWorkspacePath(
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   const uuid = crypto.randomUUID();
   const cleanFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
-  
+
   return `workspace/${workspaceSlug}/${category}/${date}/${uuid}-${cleanFilename}`;
 }
 
@@ -51,7 +51,7 @@ export function generateUserPath(
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   const uuid = crypto.randomUUID();
   const cleanFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
-  
+
   return `users/${userId}/${category}/${date}/${uuid}-${cleanFilename}`;
 }
 
@@ -65,7 +65,7 @@ export function generateIntelligencePath(
 ): string {
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   const uuid = queryId || crypto.randomUUID();
-  
+
   return `intelligence-vault/${workspaceSlug}/${date}/${uuid}.json`;
 }
 
@@ -81,35 +81,35 @@ export function getBucketForCategory(category: string): string {
     case 'avatar':
     case 'avatars':
       return BUCKETS.USER_AVATARS;
-    
+
     case 'document':
     case 'documents':
     case 'uploads':
       return BUCKETS.WORKSPACE_UPLOADS;
-    
+
     case 'export':
     case 'exports':
       return BUCKETS.WORKSPACE_EXPORTS;
-    
+
     case 'backup':
     case 'backups':
       return BUCKETS.WORKSPACE_BACKUPS;
-    
+
     case 'asset':
     case 'assets':
       return BUCKETS.WORKSPACE_ASSETS;
-    
+
     case 'log':
     case 'logs':
       return BUCKETS.WORKSPACE_LOGS;
-    
+
     case 'intelligence':
     case 'evidence':
       return BUCKETS.INTELLIGENCE_VAULT;
-    
+
     case 'user-data':
       return BUCKETS.USER_DATA;
-    
+
     default:
       return BUCKETS.WORKSPACE_UPLOADS;
   }
@@ -240,6 +240,6 @@ export function generatePublicUrl(bucket: string, storagePath: string): string {
   if (!supabaseUrl) {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL not configured');
   }
-  
+
   return `${supabaseUrl}/storage/v1/object/public/${bucket}/${storagePath}`;
 }

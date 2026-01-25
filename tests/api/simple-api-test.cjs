@@ -61,13 +61,13 @@ async function testEndpoint(path) {
 
 async function testAllEndpoints() {
   console.log('🔥 Testing API Endpoints...\n');
-  
+
   let successCount = 0;
   let failCount = 0;
 
   for (const endpoint of API_ENDPOINTS) {
     const result = await testEndpoint(endpoint);
-    
+
     if (result.success) {
       console.log(`✅ ${result.path} - ${result.status} ${result.statusText}`);
       successCount++;
@@ -78,7 +78,7 @@ async function testAllEndpoints() {
   }
 
   console.log(`\n📊 Results: ${successCount} working, ${failCount} failed`);
-  
+
   if (failCount === 0) {
     console.log('🎉 ALL API ENDPOINTS WORKING!');
   } else {

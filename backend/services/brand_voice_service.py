@@ -8,8 +8,8 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.services.vertex_ai_service import vertex_ai_service
 from backend.core.supabase_mgr import get_supabase_client
+from backend.services.vertex_ai_service import vertex_ai_service
 
 logger = logging.getLogger(__name__)
 
@@ -64,15 +64,17 @@ OUTPUT JSON format:
                     )
                     profile = json.loads(clean_res)
                     profile["last_updated"] = datetime.now().isoformat()
-                    
+
                     # Store in Supabase
-                    await self.supabase.table("brand_profiles").upsert({
-                        "user_id": user_id,
-                        "workspace_id": workspace_id,
-                        "profile_data": profile,
-                        "updated_at": datetime.utcnow().isoformat()
-                    }).execute()
-                    
+                    await self.supabase.table("brand_profiles").upsert(
+                        {
+                            "user_id": user_id,
+                            "workspace_id": workspace_id,
+                            "profile_data": profile,
+                            "updated_at": datetime.utcnow().isoformat(),
+                        }
+                    ).execute()
+
                     return {"success": True, "profile": profile}
                 except Exception as e:
                     logger.error(f"Failed to store brand profile: {e}")
@@ -87,22 +89,28 @@ OUTPUT JSON format:
             logger.error(f"Voice analysis failed: {e}")
             return {"success": False, "error": str(e)}
 
-    async def get_profile(self, user_id: str, workspace_id: str = "default") -> Optional[Dict[str, Any]]:
+    async def get_profile(
+        self, user_id: str, workspace_id: str = "default"
+    ) -> Optional[Dict[str, Any]]:
         """Get the brand voice profile from Supabase."""
         try:
-            result = await self.supabase.table("brand_profiles")\
-                .select("profile_data")\
-                .eq("user_id", user_id)\
-                .eq("workspace_id", workspace_id)\
-                .single()\
+            result = (
+                await self.supabase.table("brand_profiles")
+                .select("profile_data")
+                .eq("user_id", user_id)
+                .eq("workspace_id", workspace_id)
+                .single()
                 .execute()
-            
+            )
+
             return result.data.get("profile_data") if result.data else None
         except Exception as e:
             logger.warning(f"Failed to fetch brand profile for {user_id}: {e}")
             return None
 
-    async def apply_brand_voice(self, content: str, user_id: str, workspace_id: str = "default") -> str:
+    async def apply_brand_voice(
+        self, content: str, user_id: str, workspace_id: str = "default"
+    ) -> str:
         """Refine content to match the user's brand voice profile via real AI inference."""
         profile = await self.get_profile(user_id, workspace_id)
         if not profile or not vertex_ai_service:

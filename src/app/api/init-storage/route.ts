@@ -121,7 +121,7 @@ export async function POST() {
               sql: `
                 CREATE POLICY "Users can write to ${bucket.name}" ON storage.objects
                   FOR INSERT WITH CHECK (
-                    bucket_id = '${bucket.name}' AND 
+                    bucket_id = '${bucket.name}' AND
                     auth.role() = 'authenticated'
                   );
               `
@@ -131,7 +131,7 @@ export async function POST() {
               sql: `
                 CREATE POLICY "Users can update their own files in ${bucket.name}" ON storage.objects
                   FOR UPDATE USING (
-                    bucket_id = '${bucket.name}' AND 
+                    bucket_id = '${bucket.name}' AND
                     auth.uid()::text = (storage.foldername(name))[1]
                   );
               `
@@ -141,7 +141,7 @@ export async function POST() {
               sql: `
                 CREATE POLICY "Users can delete their own files in ${bucket.name}" ON storage.objects
                   FOR DELETE USING (
-                    bucket_id = '${bucket.name}' AND 
+                    bucket_id = '${bucket.name}' AND
                     auth.uid()::text = (storage.foldername(name))[1]
                   );
               `

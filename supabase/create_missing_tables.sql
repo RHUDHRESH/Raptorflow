@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS public.subscription_events (
 
 -- Insert basic subscription plans if they don't exist
 INSERT INTO public.subscription_plans (slug, name, display_name, description, price_monthly, price_annual, currency, features, limits, sort_order, is_active)
-VALUES 
+VALUES
     ('ascent', 'Ascent', 'Ascent Plan', 'Perfect for small teams getting started', 500000, 5000000, 'INR', '{"campaigns": 3, "team_seats": 1, "moves_per_week": 3}', '{"moves_per_week": "3", "campaigns": "3", "team_seats": "1"}', 1, true),
     ('glide', 'Glide', 'Glide Plan', 'Ideal for growing businesses', 700000, 7000000, 'INR', '{"campaigns": -1, "team_seats": 5, "moves_per_week": -1}', '{"moves_per_week": "-1", "campaigns": "-1", "team_seats": "5"}', 2, true),
     ('soar', 'Soar', 'Soar Plan', 'Enterprise solution for large teams', 1000000, 10000000, 'INR', '{"campaigns": -1, "team_seats": -1, "moves_per_week": -1}', '{"moves_per_week": "-1", "campaigns": "-1", "team_seats": "-1"}', 3, true)
@@ -110,7 +110,7 @@ CREATE POLICY "Users can update their own onboarding" ON public.user_onboarding
 CREATE POLICY "Users can view their own usage limits" ON public.plan_usage_limits
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM public.user_subscriptions 
+            SELECT 1 FROM public.user_subscriptions
             WHERE id = subscription_id AND user_id = auth.uid()
         )
     );
@@ -119,7 +119,7 @@ CREATE POLICY "Users can view their own usage limits" ON public.plan_usage_limit
 CREATE POLICY "Users can view their own subscription events" ON public.subscription_events
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM public.user_subscriptions 
+            SELECT 1 FROM public.user_subscriptions
             WHERE id = subscription_id AND user_id = auth.uid()
         )
     );

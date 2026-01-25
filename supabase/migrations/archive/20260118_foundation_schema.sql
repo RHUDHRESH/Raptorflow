@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.business_context_manifests (
   channels JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  
+
   -- Ensure one manifest per user
   CONSTRAINT unique_user_manifest UNIQUE (user_id)
 );

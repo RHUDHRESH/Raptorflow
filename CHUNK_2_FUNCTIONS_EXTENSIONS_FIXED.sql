@@ -36,7 +36,7 @@ SET search_path = public
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         u.id,
         u.email,
         u.role,

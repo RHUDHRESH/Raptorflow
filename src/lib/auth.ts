@@ -1,9 +1,9 @@
 /**
  * @deprecated This file is deprecated. Use '@/lib/auth-service' instead.
- * 
+ *
  * This file is kept for backward compatibility but all new code should
  * import from auth-service.ts which is the single source of truth.
- * 
+ *
  * Migration guide:
  * - import { clientAuth } from '@/lib/auth-service'
  * - Use clientAuth.getSession(), clientAuth.getCurrentUser(), etc.
@@ -224,7 +224,7 @@ export async function getSession(): Promise<Session | null> {
     }
 
     // expires_at from Supabase is a unix timestamp in seconds
-    const expiresAtMs = session.expires_at 
+    const expiresAtMs = session.expires_at
       ? (typeof session.expires_at === 'number' ? session.expires_at * 1000 : new Date(session.expires_at).getTime())
       : undefined;
 
@@ -246,7 +246,7 @@ export function onAuthStateChange(callback: (event: string, session: Session | n
     if (session) {
       const user = await getCurrentUser();
       // expires_at from Supabase is a unix timestamp in seconds
-      const expiresAtMs = session.expires_at 
+      const expiresAtMs = session.expires_at
         ? (typeof session.expires_at === 'number' ? session.expires_at * 1000 : new Date(session.expires_at).getTime())
         : undefined;
       callback(event, user ? {

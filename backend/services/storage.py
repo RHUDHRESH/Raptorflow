@@ -23,7 +23,7 @@ except ImportError:
     PIL_AVAILABLE = False
     logging.warning("PIL not available - image processing disabled")
 
-from ..infrastructure.supabase_storage import get_supabase_storage, FileCategory
+from ..infrastructure.supabase_storage import FileCategory, get_supabase_storage
 
 # No longer importing from .storage to avoid circular dependency
 # basic_storage_service will be initialized using get_supabase_storage()
@@ -512,6 +512,7 @@ class EnhancedStorageService:
 # Enhanced service instance - lazy initialization
 enhanced_storage_service = None
 
+
 def get_enhanced_storage_service():
     """Get enhanced storage service instance with lazy initialization."""
     global enhanced_storage_service
@@ -519,8 +520,10 @@ def get_enhanced_storage_service():
         enhanced_storage_service = EnhancedStorageService()
     return enhanced_storage_service
 
+
 # Keep backward compatibility
 storage_service = None
+
 
 def get_storage_service():
     """Get storage service instance with lazy initialization."""

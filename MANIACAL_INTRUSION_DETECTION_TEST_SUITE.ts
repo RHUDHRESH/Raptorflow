@@ -36,45 +36,45 @@ class ManiacalIntrusionDetectionTest {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
-  
+
   private results: any[] = []
 
   async execute(): Promise<void> {
     console.log('🔥 MANIACAL LEVEL: Intrusion Detection Overload Test')
     console.log(`🎯 Intrusion Alerts: ${MANIACAL_INTRUSION_CONFIG.INTRUSION_ALERTS}`)
     console.log(`🎯 Concurrent Attacks: ${MANIACAL_INTRUSION_CONFIG.CONCURRENT_ATTACKS}`)
-    
+
     // Phase 1: Intrusion Alert Storm
     await this.intrusionAlertStorm()
-    
+
     // Phase 2: Attack Pattern Simulation
     await this.attackPatternSimulation()
-    
+
     // Phase 3: Anomaly Detection Flood
     await this.anomalyDetectionFlood()
-    
+
     // Phase 4: Incident Response Chaos
     await this.incidentResponseChaos()
-    
+
     this.generateReport()
   }
 
   private async intrusionAlertStorm(): Promise<void> {
     console.log('🌪️ PHASE 1: Intrusion Alert Storm')
-    
+
     const startTime = performance.now()
     const promises = []
-    
+
     // Generate massive intrusion alert storm
     for (let i = 0; i < MANIACAL_INTRUSION_CONFIG.INTRUSION_ALERTS; i++) {
       promises.push(this.generateIntrusionAlert(i))
     }
-    
+
     const results = await Promise.allSettled(promises)
     const endTime = performance.now()
-    
+
     const successCount = results.filter(r => r.status === 'fulfilled').length
-    
+
     this.results.push({
       test: 'Intrusion Alert Storm',
       duration: endTime - startTime,
@@ -91,10 +91,10 @@ class ManiacalIntrusionDetectionTest {
       'unusual_login_pattern', 'suspicious_network_activity',
       'file_integrity_violation', 'policy_violation', 'anomaly_detected'
     ]
-    
+
     const severities = ['critical', 'high', 'medium', 'low']
     const sources = ['waf', 'ids', 'siem', 'edr', 'network_monitor', 'application_log']
-    
+
     const alert = {
       id: `alert_${alertId}`,
       alert_type: alertTypes[alertId % alertTypes.length],
@@ -132,10 +132,10 @@ class ManiacalIntrusionDetectionTest {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
-    
+
     try {
       await this.supabase.from('intrusion_alerts').insert(alert)
-      
+
       // Create corresponding security event
       await this.supabase.from('security_audit_log').insert({
         user_id: alert.user_id || 'anonymous',
@@ -151,7 +151,7 @@ class ManiacalIntrusionDetectionTest {
         },
         created_at: alert.timestamp
       })
-      
+
     } catch (error) {
       throw new Error(`Intrusion alert generation failed: ${error.message}`)
     }
@@ -182,26 +182,26 @@ class ManiacalIntrusionDetectionTest {
   }
 
   private generateHash(): string {
-    return Math.random().toString(36).substring(2, 15) + 
+    return Math.random().toString(36).substring(2, 15) +
            Math.random().toString(36).substring(2, 15)
   }
 
   private async attackPatternSimulation(): Promise<void> {
     console.log('🌪️ PHASE 2: Attack Pattern Simulation')
-    
+
     const startTime = performance.now()
     const promises = []
-    
+
     // Simulate various attack patterns
     for (let i = 0; i < MANIACAL_INTRUSION_CONFIG.ATTACK_PATTERNS; i++) {
       promises.push(this.simulateAttackPattern(i))
     }
-    
+
     const results = await Promise.allSettled(promises)
     const endTime = performance.now()
-    
+
     const successCount = results.filter(r => r.status === 'fulfilled').length
-    
+
     this.results.push({
       test: 'Attack Pattern Simulation',
       duration: endTime - startTime,
@@ -218,9 +218,9 @@ class ManiacalIntrusionDetectionTest {
       'directory_traversal', 'file_inclusion', 'privilege_escalation',
       'data_exfiltration', 'ddos_attack', 'reconnaissance', 'persistence'
     ]
-    
+
     const pattern = attackPatterns[patternId % attackPatterns.length]
-    
+
     const simulation = {
       id: `pattern_${patternId}`,
       pattern_name: pattern,
@@ -247,16 +247,16 @@ class ManiacalIntrusionDetectionTest {
       },
       created_at: new Date().toISOString()
     }
-    
+
     try {
       await this.supabase.from('attack_patterns').insert(simulation)
-      
+
       // Generate corresponding alerts for this pattern
       const alertCount = Math.floor(Math.random() * 5) + 1
       for (let i = 0; i < alertCount; i++) {
         await this.generateIntrusionAlert(patternId * 100 + i)
       }
-      
+
     } catch (error) {
       throw new Error(`Attack pattern simulation failed: ${error.message}`)
     }
@@ -277,20 +277,20 @@ class ManiacalIntrusionDetectionTest {
 
   private async anomalyDetectionFlood(): Promise<void> {
     console.log('🌪️ PHASE 3: Anomaly Detection Flood')
-    
+
     const startTime = performance.now()
     const promises = []
-    
+
     // Create massive anomaly detection events
     for (let i = 0; i < MANIACAL_INTRUSION_CONFIG.ANOMALY_EVENTS; i++) {
       promises.push(this.generateAnomalyEvent(i))
     }
-    
+
     const results = await Promise.allSettled(promises)
     const endTime = performance.now()
-    
+
     const successCount = results.filter(r => r.status === 'fulfilled').length
-    
+
     this.results.push({
       test: 'Anomaly Detection Flood',
       duration: endTime - startTime,
@@ -306,7 +306,7 @@ class ManiacalIntrusionDetectionTest {
       'atypical_network_traffic', 'irregular_user_behavior', 'system_anomaly',
       'performance_anomaly', 'security_anomaly', 'business_anomaly'
     ]
-    
+
     const event = {
       id: `anomaly_${eventId}`,
       anomaly_type: anomalyTypes[eventId % anomalyTypes.length],
@@ -337,10 +337,10 @@ class ManiacalIntrusionDetectionTest {
       false_positive: null,
       created_at: new Date().toISOString()
     }
-    
+
     try {
       await this.supabase.from('anomaly_events').insert(event)
-      
+
       // Create corresponding security event
       await this.supabase.from('security_audit_log').insert({
         user_id: event.user_id,
@@ -355,7 +355,7 @@ class ManiacalIntrusionDetectionTest {
         },
         created_at: event.timestamp
       })
-      
+
     } catch (error) {
       throw new Error(`Anomaly event generation failed: ${error.message}`)
     }
@@ -388,20 +388,20 @@ class ManiacalIntrusionDetectionTest {
 
   private async incidentResponseChaos(): Promise<void> {
     console.log('🌪️ PHASE 4: Incident Response Chaos')
-    
+
     const startTime = performance.now()
     const promises = []
-    
+
     // Create incident response chaos
     for (let i = 0; i < MANIACAL_INTRUSION_CONFIG.INCIDENT_RESPONSE_SIMULATIONS; i++) {
       promises.push(this.simulateIncidentResponse(i))
     }
-    
+
     const results = await Promise.allSettled(promises)
     const endTime = performance.now()
-    
+
     const successCount = results.filter(r => r.status === 'fulfilled').length
-    
+
     this.results.push({
       test: 'Incident Response Chaos',
       duration: endTime - startTime,
@@ -416,7 +416,7 @@ class ManiacalIntrusionDetectionTest {
       'security_breach', 'data_leak', 'malware_outbreak', 'ddos_attack',
       'insider_threat', 'phishing_campaign', 'system_compromise', 'fraud_detection'
     ]
-    
+
     const incident = {
       id: `incident_${incidentId}`,
       incident_type: incidentTypes[incidentId % incidentTypes.length],
@@ -452,21 +452,21 @@ class ManiacalIntrusionDetectionTest {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
-    
+
     try {
       await this.supabase.from('security_incidents').insert(incident)
-      
+
       // Generate related alerts and anomalies
       const alertCount = Math.floor(Math.random() * 10) + 5
       for (let i = 0; i < alertCount; i++) {
         await this.generateIntrusionAlert(incidentId * 1000 + i)
       }
-      
+
       const anomalyCount = Math.floor(Math.random() * 20) + 10
       for (let i = 0; i < anomalyCount; i++) {
         await this.generateAnomalyEvent(incidentId * 10000 + i)
       }
-      
+
     } catch (error) {
       throw new Error(`Incident response simulation failed: ${error.message}`)
     }
@@ -485,7 +485,7 @@ class ManiacalIntrusionDetectionTest {
   private generateReport(): void {
     console.log('\n📊 MANIACAL INTRUSION DETECTION TEST REPORT')
     console.log('=' .repeat(60))
-    
+
     this.results.forEach(result => {
       console.log(`\n🔥 ${result.test}:`)
       console.log(`   Duration: ${result.duration?.toFixed(2)}ms`)
@@ -503,7 +503,7 @@ class ManiacalIntrusionDetectionTest {
         console.log(`   Incident Rate: ${result.simulationRate.toFixed(2)} incidents/sec`)
       }
     })
-    
+
     console.log('\n🎯 MANIACAL INTRUSION DETECTION VERDICT:')
     this.evaluateIntrusionResults()
   }
@@ -513,30 +513,30 @@ class ManiacalIntrusionDetectionTest {
     const patternResult = this.results.find(r => r.test === 'Attack Pattern Simulation')
     const anomalyResult = this.results.find(r => r.test === 'Anomaly Detection Flood')
     const incidentResult = this.results.find(r => r.test === 'Incident Response Chaos')
-    
+
     let verdict = 'INTRUSION DETECTION SURVIVED MANIACAL TESTING! 🛡️\n'
-    
+
     if (alertResult?.successRate < 95) {
       verdict += '⚠️  Intrusion alert system struggling\n'
     }
-    
+
     if (patternResult?.successRate < 90) {
       verdict += '⚠️  Attack pattern simulation showing weakness\n'
     }
-    
+
     if (anomalyResult?.successRate < 85) {
       verdict += '⚠️  Anomaly detection system overloaded\n'
     }
-    
+
     if (incidentResult?.successRate < 80) {
       verdict += '⚠️  Incident response system performance issues\n'
     }
-    
+
     if (verdict === 'INTRUSION DETECTION SURVIVED MANIACAL TESTING! 🛡️\n') {
       verdict += '✅ Intrusion detection robust under extreme load!\n'
       verdict += '🚀 Security monitoring enterprise-ready!\n'
     }
-    
+
     console.log(verdict)
   }
 }
@@ -552,16 +552,16 @@ class ManiacalIntrusionTestExecutor {
     console.log('⚠️  WARNING: This is extreme intrusion testing. Do not run in production!')
     console.log('🎯 Objective: Break detection or prove it\'s unbreakable')
     console.log('=' .repeat(80))
-    
+
     const test = new ManiacalIntrusionDetectionTest()
-    
+
     try {
       await test.execute()
       console.log('\n✅ Intrusion detection test completed successfully\n')
     } catch (error) {
       console.log('\n❌ Intrusion detection test failed:', error.message)
     }
-    
+
     console.log('─'.repeat(80))
     console.log('\n🎉 MANIACAL INTRUSION DETECTION TEST COMPLETED!')
     console.log('🏆 Intrusion detection system has survived extreme testing')

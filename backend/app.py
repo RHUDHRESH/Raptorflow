@@ -8,35 +8,35 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request, HTTPException
+from config_clean import get_settings
+from database import close_database, init_database
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-
-from config_clean import get_settings
-from database import init_database, close_database
 from redis_client import redis_manager
 
 # Import routers in a clean way
 from backend.api.v1.minimal_routers import (
-    health,
-    auth,
-    users,
-    campaigns,
-    moves,
-    blackbox,
     analytics,
+    auth,
+    blackbox,
+    campaigns,
+    health,
+    moves,
     ocr,
+    users,
 )
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifecycle management"""
     # Startup
     logger.info("Starting Raptorflow Backend...")
-    
+
     # Initialize database
     try:
         await init_database()
@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         raise
-    
+
     # Initialize Redis
     try:
         await redis_manager.connect()
@@ -52,19 +52,20 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to connect to Redis: {e}")
         # Don't fail startup for Redis issues
-    
+
     logger.info("Backend startup complete")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down Raptorflow Backend...")
-    
+
     # Close connections
     await close_database()
     await redis_manager.disconnect()
-    
+
     logger.info("Backend shutdown complete")
+
 
 # Create FastAPI application
 app = FastAPI(
@@ -85,6 +86,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -94,12 +96,14 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal server error"},
     )
 
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
     )
+
 
 # Health check endpoint
 @app.get("/health")
@@ -110,6 +114,7 @@ async def health_check():
         "environment": settings.environment,
         "version": "1.0.0",
     }
+
 
 # Include API routers
 app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
@@ -123,7 +128,7 @@ app.include_router(ocr.router, prefix="/api/v1/ocr", tags=["ocr"])
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "app:app",
         host="0.0.0.0",

@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.subscription_plans (
     sort_order INTEGER NOT NULL, -- For display ordering
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     CONSTRAINT valid_plan_name CHECK (name IN ('Ascent', 'Glide', 'Soar')),
     CONSTRAINT positive_price CHECK (price_monthly > 0 AND price_annual > 0)
 );
@@ -41,7 +41,7 @@ INSERT INTO public.subscription_plans (
     limits,
     is_active,
     sort_order
-) VALUES 
+) VALUES
 (
     'Ascent',
     'ascent',

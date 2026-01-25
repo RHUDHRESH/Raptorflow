@@ -10,17 +10,17 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 
 async function quickCheck() {
   console.log('⚡ Quick Supabase Status Check\n');
-  
+
   const tables = ['profiles', 'workspaces', 'subscriptions', 'payments', 'email_logs'];
   const results = {};
-  
+
   for (const table of tables) {
     try {
       const { data, error } = await supabase
         .from(table)
         .select('count')
         .limit(1);
-      
+
       if (error && error.code === 'PGRST116') {
         results[table] = '❌ NOT FOUND';
       } else if (error) {
@@ -32,23 +32,23 @@ async function quickCheck() {
       results[table] = `❌ FAILED: ${err.message}`;
     }
   }
-  
+
   console.log('📋 Table Status:');
   Object.entries(results).forEach(([table, status]) => {
     console.log(`  ${status} ${table}`);
   });
-  
+
   const existing = Object.values(results).filter(s => s.includes('✅')).length;
   const missing = Object.values(results).filter(s => s.includes('❌')).length;
-  
+
   console.log(`\n📊 Summary: ${existing}/5 tables exist, ${missing}/5 missing`);
-  
+
   if (missing > 0) {
     console.log('\n🔧 Next: Execute SQL from MANUAL_DEPLOYMENT_STEPS.md');
   } else {
     console.log('\n🎉 All tables exist! Test authentication flow.');
   }
-  
+
   // Test the critical workspace query
   console.log('\n🧪 Testing workspace query...');
   try {
@@ -57,7 +57,7 @@ async function quickCheck() {
       .select('id, owner_id')
       .eq('owner_id', '00000000-0000-0000-0000-000000000000')
       .limit(1);
-    
+
     if (error && error.message.includes('user_id')) {
       console.log('❌ Workspace query still has user_id reference');
     } else {

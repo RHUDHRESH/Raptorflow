@@ -8,7 +8,7 @@ Endpoint: http://localhost:3000/api/plans
 Status: ✅ 200 OK
 Response: 3 plans found
 - Ascent: ₹500/month
-- Glide: ₹700/month  
+- Glide: ₹700/month
 - Soar: ₹1000/month
 ```
 
@@ -41,7 +41,7 @@ Direct OAuth URLs
 ### **5. Environment Configuration - FULLY WORKING**
 ```
 ✅ NEXT_PUBLIC_SUPABASE_URL: Found
-✅ NEXT_PUBLIC_MOCK_GOOGLE_LOGIN: Disabled  
+✅ NEXT_PUBLIC_MOCK_GOOGLE_LOGIN: Disabled
 ✅ GOOGLE_CLIENT_ID: Found
 ✅ Database: Connected with 3 plans
 ```
@@ -165,10 +165,10 @@ curl -X POST http://localhost:3000/api/onboarding/select-plan \
 
 The authentication system is **fully functional** except for the login page file system issue. All core components are working:
 
-✅ **Real OAuth Flow**: Ready for testing  
-✅ **Database Integration**: Working  
-✅ **Plans API**: Working with correct pricing  
-✅ **User Profile Creation**: Configured  
-✅ **Environment**: Clean and configured  
+✅ **Real OAuth Flow**: Ready for testing
+✅ **Database Integration**: Working
+✅ **Plans API**: Working with correct pricing
+✅ **User Profile Creation**: Configured
+✅ **Environment**: Clean and configured
 
 **Use `/signin` instead of `/login` for testing the complete OAuth flow!**

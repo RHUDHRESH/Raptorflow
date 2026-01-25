@@ -33,7 +33,7 @@ export default function VerifyEmailPage() {
 
       try {
         const email = searchParams.get('email')
-        
+
         if (!email) {
           setStatus('error')
           setError('Email address is required for verification')
@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
         } else {
           setStatus('success')
           setMessage('Email verified successfully! Redirecting to login...')
-          
+
           // Update user's email verification status
           const { data } = await supabase.auth.getSession()
           const session = data?.session

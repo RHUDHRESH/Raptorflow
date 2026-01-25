@@ -76,13 +76,17 @@ class StorageConfig:
             enable_lifecycle=os.getenv("SUPABASE_STORAGE_LIFECYCLE", "true").lower()
             == "true",
             retention_days=int(os.getenv("SUPABASE_STORAGE_RETENTION_DAYS", "30")),
-            chunk_size=int(os.getenv("SUPABASE_STORAGE_CHUNK_SIZE", str(8 * 1024 * 1024))),
+            chunk_size=int(
+                os.getenv("SUPABASE_STORAGE_CHUNK_SIZE", str(8 * 1024 * 1024))
+            ),
             max_file_size=int(
                 os.getenv("SUPABASE_STORAGE_MAX_FILE_SIZE", str(5 * 1024 * 1024 * 1024))
             ),
             upload_timeout=int(os.getenv("SUPABASE_STORAGE_UPLOAD_TIMEOUT", "300")),
             download_timeout=int(os.getenv("SUPABASE_STORAGE_DOWNLOAD_TIMEOUT", "300")),
-            require_authentication=os.getenv("SUPABASE_STORAGE_REQUIRE_AUTH", "true").lower()
+            require_authentication=os.getenv(
+                "SUPABASE_STORAGE_REQUIRE_AUTH", "true"
+            ).lower()
             == "true",
         )
 
@@ -114,6 +118,7 @@ class FileMetadata:
 
 
 # Result classes
+
 
 @dataclass
 class UploadResult:

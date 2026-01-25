@@ -3,24 +3,24 @@
 -- =================================================================
 
 -- Get all tables in public schema
-SELECT 
+SELECT
     table_name,
     table_type
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+FROM information_schema.tables
+WHERE table_schema = 'public'
 ORDER BY table_name;
 
 -- Get RLS status on all tables
-SELECT 
+SELECT
     schemaname,
     tablename,
     rowsecurity
-FROM pg_tables 
+FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY tablename;
 
 -- Get all existing RLS policies
-SELECT 
+SELECT
     schemaname,
     tablename,
     policyname,
@@ -28,17 +28,17 @@ SELECT
     roles,
     cmd,
     qual
-FROM pg_policies 
+FROM pg_policies
 WHERE schemaname = 'public'
 ORDER BY tablename, policyname;
 
 -- Get key columns for critical tables (sample)
-SELECT 
+SELECT
     table_name,
     column_name,
     data_type,
     is_nullable
-FROM information_schema.columns 
-WHERE table_schema = 'public' 
+FROM information_schema.columns
+WHERE table_schema = 'public'
     AND table_name IN ('plans', 'audit_logs', 'admin_actions', 'security_events', 'profiles', 'workspaces', 'users')
 ORDER BY table_name, ordinal_position;

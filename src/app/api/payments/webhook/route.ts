@@ -159,7 +159,7 @@ async function handlePaymentSuccess(webhookData: any, supabaseClient: any) {
         if (!existingPayment?.welcome_email_sent_at) {
           console.log(`Sending welcome email to: ${userEmail}`)
           const welcomeResult = await sendWelcomeEmail(userEmail, userName)
-          
+
           if (welcomeResult.success) {
             await supabaseClient
               .from('payments')
@@ -182,7 +182,7 @@ async function handlePaymentSuccess(webhookData: any, supabaseClient: any) {
             transactionId: merchantTransactionId,
             date: date
           })
-          
+
           if (invoiceResult.success) {
             await supabaseClient
               .from('payments')

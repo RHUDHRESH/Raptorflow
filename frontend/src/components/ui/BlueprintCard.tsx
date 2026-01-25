@@ -8,9 +8,9 @@ interface BlueprintCardProps {
   padding?: 'sm' | 'md' | 'lg';
 }
 
-export function BlueprintCard({ 
-  children, 
-  className, 
+export function BlueprintCard({
+  children,
+  className,
   showCorners = false,
   padding = 'md'
 }: BlueprintCardProps) {

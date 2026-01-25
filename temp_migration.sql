@@ -44,8 +44,8 @@ CREATE INDEX IF NOT EXISTS idx_payments_user_id ON public.payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_email_logs_user_id ON public.email_logs(user_id);
 
 -- Verification query
-SELECT table_name, table_type 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN ('profiles', 'workspaces', 'subscriptions', 'payments', 'email_logs')
 ORDER BY table_name;

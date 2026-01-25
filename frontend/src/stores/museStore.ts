@@ -29,7 +29,7 @@ interface MuseStore {
   isLoading: boolean;
   isGenerating: boolean;
   error: string | null;
-  
+
   // Actions
   setAssets: (assets: Asset[]) => void;
   setCurrentChat: (chat: MuseChatMessage[]) => void;
@@ -73,15 +73,15 @@ const museApi = {
       },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to generate content');
     }
-    
+
     const result = await response.json();
     return result.asset;
   },
-  
+
   async chatWithMuse(data: {
     message: string;
     platform?: string;
@@ -97,15 +97,15 @@ const museApi = {
       },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to chat with Muse');
     }
-    
+
     const result = await response.json();
     return result.message;
   },
-  
+
   async saveAsset(asset: Omit<Asset, 'id' | 'created_at'>): Promise<Asset> {
     const response = await fetch('/api/proxy/api/v1/muse/assets', {
       method: 'POST',
@@ -114,14 +114,14 @@ const museApi = {
       },
       body: JSON.stringify(asset),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to save asset');
     }
-    
+
     return response.json();
   },
-  
+
   async fetchAssets(workspace_id: string, user_id: string): Promise<Asset[]> {
     const response = await fetch(`/api/proxy/api/v1/muse/assets?workspace_id=${workspace_id}&user_id=${user_id}`, {
       method: 'GET',
@@ -129,11 +129,11 @@ const museApi = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch assets');
     }
-    
+
     const data = await response.json();
     return data.assets || [];
   }
@@ -152,7 +152,7 @@ export const useMuseStore = create<MuseStore>((set, get) => ({
       acc[asset.id] = asset;
       return acc;
     }, {} as Record<string, Asset>);
-    
+
     set({ assets: assetsMap });
   },
 
@@ -191,16 +191,16 @@ export const useMuseStore = create<MuseStore>((set, get) => ({
         tone: data.tone,
         created_at: new Date().toISOString()
       };
-      
+
       const newChat = [...get().currentChat, userMessage];
       set({ currentChat: newChat });
-      
+
       // Get AI response
       const assistantMessage = await museApi.chatWithMuse(data);
-      
+
       const updatedChat = [...newChat, assistantMessage];
       set({ currentChat: updatedChat });
-      
+
       return assistantMessage;
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Unknown error' });

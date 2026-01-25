@@ -8,7 +8,7 @@ export class FoundationService {
    */
   async getFoundation(workspaceId: string): Promise<Foundation | null> {
     const supabase = await createClient();
-    
+
     const { data, error } = await supabase
       .from('foundations')
       .select('*')
@@ -30,7 +30,7 @@ export class FoundationService {
     FoundationDomain.validate(data);
 
     const supabase = await createClient();
-    
+
     const { data: updated, error } = await supabase
       .from('foundations')
       .update({

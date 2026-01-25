@@ -23,39 +23,39 @@ SELECT pg_reload_conf();
 
 -- Create view for slow query analysis
 CREATE OR REPLACE VIEW slow_queries AS
-SELECT 
+SELECT
     query,
     calls,
     total_exec_time,
     mean_exec_time,
     rows,
     100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) AS hit_percent
-FROM pg_stat_statements 
+FROM pg_stat_statements
 WHERE mean_exec_time > 1.0  -- Queries slower than 1 second
 ORDER BY mean_exec_time DESC;
 
 -- Create view for high-frequency queries
 CREATE OR REPLACE VIEW frequent_queries AS
-SELECT 
+SELECT
     query,
     calls,
     total_exec_time,
     mean_exec_time,
     rows
-FROM pg_stat_statements 
+FROM pg_stat_statements
 WHERE calls > 100  -- Queries called more than 100 times
 ORDER BY calls DESC;
 
 -- Create view for missing indexes analysis
 CREATE OR REPLACE VIEW missing_indexes AS
-SELECT 
+SELECT
     schemaname,
     tablename,
     attname,
     n_distinct,
     correlation
-FROM pg_stats 
-WHERE schemaname = 'public' 
+FROM pg_stats
+WHERE schemaname = 'public'
   AND n_distinct > 10  -- Columns with many distinct values
   AND correlation < 0.9  -- Poor correlation indicates need for index
 ORDER BY n_distinct DESC;
@@ -76,7 +76,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         COUNT(*) as total_queries,
         COUNT(*) FILTER (WHERE mean_exec_time > 1.0) as slow_queries,
         AVG(mean_exec_time) as avg_query_time,
@@ -96,38 +96,38 @@ RETURNS TABLE(
 BEGIN
     RETURN QUERY
     -- Check for missing indexes
-    SELECT 
+    SELECT
         'MISSING_INDEX' as pattern_type,
         'Consider adding index on ' || schemaname || '.' || tablename || '(' || attname || ')' as recommendation,
-        CASE 
+        CASE
             WHEN n_distinct > 1000 THEN 'HIGH'
             WHEN n_distinct > 100 THEN 'MEDIUM'
             ELSE 'LOW'
         END as priority
     FROM missing_indexes
     LIMIT 5
-    
+
     UNION ALL
-    
+
     -- Check for slow queries
-    SELECT 
+    SELECT
         'SLOW_QUERY' as pattern_type,
         'Optimize query: ' || LEFT(query, 100) || '...' as recommendation,
-        CASE 
+        CASE
             WHEN mean_exec_time > 5.0 THEN 'HIGH'
             WHEN mean_exec_time > 2.0 THEN 'MEDIUM'
             ELSE 'LOW'
         END as priority
     FROM slow_queries
     LIMIT 5
-    
+
     UNION ALL
-    
+
     -- Check for high-frequency queries
-    SELECT 
+    SELECT
         'HIGH_FREQUENCY' as pattern_type,
         'Consider caching: ' || LEFT(query, 100) || '...' as recommendation,
-        CASE 
+        CASE
             WHEN calls > 1000 THEN 'HIGH'
             WHEN calls > 500 THEN 'MEDIUM'
             ELSE 'LOW'
@@ -143,7 +143,7 @@ RETURNS void AS $$
 BEGIN
     -- Reset pg_stat_statements if it gets too large
     SELECT pg_stat_statements_reset();
-    
+
     -- Log the cleanup
     INSERT INTO audit_logs (
         actor_id,

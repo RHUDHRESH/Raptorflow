@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.workspace_members (
   accepted_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(user_id, workspace_id)
 );
 
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.resource_permissions (
   expires_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(workspace_id, user_id, resource_type, resource_id)
 );
 
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS public.workspace_settings (
   updated_by UUID NOT NULL REFERENCES auth.users(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(workspace_id, setting_key)
 );
 
@@ -344,7 +344,7 @@ BEGIN
     ) THEN
         RETURN TRUE;
     END IF;
-    
+
     -- Check explicit permissions
     RETURN EXISTS (
         SELECT 1 FROM public.workspace_members
@@ -363,7 +363,7 @@ BEGIN
     IF has_workspace_permission(workspace_uuid, user_uuid, 'resources.all') THEN
         RETURN TRUE;
     END IF;
-    
+
     -- Check specific resource permissions
     RETURN EXISTS (
         SELECT 1 FROM public.resource_permissions

@@ -28,7 +28,7 @@ interface ToolsStore {
   overallHealth: string;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setTools: (tools: Tool[]) => void;
   setServicesStatus: (status: ServicesStatusResponse) => void;
@@ -42,22 +42,22 @@ interface ToolsStore {
 const toolsApi = {
   async fetchAvailableTools(): Promise<Tool[]> {
     const response = await authFetch('/api/proxy/api/v1/tools/available');
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch available tools');
     }
-    
+
     const data = await response.json();
     return data.tools;
   },
-  
+
   async fetchServicesStatus(): Promise<ServicesStatusResponse> {
     const response = await authFetch('/api/proxy/api/v1/services/status');
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch services status');
     }
-    
+
     const data = await response.json();
     return {
       services: data.services,
@@ -78,12 +78,12 @@ export const useToolsStore = create<ToolsStore>((set, get) => ({
       acc[tool.id] = tool;
       return acc;
     }, {} as Record<string, Tool>);
-    
+
     set({ tools: toolsMap });
   },
 
   setServicesStatus: (status) => {
-    set({ 
+    set({
       servicesStatus: status.services,
       overallHealth: status.overall_health
     });

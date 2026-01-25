@@ -1,6 +1,6 @@
 -- IP-Based Access Controls System
 -- Migration: 20240115_ip_access_controls.sql
--- 
+--
 -- This migration implements comprehensive IP-based access controls
 -- with whitelisting, blacklisting, geolocation, and rate limiting
 
@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- IP access policies
 CREATE TABLE IF NOT EXISTS ip_access_policies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Policy identification
     name TEXT NOT NULL,
     description TEXT,
@@ -19,53 +19,53 @@ CREATE TABLE IF NOT EXISTS ip_access_policies (
         policy_type IN ('whitelist', 'blacklist', 'geofence', 'rate_limit')
     ),
     priority INTEGER NOT NULL DEFAULT 100, -- Lower number = higher priority
-    
+
     -- Target configuration
     target_type TEXT NOT NULL CHECK (
         target_type IN ('global', 'user', 'role', 'workspace', 'client')
     ),
     target_id UUID, -- References users.id, workspaces.id, etc.
     target_role TEXT, -- For role-based targeting
-    
+
     -- IP configuration
     ip_ranges INET[] NOT NULL DEFAULT '{}',
     ip_networks CIDR[] NOT NULL DEFAULT '{}',
     ip_countries TEXT[] NOT NULL DEFAULT '{}', -- ISO country codes
-    
+
     -- Policy rules
     action TEXT NOT NULL CHECK (
         action IN ('allow', 'deny', 'challenge', 'rate_limit')
     ),
-    
+
     -- Rate limiting (for rate_limit policies)
     requests_per_minute INTEGER DEFAULT 60,
     requests_per_hour INTEGER DEFAULT 1000,
     requests_per_day INTEGER DEFAULT 10000,
-    
+
     -- Geofencing (for geofence policies)
     allowed_countries TEXT[] DEFAULT '{}',
     blocked_countries TEXT[] DEFAULT '{}',
     allow_unknown_countries BOOLEAN DEFAULT TRUE,
-    
+
     -- Time-based rules
     time_restrictions JSONB DEFAULT '{}', -- Complex time-based rules
-    
+
     -- Status
     is_active BOOLEAN DEFAULT TRUE,
     is_system BOOLEAN DEFAULT FALSE, -- System policies cannot be deleted
-    
+
     -- Metadata
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(name, target_type, COALESCE(target_id, '00000000-0000-0000-0000-000000000000'))
 );
 
 -- IP access logs
 CREATE TABLE IF NOT EXISTS ip_access_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Request information
     ip_address INET NOT NULL,
     user_id UUID REFERENCES users(id),
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS ip_access_logs (
     request_path TEXT,
     request_method TEXT,
     user_agent TEXT,
-    
+
     -- Geolocation data
     country_code TEXT,
     country_name TEXT,
@@ -83,22 +83,22 @@ CREATE TABLE IF NOT EXISTS ip_access_logs (
     longitude DECIMAL(11, 8),
     asn INTEGER,
     organization TEXT,
-    
+
     -- Policy evaluation
     policy_id UUID REFERENCES ip_access_policies(id),
     policy_action TEXT,
     policy_name TEXT,
-    
+
     -- Result
     access_granted BOOLEAN NOT NULL,
     denial_reason TEXT,
     challenge_required BOOLEAN DEFAULT FALSE,
     challenge_type TEXT,
-    
+
     -- Timing
     request_time TIMESTAMPTZ DEFAULT NOW(),
     response_time_ms INTEGER,
-    
+
     -- Additional metadata
     metadata JSONB DEFAULT '{}'
 );
@@ -106,33 +106,33 @@ CREATE TABLE IF NOT EXISTS ip_access_logs (
 -- IP reputation database
 CREATE TABLE IF NOT EXISTS ip_reputation (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- IP identification
     ip_address INET UNIQUE NOT NULL,
     ip_range CIDR,
-    
+
     -- Reputation scores
     reputation_score DECIMAL(3,2) DEFAULT 0.5 CHECK (reputation_score >= 0 AND reputation_score <= 1),
     risk_level TEXT CHECK (
         risk_level IN ('low', 'medium', 'high', 'critical')
     ),
-    
+
     -- Classification
     ip_type TEXT CHECK (
         ip_type IN ('residential', 'business', 'datacenter', 'mobile', 'vpn', 'proxy', 'tor', 'malicious')
     ),
-    
+
     -- Geographic info
     country_code TEXT,
     country_name TEXT,
     city TEXT,
     region TEXT,
-    
+
     -- ISP info
     asn INTEGER,
     organization TEXT,
     isp TEXT,
-    
+
     -- Threat intelligence
     is_known_attacker BOOLEAN DEFAULT FALSE,
     is_known_scanner BOOLEAN DEFAULT FALSE,
@@ -140,16 +140,16 @@ CREATE TABLE IF NOT EXISTS ip_reputation (
     is_vpn BOOLEAN DEFAULT FALSE,
     is_proxy BOOLEAN DEFAULT FALSE,
     is_datacenter BOOLEAN DEFAULT FALSE,
-    
+
     -- Activity tracking
     first_seen TIMESTAMPTZ DEFAULT NOW(),
     last_seen TIMESTAMPTZ DEFAULT NOW(),
     request_count INTEGER DEFAULT 0,
     blocked_requests INTEGER DEFAULT 0,
-    
+
     -- Reputation factors
     factors JSONB DEFAULT '{}', -- Factors affecting reputation
-    
+
     -- Metadata
     source TEXT, -- Source of reputation data
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -159,46 +159,46 @@ CREATE TABLE IF NOT EXISTS ip_reputation (
 -- IP rate limiting
 CREATE TABLE IF NOT EXISTS ip_rate_limits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Identification
     ip_address INET NOT NULL,
     user_id UUID REFERENCES users(id),
     session_id TEXT,
-    
+
     -- Rate limit configuration
     window_type TEXT NOT NULL CHECK (
         window_type IN ('minute', 'hour', 'day')
     ),
     window_start TIMESTAMPTZ NOT NULL,
     window_end TIMESTAMPTZ NOT NULL,
-    
+
     -- Counters
     request_count INTEGER DEFAULT 0,
     blocked_count INTEGER DEFAULT 0,
-    
+
     -- Limits
     max_requests INTEGER NOT NULL,
     max_blocked INTEGER DEFAULT 0,
-    
+
     -- Status
     is_active BOOLEAN DEFAULT TRUE,
     is_blocked BOOLEAN DEFAULT FALSE,
     blocked_until TIMESTAMPTZ,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(ip_address, window_type, window_start)
 );
 
 -- IP geolocation cache
 CREATE TABLE IF NOT EXISTS ip_geolocation_cache (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- IP identification
     ip_address INET UNIQUE NOT NULL,
     ip_range CIDR,
-    
+
     -- Geolocation data
     country_code TEXT,
     country_name TEXT,
@@ -206,54 +206,54 @@ CREATE TABLE IF NOT EXISTS ip_geolocation_cache (
     region TEXT,
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
-    
+
     -- Network info
     asn INTEGER,
     organization TEXT,
     isp TEXT,
-    
+
     -- Cache management
     cached_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '7 days'),
     source TEXT, -- Source of geolocation data
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- IP access challenges
 CREATE TABLE IF NOT EXISTS ip_access_challenges (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Challenge identification
     challenge_id TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
     ip_address INET NOT NULL,
     user_id UUID REFERENCES users(id),
     session_id TEXT,
-    
+
     -- Challenge details
     challenge_type TEXT NOT NULL CHECK (
         challenge_type IN ('captcha', 'email', 'sms', 'mfa', 'device_verification')
     ),
     challenge_data JSONB DEFAULT '{}',
-    
+
     -- Status
     status TEXT NOT NULL DEFAULT 'pending' CHECK (
         status IN ('pending', 'passed', 'failed', 'expired')
     ),
-    
+
     -- Timing
     created_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '15 minutes'),
     completed_at TIMESTAMPTZ,
-    
+
     -- Attempts
     attempts INTEGER DEFAULT 0,
     max_attempts INTEGER DEFAULT 3,
-    
+
     -- Context
     request_path TEXT,
     user_agent TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -289,16 +289,16 @@ CREATE INDEX idx_ip_access_challenges_status ON ip_access_challenges(status);
 CREATE INDEX idx_ip_access_challenges_expires_at ON ip_access_challenges(expires_at);
 
 -- Create triggers for updated_at
-CREATE TRIGGER update_ip_access_policies_updated_at 
-    BEFORE UPDATE ON ip_access_policies 
+CREATE TRIGGER update_ip_access_policies_updated_at
+    BEFORE UPDATE ON ip_access_policies
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_ip_reputation_updated_at 
-    BEFORE UPDATE ON ip_reputation 
+CREATE TRIGGER update_ip_reputation_updated_at
+    BEFORE UPDATE ON ip_reputation
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_ip_rate_limits_updated_at 
-    BEFORE UPDATE ON ip_rate_limits 
+CREATE TRIGGER update_ip_rate_limits_updated_at
+    BEFORE UPDATE ON ip_rate_limits
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Function to evaluate IP access
@@ -340,7 +340,7 @@ BEGIN
     WHERE ip_address = p_ip_address
     ORDER BY last_seen DESC
     LIMIT 1;
-    
+
     IF NOT FOUND THEN
         -- Create default reputation record
         INSERT INTO ip_reputation (
@@ -357,14 +357,14 @@ BEGIN
             jsonb_build_object('new_ip', TRUE)
         ) RETURNING * INTO ip_rep;
     END IF;
-    
+
     -- Get geolocation data
     SELECT * INTO geo_record
     FROM ip_geolocation_cache
     WHERE ip_address = p_ip_address
     AND expires_at > current_time
     LIMIT 1;
-    
+
     -- Get applicable policies (ordered by priority)
     SELECT * INTO applicable_policies
     FROM ip_access_policies
@@ -376,7 +376,7 @@ BEGIN
     )
     ORDER BY priority ASC
     LIMIT 1;
-    
+
     -- Evaluate policies
     IF applicable_policies IS NOT NULL THEN
         CASE applicable_policies.policy_type
@@ -391,7 +391,7 @@ BEGIN
                     action_val := 'deny';
                     denial_reason_val := 'IP not in whitelist';
                 END IF;
-                
+
             WHEN 'blacklist' THEN
                 -- Check if IP is in blacklist
                 IF (
@@ -403,7 +403,7 @@ BEGIN
                     action_val := 'deny';
                     denial_reason_val := 'IP in blacklist';
                 END IF;
-                
+
             WHEN 'geofence' THEN
                 -- Check geofencing rules
                 IF geo_record IS NOT NULL THEN
@@ -425,17 +425,17 @@ BEGIN
                         END IF;
                     END IF;
                 END IF;
-                
+
             WHEN 'rate_limit' THEN
                 -- Check rate limiting
                 -- TODO: Implement rate limiting logic
                 NULL;
         END CASE;
-        
+
         policy_id_val := applicable_policies.id;
         policy_name_val := applicable_policies.name;
     END IF;
-    
+
     -- Check IP reputation
     IF ip_rep.risk_level = 'critical' OR ip_rep.is_known_attacker THEN
         access_granted_val := FALSE;
@@ -447,8 +447,8 @@ BEGIN
         challenge_required_val := TRUE;
         challenge_type_val := 'mfa';
     END IF;
-    
-    RETURN QUERY SELECT 
+
+    RETURN QUERY SELECT
         access_granted_val,
         action_val,
         policy_id_val,
@@ -487,7 +487,7 @@ BEGIN
     WHERE ip_address = p_ip_address
     AND expires_at > NOW()
     LIMIT 1;
-    
+
     -- Evaluate access policy
     SELECT * INTO policy_eval
     FROM evaluate_ip_access(
@@ -498,7 +498,7 @@ BEGIN
         p_session_id
     )
     LIMIT 1;
-    
+
     -- Insert access log
     INSERT INTO ip_access_logs (
         ip_address,
@@ -551,15 +551,15 @@ BEGIN
         p_response_time_ms,
         p_metadata
     ) RETURNING id INTO log_id;
-    
+
     -- Update IP reputation
     UPDATE ip_reputation
-    SET 
+    SET
         request_count = request_count + 1,
         blocked_requests = blocked_requests + CASE WHEN NOT p_access_granted THEN 1 ELSE 0 END,
         last_seen = NOW()
     WHERE ip_address = p_ip_address;
-    
+
     RETURN log_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -593,7 +593,7 @@ BEGIN
         ip_type = EXCLUDED.ip_type,
         factors = EXCLUDED.factors,
         updated_at = NOW();
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -622,7 +622,7 @@ BEGIN
         p_session_id,
         p_request_path
     ) RETURNING challenge_id INTO challenge_id;
-    
+
     RETURN challenge_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -641,11 +641,11 @@ BEGIN
     WHERE challenge_id = p_challenge_id
     AND status = 'pending'
     AND expires_at > NOW();
-    
+
     IF NOT FOUND THEN
         RETURN FALSE;
     END IF;
-    
+
     -- Check attempts
     IF challenge_record.attempts >= challenge_record.max_attempts THEN
         UPDATE ip_access_challenges
@@ -653,20 +653,20 @@ BEGIN
         WHERE id = challenge_record.id;
         RETURN FALSE;
     END IF;
-    
+
     -- Increment attempts
     UPDATE ip_access_challenges
-    SET 
+    SET
         attempts = attempts + 1,
         completed_at = NOW()
     WHERE id = challenge_record.id;
-    
+
     -- TODO: Implement actual challenge verification
     -- For now, accept any response for demo purposes
     UPDATE ip_access_challenges
     SET status = 'passed'
     WHERE id = challenge_record.id;
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -683,8 +683,8 @@ ALTER TABLE ip_access_challenges ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admins can manage IP access policies" ON ip_access_policies
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -693,8 +693,8 @@ CREATE POLICY "Admins can manage IP access policies" ON ip_access_policies
 CREATE POLICY "Admins can view IP access logs" ON ip_access_logs
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -703,8 +703,8 @@ CREATE POLICY "Admins can view IP access logs" ON ip_access_logs
 CREATE POLICY "Admins can manage IP reputation" ON ip_reputation
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );

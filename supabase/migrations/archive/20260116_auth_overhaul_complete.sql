@@ -1,7 +1,7 @@
 -- ============================================================================
 -- RAPTORFLOW AUTHENTICATION OVERHAUL - COMPLETE MIGRATION
 -- Migration: 20260116_auth_overhaul_complete.sql
--- 
+--
 -- This migration:
 -- 1. Updates subscription pricing to ₹5000/₹7000/₹10000
 -- 2. Fixes RLS policies for proper workspace isolation
@@ -15,7 +15,7 @@
 -- ============================================================================
 
 -- Update Ascent pricing
-UPDATE subscription_plans SET 
+UPDATE subscription_plans SET
     price_monthly = 500000,    -- ₹5,000 in paise
     price_annual = 5000000,    -- ₹50,000 in paise (2 months free)
     description = 'For founders just getting started with systematic marketing.',
@@ -25,7 +25,7 @@ UPDATE subscription_plans SET
 WHERE slug = 'ascent';
 
 -- Update Glide pricing
-UPDATE subscription_plans SET 
+UPDATE subscription_plans SET
     price_monthly = 700000,    -- ₹7,000 in paise
     price_annual = 7000000,    -- ₹70,000 in paise (2 months free)
     description = 'For founders scaling their marketing engine.',
@@ -35,7 +35,7 @@ UPDATE subscription_plans SET
 WHERE slug = 'glide';
 
 -- Update Soar pricing
-UPDATE subscription_plans SET 
+UPDATE subscription_plans SET
     price_monthly = 1000000,   -- ₹10,000 in paise
     price_annual = 10000000,   -- ₹100,000 in paise (2 months free)
     description = 'For teams running multi-channel campaigns.',
@@ -49,11 +49,11 @@ WHERE slug = 'soar';
 -- ============================================================================
 
 -- Add auth_user_id if not exists (links to auth.users)
-DO $$ 
+DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'public' 
-                   AND table_name = 'users' 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                   AND table_name = 'users'
                    AND column_name = 'auth_user_id') THEN
         ALTER TABLE public.users ADD COLUMN auth_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
         -- Populate for existing users (where id = auth.users.id)
@@ -62,55 +62,55 @@ BEGIN
 END $$;
 
 -- Add role column for admin access
-DO $$ 
+DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'public' 
-                   AND table_name = 'users' 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                   AND table_name = 'users'
                    AND column_name = 'role') THEN
-        ALTER TABLE public.users ADD COLUMN role TEXT DEFAULT 'user' 
+        ALTER TABLE public.users ADD COLUMN role TEXT DEFAULT 'user'
             CHECK (role IN ('user', 'admin', 'super_admin'));
     END IF;
 END $$;
 
 -- Add account status columns
-DO $$ 
+DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'public' 
-                   AND table_name = 'users' 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                   AND table_name = 'users'
                    AND column_name = 'is_active') THEN
         ALTER TABLE public.users ADD COLUMN is_active BOOLEAN DEFAULT true;
     END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'public' 
-                   AND table_name = 'users' 
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                   AND table_name = 'users'
                    AND column_name = 'is_banned') THEN
         ALTER TABLE public.users ADD COLUMN is_banned BOOLEAN DEFAULT false;
     END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'public' 
-                   AND table_name = 'users' 
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                   AND table_name = 'users'
                    AND column_name = 'ban_reason') THEN
         ALTER TABLE public.users ADD COLUMN ban_reason TEXT;
     END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'public' 
-                   AND table_name = 'users' 
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                   AND table_name = 'users'
                    AND column_name = 'banned_at') THEN
         ALTER TABLE public.users ADD COLUMN banned_at TIMESTAMPTZ;
     END IF;
 END $$;
 
 -- Add onboarding status column
-DO $$ 
+DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'public' 
-                   AND table_name = 'users' 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                   AND table_name = 'users'
                    AND column_name = 'onboarding_status') THEN
         ALTER TABLE public.users ADD COLUMN onboarding_status TEXT DEFAULT 'pending'
             CHECK (onboarding_status IN ('pending', 'in_progress', 'active', 'skipped'));
@@ -118,22 +118,22 @@ BEGIN
 END $$;
 
 -- Add workspace_id column for quick reference
-DO $$ 
+DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'public' 
-                   AND table_name = 'users' 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                   AND table_name = 'users'
                    AND column_name = 'default_workspace_id') THEN
         ALTER TABLE public.users ADD COLUMN default_workspace_id UUID REFERENCES workspaces(id) ON DELETE SET NULL;
     END IF;
 END $$;
 
 -- Add phone number for SMS MFA
-DO $$ 
+DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'public' 
-                   AND table_name = 'users' 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                   AND table_name = 'users'
                    AND column_name = 'phone') THEN
         ALTER TABLE public.users ADD COLUMN phone TEXT;
     END IF;
@@ -155,7 +155,7 @@ DROP FUNCTION IF EXISTS user_owns_workspace(UUID);
 CREATE OR REPLACE FUNCTION user_owns_workspace(workspace_uuid UUID)
 RETURNS BOOLEAN AS $$
     SELECT EXISTS (
-        SELECT 1 FROM workspaces 
+        SELECT 1 FROM workspaces
         WHERE id = workspace_uuid AND user_id = auth.uid()
     );
 $$ LANGUAGE SQL SECURITY DEFINER STABLE;
@@ -233,7 +233,7 @@ DROP POLICY IF EXISTS "icp_profiles_delete" ON public.icp_profiles;
 DO $$ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'icp_profiles') THEN
         ALTER TABLE public.icp_profiles ENABLE ROW LEVEL SECURITY;
-        
+
         CREATE POLICY "icp_profiles_select" ON public.icp_profiles
             FOR SELECT USING (workspace_id IN (SELECT get_user_workspace_ids()));
         CREATE POLICY "icp_profiles_insert" ON public.icp_profiles
@@ -252,9 +252,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS "campaigns_insert" ON public.campaigns;
         DROP POLICY IF EXISTS "campaigns_update" ON public.campaigns;
         DROP POLICY IF EXISTS "campaigns_delete" ON public.campaigns;
-        
+
         ALTER TABLE public.campaigns ENABLE ROW LEVEL SECURITY;
-        
+
         CREATE POLICY "campaigns_select" ON public.campaigns
             FOR SELECT USING (workspace_id IN (SELECT get_user_workspace_ids()));
         CREATE POLICY "campaigns_insert" ON public.campaigns
@@ -273,9 +273,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS "moves_insert" ON public.moves;
         DROP POLICY IF EXISTS "moves_update" ON public.moves;
         DROP POLICY IF EXISTS "moves_delete" ON public.moves;
-        
+
         ALTER TABLE public.moves ENABLE ROW LEVEL SECURITY;
-        
+
         CREATE POLICY "moves_select" ON public.moves
             FOR SELECT USING (workspace_id IN (SELECT get_user_workspace_ids()));
         CREATE POLICY "moves_insert" ON public.moves
@@ -294,9 +294,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS "muse_assets_insert" ON public.muse_assets;
         DROP POLICY IF EXISTS "muse_assets_update" ON public.muse_assets;
         DROP POLICY IF EXISTS "muse_assets_delete" ON public.muse_assets;
-        
+
         ALTER TABLE public.muse_assets ENABLE ROW LEVEL SECURITY;
-        
+
         CREATE POLICY "muse_assets_select" ON public.muse_assets
             FOR SELECT USING (workspace_id IN (SELECT get_user_workspace_ids()));
         CREATE POLICY "muse_assets_insert" ON public.muse_assets
@@ -315,9 +315,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS "blackbox_strategies_insert" ON public.blackbox_strategies;
         DROP POLICY IF EXISTS "blackbox_strategies_update" ON public.blackbox_strategies;
         DROP POLICY IF EXISTS "blackbox_strategies_delete" ON public.blackbox_strategies;
-        
+
         ALTER TABLE public.blackbox_strategies ENABLE ROW LEVEL SECURITY;
-        
+
         CREATE POLICY "blackbox_strategies_select" ON public.blackbox_strategies
             FOR SELECT USING (workspace_id IN (SELECT get_user_workspace_ids()));
         CREATE POLICY "blackbox_strategies_insert" ON public.blackbox_strategies
@@ -336,9 +336,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS "foundations_insert" ON public.foundations;
         DROP POLICY IF EXISTS "foundations_update" ON public.foundations;
         DROP POLICY IF EXISTS "foundations_delete" ON public.foundations;
-        
+
         ALTER TABLE public.foundations ENABLE ROW LEVEL SECURITY;
-        
+
         CREATE POLICY "foundations_select" ON public.foundations
             FOR SELECT USING (workspace_id IN (SELECT get_user_workspace_ids()));
         CREATE POLICY "foundations_insert" ON public.foundations
@@ -358,17 +358,17 @@ CREATE TABLE IF NOT EXISTS public.rate_limits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
-    
+
     -- Rate limit tracking
     endpoint TEXT NOT NULL,
     request_count INTEGER DEFAULT 1,
     window_start TIMESTAMPTZ DEFAULT NOW(),
     window_duration_seconds INTEGER DEFAULT 3600, -- 1 hour default
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(user_id, endpoint, window_start)
 );
 
@@ -393,16 +393,16 @@ DECLARE
 BEGIN
     -- Calculate window start (truncate to window boundary)
     window_start_time := date_trunc('hour', NOW());
-    
+
     -- Get or create rate limit record
     INSERT INTO rate_limits (user_id, endpoint, request_count, window_start, window_duration_seconds)
     VALUES (p_user_id, p_endpoint, 1, window_start_time, p_window_seconds)
     ON CONFLICT (user_id, endpoint, window_start)
-    DO UPDATE SET 
+    DO UPDATE SET
         request_count = rate_limits.request_count + 1,
         updated_at = NOW()
     RETURNING request_count INTO current_count;
-    
+
     -- Check if within limit
     RETURN current_count <= p_limit;
 END;
@@ -415,21 +415,21 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TABLE IF NOT EXISTS public.user_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    
+
     -- Session details
     session_token TEXT UNIQUE NOT NULL,
     ip_address INET,
     user_agent TEXT,
     device_fingerprint TEXT,
-    
+
     -- Status
     is_active BOOLEAN DEFAULT true,
     last_active_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     -- Expiration
     created_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,
-    
+
     -- Revocation
     revoked_at TIMESTAMPTZ,
     revoked_reason TEXT CHECK (revoked_reason IN ('manual_logout', 'security_concern', 'password_changed', 'admin_action', 'expired', 'revoke_all'))
@@ -460,7 +460,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO public.users (id, auth_user_id, email, full_name, role, is_active, onboarding_status)
     VALUES (
-        NEW.id, 
+        NEW.id,
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'full_name', SPLIT_PART(NEW.email, '@', 1)),
@@ -493,7 +493,7 @@ BEGIN
     );
 
     -- Update user's default workspace
-    UPDATE public.users 
+    UPDATE public.users
     SET default_workspace_id = workspace_uuid
     WHERE id = NEW.id;
 

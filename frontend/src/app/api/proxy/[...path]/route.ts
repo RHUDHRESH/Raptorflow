@@ -41,7 +41,7 @@ async function handleProxy(request: NextRequest, pathSegments: string[]) {
   try {
     const path = pathSegments.join('/');
     const url = new URL(path, BACKEND_URL);
-    
+
     // Copy query parameters
     request.nextUrl.searchParams.forEach((value, key) => {
       url.searchParams.set(key, value);

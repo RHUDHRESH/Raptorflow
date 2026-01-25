@@ -1,6 +1,6 @@
 -- Critical Fix: RLS Function Name Mismatch
 -- Migration: 20240115_fix_rls_function_mismatch.sql
--- 
+--
 -- This migration fixes the critical vulnerability where RLS policies were calling
 -- user_owns_workspace() but the actual function is named is_workspace_owner()
 -- This caused ALL RLS policies to fail, exposing all user data
@@ -10,9 +10,9 @@ CREATE OR REPLACE FUNCTION user_owns_workspace(workspace_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
     RETURN EXISTS (
-        SELECT 1 
-        FROM workspaces 
-        WHERE id = user_owns_workspace.workspace_uuid 
+        SELECT 1
+        FROM workspaces
+        WHERE id = user_owns_workspace.workspace_uuid
         AND user_id = auth.uid()
     );
 END;
@@ -31,7 +31,7 @@ DECLARE
 BEGIN
     -- Test that function exists and returns correct type
     SELECT user_owns_workspace(NULL::UUID) INTO test_result;
-    
+
     -- Log the fix
     INSERT INTO audit_logs (
         actor_id,
@@ -60,11 +60,11 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         t.table_name,
         t.relrowsecurity as rls_enabled,
         COUNT(p.policyname) as policy_count,
-        CASE 
+        CASE
             WHEN t.relrowsecurity AND COUNT(p.policyname) > 0 THEN 'PROTECTED'
             WHEN NOT t.relrowsecurity THEN 'VULNERABLE - RLS DISABLED'
             ELSE 'VULNERABLE - NO POLICIES'
@@ -74,7 +74,7 @@ BEGIN
     WHERE t.table_schema = 'public'
     AND t.table_type = 'BASE TABLE'
     AND t.table_name IN (
-        'users', 'workspaces', 'icp_profiles', 'foundations', 'moves', 
+        'users', 'workspaces', 'icp_profiles', 'foundations', 'moves',
         'campaigns', 'muse_assets', 'user_sessions', 'subscriptions',
         'payment_transactions', 'audit_logs', 'security_events'
     )
@@ -100,7 +100,7 @@ DECLARE
 BEGIN
     -- Check RLS status
     FOR rls_status IN SELECT * FROM verify_rls_protection() LOOP
-        RETURN QUERY SELECT 
+        RETURN QUERY SELECT
             'RLS_PROTECTION' as check_name,
             rls_status.status as status,
             jsonb_build_object(
@@ -108,17 +108,17 @@ BEGIN
                 'rls_enabled', rls_status.rls_enabled,
                 'policy_count', rls_status.policy_count
             ) as details,
-            CASE 
+            CASE
                 WHEN rls_status.status = 'PROTECTED' THEN 'LOW'
                 ELSE 'CRITICAL'
             END as severity;
     END LOOP;
-    
+
     -- Check user/workspace isolation
     SELECT COUNT(*) INTO user_count FROM users;
     SELECT COUNT(*) INTO workspace_count FROM workspaces;
-    
-    RETURN QUERY SELECT 
+
+    RETURN QUERY SELECT
         'USER_WORKSPACE_ISOLATION' as check_name,
         CASE WHEN user_count = workspace_count THEN 'OK' ELSE 'WARNING' END as status,
         jsonb_build_object(
@@ -127,9 +127,9 @@ BEGIN
             'ratio', user_count::FLOAT / NULLIF(workspace_count, 0)
         ) as details,
         'MEDIUM' as severity;
-    
+
     -- Check function availability
-    RETURN QUERY SELECT 
+    RETURN QUERY SELECT
         'FUNCTION_AVAILABILITY' as check_name,
         'OK' as status,
         jsonb_build_object(

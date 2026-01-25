@@ -41,8 +41,8 @@ const sessionAge = Date.now() - (session.expires_at ? new Date(session.expires_a
 **Fix:** Proper expiry-based rotation:
 ```typescript
 // AFTER (correct)
-const expiresAtMs = typeof session.expires_at === 'number' 
-  ? session.expires_at * 1000 
+const expiresAtMs = typeof session.expires_at === 'number'
+  ? session.expires_at * 1000
   : new Date(session.expires_at).getTime()
 const timeUntilExpiry = expiresAtMs - Date.now()
 if (timeUntilExpiry < 5 * 60 * 1000) {
@@ -113,7 +113,7 @@ export function getServiceAuth(): ServiceRoleAuthService {
 
 **Fix:** Unified handling that checks if value is number (seconds) or string (ISO):
 ```typescript
-const expiresAtMs = session.expires_at 
+const expiresAtMs = session.expires_at
   ? (typeof session.expires_at === 'number' ? session.expires_at * 1000 : new Date(session.expires_at).getTime())
   : undefined
 ```

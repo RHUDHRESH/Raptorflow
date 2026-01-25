@@ -15,7 +15,7 @@ $body = @{
     site_url = "http://localhost:3000"
     additional_redirect_urls = @(
         "http://localhost:3000/auth/callback",
-        "http://localhost:3001/auth/callback", 
+        "http://localhost:3001/auth/callback",
         "http://localhost:3002/auth/callback",
         "http://localhost:3003/auth/callback",
         "http://localhost:3004/auth/callback",

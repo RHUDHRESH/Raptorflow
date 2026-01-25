@@ -12,11 +12,11 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function checkOAuthConfig() {
   try {
     console.log('🔍 Checking OAuth configuration...');
-    
+
     // Try to get auth settings
     const { data, error } = await supabase.auth.getSession();
     console.log('Session check:', { data, error });
-    
+
     // Test Google OAuth sign-in URL generation
     const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -25,9 +25,9 @@ async function checkOAuthConfig() {
         skipBrowserRedirect: true
       }
     });
-    
+
     console.log('OAuth URL generation:', { oauthData, oauthError });
-    
+
   } catch (error) {
     console.error('Error checking OAuth:', error);
   }

@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from backend.memory.embeddings import get_embedding_model
+
 from .graph_memory import GraphMemory
 from .graph_models import (
     EntityType,

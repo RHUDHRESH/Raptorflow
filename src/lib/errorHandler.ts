@@ -165,7 +165,7 @@ export class ErrorHandler {
    * Handle HTTP response errors
    */
   public handleHttpError(error: any, requestId?: string): AppError {
-    if (error instanceof AuthenticationError || 
+    if (error instanceof AuthenticationError ||
         error instanceof AuthorizationError ||
         error instanceof ValidationError ||
         error instanceof NetworkError ||
@@ -310,7 +310,7 @@ export class ErrorHandler {
    * Determine if error should trigger a redirect
    */
   public shouldRedirect(error: AppError): boolean {
-    return error.type === ErrorType.AUTHENTICATION || 
+    return error.type === ErrorType.AUTHENTICATION ||
            error.type === ErrorType.AUTHORIZATION;
   }
 

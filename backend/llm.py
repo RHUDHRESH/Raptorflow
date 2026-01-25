@@ -486,13 +486,13 @@ class GoogleProvider(BaseLLMProvider):
 
         try:
             model_name = request.model or "gemini-1.5-flash"
-            
+
             # Convert messages
             contents = []
             for msg in request.messages:
                 role = "user" if msg.role in [LLMRole.USER, LLMRole.SYSTEM] else "model"
                 contents.append({"role": role, "parts": [msg.content]})
-            
+
             response = self.client.models.generate_content(
                 model=model_name,
                 contents=contents,
@@ -500,7 +500,7 @@ class GoogleProvider(BaseLLMProvider):
                     "temperature": request.temperature,
                     "max_output_tokens": request.max_tokens,
                     "top_p": request.top_p,
-                }
+                },
             )
 
             content = response.text

@@ -4,25 +4,25 @@ import React, { useState } from "react"
 
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const handleGoogleSignIn = () => {
     setIsLoading(true)
-    
+
     // Direct Google OAuth
     const supabaseUrl = "https://vpwwzsanuyhpkvgorcnc.supabase.co"
     const redirectUrl = `${window.location.origin}/auth/callback`
     const oauthUrl = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}&access_type=offline&prompt=consent`
-    
+
     console.log("🔐 Starting Google OAuth:", oauthUrl)
     window.location.href = oauthUrl
   }
-  
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
         <h1 className="text-3xl font-bold text-center mb-2">Sign In</h1>
         <p className="text-gray-600 text-center mb-8">Test Google OAuth Flow</p>
-        
+
         <div className="space-y-4">
           <button
             onClick={handleGoogleSignIn}
@@ -46,20 +46,20 @@ export default function SignInPage() {
               </>
             )}
           </button>
-          
+
           <div className="text-center mt-6">
             <a href="/oauth-test" className="text-blue-600 hover:underline">
               Go to OAuth Test Page
             </a>
           </div>
-          
+
           <div className="text-center">
             <a href="/pricing" className="text-blue-600 hover:underline">
               View Pricing Plans
             </a>
           </div>
         </div>
-        
+
         <div className="mt-6 p-4 bg-gray-100 rounded text-sm">
           <p className="font-semibold mb-2">Test Status:</p>
           <ul className="space-y-1 text-xs">

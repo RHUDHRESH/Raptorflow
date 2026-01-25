@@ -93,7 +93,9 @@ def _fetch_user_record(supabase, user_id: str) -> dict | None:
     except Exception:
         pass
     try:
-        result = supabase.table("users").select("*").eq("id", user_id).single().execute()
+        result = (
+            supabase.table("users").select("*").eq("id", user_id).single().execute()
+        )
         if result.data:
             return result.data
     except Exception:

@@ -144,7 +144,7 @@ curl -X POST http://localhost:3000/api/your-endpoint \
 ```bash
 # Test complete user flows
 # 1. Authentication
-# 2. Workspace creation  
+# 2. Workspace creation
 # 3. Payment processing
 # 4. Admin operations
 

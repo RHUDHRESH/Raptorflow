@@ -27,7 +27,7 @@ Failed to select plan: Could not find the function public.create_user_subscripti
 ```sql
 CREATE OR REPLACE FUNCTION public.create_user_subscription(
     p_user_id UUID,                    -- 1st parameter
-    p_plan_slug VARCHAR(50),           -- 2nd parameter  
+    p_plan_slug VARCHAR(50),           -- 2nd parameter
     p_billing_cycle VARCHAR(10) DEFAULT 'monthly', -- 3rd parameter
     p_phonepe_order_id VARCHAR(100),   -- 4th parameter
     p_amount_paid INTEGER              -- 5th parameter
@@ -65,11 +65,11 @@ npx supabase db push
 ### **📋 Step 2: Verify Fix**
 ```sql
 -- Check function signature
-SELECT 
+SELECT
     proname as function_name,
     proargnames as argument_names
-FROM pg_proc 
-WHERE proname = 'create_user_subscription' 
+FROM pg_proc
+WHERE proname = 'create_user_subscription'
 AND pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public');
 ```
 
@@ -111,7 +111,7 @@ curl -X POST http://localhost:3000/api/onboarding/select-plan \
 -- Ascent Plan
 {"moves_per_week": "3", "campaigns": "3", "team_seats": "1"}
 
--- Glide Plan  
+-- Glide Plan
 {"moves_per_week": "-1", "campaigns": "-1", "team_seats": "5"}
 
 -- Soar Plan
@@ -138,7 +138,7 @@ SELECT * FROM pg_proc WHERE proname = 'create_user_subscription';
 SELECT proargnames FROM pg_proc WHERE proname = 'create_user_subscription';
 
 -- Check permissions
-SELECT * FROM information_schema.role_routine_grants 
+SELECT * FROM information_schema.role_routine_grants
 WHERE routine_name = 'create_user_subscription';
 ```
 

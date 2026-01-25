@@ -19,7 +19,7 @@ const WORKING_ENDPOINTS = [
 async function testEndpoint(endpoint) {
   return new Promise((resolve) => {
     const { path, method, expected } = endpoint;
-    
+
     const options = {
       hostname: 'localhost',
       port: 3000,
@@ -32,7 +32,7 @@ async function testEndpoint(endpoint) {
     };
 
     const startTime = Date.now();
-    
+
     const req = http.request(options, (res) => {
       const responseTime = Date.now() - startTime;
       resolve({
@@ -73,7 +73,7 @@ async function testEndpoint(endpoint) {
     if (method === 'POST') {
       req.write('{}');
     }
-    
+
     req.end();
   });
 }
@@ -82,19 +82,19 @@ async function runQuickTest() {
   console.log('🚀 RAPTORFLOW QUICK API TEST');
   console.log('='.repeat(50));
   console.log('Testing only working/critical endpoints...\n');
-  
+
   let successCount = 0;
   let failCount = 0;
 
   for (const endpoint of WORKING_ENDPOINTS) {
     const result = await testEndpoint(endpoint);
-    
+
     const icon = result.success ? '✅' : '❌';
     const status = typeof result.status === 'number' ? result.status : result.status;
     const time = `${result.responseTime}ms`;
-    
+
     console.log(`${icon} ${result.method} ${result.path} - ${status} (${time})`);
-    
+
     if (result.success) {
       successCount++;
     } else {
@@ -103,7 +103,7 @@ async function runQuickTest() {
         console.log(`   Error: ${result.error}`);
       }
     }
-    
+
     // Small delay
     await new Promise(resolve => setTimeout(resolve, 200));
   }
@@ -113,14 +113,14 @@ async function runQuickTest() {
   console.log('='.repeat(50));
   console.log(`✅ Working: ${successCount}/${WORKING_ENDPOINTS.length}`);
   console.log(`❌ Failed: ${failCount}/${WORKING_ENDPOINTS.length}`);
-  
+
   if (failCount === 0) {
     console.log('\n🎉 ALL CRITICAL ENDPOINTS WORKING!');
     console.log('✨ Raptorflow API is ready for development');
   } else {
     console.log('\n⚠️  Some endpoints still need fixes');
   }
-  
+
   console.log('\n💡 Ready to test:');
   console.log('   • User signup/login flows');
   console.log('   • Workspace creation');

@@ -7,17 +7,17 @@ CREATE TABLE IF NOT EXISTS public.campaign_arcs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
     campaign_id UUID NOT NULL REFERENCES public.campaigns(id) ON DELETE CASCADE,
-    
+
     -- Strategic Graph Structure
     name TEXT NOT NULL,
     description TEXT,
     nodes JSONB DEFAULT '[]', -- Nodes in the strategic arc (moves, milestones)
     edges JSONB DEFAULT '[]', -- Relationships between nodes (dependencies)
-    
+
     -- State Management
     status TEXT DEFAULT 'draft', -- draft, active, completed, archived
     current_pulse JSONB DEFAULT '{}', -- Current real-time intelligence state
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -39,23 +39,23 @@ CREATE TABLE IF NOT EXISTS public.scheduled_tasks (
     workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
     move_id UUID REFERENCES public.moves(id) ON DELETE CASCADE,
     campaign_id UUID REFERENCES public.campaigns(id) ON DELETE CASCADE,
-    
+
     -- Task Details
     task_type TEXT NOT NULL, -- move_execution, research, content_gen, health_check
     payload JSONB DEFAULT '{}',
-    
+
     -- Scheduling
     scheduled_for TIMESTAMPTZ NOT NULL,
     priority INTEGER DEFAULT 3,
     status TEXT DEFAULT 'pending', -- pending, processing, completed, failed, pushed_back
-    
+
     -- Execution Tracking
     retry_count INTEGER DEFAULT 0,
     max_retries INTEGER DEFAULT 3,
     last_error TEXT,
     executed_at TIMESTAMPTZ,
     execution_duration_ms INTEGER,
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -67,17 +67,17 @@ CREATE TABLE IF NOT EXISTS public.agent_thought_logs (
     workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
     entity_id UUID NOT NULL, -- UUID of move or campaign
     entity_type TEXT NOT NULL, -- 'move' or 'campaign'
-    
+
     agent_name TEXT NOT NULL,
     thought_process TEXT,
     inputs JSONB DEFAULT '{}',
     outputs JSONB DEFAULT '{}',
-    
+
     -- Telemetry
     tokens_used INTEGER DEFAULT 0,
     latency_ms INTEGER DEFAULT 0,
     model_tier TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -99,27 +99,27 @@ ALTER TABLE public.agent_thought_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.agent_checkpoints ENABLE ROW LEVEL SECURITY;
 
 -- Campaign Arcs Policies
-CREATE POLICY "Users can view their own workspace campaign arcs" 
-    ON public.campaign_arcs FOR SELECT 
+CREATE POLICY "Users can view their own workspace campaign arcs"
+    ON public.campaign_arcs FOR SELECT
     USING (workspace_id IN (SELECT workspace_id FROM public.users_workspaces WHERE user_id = auth.uid()));
 
-CREATE POLICY "Users can manage their own workspace campaign arcs" 
-    ON public.campaign_arcs FOR ALL 
+CREATE POLICY "Users can manage their own workspace campaign arcs"
+    ON public.campaign_arcs FOR ALL
     USING (workspace_id IN (SELECT workspace_id FROM public.users_workspaces WHERE user_id = auth.uid()));
 
 -- Scheduled Tasks Policies (Internal usually, but for visibility)
-CREATE POLICY "Users can view their own workspace scheduled tasks" 
-    ON public.scheduled_tasks FOR SELECT 
+CREATE POLICY "Users can view their own workspace scheduled tasks"
+    ON public.scheduled_tasks FOR SELECT
     USING (workspace_id IN (SELECT workspace_id FROM public.users_workspaces WHERE user_id = auth.uid()));
 
 -- Agent Thought Logs Policies
-CREATE POLICY "Users can view their own workspace agent thought logs" 
-    ON public.agent_thought_logs FOR SELECT 
+CREATE POLICY "Users can view their own workspace agent thought logs"
+    ON public.agent_thought_logs FOR SELECT
     USING (workspace_id IN (SELECT workspace_id FROM public.users_workspaces WHERE user_id = auth.uid()));
 
 -- Agent Checkpoints Policies
-CREATE POLICY "Users can manage their own workspace checkpoints" 
-    ON public.agent_checkpoints FOR ALL 
+CREATE POLICY "Users can manage their own workspace checkpoints"
+    ON public.agent_checkpoints FOR ALL
     USING (workspace_id IN (SELECT workspace_id FROM public.users_workspaces WHERE user_id = auth.uid()));
 
 -- 7. Indexes for Performance

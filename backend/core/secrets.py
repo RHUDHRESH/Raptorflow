@@ -6,6 +6,7 @@ from typing import Optional
 try:
     from google.api_core.exceptions import NotFound
     from google.cloud import secretmanager
+
     SECRET_MANAGER_AVAILABLE = True
 except ImportError:
     SECRET_MANAGER_AVAILABLE = False
@@ -24,7 +25,7 @@ def get_secret(name: str, project_id: Optional[str] = None) -> Optional[str]:
     env_value = os.environ.get(name)
     if env_value:
         return env_value
-    
+
     # Try GCP Secret Manager
     if SECRET_MANAGER_AVAILABLE and secretmanager:
         try:
@@ -32,12 +33,14 @@ def get_secret(name: str, project_id: Optional[str] = None) -> Optional[str]:
 
                 project_id = os.environ.get("GCP_PROJECT_ID")
                 if not project_id:
-                    logger.warning("GCP_PROJECT_ID not set, cannot access Secret Manager")
+                    logger.warning(
+                        "GCP_PROJECT_ID not set, cannot access Secret Manager"
+                    )
                     return None
-            
+
             client = secretmanager.SecretManagerServiceClient()
             secret_path = f"projects/{project_id}/secrets/{name}/versions/latest"
-            
+
             response = client.access_secret_version(request={"name": secret_path})
             secret_value = response.payload.data.decode("UTF-8")
             logger.info(f"Secret {name} successfully fetched from GCP Secret Manager.")
@@ -48,5 +51,5 @@ def get_secret(name: str, project_id: Optional[str] = None) -> Optional[str]:
         except Exception as e:
             logger.error(f"Error accessing GCP Secret Manager for {name}: {e}")
             return None
-    
+
     return None

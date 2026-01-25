@@ -11,7 +11,7 @@ const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmF
 
 async function executeDirectAPI() {
   console.log('🚀 Direct API execution for missing tables...\n');
-  
+
   try {
     // SQL statements to execute
     const sqlStatements = [
@@ -30,7 +30,7 @@ async function executeDirectAPI() {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         verified_at TIMESTAMPTZ
       )`,
-      
+
       // Create email_logs table
       `CREATE TABLE IF NOT EXISTS public.email_logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,30 +42,30 @@ async function executeDirectAPI() {
         metadata JSONB DEFAULT '{}'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW()
       )`,
-      
+
       // Enable RLS
       `ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY`,
       `ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY`,
-      
+
       // Add RLS policies
       `CREATE POLICY "payments_self_view" ON public.payments FOR SELECT USING (auth.uid() = user_id)`,
       `CREATE POLICY "email_logs_self_view" ON public.email_logs FOR SELECT USING (auth.uid() = user_id)`,
-      
+
       // Add indexes
       `CREATE INDEX IF NOT EXISTS idx_payments_user_id ON public.payments(user_id)`,
       `CREATE INDEX IF NOT EXISTS idx_email_logs_user_id ON public.email_logs(user_id)`
     ];
-    
+
     console.log(`📝 Found ${sqlStatements.length} SQL statements to execute`);
-    
+
     let successCount = 0;
-    
+
     // Execute each statement
     for (let i = 0; i < sqlStatements.length; i++) {
       const statement = sqlStatements[i];
       console.log(`\n⚡ Executing statement ${i + 1}/${sqlStatements.length}...`);
       console.log(`📄 SQL: ${statement.substring(0, 80)}...`);
-      
+
       try {
         // Try using the Supabase Management API
         const response = await fetch(`${supabaseUrl}/rest/v1/rpc/_exec`, {
@@ -78,14 +78,14 @@ async function executeDirectAPI() {
           },
           body: JSON.stringify({ query: statement })
         });
-        
+
         if (response.ok) {
           console.log(`✅ Statement ${i + 1} executed successfully`);
           successCount++;
         } else {
           const errorText = await response.text();
           console.log(`⚠️  Statement ${i + 1} response:`, response.status, errorText);
-          
+
           // Try alternative approach - using a different endpoint
           if (response.status === 404) {
             console.log('🔄 Trying alternative endpoint...');
@@ -97,12 +97,12 @@ async function executeDirectAPI() {
         console.log(`❌ Statement ${i + 1} failed:`, err.message);
       }
     }
-    
+
     console.log(`\n📊 Execution Summary: ${successCount}/${sqlStatements.length} statements executed successfully`);
-    
+
     // Verify tables
     await verifyTables();
-    
+
   } catch (error) {
     console.error('❌ Direct API execution failed:', error);
   }
@@ -124,7 +124,7 @@ async function tryAlternativeEndpoint(sql) {
         query: sql
       })
     });
-    
+
     if (response.ok) {
       console.log('✅ Alternative endpoint successful');
       return true;
@@ -140,10 +140,10 @@ async function tryAlternativeEndpoint(sql) {
 
 async function verifyTables() {
   console.log('\n🔍 Verifying table creation...');
-  
+
   const tables = ['profiles', 'workspaces', 'subscriptions', 'payments', 'email_logs'];
   let existingCount = 0;
-  
+
   for (const table of tables) {
     try {
       const response = await fetch(`${supabaseUrl}/rest/v1/${table}?select=count&limit=1`, {
@@ -152,7 +152,7 @@ async function verifyTables() {
           'apikey': serviceRoleKey
         }
       });
-      
+
       if (response.ok) {
         console.log(`✅ Table '${table}' exists and accessible`);
         existingCount++;
@@ -163,9 +163,9 @@ async function verifyTables() {
       console.log(`⚠️  Could not verify table '${table}':`, err.message);
     }
   }
-  
+
   console.log(`\n📊 Summary: ${existingCount}/5 tables exist`);
-  
+
   if (existingCount === 5) {
     console.log('\n🎉 ALL TABLES CREATED SUCCESSFULLY!');
     console.log('✅ Database schema is now 100% complete');

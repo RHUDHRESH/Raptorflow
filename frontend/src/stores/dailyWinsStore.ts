@@ -19,7 +19,7 @@ interface DailyWinsStore {
   isLoading: boolean;
   error: string | null;
   streak: number;
-  
+
   // Actions
   setWins: (wins: DailyWin[]) => void;
   setCurrentWin: (win: DailyWin | null) => void;
@@ -50,15 +50,15 @@ const dailyWinsApi = {
       },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to generate daily win');
     }
-    
+
     const result = await response.json();
     return result.win;
   },
-  
+
   async fetchWins(workspace_id: string, user_id: string): Promise<DailyWin[]> {
     const response = await fetch(`/api/proxy/api/v1/daily_wins/?workspace_id=${workspace_id}&user_id=${user_id}`, {
       method: 'GET',
@@ -66,20 +66,20 @@ const dailyWinsApi = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch daily wins');
     }
-    
+
     const data = await response.json();
     return data.wins || [];
   },
-  
+
   async completeWin(id: string): Promise<void> {
     const response = await fetch(`/api/proxy/api/v1/daily_wins/${id}/complete`, {
       method: 'POST',
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to complete daily win');
     }
@@ -98,7 +98,7 @@ export const useDailyWinsStore = create<DailyWinsStore>((set, get) => ({
       acc[win.id] = win;
       return acc;
     }, {} as Record<string, DailyWin>);
-    
+
     set({ wins: winsMap });
   },
 
@@ -152,7 +152,7 @@ export const useDailyWinsStore = create<DailyWinsStore>((set, get) => ({
     try {
       const wins = await dailyWinsApi.fetchWins(workspace_id, user_id);
       get().setWins(wins);
-      
+
       // Calculate streak (simplified - in real app would use proper streak logic)
       const completedWins = wins.filter(win => win.completed_at);
       set({ streak: completedWins.length });

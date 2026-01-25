@@ -71,7 +71,7 @@ interface Integration {
 export function CampaignSettings({ campaignId, onSave, onClose }: CampaignSettingsProps) {
   const campaign = useEnhancedCampaignStore(state => state.campaigns[campaignId]);
   const updateCampaign = useEnhancedCampaignStore(state => state.updateCampaign);
-  
+
   const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'team' | 'integrations' | 'advanced'>('general');
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -227,7 +227,7 @@ export function CampaignSettings({ campaignId, onSave, onClose }: CampaignSettin
             {campaign.name} • Configure campaign preferences
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {hasChanges && (
             <div className="flex items-center gap-2 text-sm text-[var(--warning)]">
@@ -235,7 +235,7 @@ export function CampaignSettings({ campaignId, onSave, onClose }: CampaignSettin
               Unsaved changes
             </div>
           )}
-          
+
           <BlueprintButton
             variant="secondary"
             size="sm"
@@ -243,7 +243,7 @@ export function CampaignSettings({ campaignId, onSave, onClose }: CampaignSettin
           >
             Cancel
           </BlueprintButton>
-          
+
           <BlueprintButton
             size="sm"
             onClick={handleSave}
@@ -303,7 +303,7 @@ export function CampaignSettings({ campaignId, onSave, onClose }: CampaignSettin
                 className="w-full px-3 py-2 bg-[var(--paper)] border border-[var(--structure-subtle)] rounded-[var(--radius)] focus:outline-none focus:border-[var(--blueprint)]"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-[var(--ink)] mb-2">
                 Description

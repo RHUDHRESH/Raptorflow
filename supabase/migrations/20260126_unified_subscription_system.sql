@@ -35,22 +35,22 @@ CREATE TABLE public.subscription_plans (
     slug VARCHAR(50) NOT NULL UNIQUE, -- 'ascent', 'glide', 'soar'
     display_name VARCHAR(100) NOT NULL,
     description TEXT,
-    
+
     -- Reasonable pricing (startup-friendly)
     price_monthly INTEGER NOT NULL, -- in paise (2900, 7900, 19900)
     price_annual INTEGER NOT NULL, -- in paise (24000, 66000, 166000)
     currency VARCHAR(3) DEFAULT 'INR',
-    
+
     -- Features and limits
     features JSONB NOT NULL DEFAULT '[]',
     limits JSONB NOT NULL DEFAULT '{}', -- Plan limits (projects, team_members, etc.)
-    
+
     -- Metadata
     is_active BOOLEAN DEFAULT true,
     sort_order INTEGER NOT NULL, -- For display ordering
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Constraints
     CONSTRAINT valid_plan_name CHECK (name IN ('Ascent', 'Glide', 'Soar')),
     CONSTRAINT positive_price CHECK (price_monthly > 0 AND price_annual > 0)
@@ -64,33 +64,33 @@ CREATE TABLE public.user_subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     plan_id UUID NOT NULL REFERENCES public.subscription_plans(id),
-    
+
     -- Subscription details
     status VARCHAR(20) NOT NULL DEFAULT 'pending', -- 'pending', 'active', 'cancelled', 'expired', 'suspended'
     billing_cycle VARCHAR(10) NOT NULL DEFAULT 'monthly', -- 'monthly', 'annual'
-    
+
     -- Payment references
     phonepe_order_id VARCHAR(100) UNIQUE,
     phonepe_transaction_id VARCHAR(100),
-    
+
     -- Pricing and dates
     amount_paid INTEGER NOT NULL, -- in paise
     currency VARCHAR(3) DEFAULT 'INR',
     started_at TIMESTAMP WITH TIME ZONE,
     expires_at TIMESTAMP WITH TIME ZONE,
     cancelled_at TIMESTAMP WITH TIME ZONE,
-    
+
     -- Auto-renewal settings
     auto_renew BOOLEAN DEFAULT true,
     next_billing_date TIMESTAMP WITH TIME ZONE,
-    
+
     -- Metadata
     metadata JSONB DEFAULT '{}',
-    
+
     -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Constraints
     CONSTRAINT valid_subscription_status CHECK (status IN ('pending', 'active', 'cancelled', 'expired', 'suspended')),
     CONSTRAINT valid_billing_cycle CHECK (billing_cycle IN ('monthly', 'annual')),
@@ -105,28 +105,28 @@ CREATE TABLE public.user_onboarding (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     subscription_id UUID REFERENCES public.user_subscriptions(id) ON DELETE SET NULL,
-    
+
     -- Progress tracking
     current_step INTEGER DEFAULT 1,
     total_steps INTEGER DEFAULT 13, -- Total onboarding steps
     completed_steps JSONB DEFAULT '[]', -- Array of completed step numbers
     step_data JSONB DEFAULT '{}', -- Data collected during onboarding
-    
+
     -- Status
     is_completed BOOLEAN DEFAULT false,
     is_skipped BOOLEAN DEFAULT false,
-    
+
     -- Timestamps
     started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     completed_at TIMESTAMP WITH TIME ZONE,
     last_activity_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Metadata
     metadata JSONB DEFAULT '{}',
-    
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Constraints
     CONSTRAINT valid_current_step CHECK (current_step >= 1 AND current_step <= total_steps)
 );
@@ -138,18 +138,18 @@ CREATE TABLE public.user_onboarding (
 CREATE TABLE public.plan_usage_limits (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     subscription_id UUID NOT NULL REFERENCES public.user_subscriptions(id) ON DELETE CASCADE,
-    
+
     -- Usage tracking
     metric_name VARCHAR(100) NOT NULL, -- 'moves_per_week', 'campaigns', 'team_seats', etc.
     current_usage INTEGER DEFAULT 0,
     limit_value INTEGER NOT NULL,
     reset_period VARCHAR(20) DEFAULT 'monthly', -- 'daily', 'weekly', 'monthly', 'yearly'
     last_reset_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Constraints
     CONSTRAINT positive_usage CHECK (current_usage >= 0 AND limit_value > 0),
     CONSTRAINT valid_reset_period CHECK (reset_period IN ('daily', 'weekly', 'monthly', 'yearly', 'never'))
@@ -163,19 +163,19 @@ CREATE TABLE public.subscription_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     subscription_id UUID REFERENCES public.user_subscriptions(id) ON DELETE SET NULL,
-    
+
     -- Event details
     event_type VARCHAR(50) NOT NULL, -- 'created', 'activated', 'cancelled', 'expired', 'renewed', 'upgraded', 'downgraded'
     previous_plan_id UUID REFERENCES public.subscription_plans(id),
     new_plan_id UUID REFERENCES public.subscription_plans(id),
-    
+
     -- Event data
     event_data JSONB DEFAULT '{}',
     reason TEXT,
-    
+
     -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Constraints
     CONSTRAINT valid_event_type CHECK (event_type IN ('created', 'activated', 'cancelled', 'expired', 'renewed', 'upgraded', 'downgraded', 'suspended', 'reactivated'))
 );
@@ -313,7 +313,7 @@ INSERT INTO public.subscription_plans (
     limits,
     is_active,
     sort_order
-) VALUES 
+) VALUES
 (
     'Ascent',
     'ascent',
@@ -360,7 +360,7 @@ INSERT INTO public.subscription_plans (
 
 -- View for user's current subscription with plan details
 CREATE OR REPLACE VIEW public.user_current_subscription AS
-SELECT 
+SELECT
     us.id as subscription_id,
     us.user_id,
     us.plan_id,
@@ -401,7 +401,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         (us.id IS NOT NULL) as has_subscription,
         sp.name as plan_name,
         sp.slug as plan_slug,
@@ -437,18 +437,18 @@ BEGIN
     SELECT id, price_monthly, price_annual INTO plan_record
     FROM public.subscription_plans
     WHERE slug = p_plan_slug AND is_active = true;
-    
+
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Plan not found: %', p_plan_slug;
     END IF;
-    
+
     -- Calculate expiration date
     IF p_billing_cycle = 'annual' THEN
         expires_date := NOW() + INTERVAL '1 year';
     ELSE
         expires_date := NOW() + INTERVAL '1 month';
     END IF;
-    
+
     -- Create subscription
     INSERT INTO public.user_subscriptions (
         user_id,
@@ -469,26 +469,26 @@ BEGIN
         expires_date,
         expires_date
     ) RETURNING id INTO new_subscription_id;
-    
+
     -- Create onboarding record
     INSERT INTO public.user_onboarding (user_id, subscription_id)
     VALUES (p_user_id, new_subscription_id);
-    
+
     -- Initialize usage limits
     INSERT INTO public.plan_usage_limits (subscription_id, metric_name, limit_value)
-    SELECT 
+    SELECT
         new_subscription_id,
         key,
         value
     FROM jsonb_each_text(
-        CASE 
+        CASE
             WHEN p_plan_slug = 'ascent' THEN '{"moves_per_week": "3", "campaigns": "3", "team_seats": "1"}'
             WHEN p_plan_slug = 'glide' THEN '{"moves_per_week": "-1", "campaigns": "-1", "team_seats": "5"}'
             WHEN p_plan_slug = 'soar' THEN '{"moves_per_week": "-1", "campaigns": "-1", "team_seats": "-1"}'
             ELSE '{}'
         END::jsonb
     );
-    
+
     RETURN new_subscription_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

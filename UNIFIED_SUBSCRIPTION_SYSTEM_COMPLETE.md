@@ -16,7 +16,7 @@
 ### **Startup-Friendly Pricing:**
 ```
 🚀 Ascent:  ₹29/month   (₹240/year  - 20% discount)
-🚀 Glide:   ₹79/month   (₹660/year  - 30% discount)  
+🚀 Glide:   ₹79/month   (₹660/year  - 30% discount)
 🚀 Soar:   ₹199/month  (₹1,660/year - 30% discount)
 ```
 
@@ -59,7 +59,7 @@ AFTER:  ₹29-199/month (Startup pricing)
    - Fallback to hardcoded pricing if DB fails
    - Proper field mapping (price_monthly_paise)
 
-✅ POST /api/onboarding/select-plan  
+✅ POST /api/onboarding/select-plan
    - Uses new create_user_subscription function
    - Automatic onboarding record creation
    - Usage limits initialization
@@ -107,7 +107,7 @@ curl -X POST http://localhost:3000/api/onboarding/select-plan \
 ```
 Assuming 1,000 users:
 - 60% Ascent:  ₹17,400/month
-- 30% Glide:   ₹23,700/month  
+- 30% Glide:   ₹23,700/month
 - 10% Soar:   ₹19,900/month
 TOTAL: ₹61,000/month (₹7.3L/year)
 ```

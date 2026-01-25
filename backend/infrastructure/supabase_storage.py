@@ -17,11 +17,11 @@ from typing import Any, BinaryIO, Dict, List, Optional, Union
 
 from ..services.supabase_storage_client import get_supabase_storage_client
 from ..utils.storage_paths import (
-    generate_workspace_path,
-    generate_user_path,
     generate_intelligence_path,
+    generate_user_path,
+    generate_workspace_path,
     get_bucket_for_category,
-    parse_storage_path
+    parse_storage_path,
 )
 
 logger = logging.getLogger(__name__)
@@ -71,13 +71,17 @@ class StorageConfig:
             enable_lifecycle=os.getenv("SUPABASE_STORAGE_LIFECYCLE", "true").lower()
             == "true",
             retention_days=int(os.getenv("SUPABASE_STORAGE_RETENTION_DAYS", "30")),
-            chunk_size=int(os.getenv("SUPABASE_STORAGE_CHUNK_SIZE", str(8 * 1024 * 1024))),
+            chunk_size=int(
+                os.getenv("SUPABASE_STORAGE_CHUNK_SIZE", str(8 * 1024 * 1024))
+            ),
             max_file_size=int(
                 os.getenv("SUPABASE_STORAGE_MAX_FILE_SIZE", str(5 * 1024 * 1024 * 1024))
             ),
             upload_timeout=int(os.getenv("SUPABASE_STORAGE_UPLOAD_TIMEOUT", "300")),
             download_timeout=int(os.getenv("SUPABASE_STORAGE_DOWNLOAD_TIMEOUT", "300")),
-            require_authentication=os.getenv("SUPABASE_STORAGE_REQUIRE_AUTH", "true").lower()
+            require_authentication=os.getenv(
+                "SUPABASE_STORAGE_REQUIRE_AUTH", "true"
+            ).lower()
             == "true",
         )
 
@@ -249,7 +253,11 @@ class SupabaseStorage:
 
             # Upload using appropriate method
             if category == FileCategory.INTELLIGENCE:
-                query_hash = custom_metadata.get('query_hash', file_id) if custom_metadata else file_id
+                query_hash = (
+                    custom_metadata.get("query_hash", file_id)
+                    if custom_metadata
+                    else file_id
+                )
                 result = self.client.upload_intelligence_file(
                     query_hash, filename, file_content, content_type, metadata
                 )
@@ -257,19 +265,29 @@ class SupabaseStorage:
                 # Workspace file
                 workspace_slug = workspace_id  # Could be enhanced to fetch slug
                 result = self.client.upload_workspace_file(
-                    workspace_slug, category.value, filename, file_content, content_type, metadata
+                    workspace_slug,
+                    category.value,
+                    filename,
+                    file_content,
+                    content_type,
+                    metadata,
                 )
             else:
                 # User file
                 result = self.client.upload_user_file(
-                    user_id, category.value, filename, file_content, content_type, metadata
+                    user_id,
+                    category.value,
+                    filename,
+                    file_content,
+                    content_type,
+                    metadata,
                 )
 
             # Get download URL
             download_url = None
             if is_public:
                 bucket = get_bucket_for_category(category.value)
-                download_url = self.client.get_public_url(bucket, result['path'])
+                download_url = self.client.get_public_url(bucket, result["path"])
 
             self.logger.info(
                 f"Successfully uploaded file: {filename} -> {result['path']}"
@@ -278,7 +296,7 @@ class SupabaseStorage:
             return UploadResult(
                 success=True,
                 file_id=file_id,
-                object_path=result['path'],
+                object_path=result["path"],
                 download_url=download_url,
                 metadata=metadata,
             )
@@ -287,7 +305,9 @@ class SupabaseStorage:
             self.logger.error(f"Failed to upload file {filename}: {e}")
             return UploadResult(success=False, error_message=str(e))
 
-    async def download_file(self, file_id: str, bucket: Optional[str] = None) -> DownloadResult:
+    async def download_file(
+        self, file_id: str, bucket: Optional[str] = None
+    ) -> DownloadResult:
         """Download file from Supabase Storage."""
         try:
             if not bucket:
@@ -299,17 +319,17 @@ class SupabaseStorage:
                     bucket = self.config.default_bucket
 
             content = self.client.download_file(bucket, file_id)
-            
+
             # Get file info
             try:
                 file_info = self.client.get_file_info(bucket, file_id)
-                metadata = file_info.get('metadata', {})
-                
+                metadata = file_info.get("metadata", {})
+
                 return DownloadResult(
                     success=True,
                     content=content,
-                    filename=metadata.get('filename'),
-                    content_type=metadata.get('content_type'),
+                    filename=metadata.get("filename"),
+                    content_type=metadata.get("content_type"),
                     size_bytes=len(content),
                     metadata=file_info,
                 )
@@ -344,7 +364,9 @@ class SupabaseStorage:
             self.logger.error(f"Failed to delete file {file_id}: {e}")
             return False
 
-    def get_public_url(self, file_id: str, bucket: Optional[str] = None) -> Optional[str]:
+    def get_public_url(
+        self, file_id: str, bucket: Optional[str] = None
+    ) -> Optional[str]:
         """Get public URL for file."""
         try:
             if not bucket:
@@ -361,7 +383,9 @@ class SupabaseStorage:
             self.logger.error(f"Failed to get public URL for {file_id}: {e}")
             return None
 
-    def create_signed_url(self, file_id: str, bucket: Optional[str] = None, expires_in: int = 3600) -> Optional[str]:
+    def create_signed_url(
+        self, file_id: str, bucket: Optional[str] = None, expires_in: int = 3600
+    ) -> Optional[str]:
         """Create signed URL for file access."""
         try:
             if not bucket:
@@ -373,7 +397,7 @@ class SupabaseStorage:
                     bucket = self.config.default_bucket
 
             result = self.client.create_signed_url(bucket, file_id, expires_in)
-            return result.get('signedUrl')
+            return result.get("signedUrl")
 
         except Exception as e:
             self.logger.error(f"Failed to create signed URL for {file_id}: {e}")
@@ -385,39 +409,39 @@ class SupabaseStorage:
             # List files in workspace folders
             total_size = 0
             file_count = 0
-            
+
             for category in FileCategory:
                 if category == FileCategory.INTELLIGENCE:
                     continue  # Skip intelligence for workspace usage
-                
+
                 bucket = get_bucket_for_category(category.value)
                 prefix = f"workspace/{workspace_id}/{category.value}/"
-                
+
                 try:
                     files = self.client.list_files(bucket, prefix)
                     for file_info in files:
-                        total_size += file_info.get('size', 0)
+                        total_size += file_info.get("size", 0)
                         file_count += 1
                 except:
                     # Skip if bucket doesn't exist or no access
                     continue
 
             return {
-                'status': 'success',
-                'total_size_bytes': total_size,
-                'total_size_mb': round(total_size / (1024 * 1024), 2),
-                'file_count': file_count,
-                'workspace_id': workspace_id,
+                "status": "success",
+                "total_size_bytes": total_size,
+                "total_size_mb": round(total_size / (1024 * 1024), 2),
+                "file_count": file_count,
+                "workspace_id": workspace_id,
             }
 
         except Exception as e:
             self.logger.error(f"Failed to get workspace usage for {workspace_id}: {e}")
             return {
-                'status': 'error',
-                'error': str(e),
-                'total_size_bytes': 0,
-                'total_size_mb': 0,
-                'file_count': 0,
+                "status": "error",
+                "error": str(e),
+                "total_size_bytes": 0,
+                "total_size_mb": 0,
+                "file_count": 0,
             }
 
     async def cleanup_expired_files(self) -> int:
@@ -425,7 +449,7 @@ class SupabaseStorage:
         try:
             cleaned_count = 0
             current_time = datetime.now()
-            
+
             # This would require custom implementation as Supabase doesn't have built-in lifecycle
             # For now, return 0 as placeholder
             self.logger.info("Cleanup completed: 0 files (placeholder implementation)")

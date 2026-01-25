@@ -433,12 +433,12 @@ export default function () {
   const response = http.post('http://EXTERNAL_IP:8000/api/v1/ocr/process', {
     file: open('test_document.pdf', 'rb')
   });
-  
+
   check(response, {
     'status is 200': (r) => r.status === 200,
     'response time < 5000ms': (r) => r.timings.duration < 5000,
   });
-  
+
   sleep(1);
 }
 EOF

@@ -58,31 +58,31 @@ Raptorflow is a comprehensive business intelligence and ICP (Ideal Customer Prof
 
 ### 1. New User Registration
 ```
-Visitor lands on homepage â†’ Clicks "Get Started" â†’ 
-Selects registration method â†’ Completes registration â†’ 
-Email verification â†’ Redirected to onboarding â†’ 
+Visitor lands on homepage â†’ Clicks "Get Started" â†’
+Selects registration method â†’ Completes registration â†’
+Email verification â†’ Redirected to onboarding â†’
 Creates cohorts/ICPs â†’ Directed to dashboard
 ```
 
 ### 2. Existing User Login
 ```
-User visits login page â†’ Selects auth method â†’ 
-Enters credentials â†’ Authentication successful â†’ 
+User visits login page â†’ Selects auth method â†’
+Enters credentials â†’ Authentication successful â†’
 Redirected to dashboard â†’ Session established
 ```
 
 ### 3. Payment Flow
 ```
-User selects paid plan â†’ Redirected to PhonePe â†’ 
-Payment processing â†’ Payment confirmation â†’ 
-Subscription updated â†’ Features unlocked â†’ 
+User selects paid plan â†’ Redirected to PhonePe â†’
+Payment processing â†’ Payment confirmation â†’
+Subscription updated â†’ Features unlocked â†’
 Return to dashboard with new tier
 ```
 
 ### 4. Admin Access
 ```
-Admin logs in â†’ Role verification â†’ 
-Access to admin dashboard â†’ User management â†’ 
+Admin logs in â†’ Role verification â†’
+Access to admin dashboard â†’ User management â†’
 System monitoring â†’ Analytics access
 ```
 

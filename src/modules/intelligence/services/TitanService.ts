@@ -27,7 +27,7 @@ export class TitanService {
       .single();
 
     if (error) throw new Error(`Failed to initiate research: ${error.message}`);
-    
+
     return data.id;
   }
 

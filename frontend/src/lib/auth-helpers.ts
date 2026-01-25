@@ -24,7 +24,7 @@ export interface AuthContext {
 export function getAuthContext(): AuthContext {
   // Try to get from localStorage first (fallback)
   const storedUser = localStorage.getItem('supabase.auth.token');
-  
+
   if (storedUser) {
     try {
       const parsed = JSON.parse(storedUser);

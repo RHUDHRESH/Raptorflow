@@ -11,10 +11,10 @@ const mockCookies = new Map();
 async function testCompleteOAuthFlow() {
   try {
     console.log('🔍 Testing complete OAuth flow with cookies...');
-    
+
     // Step 1: Client-side OAuth initiation (like in OAuthButton)
     console.log('\n1. Testing client-side OAuth initiation...');
-    
+
     const clientSupabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -33,7 +33,7 @@ async function testCompleteOAuthFlow() {
         },
       }
     );
-    
+
     const { data: oauthData, error: oauthError } = await clientSupabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -41,21 +41,21 @@ async function testCompleteOAuthFlow() {
         skipBrowserRedirect: true
       }
     });
-    
+
     if (oauthError) {
       console.error('❌ OAuth initiation failed:', oauthError);
       return;
     }
-    
+
     console.log('✅ OAuth URL generated:', oauthData.url);
-    
+
     // Step 2: Check what cookies were set
     console.log('\n2. Checking cookies set by OAuth initiation...');
     // Note: In real scenario, cookies would be set automatically
-    
+
     // Step 3: Server-side callback (like in auth/callback route)
     console.log('\n3. Testing server-side callback with cookies...');
-    
+
     const serverSupabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -78,10 +78,10 @@ async function testCompleteOAuthFlow() {
     );
 
     console.log('✅ Server client created with cookie handling');
-    
+
     // Test with fake code (this will still fail but should show different error)
     const { data, error } = await serverSupabase.auth.exchangeCodeForSession('fake_code_12345');
-    
+
     if (error) {
       if (error.code === 'pkce_code_verifier_not_found') {
         console.log('🔥 PKCE error still occurs - cookies not being shared between client and server');
@@ -90,7 +90,7 @@ async function testCompleteOAuthFlow() {
         console.log('✅ Different error (expected with fake code):', error.message);
       }
     }
-    
+
   } catch (error) {
     console.error('❌ Test error:', error);
   }

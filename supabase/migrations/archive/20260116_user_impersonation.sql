@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS public.impersonation_permissions (
   audit_level TEXT NOT NULL DEFAULT 'detailed' CHECK (audit_level IN ('basic', 'detailed', 'comprehensive')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(admin_id)
 );
 
@@ -151,7 +151,7 @@ BEGIN
     SELECT p.can_impersonate, p.max_duration_hours INTO can_impersonate, max_hours
     FROM public.impersonation_permissions p
     WHERE p.admin_id = admin_uuid;
-    
+
     -- If no explicit permissions, check if admin is owner
     IF NOT FOUND THEN
         SELECT 1 INTO can_impersonate
@@ -159,10 +159,10 @@ BEGIN
         WHERE wm.user_id = admin_uuid
         AND wm.role = 'owner'
         LIMIT 1;
-        
+
         max_hours := 2; -- Default for owners
     END IF;
-    
+
     -- Check if target user is in allowed list (if specified)
     IF can_impersonate THEN
         SELECT 1 INTO can_impersonate
@@ -171,7 +171,7 @@ BEGIN
         AND (cardinality(p.allowed_user_ids) = 0 OR target_uuid = ANY(p.allowed_user_ids))
         LIMIT 1;
     END IF;
-    
+
     RETURN can_impersonate;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -191,7 +191,7 @@ BEGIN
       AND expires_at > NOW()
       AND last_accessed > NOW() - INTERVAL '1 hour'
       LIMIT 1;
-    
+
     RETURN is_valid;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -216,7 +216,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         s.id,
         s.admin_id,
         s.target_user_id,
@@ -270,7 +270,7 @@ BEGIN
         NOW()
     )
     RETURNING id INTO log_id;
-    
+
     RETURN log_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -289,9 +289,9 @@ BEGIN
         last_accessed = NOW()
     WHERE id = session_id_param
       AND is_active = true;
-    
+
     GET DIAGNOSTICS (ROW_COUNT, success);
-    
+
     -- Log the end action
     IF success THEN
         PERFORM log_impersonation_action(
@@ -304,7 +304,7 @@ BEGIN
             jsonb_build_object('reason', reason_param)
         );
     END IF;
-    
+
     RETURN success;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -323,7 +323,7 @@ BEGIN
       AND is_active = true
       AND expires_at > NOW()
       LIMIT 1;
-    
+
     RETURN is_impersonated;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -342,7 +342,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         s.id,
         s.admin_id,
         s.impersonation_token,
@@ -367,7 +367,7 @@ BEGIN
         last_accessed = NOW()
     WHERE expires_at <= NOW()
       AND is_active = true;
-    
+
     GET DIAGNOSTICS (ROW_COUNT, cleaned_count);
     RETURN cleaned_count;
 END;

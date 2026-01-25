@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const { planId, billingCycle } = await request.json();
-    
+
     // Basic validation
     if (!planId || !billingCycle) {
       return NextResponse.json(
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
     // Get current frontend URL from request headers or use default
     const baseUrl = request.headers.get('origin') || 'http://localhost:3001';
-    
+
     // Mock payment response for testing
     const mockPaymentResponse = {
       paymentId: `pay_mock_${Date.now()}`,

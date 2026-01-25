@@ -19,7 +19,7 @@ CREATE POLICY "payment_transactions_select_consolidated" ON public.payment_trans
             user_id = (select auth.uid()) OR
             -- Admins can view all transactions
             EXISTS (
-                SELECT 1 FROM public.profiles 
+                SELECT 1 FROM public.profiles
                 WHERE id = (select auth.uid()) AND role = 'admin'
             )
         )
@@ -37,7 +37,7 @@ CREATE POLICY "subscriptions_select_consolidated" ON public.subscriptions
             user_id = (select auth.uid()) OR
             -- Admins can view all subscriptions
             EXISTS (
-                SELECT 1 FROM public.profiles 
+                SELECT 1 FROM public.profiles
                 WHERE id = (select auth.uid()) AND role = 'admin'
             )
         )
@@ -57,7 +57,7 @@ CREATE POLICY "users_select_consolidated" ON public.users
             id = (select auth.uid()) OR
             -- Admins can view all users
             EXISTS (
-                SELECT 1 FROM public.profiles 
+                SELECT 1 FROM public.profiles
                 WHERE id = (select auth.uid()) AND role = 'admin'
             )
         )
@@ -70,7 +70,7 @@ CREATE POLICY "users_update_consolidated" ON public.users
             id = (select auth.uid()) OR
             -- Admins can update users
             EXISTS (
-                SELECT 1 FROM public.profiles 
+                SELECT 1 FROM public.profiles
                 WHERE id = (select auth.uid()) AND role = 'admin'
             )
         )
@@ -85,13 +85,13 @@ DROP POLICY IF EXISTS "workspaces_update_own" ON public.workspaces;
 -- Create consolidated policies for workspaces
 CREATE POLICY "workspaces_select_consolidated" ON public.workspaces
     FOR SELECT USING (
-        auth.role() = 'authenticated' AND 
+        auth.role() = 'authenticated' AND
         id = (SELECT workspace_id FROM public.profiles WHERE id = (select auth.uid()))
     );
 
 CREATE POLICY "workspaces_update_consolidated" ON public.workspaces
     FOR UPDATE USING (
-        auth.role() = 'authenticated' AND 
+        auth.role() = 'authenticated' AND
         id = (SELECT workspace_id FROM public.profiles WHERE id = (select auth.uid()))
     );
 

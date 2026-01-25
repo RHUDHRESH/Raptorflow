@@ -74,7 +74,7 @@
 ✅ Step 1: User visits signin page
    → Page loads successfully with Google OAuth button
 
-✅ Step 2: User clicks Google OAuth  
+✅ Step 2: User clicks Google OAuth
    → OAuth URL constructed correctly
    → Redirects to Google authentication
 

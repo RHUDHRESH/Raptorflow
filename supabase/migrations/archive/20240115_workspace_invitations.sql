@@ -1,6 +1,6 @@
 -- Role-Based Workspace Invitations System
 -- Migration: 20240115_workspace_invitations.sql
--- 
+--
 -- This migration implements a comprehensive workspace invitation system
 -- with role-based permissions and audit trails
 
@@ -13,33 +13,33 @@ CREATE TABLE IF NOT EXISTS workspace_invitations (
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     invited_email TEXT NOT NULL,
     invited_by UUID NOT NULL REFERENCES users(id),
-    
+
     -- Role and permissions
     role TEXT NOT NULL DEFAULT 'member' CHECK (
         role IN ('owner', 'admin', 'member', 'viewer', 'guest')
     ),
     permissions JSONB DEFAULT '[]', -- Additional permissions beyond role defaults
-    
+
     -- Status tracking
     status TEXT NOT NULL DEFAULT 'pending' CHECK (
         status IN ('pending', 'accepted', 'declined', 'expired', 'revoked')
     ),
-    
+
     -- Timestamps
     invited_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '7 days'),
     accepted_at TIMESTAMPTZ,
     accepted_by UUID REFERENCES users(id),
-    
+
     -- Security
     invitation_token TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
     ip_address INET,
     user_agent TEXT,
-    
+
     -- Metadata
     message TEXT, -- Personal invitation message
     metadata JSONB DEFAULT '{}', -- Additional invitation data
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -49,35 +49,35 @@ CREATE TABLE IF NOT EXISTS workspace_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    
+
     -- Role and permissions
     role TEXT NOT NULL DEFAULT 'member' CHECK (
         role IN ('owner', 'admin', 'member', 'viewer', 'guest')
     ),
     permissions JSONB DEFAULT '[]', -- Additional permissions beyond role defaults
-    
+
     -- Invitation tracking
     invited_by UUID REFERENCES users(id),
     invitation_id UUID REFERENCES workspace_invitations(id),
-    
+
     -- Status and activity
     status TEXT NOT NULL DEFAULT 'active' CHECK (
         status IN ('active', 'inactive', 'suspended', 'removed')
     ),
     joined_at TIMESTAMPTZ DEFAULT NOW(),
     last_accessed_at TIMESTAMPTZ,
-    
+
     -- Security
     ip_address INET,
     user_agent TEXT,
-    
+
     -- Metadata
     notes TEXT,
     metadata JSONB DEFAULT '{}',
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(workspace_id, user_id)
 );
 
@@ -88,24 +88,24 @@ CREATE TABLE IF NOT EXISTS workspace_roles (
     name TEXT NOT NULL,
     display_name TEXT NOT NULL,
     description TEXT,
-    
+
     -- Permissions
     permissions JSONB NOT NULL DEFAULT '[]',
     is_system_role BOOLEAN DEFAULT FALSE, -- Built-in roles cannot be deleted
-    
+
     -- Hierarchy
     level INTEGER NOT NULL DEFAULT 0, -- Higher number = more privileges
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(workspace_id, name)
 );
 
 -- Insert default workspace roles
 INSERT INTO workspace_roles (workspace_id, name, display_name, description, permissions, is_system_role, level) VALUES
 -- These will be inserted per workspace via trigger
-SELECT 
+SELECT
     w.id,
     'owner',
     'Owner',
@@ -115,13 +115,13 @@ SELECT
     100
 FROM workspaces w
 WHERE NOT EXISTS (
-    SELECT 1 FROM workspace_roles wr 
+    SELECT 1 FROM workspace_roles wr
     WHERE wr.workspace_id = w.id AND wr.name = 'owner'
 )
 
 UNION ALL
 
-SELECT 
+SELECT
     w.id,
     'admin',
     'Administrator',
@@ -131,13 +131,13 @@ SELECT
     80
 FROM workspaces w
 WHERE NOT EXISTS (
-    SELECT 1 FROM workspace_roles wr 
+    SELECT 1 FROM workspace_roles wr
     WHERE wr.workspace_id = w.id AND wr.name = 'admin'
 )
 
 UNION ALL
 
-SELECT 
+SELECT
     w.id,
     'member',
     'Member',
@@ -147,13 +147,13 @@ SELECT
     50
 FROM workspaces w
 WHERE NOT EXISTS (
-    SELECT 1 FROM workspace_roles wr 
+    SELECT 1 FROM workspace_roles wr
     WHERE wr.workspace_id = w.id AND wr.name = 'member'
 )
 
 UNION ALL
 
-SELECT 
+SELECT
     w.id,
     'viewer',
     'Viewer',
@@ -163,13 +163,13 @@ SELECT
     20
 FROM workspaces w
 WHERE NOT EXISTS (
-    SELECT 1 FROM workspace_roles wr 
+    SELECT 1 FROM workspace_roles wr
     WHERE wr.workspace_id = w.id AND wr.name = 'viewer'
 )
 
 UNION ALL
 
-SELECT 
+SELECT
     w.id,
     'guest',
     'Guest',
@@ -179,7 +179,7 @@ SELECT
     10
 FROM workspaces w
 WHERE NOT EXISTS (
-    SELECT 1 FROM workspace_roles wr 
+    SELECT 1 FROM workspace_roles wr
     WHERE wr.workspace_id = w.id AND wr.name = 'guest'
 );
 
@@ -209,16 +209,16 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_workspace_invitations_updated_at 
-    BEFORE UPDATE ON workspace_invitations 
+CREATE TRIGGER update_workspace_invitations_updated_at
+    BEFORE UPDATE ON workspace_invitations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_workspace_members_updated_at 
-    BEFORE UPDATE ON workspace_members 
+CREATE TRIGGER update_workspace_members_updated_at
+    BEFORE UPDATE ON workspace_members
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_workspace_roles_updated_at 
-    BEFORE UPDATE ON workspace_roles 
+CREATE TRIGGER update_workspace_roles_updated_at
+    BEFORE UPDATE ON workspace_roles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Function to create workspace invitation
@@ -239,11 +239,11 @@ BEGIN
     SELECT id INTO inviter_id
     FROM users
     WHERE auth_user_id = auth.uid();
-    
+
     IF inviter_id IS NULL THEN
         RAISE EXCEPTION 'User not authenticated';
     END IF;
-    
+
     -- Check if inviter has permission to invite members
     IF NOT EXISTS (
         SELECT 1 FROM workspace_members wm
@@ -254,7 +254,7 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'User does not have permission to invite members';
     END IF;
-    
+
     -- Check if invitation already exists and is pending
     IF EXISTS (
         SELECT 1 FROM workspace_invitations wi
@@ -265,7 +265,7 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'Invitation already exists for this email';
     END IF;
-    
+
     -- Create invitation
     INSERT INTO workspace_invitations (
         workspace_id,
@@ -284,7 +284,7 @@ BEGIN
         p_message,
         NOW() + (p_expires_days || ' days')::INTERVAL
     ) RETURNING id INTO invitation_id;
-    
+
     -- Log the invitation
     INSERT INTO audit_logs (
         actor_id,
@@ -309,7 +309,7 @@ BEGIN
         TRUE,
         NOW()
     );
-    
+
     RETURN invitation_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -329,20 +329,20 @@ BEGIN
     WHERE invitation_token = p_invitation_token
     AND status = 'pending'
     AND expires_at > NOW();
-    
+
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Invalid or expired invitation';
     END IF;
-    
+
     -- Get current user
     SELECT id INTO user_id
     FROM users
     WHERE auth_user_id = auth.uid();
-    
+
     IF user_id IS NULL THEN
         RAISE EXCEPTION 'User not authenticated';
     END IF;
-    
+
     -- Check if user is already a member
     IF EXISTS (
         SELECT 1 FROM workspace_members
@@ -352,7 +352,7 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'User is already a member of this workspace';
     END IF;
-    
+
     -- Add user to workspace
     INSERT INTO workspace_members (
         workspace_id,
@@ -373,15 +373,15 @@ BEGIN
         inet_client_addr(),
         current_setting('request.headers')::json->>'user-agent'
     );
-    
+
     -- Update invitation status
     UPDATE workspace_invitations
-    SET 
+    SET
         status = 'accepted',
         accepted_at = NOW(),
         accepted_by = user_id
     WHERE id = invitation_record.id;
-    
+
     -- Log the acceptance
     INSERT INTO audit_logs (
         actor_id,
@@ -404,7 +404,7 @@ BEGIN
         TRUE,
         NOW()
     );
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -423,28 +423,28 @@ BEGIN
     WHERE invitation_token = p_invitation_token
     AND status = 'pending'
     AND expires_at > NOW();
-    
+
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Invalid or expired invitation';
     END IF;
-    
+
     -- Get current user
     SELECT id INTO user_id
     FROM users
     WHERE auth_user_id = auth.uid();
-    
+
     IF user_id IS NULL THEN
         RAISE EXCEPTION 'User not authenticated';
     END IF;
-    
+
     -- Update invitation status
     UPDATE workspace_invitations
-    SET 
+    SET
         status = 'declined',
         accepted_at = NOW(),
         accepted_by = user_id
     WHERE id = invitation_record.id;
-    
+
     -- Log the decline
     INSERT INTO audit_logs (
         actor_id,
@@ -466,7 +466,7 @@ BEGIN
         TRUE,
         NOW()
     );
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -485,22 +485,22 @@ BEGIN
     SELECT id INTO remover_id
     FROM users
     WHERE auth_user_id = auth.uid();
-    
+
     IF remover_id IS NULL THEN
         RAISE EXCEPTION 'User not authenticated';
     END IF;
-    
+
     -- Get member role
     SELECT role INTO member_role
     FROM workspace_members
     WHERE workspace_id = p_workspace_id
     AND user_id = p_user_id
     AND status = 'active';
-    
+
     IF member_role IS NULL THEN
         RAISE EXCEPTION 'User is not an active member of this workspace';
     END IF;
-    
+
     -- Check permissions (can remove self or if admin/owner)
     IF remover_id != p_user_id AND NOT EXISTS (
         SELECT 1 FROM workspace_members wm
@@ -511,20 +511,20 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'User does not have permission to remove members';
     END IF;
-    
+
     -- Cannot remove owner unless they are removing themselves
     IF member_role = 'owner' AND remover_id != p_user_id THEN
         RAISE EXCEPTION 'Cannot remove workspace owner';
     END IF;
-    
+
     -- Remove member
     UPDATE workspace_members
-    SET 
+    SET
         status = 'removed',
         updated_at = NOW()
     WHERE workspace_id = p_workspace_id
     AND user_id = p_user_id;
-    
+
     -- Log the removal
     INSERT INTO audit_logs (
         actor_id,
@@ -548,7 +548,7 @@ BEGIN
         TRUE,
         NOW()
     );
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -568,7 +568,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         wm.user_id,
         u.email,
         u.full_name,
@@ -595,7 +595,7 @@ ALTER TABLE workspace_roles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view invitations for their workspaces" ON workspace_invitations
     FOR SELECT USING (
         workspace_id IN (
-            SELECT workspace_id FROM workspace_members 
+            SELECT workspace_id FROM workspace_members
             WHERE user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
             AND status = 'active'
         )
@@ -604,7 +604,7 @@ CREATE POLICY "Users can view invitations for their workspaces" ON workspace_inv
 CREATE POLICY "Workspace admins can manage invitations" ON workspace_invitations
     FOR ALL USING (
         workspace_id IN (
-            SELECT workspace_id FROM workspace_members 
+            SELECT workspace_id FROM workspace_members
             WHERE user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
             AND status = 'active'
             AND role IN ('owner', 'admin')
@@ -615,7 +615,7 @@ CREATE POLICY "Workspace admins can manage invitations" ON workspace_invitations
 CREATE POLICY "Users can view members of their workspaces" ON workspace_members
     FOR SELECT USING (
         workspace_id IN (
-            SELECT workspace_id FROM workspace_members 
+            SELECT workspace_id FROM workspace_members
             WHERE user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
             AND status = 'active'
         )
@@ -624,7 +624,7 @@ CREATE POLICY "Users can view members of their workspaces" ON workspace_members
 CREATE POLICY "Workspace admins can manage members" ON workspace_members
     FOR ALL USING (
         workspace_id IN (
-            SELECT workspace_id FROM workspace_members 
+            SELECT workspace_id FROM workspace_members
             WHERE user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
             AND status = 'active'
             AND role IN ('owner', 'admin')
@@ -635,7 +635,7 @@ CREATE POLICY "Workspace admins can manage members" ON workspace_members
 CREATE POLICY "Users can view roles for their workspaces" ON workspace_roles
     FOR SELECT USING (
         workspace_id IN (
-            SELECT workspace_id FROM workspace_members 
+            SELECT workspace_id FROM workspace_members
             WHERE user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
             AND status = 'active'
         )

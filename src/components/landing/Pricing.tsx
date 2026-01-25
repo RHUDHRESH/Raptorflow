@@ -71,7 +71,7 @@ export function Pricing() {
       }
 
       setIsLoading(true);
-      
+
       try {
         // Use authenticated fetch for plan selection
         const selectionResponse = await authenticatedFetch('/api/onboarding/select-plan', {

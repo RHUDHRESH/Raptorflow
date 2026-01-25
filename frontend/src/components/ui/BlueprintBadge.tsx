@@ -15,7 +15,7 @@ export function BlueprintBadge({
   className
 }: BlueprintBadgeProps) {
   const baseClasses = 'inline-flex items-center justify-center rounded-full font-medium';
-  
+
   const variantClasses = {
     default: 'bg-[var(--surface)] text-[var(--ink)] border border-[var(--border)]',
     success: 'bg-green-100 text-green-700 border border-green-200',

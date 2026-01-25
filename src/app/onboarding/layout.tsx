@@ -87,8 +87,8 @@ export default async function OnboardingLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* 
-        LEGACY LAYOUT CLEARED 
+      {/*
+        LEGACY LAYOUT CLEARED
         The internal OnboardingShell now handles the full UI, Sidebar, and Progress.
         We simply render the children full-width here.
       */}

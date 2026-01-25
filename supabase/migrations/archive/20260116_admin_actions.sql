@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.admin_actions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   admin_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   action_type TEXT NOT NULL CHECK (action_type IN (
-    'suspend_user', 'activate_user', 'reset_password', 'force_mfa_reset', 
+    'suspend_user', 'activate_user', 'reset_password', 'force_mfa_reset',
     'impersonate_user', 'bulk_suspend', 'bulk_activate', 'bulk_reset_password'
   )),
   target_user_ids TEXT[] DEFAULT ARRAY[]::TEXT[],
@@ -74,9 +74,9 @@ CREATE TABLE IF NOT EXISTS public.manual_interventions (
 );
 
 -- Add is_suspended column to profiles table (if not exists)
-DO $$ 
+DO $$
 BEGIN
-  ALTER TABLE public.profiles 
+  ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS suspended_by UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -84,9 +84,9 @@ BEGIN
 END $$;
 
 -- Add password_reset columns to profiles table (if not exists)
-DO $$ 
+DO $$
 BEGIN
-  ALTER TABLE public.profiles 
+  ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS password_hash TEXT,
   ADD COLUMN IF NOT EXISTS password_reset_required BOOLEAN DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS password_reset_by UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -250,7 +250,7 @@ BEGIN
     WHERE wm.user_id = admin_uuid
     AND wm.role IN ('owner', 'admin')
     LIMIT 1;
-    
+
     -- Additional checks for specific actions
     IF action_type_param = 'impersonate_user' AND target_user_uuid IS NOT NULL THEN
         -- Check if target user is not an admin
@@ -259,14 +259,14 @@ BEGIN
         WHERE wm.user_id = target_user_uuid
         AND wm.role IN ('owner', 'admin')
         LIMIT 1;
-        
+
         RETURN is_admin AND NOT EXISTS (
             SELECT 1 FROM public.workspace_members wm
             WHERE wm.user_id = target_user_uuid
             AND wm.role IN ('owner', 'admin')
         );
     END IF;
-    
+
     RETURN is_admin;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -296,7 +296,7 @@ BEGIN
         completed_at: NOW()
     )
     RETURNING id INTO action_id;
-    
+
     RETURN action_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -320,7 +320,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         s.id,
         s.user_id,
         s.suspended_by,
@@ -354,7 +354,7 @@ BEGIN
         updated_at = NOW()
     WHERE id = suspension_id
       AND is_active = true;
-    
+
     GET DIAGNOSTICS (ROW_COUNT, success);
     RETURN success;
 END;
@@ -381,7 +381,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         bo.id,
         bo.admin_id,
         bo.operation_type,
@@ -461,7 +461,7 @@ DECLARE
     since TIMESTAMP;
 BEGIN
     since := NOW() - (days_param || 30) * INTERVAL '1 day';
-    
+
     RETURN QUERY
     SELECT
         COUNT(*) FILTER (admin_id = admin_uuid OR admin_uuid IS NULL) AS total_actions,

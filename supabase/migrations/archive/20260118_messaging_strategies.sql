@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS public.messaging_strategies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-    
+
     one_liner TEXT,
     positioning_statement JSONB DEFAULT '{}',
     brand_voice JSONB DEFAULT '{}',
@@ -15,13 +15,13 @@ CREATE TABLE IF NOT EXISTS public.messaging_strategies (
     objection_responses JSONB DEFAULT '{}',
     social_proof JSONB DEFAULT '{}',
     ctas JSONB DEFAULT '{}',
-    
+
     confidence INTEGER DEFAULT 0,
     source TEXT DEFAULT 'vertex_ai',
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(workspace_id)
 );
 

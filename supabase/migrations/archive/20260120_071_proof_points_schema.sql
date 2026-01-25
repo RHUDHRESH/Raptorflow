@@ -9,23 +9,23 @@ CREATE TABLE IF NOT EXISTS onboarding_proof_points (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE,
-    
+
     -- Claim information
     claim_id TEXT NOT NULL,
     claim_text TEXT NOT NULL,
     claim_category TEXT DEFAULT 'general',
-    
+
     -- Validation results
     verification_status TEXT DEFAULT 'unverified', -- verified, partially_verified, unverified, needs_evidence
     claim_strength TEXT DEFAULT 'moderate', -- strong, moderate, weak
     confidence_score DECIMAL(3,2) DEFAULT 0.50,
-    
+
     -- Proof details
     proof_points JSONB DEFAULT '[]'::jsonb, -- Array of proof point objects
     recommendations JSONB DEFAULT '[]'::jsonb,
     improved_claim TEXT,
     risk_notes TEXT,
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -37,25 +37,25 @@ CREATE TABLE IF NOT EXISTS onboarding_truth_entries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE,
-    
+
     -- Entry information
     category TEXT NOT NULL, -- company, product, market, customer, competition, financials, team
     field_name TEXT NOT NULL,
     field_value TEXT NOT NULL,
-    
+
     -- Source tracking
     source TEXT DEFAULT 'auto-extracted',
     source_excerpt TEXT,
-    
+
     -- Confidence and verification
     confidence_level TEXT DEFAULT 'medium', -- high, medium, low
     verified BOOLEAN DEFAULT FALSE,
     user_edited BOOLEAN DEFAULT FALSE,
-    
+
     -- Metadata
     extracted_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     -- Unique constraint per field per session
     UNIQUE(session_id, category, field_name)
 );
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS onboarding_validation_summary (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE UNIQUE,
-    
+
     -- Summary metrics
     total_claims INTEGER DEFAULT 0,
     strong_claims INTEGER DEFAULT 0,
@@ -74,16 +74,16 @@ CREATE TABLE IF NOT EXISTS onboarding_validation_summary (
     weak_claims INTEGER DEFAULT 0,
     needs_evidence INTEGER DEFAULT 0,
     overall_score DECIMAL(3,2) DEFAULT 0.00,
-    
+
     -- Truth sheet metrics
     truth_completeness DECIMAL(3,2) DEFAULT 0.00,
     truth_entries_count INTEGER DEFAULT 0,
     categories_covered JSONB DEFAULT '[]'::jsonb,
     missing_fields JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Recommendations
     recommendations JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Metadata
     last_validated_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -107,7 +107,7 @@ ALTER TABLE onboarding_truth_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE onboarding_validation_summary ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for proof_points
-CREATE POLICY "Users can view own workspace proof points" 
+CREATE POLICY "Users can view own workspace proof points"
     ON onboarding_proof_points FOR SELECT
     USING (workspace_id IN (
         SELECT workspace_id FROM workspace_members WHERE user_id = auth.uid()

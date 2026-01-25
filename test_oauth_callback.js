@@ -6,13 +6,13 @@ dotenv.config();
 
 async function testOAuthCallback() {
   console.log('🔍 Testing OAuth callback with service role key...');
-  
+
   // Mock cookies storage (simulating browser cookies)
   const mockCookies = new Map();
-  
+
   // Simulate the PKCE verifier being set (as would happen in real OAuth flow)
   mockCookies.set('sb-vpwwzsanuyhpkvgorcnc-auth-token-code-verifier', 'test-verifier-12345');
-  
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -35,18 +35,18 @@ async function testOAuthCallback() {
   );
 
   console.log('✅ Server client created with service role key');
-  
+
   // Test with a fake OAuth code (this will still fail but should show different error)
   console.log('Testing code exchange with fake code...');
   const { data, error } = await supabase.auth.exchangeCodeForSession('fake-oauth-code-12345');
-  
+
   if (error) {
     console.error('❌ Code exchange error:', {
       message: error.message,
       status: error.status,
       code: error.code
     });
-    
+
     if (error.message === 'Invalid API key') {
       console.log('🔥 Still getting Invalid API key - service role key might be wrong');
     } else {
@@ -55,10 +55,10 @@ async function testOAuthCallback() {
   } else {
     console.log('✅ Code exchange succeeded (unexpected with fake code)');
   }
-  
+
   // Also test if the service role key works for other operations
   console.log('\nTesting service role key with other operations...');
-  
+
   try {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) {

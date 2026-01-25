@@ -7,7 +7,7 @@ dotenv.config();
 async function testCallbackFlow() {
   try {
     console.log('🔍 Testing callback flow...');
-    
+
     // Simulate the server client creation (like in callback route)
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -28,18 +28,18 @@ async function testCallbackFlow() {
     );
 
     console.log('✅ Server client created');
-    
+
     // Test with a fake code to see the exact error
     console.log('Testing code exchange with fake code...');
     const { data, error } = await supabase.auth.exchangeCodeForSession('fake_code_12345');
-    
+
     if (error) {
       console.error('❌ Code exchange error:', {
         message: error.message,
         status: error.status,
         code: error.code
       });
-      
+
       // This should give us the exact error we're seeing
       if (error.message === 'Invalid API key') {
         console.log('🔥 Found the issue: Invalid API key error');
@@ -48,7 +48,7 @@ async function testCallbackFlow() {
     } else {
       console.log('Unexpected success with fake code');
     }
-    
+
   } catch (error) {
     console.error('❌ Test error:', error);
   }

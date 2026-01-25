@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
 from backend.agents.exceptions import DatabaseError, ValidationError, WorkspaceError
+
 from .embeddings import get_embedding_model
 from .models import MemoryChunk, MemoryType
 from .redis_client import get_redis_client

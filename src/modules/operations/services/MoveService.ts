@@ -40,7 +40,7 @@ export class MoveService {
       if (!move) continue;
 
       const newEndDate = new Date(new Date(move.end_date).getTime() + days * 24 * 60 * 60 * 1000);
-      
+
       await supabase
         .from('moves')
         .update({ end_date: newEndDate.toISOString() })

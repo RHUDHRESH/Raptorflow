@@ -1,7 +1,7 @@
 -- Migration: 20260120_daily_wins_streak.sql
 -- Add streak tracking to Workspaces
 
-ALTER TABLE public.workspaces 
+ALTER TABLE public.workspaces
 ADD COLUMN IF NOT EXISTS daily_wins_streak INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS last_win_at TIMESTAMPTZ;
 

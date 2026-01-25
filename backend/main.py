@@ -27,7 +27,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # GCP Imports
 from google.cloud import aiplatform, bigquery, storage
-# from jobs import file_cleanup  # Temporarily disabled due to import issues
 
 # Import API routers
 from backend.api.v1 import (  # episodes,
@@ -114,6 +113,14 @@ from backend.shutdown import cleanup_app
 
 # Import startup/shutdown
 from backend.startup import initialize
+
+# from jobs import file_cleanup  # Temporarily disabled due to import issues
+
+
+
+
+
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

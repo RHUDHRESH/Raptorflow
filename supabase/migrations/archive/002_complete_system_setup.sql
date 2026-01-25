@@ -168,8 +168,8 @@ DROP POLICY IF EXISTS "Admins can view all users" ON users;
 CREATE POLICY "Admins can view all users" ON users
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = auth_user_id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = auth_user_id
             AND role IN ('admin', 'super_admin', 'support', 'billing_admin')
         )
     );
@@ -182,8 +182,8 @@ DROP POLICY IF EXISTS "Admins can update users" ON users;
 CREATE POLICY "Admins can update users" ON users
     FOR UPDATE USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = auth_user_id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = auth_user_id
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -192,8 +192,8 @@ DROP POLICY IF EXISTS "Super admins can manage roles" ON users;
 CREATE POLICY "Super admins can manage roles" ON users
     FOR UPDATE USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = auth_user_id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = auth_user_id
             AND role = 'super_admin'
         )
     );
@@ -209,8 +209,8 @@ DROP POLICY IF EXISTS "Admins can view all workspaces" ON workspaces;
 CREATE POLICY "Admins can view all workspaces" ON workspaces
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = auth_user_id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = auth_user_id
             AND role IN ('admin', 'super_admin', 'support')
         )
     );
@@ -226,8 +226,8 @@ DROP POLICY IF EXISTS "Admins can view all subscriptions" ON subscriptions;
 CREATE POLICY "Admins can view all subscriptions" ON subscriptions
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = auth_user_id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = auth_user_id
             AND role IN ('admin', 'super_admin', 'billing_admin')
         )
     );
@@ -243,8 +243,8 @@ DROP POLICY IF EXISTS "Admins can view all transactions" ON payment_transactions
 CREATE POLICY "Admins can view all transactions" ON payment_transactions
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = auth_user_id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = auth_user_id
             AND role IN ('admin', 'super_admin', 'billing_admin')
         )
     );
@@ -260,8 +260,8 @@ DROP POLICY IF EXISTS "Admins can view all audit logs" ON audit_logs;
 CREATE POLICY "Admins can view all audit logs" ON audit_logs
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = auth_user_id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = auth_user_id
             AND role IN ('admin', 'super_admin', 'support')
         )
     );
@@ -277,8 +277,8 @@ DROP POLICY IF EXISTS "Admins can view all security events" ON security_events;
 CREATE POLICY "Admins can view all security events" ON security_events
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = auth_user_id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = auth_user_id
             AND role IN ('admin', 'super_admin', 'support')
         )
     );
@@ -288,8 +288,8 @@ DROP POLICY IF EXISTS "Admins can view admin actions" ON admin_actions;
 CREATE POLICY "Admins can view admin actions" ON admin_actions
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = auth_user_id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = auth_user_id
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -359,8 +359,8 @@ CREATE INDEX IF NOT EXISTS idx_payment_transactions_created_at ON payment_transa
 CREATE OR REPLACE FUNCTION update_login_info()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE users 
-    SET 
+    UPDATE users
+    SET
         last_login_at = NOW(),
         login_count = COALESCE(login_count, 0) + 1,
         updated_ip_address = inet_client_addr()
@@ -379,11 +379,11 @@ CREATE TRIGGER on_session_created
 CREATE OR REPLACE FUNCTION cleanup_expired_sessions()
 RETURNS void AS $$
 BEGIN
-    UPDATE user_sessions 
-    SET is_active = false 
+    UPDATE user_sessions
+    SET is_active = false
     WHERE expires_at < NOW() AND is_active = true;
-    
-    DELETE FROM user_sessions 
+
+    DELETE FROM user_sessions
     WHERE expires_at < NOW() - INTERVAL '7 days';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -394,8 +394,8 @@ RETURNS TRIGGER AS $$
 BEGIN
     -- Update subscription to past_due if period has ended
     IF NEW.current_period_end < NOW() AND NEW.status = 'active' THEN
-        UPDATE subscriptions 
-        SET status = 'past_due' 
+        UPDATE subscriptions
+        SET status = 'past_due'
         WHERE id = NEW.id;
     END IF;
     RETURN NEW;
@@ -431,7 +431,7 @@ BEGIN
         COALESCE(p_ip_address, inet_client_addr()),
         p_user_agent,
         p_details,
-        CASE 
+        CASE
             WHEN p_event_type = 'login_failure' THEN 30
             WHEN p_event_type = 'suspicious_activity' THEN 80
             ELSE 0
@@ -448,21 +448,21 @@ DECLARE
     permissions JSONB;
 BEGIN
     SELECT * INTO user_record FROM users WHERE id = p_user_id;
-    
+
     IF NOT FOUND THEN
         RETURN '[]'::JSONB;
     END IF;
-    
+
     permissions := '[]'::JSONB;
-    
+
     -- Base permissions for all users
     permissions := permissions || '["view_own_profile", "update_own_profile"]'::JSONB;
-    
+
     -- Active user permissions
     IF user_record.onboarding_status = 'active' THEN
         permissions := permissions || '["access_dashboard", "manage_workspace"]'::JSONB;
     END IF;
-    
+
     -- Role-based permissions
     CASE user_record.role
         WHEN 'support' THEN
@@ -474,14 +474,14 @@ BEGIN
         WHEN 'super_admin' THEN
             permissions := permissions || '["view_all_users", "manage_users", "manage_roles", "view_all_subscriptions", "manage_subscriptions", "view_audit_logs", "manage_system_settings", "impersonate_users"]'::JSONB;
     END CASE;
-    
+
     RETURN permissions;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create view for admin dashboard
 CREATE OR REPLACE VIEW admin_dashboard AS
-SELECT 
+SELECT
     (SELECT COUNT(*) FROM users) as total_users,
     (SELECT COUNT(*) FROM users WHERE onboarding_status = 'active') as active_users,
     (SELECT COUNT(*) FROM users WHERE onboarding_status = 'pending_payment') as pending_payments,

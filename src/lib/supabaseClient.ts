@@ -8,7 +8,7 @@ export function getSupabaseClient() {
   if (typeof window === 'undefined') {
     throw new Error('getSupabaseClient() can only be called on the client side')
   }
-  
+
   if (!supabaseInstance) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -24,7 +24,7 @@ export function getSupabaseClient() {
       },
     })
   }
-  
+
   return supabaseInstance
 }
 

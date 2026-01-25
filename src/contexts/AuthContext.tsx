@@ -76,7 +76,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         const { data: { session } } = await supabase.auth.getSession()
-        
+
         if (session && mounted) {
           setSession(session)
           const userData = await getCurrentUser(supabase)

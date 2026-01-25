@@ -14,7 +14,7 @@ DECLARE
 BEGIN
     -- 1. Check current user onboarding status
     SELECT onboarding_status INTO v_onboarding_status FROM public.users WHERE id = p_user_id;
-    
+
     IF v_onboarding_status != 'pending_workspace' THEN
         RAISE EXCEPTION 'Invalid onboarding status: %', v_onboarding_status;
     END IF;
@@ -36,19 +36,19 @@ BEGIN
     );
 
     -- 4. Update User Status
-    UPDATE public.users 
-    SET onboarding_status = 'pending_storage' 
+    UPDATE public.users
+    SET onboarding_status = 'pending_storage'
     WHERE id = p_user_id;
 
     -- 5. Audit Log
     INSERT INTO public.audit_logs (
         actor_id, action, action_category, description, target_type, target_id, ip_address, user_agent
     ) VALUES (
-        p_user_id, 
-        'workspace_created', 
-        'onboarding', 
-        'Created workspace: ' || p_name, 
-        'workspace', 
+        p_user_id,
+        'workspace_created',
+        'onboarding',
+        'Created workspace: ' || p_name,
+        'workspace',
         v_workspace_id,
         p_audit_data->>'ip_address',
         p_audit_data->>'user_agent'

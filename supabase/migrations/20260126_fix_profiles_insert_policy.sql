@@ -3,14 +3,14 @@
 
 -- Allow users to insert their own profile (using auth.uid() = id)
 DROP POLICY IF EXISTS "profiles_self_insert" ON public.profiles;
-CREATE POLICY "profiles_self_insert" ON public.profiles 
-    FOR INSERT 
+CREATE POLICY "profiles_self_insert" ON public.profiles
+    FOR INSERT
     WITH CHECK (auth.uid() = id);
 
 -- Also allow service role to insert profiles (for system operations)
 DROP POLICY IF EXISTS "profiles_service_insert" ON public.profiles;
-CREATE POLICY "profiles_service_insert" ON public.profiles 
-    FOR INSERT 
+CREATE POLICY "profiles_service_insert" ON public.profiles
+    FOR INSERT
     WITH CHECK (true);  -- Service role bypasses RLS anyway, but this makes intent clear
 
 -- Grant insert to authenticated users on profiles
@@ -23,13 +23,13 @@ GRANT EXECUTE ON FUNCTION public.handle_new_user() TO authenticated;
 
 -- Add INSERT policy for subscriptions (needed for plan selection)
 DROP POLICY IF EXISTS "subscriptions_self_insert" ON public.subscriptions;
-CREATE POLICY "subscriptions_self_insert" ON public.subscriptions 
-    FOR INSERT 
+CREATE POLICY "subscriptions_self_insert" ON public.subscriptions
+    FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "subscriptions_self_update" ON public.subscriptions;
-CREATE POLICY "subscriptions_self_update" ON public.subscriptions 
-    FOR UPDATE 
+CREATE POLICY "subscriptions_self_update" ON public.subscriptions
+    FOR UPDATE
     USING (auth.uid() = user_id);
 
 -- Grant permissions
@@ -38,18 +38,18 @@ GRANT INSERT, UPDATE ON public.subscriptions TO service_role;
 
 -- Make sure plans table is readable by everyone (needed for plan selection page)
 DROP POLICY IF EXISTS "plans_public_read" ON public.plans;
-CREATE POLICY "plans_public_read" ON public.plans 
-    FOR SELECT 
+CREATE POLICY "plans_public_read" ON public.plans
+    FOR SELECT
     USING (true);
 
 GRANT SELECT ON public.plans TO anon;
 GRANT SELECT ON public.plans TO authenticated;
 GRANT SELECT ON public.plans TO service_role;
 
--- Add audit_logs insert policy  
+-- Add audit_logs insert policy
 DROP POLICY IF EXISTS "audit_logs_self_insert" ON public.audit_logs;
-CREATE POLICY "audit_logs_self_insert" ON public.audit_logs 
-    FOR INSERT 
+CREATE POLICY "audit_logs_self_insert" ON public.audit_logs
+    FOR INSERT
     WITH CHECK (true);  -- Any authenticated user can create audit logs
 
 GRANT INSERT ON public.audit_logs TO authenticated;

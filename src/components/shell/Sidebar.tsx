@@ -50,8 +50,8 @@ export function Sidebar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Extract user info for display
-  const displayName = user?.email ? 
-    user.email!.split('@')[0].charAt(0).toUpperCase() + user.email!.split('@')[0].slice(1) : 
+  const displayName = user?.email ?
+    user.email!.split('@')[0].charAt(0).toUpperCase() + user.email!.split('@')[0].slice(1) :
     "User";
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
@@ -98,7 +98,7 @@ export function Sidebar() {
                     >
                         {/* Active Accent Line */}
                         {isActive && (
-                            <motion.div 
+                            <motion.div
                                 layoutId="active-nav-accent"
                                 className="absolute left-0 top-2 bottom-2 w-1 bg-[var(--blueprint)] rounded-r-full"
                                 initial={{ opacity: 0, x: -5 }}
@@ -106,7 +106,7 @@ export function Sidebar() {
                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             />
                         )}
-                        
+
                         <Icon
                             size={18}
                             strokeWidth={isActive ? 2 : 1.5}

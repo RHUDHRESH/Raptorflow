@@ -31,7 +31,7 @@ import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  
+
   // Skip auth routes
   if (pathname.startsWith('/auth') || pathname === '/login') {
     return NextResponse.next()
@@ -132,11 +132,11 @@ export const rateLimiters = {
 }
 
 export async function checkRateLimit(
-  identifier: string, 
+  identifier: string,
   type: keyof typeof rateLimiters
 ) {
   const { success, limit, remaining, reset } = await rateLimiters[type].limit(identifier)
-  
+
   return {
     success,
     limit,
@@ -212,7 +212,7 @@ interface UserContextValue {
   permissions: string[]
   loading: boolean
   error: string | null
-  
+
   // Actions
   refreshUser: () => Promise<void>
   updateProfile: (data: ProfileUpdate) => Promise<void>
@@ -234,10 +234,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }))
-      
+
       const response = await fetch('/api/user/profile')
       const data = await response.json()
-      
+
       setState({
         user: data.user,
         profile: data.profile,
@@ -265,7 +265,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (!state.user) return
 
     const eventSource = new EventSource(`/api/user/subscription-updates`)
-    
+
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data)
       setState(prev => ({
@@ -288,7 +288,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
-      
+
       if (response.ok) {
         await refreshUser()
       }
@@ -299,7 +299,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ planId })
       })
-      
+
       if (response.ok) {
         await refreshUser()
       }
@@ -343,7 +343,7 @@ export async function POST(request: Request) {
         metadata: { email, method: 'magic_link', error: error.message },
         severity: 'medium'
       })
-      
+
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
@@ -356,7 +356,7 @@ export async function POST(request: Request) {
       severity: 'low'
     })
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: 'Magic link sent to your email'
     })
@@ -383,10 +383,10 @@ interface PermissionGuardProps {
   children: React.ReactNode
 }
 
-export function PermissionGuard({ 
-  permission, 
-  fallback = <AccessDenied />, 
-  children 
+export function PermissionGuard({
+  permission,
+  fallback = <AccessDenied />,
+  children
 }: PermissionGuardProps) {
   const { checkPermission } = useUser()
 
@@ -435,34 +435,34 @@ class SessionManager {
   async refreshSession(): Promise<boolean> {
     try {
       const { data: { session }, error } = await supabase.auth.refreshSession()
-      
+
       if (error) {
         throw new Error(`Session refresh failed: ${error.message}`)
       }
 
       this.refreshBackoff = 1000 // Reset backoff on success
-      
+
       // Schedule next refresh
       this.scheduleRefresh()
-      
+
       return true
     } catch (error) {
       console.error('Session refresh error:', error)
-      
+
       // Exponential backoff
       this.refreshBackoff = Math.min(this.refreshBackoff * 2, this.maxBackoff)
-      
+
       if (this.refreshBackoff >= this.maxBackoff) {
         // Force logout after max retries
         await this.forceLogout()
         return false
       }
-      
+
       // Retry after backoff
       this.refreshTimer = setTimeout(() => {
         this.refreshSession()
       }, this.refreshBackoff)
-      
+
       return false
     }
   }
@@ -470,7 +470,7 @@ class SessionManager {
   private scheduleRefresh() {
     // Refresh 5 minutes before expiry
     const refreshTime = 5 * 60 * 1000 // 5 minutes in ms
-    
+
     this.refreshTimer = setTimeout(() => {
       this.refreshSession()
     }, refreshTime)
@@ -571,7 +571,7 @@ export class RBAC {
       .from('user_roles')
       .select('role_id')
       .eq('user_id', userId)
-    
+
     return data?.map(r => r.role_id) || ['user']
   }
 
@@ -601,9 +601,9 @@ export class RBAC {
   }
 
   static async checkPermission(
-    userId: string, 
-    resource: string, 
-    action: string, 
+    userId: string,
+    resource: string,
+    action: string,
     context?: Record<string, any>
   ): Promise<boolean> {
     const permissions = await this.getUserPermissions(userId)
@@ -734,7 +734,7 @@ export async function POST(request: Request) {
 
   try {
     // Soft delete first
-    await supabase.from('profiles').update({ 
+    await supabase.from('profiles').update({
       deleted_at: new Date().toISOString(),
       deletion_reason: 'user_request',
       status: 'deleted'
@@ -757,7 +757,7 @@ export async function POST(request: Request) {
       severity: 'high'
     })
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: 'Account deletion scheduled. Your data will be permanently deleted in 30 days.'
     })
@@ -904,11 +904,11 @@ export class PerformanceMonitor {
 
   startTimer(name: string): () => void {
     const start = performance.now()
-    
+
     return () => {
       const duration = performance.now() - start
       this.recordMetric(name, duration)
-      
+
       // Check threshold
       const threshold = this.thresholds.get(name)
       if (threshold && duration > threshold) {
@@ -921,10 +921,10 @@ export class PerformanceMonitor {
     if (!this.metrics.has(name)) {
       this.metrics.set(name, [])
     }
-    
+
     const metrics = this.metrics.get(name)!
     metrics.push(duration)
-    
+
     // Keep only last 100 measurements
     if (metrics.length > 100) {
       metrics.shift()
@@ -933,7 +933,7 @@ export class PerformanceMonitor {
 
   getMetrics(name: string) {
     const measurements = this.metrics.get(name) || []
-    
+
     if (measurements.length === 0) {
       return null
     }
@@ -954,7 +954,7 @@ export class PerformanceMonitor {
 
   private alertSlowOperation(name: string, duration: number, threshold: number) {
     console.warn(`🐌 SLOW OPERATION: ${name} took ${duration.toFixed(2)}ms (threshold: ${threshold}ms)`)
-    
+
     // Send to monitoring service
     this.sendMetricToMonitoring(name, duration, threshold)
   }

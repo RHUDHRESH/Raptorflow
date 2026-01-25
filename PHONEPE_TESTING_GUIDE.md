@@ -30,7 +30,7 @@ UAT_HOST_URL: https://api-preprod.phonepe.com/apis/pgsandbox
 
 ### **📱 PhonePe Test App Setup:**
 1. **Download**: PhonePe Test App from Play Store/App Store
-2. **Configure Templates**: 
+2. **Configure Templates**:
    - Open Test App → Tap "Test Case Templates"
    - Enter Merchant ID: `PGTESTPAYUAT86`
    - Click "Get Configured Templates"
@@ -213,7 +213,7 @@ class PhonePeTester:
     def __init__(self, base_url="http://localhost:8080"):
         self.base_url = base_url
         self.test_results = []
-    
+
     async def test_health_check(self):
         """Test health check endpoint"""
         try:
@@ -228,7 +228,7 @@ class PhonePeTester:
             return result
         except Exception as e:
             return {"test": "Health Check", "status": "FAIL", "error": str(e)}
-    
+
     async def test_payment_initiation(self):
         """Test payment initiation"""
         try:
@@ -252,20 +252,20 @@ class PhonePeTester:
             return result
         except Exception as e:
             return {"test": "Payment Initiation", "status": "FAIL", "error": str(e)}
-    
+
     async def run_all_tests(self):
         """Run all tests"""
         print("🧪 Starting PhonePe Integration Tests...")
-        
+
         tests = [
             self.test_health_check,
             self.test_payment_initiation,
         ]
-        
+
         for test in tests:
             result = await test()
             print(f"✅ {result['test']}: {result['status']}")
-        
+
         print(f"📊 Test Results: {len(self.test_results)} tests completed")
         return self.test_results
 

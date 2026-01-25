@@ -1,9 +1,9 @@
 /**
  * RAPTORFLOW UNIFIED AUTHENTICATION LIBRARY
- * 
+ *
  * This is the SINGLE SOURCE OF TRUTH for all authentication operations.
  * DO NOT use any other auth files - they are deprecated.
- * 
+ *
  * Supports:
  * - Email/Password authentication
  * - Google OAuth (SSO)
@@ -14,11 +14,11 @@
  */
 
 import { createBrowserClient } from '@supabase/ssr'
-import type { 
-  Session, 
-  User as SupabaseUser, 
+import type {
+  Session,
+  User as SupabaseUser,
   AuthError,
-  Provider 
+  Provider
 } from '@supabase/supabase-js'
 import { getAuthCallbackUrl } from './env-utils'
 
@@ -598,7 +598,7 @@ export async function isMFARequired(): Promise<boolean> {
 
   try {
     const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-    
+
     if (error) return false
 
     // If current level is aal1 but next level requires aal2, MFA is needed
@@ -651,7 +651,7 @@ export function onAuthStateChange(
   callback: (event: string, session: Session | null) => void
 ): { unsubscribe: () => void } {
   const supabase = getSupabaseClient()
-  
+
   if (!supabase) {
     return { unsubscribe: () => {} }
   }
@@ -710,18 +710,18 @@ export function validateEmail(email: string): boolean {
 export default {
   // Client
   getSupabaseClient,
-  
+
   // Auth methods
   signUp,
   signIn,
   signInWithOAuth,
   signInWithMagicLink,
   signOut,
-  
+
   // Password
   resetPassword,
   updatePassword,
-  
+
   // Session & User
   getSession,
   getAuthUser,
@@ -729,19 +729,19 @@ export default {
   isAuthenticated,
   hasActiveSubscription,
   hasCompletedOnboarding,
-  
+
   // MFA
   enrollTOTP,
   verifyTOTP,
   getMFAFactors,
   isMFARequired,
-  
+
   // Email
   resendVerificationEmail,
-  
+
   // Listener
   onAuthStateChange,
-  
+
   // Utilities
   validatePassword,
   validateEmail,

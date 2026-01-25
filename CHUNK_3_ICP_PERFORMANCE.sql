@@ -9,9 +9,9 @@ CREATE POLICY "icp_disqualifiers_select_workspace" ON public.icp_disqualifiers
     FOR SELECT USING (
         auth.role() IN ('authenticated', 'service_role') AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -21,9 +21,9 @@ CREATE POLICY "icp_disqualifiers_insert_workspace" ON public.icp_disqualifiers
     FOR INSERT WITH CHECK (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -33,9 +33,9 @@ CREATE POLICY "icp_disqualifiers_update_workspace" ON public.icp_disqualifiers
     FOR UPDATE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -45,9 +45,9 @@ CREATE POLICY "icp_disqualifiers_delete_workspace" ON public.icp_disqualifiers
     FOR DELETE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -58,9 +58,9 @@ CREATE POLICY "icp_firmographics_select_workspace" ON public.icp_firmographics
     FOR SELECT USING (
         auth.role() IN ('authenticated', 'service_role') AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -70,9 +70,9 @@ CREATE POLICY "icp_firmographics_insert_workspace" ON public.icp_firmographics
     FOR INSERT WITH CHECK (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -82,9 +82,9 @@ CREATE POLICY "icp_firmographics_update_workspace" ON public.icp_firmographics
     FOR UPDATE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -94,9 +94,9 @@ CREATE POLICY "icp_firmographics_delete_workspace" ON public.icp_firmographics
     FOR DELETE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -107,9 +107,9 @@ CREATE POLICY "icp_pain_map_select_workspace" ON public.icp_pain_map
     FOR SELECT USING (
         auth.role() IN ('authenticated', 'service_role') AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -119,9 +119,9 @@ CREATE POLICY "icp_pain_map_insert_workspace" ON public.icp_pain_map
     FOR INSERT WITH CHECK (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -131,9 +131,9 @@ CREATE POLICY "icp_pain_map_update_workspace" ON public.icp_pain_map
     FOR UPDATE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -143,9 +143,9 @@ CREATE POLICY "icp_pain_map_delete_workspace" ON public.icp_pain_map
     FOR DELETE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -156,9 +156,9 @@ CREATE POLICY "icp_psycholinguistics_select_workspace" ON public.icp_psycholingu
     FOR SELECT USING (
         auth.role() IN ('authenticated', 'service_role') AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -168,9 +168,9 @@ CREATE POLICY "icp_psycholinguistics_insert_workspace" ON public.icp_psycholingu
     FOR INSERT WITH CHECK (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -180,9 +180,9 @@ CREATE POLICY "icp_psycholinguistics_update_workspace" ON public.icp_psycholingu
     FOR UPDATE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -192,9 +192,9 @@ CREATE POLICY "icp_psycholinguistics_delete_workspace" ON public.icp_psycholingu
     FOR DELETE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )

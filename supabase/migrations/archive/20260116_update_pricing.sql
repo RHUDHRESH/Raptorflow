@@ -3,7 +3,7 @@
 -- This migration updates the subscription plans to match the actual pricing structure
 
 -- Update subscription_plans table to match actual pricing
-UPDATE subscription_plans SET 
+UPDATE subscription_plans SET
     price_monthly = 290000,  -- ₹2,900 in paise (Ascent)
     price_yearly = 2900000,  -- ₹29,000 in paise (Ascent)
     features = jsonb_build_array(
@@ -15,7 +15,7 @@ UPDATE subscription_plans SET
     )
 WHERE plan_name = 'ascent';
 
-UPDATE subscription_plans SET 
+UPDATE subscription_plans SET
     price_monthly = 790000,  -- ₹7,900 in paise (Glide)
     price_yearly = 7900000,  -- ₹79,000 in paise (Glide)
     features = jsonb_build_array(
@@ -29,7 +29,7 @@ UPDATE subscription_plans SET
     )
 WHERE plan_name = 'glide';
 
-UPDATE subscription_plans SET 
+UPDATE subscription_plans SET
     price_monthly = 1990000, -- ₹19,900 in paise (Soar)
     price_yearly = 19900000, -- ₹199,000 in paise (Soar)
     features = jsonb_build_array(
@@ -49,7 +49,7 @@ UPDATE subscription_plans SET
 WHERE plan_name = 'soar';
 
 -- Update free plan if it exists
-UPDATE subscription_plans SET 
+UPDATE subscription_plans SET
     price_monthly = 0,
     price_yearly = 0,
     features = jsonb_build_array(
@@ -63,7 +63,7 @@ WHERE plan_name = 'free';
 
 -- Add missing plans if they don't exist
 INSERT INTO subscription_plans (plan_name, display_name, description, price_monthly, price_yearly, features, is_active, created_at, updated_at)
-SELECT 
+SELECT
     'free',
     'Free',
     'Perfect for individuals and small teams getting started',
@@ -83,7 +83,7 @@ WHERE NOT EXISTS (SELECT 1 FROM subscription_plans WHERE plan_name = 'free');
 
 -- Add trial plan if it doesn't exist
 INSERT INTO subscription_plans (plan_name, display_name, description, price_monthly, price_yearly, features, is_active, created_at, updated_at)
-SELECT 
+SELECT
     'trial',
     'Trial',
     'Try all features for 14 days',
@@ -105,23 +105,23 @@ WHERE NOT EXISTS (SELECT 1 FROM subscription_plans WHERE plan_name = 'trial');
 
 -- Update user subscription plans to match new pricing
 -- First, update any users with invalid pricing plans
-UPDATE users 
-SET 
+UPDATE users
+SET
     subscription_plan = 'free',
-    subscription_status = CASE 
+    subscription_status = CASE
         WHEN subscription_status = 'active' AND subscription_plan NOT IN ('free', 'ascent', 'glide', 'soar') THEN 'cancelled'
         ELSE subscription_status
     END
 WHERE subscription_plan NOT IN ('free', 'ascent', 'glide', 'soar');
 
 -- Update profiles table to match new pricing structure
-UPDATE profiles 
-SET 
-    subscription_plan = CASE 
+UPDATE profiles
+SET
+    subscription_plan = CASE
         WHEN subscription_plan NOT IN ('free', 'ascent', 'glide', 'soar') THEN 'free'
         ELSE subscription_plan
     END,
-    subscription_status = CASE 
+    subscription_status = CASE
         WHEN subscription_status NOT IN ('none', 'trial', 'active', 'cancelled', 'expired', 'suspended') THEN 'none'
         ELSE subscription_status
     END
@@ -139,15 +139,15 @@ RETURNS NUMERIC AS $$
 DECLARE
     price_in_paise NUMERIC;
 BEGIN
-    SELECT price_in_paise = 
-        CASE 
+    SELECT price_in_paise =
+        CASE
             WHEN period = 'monthly' THEN price_monthly
             WHEN period = 'yearly' THEN price_yearly
             ELSE price_monthly
         END
     FROM subscription_plans
     WHERE plan_name = get_plan_price_in_rupees.plan_name;
-    
+
     RETURN price_in_paise / 100; -- Convert from paise to rupees
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -165,8 +165,8 @@ CREATE OR REPLACE FUNCTION get_plan_features(plan_name TEXT)
 RETURNS JSONB AS $$
 BEGIN
     RETURN (
-        SELECT features 
-        FROM subscription_plans 
+        SELECT features
+        FROM subscription_plans
         WHERE plan_name = get_plan_features.plan_name
     );
 END;

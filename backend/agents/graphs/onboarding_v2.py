@@ -10,8 +10,9 @@ from typing import Annotated, Any, Dict, List, Optional, TypedDict
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
-from ...infrastructure.storage import delete_file
 from backend.services.titan.orchestrator import TitanOrchestrator
+
+from ...infrastructure.storage import delete_file
 from ..specialists.brand_audit_agent import BrandAuditEngine
 from ..specialists.buying_process_agent import BuyingProcessArchitect
 from ..specialists.capability_rating_agent import CapabilityRatingEngine

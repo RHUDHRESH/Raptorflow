@@ -132,7 +132,7 @@ export default function BlackBoxPage() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    // Add auth header if needed, but Supabase client handles it usually. 
+                    // Add auth header if needed, but Supabase client handles it usually.
                     // However, for fetch to backend we might need token.
                     // Let's assume Backend validates via Supabase token or just accepts it for now.
                     // If backend requires Bearer token:

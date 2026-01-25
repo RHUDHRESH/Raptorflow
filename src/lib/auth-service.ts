@@ -63,14 +63,14 @@ class CrossTabManager {
   private isEdgeRuntime: boolean;
   private isSigningOut = false; // Prevent duplicate signout handling
   private useBroadcastChannel = false; // Track which mechanism we're using
-  
+
   // Store bound handlers as class fields to properly remove them later
   private boundHandleBroadcastMessage: ((event: MessageEvent) => void) | null = null;
   private boundHandleStorageEvent: ((event: StorageEvent) => void) | null = null;
 
   constructor() {
     // Check if we're in Edge Runtime (middleware)
-    this.isEdgeRuntime = typeof window === 'undefined' && typeof globalThis !== 'undefined' && 
+    this.isEdgeRuntime = typeof window === 'undefined' && typeof globalThis !== 'undefined' &&
                        (globalThis as any).EdgeRuntime !== undefined;
 
     // Only initialize for client-side (not Edge Runtime)
@@ -125,22 +125,22 @@ class CrossTabManager {
     if (this.isSigningOut) {
       return;
     }
-    
+
     if (typeof window !== 'undefined') {
       // Check if already on login page
       if (window.location.pathname === '/login') {
         return;
       }
-      
+
       this.isSigningOut = true;
-      
+
       // Clear local caches
       localStorage.removeItem('auth_cache');
       sessionStorage.removeItem('auth_cache');
       localStorage.removeItem('session_cache');
       localStorage.removeItem('raptorflow_session');
       localStorage.removeItem('raptorflow_user');
-      
+
       // Redirect to login
       window.location.href = '/login';
     }
@@ -172,7 +172,7 @@ class CrossTabManager {
         type: 'SIGN_OUT',
         timestamp: Date.now()
       }));
-      
+
       // Clear the event after a short delay
       setTimeout(() => {
         localStorage.removeItem(this.storageKey);
@@ -188,9 +188,9 @@ class CrossTabManager {
 
     // Use only one mechanism to avoid duplicate events
     if (this.useBroadcastChannel && this.broadcastChannel) {
-      this.broadcastChannel.postMessage({ 
+      this.broadcastChannel.postMessage({
         type: 'SESSION_REFRESH',
-        session 
+        session
       });
     } else {
       // Fallback to localStorage for older browsers
@@ -199,7 +199,7 @@ class CrossTabManager {
         session,
         timestamp: Date.now()
       }));
-      
+
       // Clear the event after a short delay
       setTimeout(() => {
         localStorage.removeItem(this.storageKey);
@@ -212,13 +212,13 @@ class CrossTabManager {
       this.broadcastChannel.close();
       this.broadcastChannel = null;
     }
-    
+
     // Use the stored bound handler reference for proper removal
     if (typeof window !== 'undefined' && this.boundHandleStorageEvent) {
       window.removeEventListener('storage', this.boundHandleStorageEvent);
       this.boundHandleStorageEvent = null;
     }
-    
+
     this.isSigningOut = false;
   }
 }
@@ -403,28 +403,28 @@ export class ClientAuthService {
     try {
       // Sign out from Supabase
       await this.supabase.auth.signOut()
-      
+
       // Broadcast sign out to all tabs (if available)
       if (this.crossTabManager) {
         this.crossTabManager.broadcastSignOut();
       }
-      
+
       // Clear any local storage/cache
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth_cache')
         sessionStorage.removeItem('auth_cache')
         localStorage.removeItem('session_cache')
       }
-      
+
       return { success: true }
     } catch (error) {
       console.error('Error signing out:', error)
-      
+
       // Still broadcast sign out even if Supabase sign out fails
       if (this.crossTabManager) {
         this.crossTabManager.broadcastSignOut();
       }
-      
+
       return { success: false, error: 'Failed to sign out' }
     }
   }
@@ -449,7 +449,7 @@ export class ClientAuthService {
    */
   getCachedUser(): AuthUser | null {
     if (typeof window === 'undefined') return null
-    
+
     try {
       const cached = localStorage.getItem('auth_cache')
       if (cached) {
@@ -462,7 +462,7 @@ export class ClientAuthService {
     } catch (error) {
       console.error('Error reading cached user:', error)
     }
-    
+
     return null
   }
 
@@ -471,7 +471,7 @@ export class ClientAuthService {
    */
   private cacheUser(user: AuthUser): void {
     if (typeof window === 'undefined') return
-    
+
     try {
       localStorage.setItem('auth_cache', JSON.stringify({
         user,
@@ -544,11 +544,11 @@ export class ServerAuthService {
       let needsRotation = false
       if (session?.expires_at) {
         // expires_at is a unix timestamp in seconds from Supabase
-        const expiresAtMs = typeof session.expires_at === 'number' 
-          ? session.expires_at * 1000 
+        const expiresAtMs = typeof session.expires_at === 'number'
+          ? session.expires_at * 1000
           : new Date(session.expires_at).getTime()
         const timeUntilExpiry = expiresAtMs - Date.now()
-        
+
         // Rotate if less than 5 minutes until expiry, or already expired
         if (timeUntilExpiry < 5 * 60 * 1000) {
           needsRotation = true
@@ -661,11 +661,11 @@ export class ServerAuthService {
   async rotateSession(): Promise<{ success: boolean; session?: Session; error?: string }> {
     try {
       const { data: { session }, error } = await this.supabase.auth.refreshSession()
-      
+
       if (error) {
         return { success: false, error: error.message }
       }
-      
+
       return { success: true, session: session! }
     } catch (error) {
       console.error('Session rotation error:', error)
@@ -778,7 +778,7 @@ export function getServiceAuth(): ServiceRoleAuthService {
   if (typeof window !== 'undefined') {
     throw new Error('ServiceRoleAuthService can only be used on the server')
   }
-  
+
   if (!_serviceAuth) {
     _serviceAuth = ServiceRoleAuthService.getInstance()
   }

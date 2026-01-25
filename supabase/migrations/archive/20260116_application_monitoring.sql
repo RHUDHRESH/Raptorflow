@@ -251,7 +251,7 @@ BEGIN
         updated_at: NOW()
     )
     RETURNING id INTO error_id;
-    
+
     RETURN error_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -284,7 +284,7 @@ BEGIN
         created_at: NOW()
     )
     RETURNING id INTO metric_id;
-    
+
     RETURN metric_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -314,7 +314,7 @@ BEGIN
         updated_at: NOW()
     )
     RETURNING id INTO alert_id;
-    
+
     RETURN alert_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -334,7 +334,7 @@ BEGIN
         updated_at = NOW()
     WHERE id = alert_id_param
       AND is_active = true;
-    
+
     GET DIAGNOSTICS (ROW_COUNT, success);
     RETURN success;
 END;
@@ -358,7 +358,7 @@ BEGIN
         updated_at = NOW()
     WHERE id = alert_id_param
       AND is_active = true;
-    
+
     GET DIAGNOSTICS (ROW_COUNT, success);
     RETURN success;
 END;
@@ -381,7 +381,7 @@ DECLARE
     since TIMESTAMP;
 BEGIN
     since := NOW() - (days_param || 30) * INTERVAL '1 day';
-    
+
     RETURN QUERY
     SELECT
         (SELECT COUNT(*) FROM public.error_logs WHERE created_at >= since) AS total_errors,
@@ -418,23 +418,23 @@ DECLARE
     alert_count BIGINT;
 BEGIN
     cutoff_date := NOW() - (days_old || 90) * INTERVAL '1 day';
-    
+
     -- Delete old error logs
     DELETE FROM public.error_logs
     WHERE created_at < cutoff_date;
     GET DIAGNOSTICS (ROW_COUNT, error_count);
-    
+
     -- Delete old performance metrics
     DELETE FROM public.performance_metrics
     WHERE timestamp < cutoff_date;
     GET DIAGNOSTICS (ROW_COUNT, metric_count);
-    
+
     -- Delete old resolved alerts
     DELETE FROM public.alerts
     WHERE created_at < cutoff_date
       AND is_active = false;
     GET DIAGNOSTICS (ROW_COUNT, alert_count);
-    
+
     RETURN QUERY
     SELECT error_count, metric_count, alert_count;
 END;
@@ -489,10 +489,10 @@ BEGIN
     SELECT * INTO current_check
     FROM public.uptime_checks
     WHERE id = check_id_param;
-    
+
     -- Calculate new statistics
     new_total_checks := current_check.total_checks + 1;
-    
+
     IF status_param = 'up' THEN
         new_successful_checks := current_check.successful_checks + 1;
         new_failed_checks := current_check.failed_checks;
@@ -502,9 +502,9 @@ BEGIN
         new_failed_checks := current_check.failed_checks + 1;
         new_consecutive_failures := current_check.consecutive_failures + 1;
     END IF;
-    
+
     new_uptime_percentage := (new_successful_checks::NUMERIC / new_total_checks::NUMERIC) * 100;
-    
+
     -- Update check
     UPDATE public.uptime_checks
     SET last_checked = NOW(),

@@ -15,7 +15,7 @@
 ### **Original Industrial Pricing (RESTORED):**
 ```
 🚀 Ascent: ₹5,000/month   (₹50,000/year)
-🚀 Glide:  ₹7,000/month   (₹70,000/year)  
+🚀 Glide:  ₹7,000/month   (₹70,000/year)
 🚀 Soar:  ₹10,000/month  (₹100,000/year)
 ```
 
@@ -90,7 +90,7 @@ VALUES (500000, 5000000),  -- Ascent: ₹5,000/month
 ```
 Assuming 100 enterprise users:
 - 40% Ascent: ₹200,000/month
-- 35% Glide:   ₹245,000/month  
+- 35% Glide:   ₹245,000/month
 - 25% Soar:   ₹250,000/month
 TOTAL: ₹695,000/month (₹8.3 Crore/year)
 ```

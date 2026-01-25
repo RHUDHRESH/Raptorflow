@@ -21,28 +21,28 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 
 async function createMissingTables() {
   console.log('🚀 Creating missing tables via CLI approach...\n');
-  
+
   try {
     // Read the SQL file
     const sqlPath = path.join(__dirname, '../missing_tables.sql');
     const sqlContent = fs.readFileSync(sqlPath, 'utf8');
-    
+
     console.log('📁 SQL file loaded');
-    
+
     // Split into individual statements
     const statements = sqlContent
       .split(';')
       .map(s => s.trim())
       .filter(s => s && !s.startsWith('--') && !s.startsWith('/*') && !s.startsWith('*'));
-    
+
     console.log(`📝 Found ${statements.length} SQL statements to execute`);
-    
+
     // Execute each statement using the REST API
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i];
       console.log(`\n⚡ Executing statement ${i + 1}/${statements.length}...`);
       console.log(`📄 SQL: ${statement.substring(0, 100)}...`);
-      
+
       try {
         // Try using the _exec function for admin operations
         const response = await fetch(`${supabaseUrl}/rest/v1/rpc/_exec`, {
@@ -55,13 +55,13 @@ async function createMissingTables() {
           },
           body: JSON.stringify({ query: statement })
         });
-        
+
         if (response.ok) {
           console.log(`✅ Statement ${i + 1} executed successfully`);
         } else {
           const errorText = await response.text();
           console.log(`⚠️  Statement ${i + 1} response:`, response.status, errorText);
-          
+
           // Try alternative approach for DDL
           if (response.status === 400 || response.status === 500) {
             console.log('🔄 Trying alternative approach...');
@@ -72,10 +72,10 @@ async function createMissingTables() {
         console.log(`❌ Statement ${i + 1} failed:`, err.message);
       }
     }
-    
+
     console.log('\n🎉 Table creation completed!');
     await verifyTables();
-    
+
   } catch (error) {
     console.error('❌ CLI approach failed:', error);
     console.log('\n📋 Manual deployment still required:');
@@ -100,7 +100,7 @@ async function tryAlternativeApproach(sql) {
         query: sql
       })
     });
-    
+
     if (response.ok) {
       console.log('✅ Alternative approach successful');
     } else {
@@ -113,10 +113,10 @@ async function tryAlternativeApproach(sql) {
 
 async function verifyTables() {
   console.log('\n🔍 Verifying table creation...');
-  
+
   const tables = ['profiles', 'workspaces', 'subscriptions', 'payments', 'email_logs'];
   let existingCount = 0;
-  
+
   for (const table of tables) {
     try {
       const response = await fetch(`${supabaseUrl}/rest/v1/${table}?select=count&limit=1`, {
@@ -125,7 +125,7 @@ async function verifyTables() {
           'apikey': serviceRoleKey
         }
       });
-      
+
       if (response.ok) {
         console.log(`✅ Table '${table}' exists and accessible`);
         existingCount++;
@@ -136,9 +136,9 @@ async function verifyTables() {
       console.log(`⚠️  Could not verify table '${table}':`, err.message);
     }
   }
-  
+
   console.log(`\n📊 Summary: ${existingCount}/5 tables exist`);
-  
+
   if (existingCount === 5) {
     console.log('\n🎉 ALL TABLES CREATED SUCCESSFULLY!');
     console.log('✅ Database schema is now 100% complete');

@@ -28,7 +28,7 @@ interface EnhancedCampaignStore {
   currentCampaign: Campaign | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setCampaigns: (campaigns: Campaign[]) => void;
   setCurrentCampaign: (campaign: Campaign | null) => void;
@@ -49,15 +49,15 @@ const campaignsApi = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch campaigns');
     }
-    
+
     const data = await response.json();
     return data.campaigns || [];
   },
-  
+
   async createCampaign(campaign: Omit<Campaign, 'id'>): Promise<Campaign> {
     const response = await fetch('/api/proxy/api/v1/campaigns/', {
       method: 'POST',
@@ -66,14 +66,14 @@ const campaignsApi = {
       },
       body: JSON.stringify(campaign),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to create campaign');
     }
-    
+
     return response.json();
   },
-  
+
   async updateCampaign(id: string, updates: Partial<Campaign>): Promise<Campaign> {
     const response = await fetch(`/api/proxy/api/v1/campaigns/${id}`, {
       method: 'PUT',
@@ -82,19 +82,19 @@ const campaignsApi = {
       },
       body: JSON.stringify(updates),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to update campaign');
     }
-    
+
     return response.json();
   },
-  
+
   async deleteCampaign(id: string): Promise<void> {
     const response = await fetch(`/api/proxy/api/v1/campaigns/${id}`, {
       method: 'DELETE',
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to delete campaign');
     }
@@ -112,7 +112,7 @@ export const useEnhancedCampaignStore = create<EnhancedCampaignStore>((set, get)
       acc[campaign.id] = campaign;
       return acc;
     }, {} as Record<string, Campaign>);
-    
+
     set({ campaigns: campaignsMap });
   },
 
@@ -153,7 +153,7 @@ export const useEnhancedCampaignStore = create<EnhancedCampaignStore>((set, get)
 
   updateCampaign: async (campaignUpdate) => {
     const { id, ...updates } = campaignUpdate;
-    
+
     set({ isLoading: true, error: null });
     try {
       const updatedCampaign = await campaignsApi.updateCampaign(id, updates);

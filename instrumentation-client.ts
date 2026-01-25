@@ -34,25 +34,25 @@ Sentry.init({
     // Filter out certain errors
     if (event.exception) {
       const error = event.exception.values?.[0]
-      
+
       // Ignore network errors in development
       if (SENTRY_ENVIRONMENT === 'development' && error?.value?.includes('NetworkError')) {
         return null
       }
-      
+
       // Ignore Chrome extension errors
       if (error?.value?.includes('Non-Error promise rejection captured')) {
         return null
       }
     }
-    
+
     // Add custom context
     event.tags = {
       ...event.tags,
       component: 'frontend',
       framework: 'nextjs'
     }
-    
+
     return event
   },
   ignoreErrors: [

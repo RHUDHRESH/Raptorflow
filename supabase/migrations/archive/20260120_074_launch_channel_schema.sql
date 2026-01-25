@@ -8,24 +8,24 @@ CREATE TABLE IF NOT EXISTS onboarding_launch_readiness (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE UNIQUE,
-    
+
     -- Overall metrics
     overall_score DECIMAL(5,2) DEFAULT 0.00,
     ready_count INTEGER DEFAULT 0,
     total_items INTEGER DEFAULT 0,
     blockers_count INTEGER DEFAULT 0,
     launch_ready BOOLEAN DEFAULT FALSE,
-    
+
     -- Recommendations
     launch_date_recommendation TEXT,
     next_steps JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Category breakdown
     by_category JSONB DEFAULT '{}'::jsonb,
-    
+
     -- Detailed items
     checklist_items JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Metadata
     checked_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -37,23 +37,23 @@ CREATE TABLE IF NOT EXISTS onboarding_channel_strategy (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE UNIQUE,
-    
+
     -- Channel recommendations
     primary_channels JSONB DEFAULT '[]'::jsonb,
     secondary_channels JSONB DEFAULT '[]'::jsonb,
     future_channels JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Budget and timeline
     budget_allocation JSONB DEFAULT '{}'::jsonb,
     timeline JSONB DEFAULT '{}'::jsonb,
     budget_tier TEXT DEFAULT 'growth',
-    
+
     -- Metrics
     total_score DECIMAL(5,2) DEFAULT 0.00,
-    
+
     -- Recommendations
     recommendations JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -64,25 +64,25 @@ CREATE TABLE IF NOT EXISTS onboarding_channel_performance (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE,
-    
+
     channel_type TEXT NOT NULL,
     channel_name TEXT NOT NULL,
-    
+
     -- Performance metrics
     spend DECIMAL(12,2) DEFAULT 0.00,
     leads INTEGER DEFAULT 0,
     conversions INTEGER DEFAULT 0,
     revenue DECIMAL(12,2) DEFAULT 0.00,
-    
+
     -- Calculated metrics
     cpl DECIMAL(10,2), -- Cost per lead
     cac DECIMAL(10,2), -- Customer acquisition cost
     roas DECIMAL(6,2), -- Return on ad spend
-    
+
     -- Period
     period_start DATE,
     period_end DATE,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

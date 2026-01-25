@@ -21,7 +21,7 @@ interface BlackboxStore {
   currentStrategy: Strategy | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setStrategies: (strategies: Strategy[]) => void;
   setCurrentStrategy: (strategy: Strategy | null) => void;
@@ -58,15 +58,15 @@ const blackboxApi = {
       },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to generate strategy');
     }
-    
+
     const result = await response.json();
     return result.strategy;
   },
-  
+
   async fetchStrategies(workspace_id: string, user_id: string): Promise<Strategy[]> {
     const response = await fetch(`/api/proxy/api/v1/blackbox/strategies?workspace_id=${workspace_id}&user_id=${user_id}`, {
       method: 'GET',
@@ -74,24 +74,24 @@ const blackboxApi = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch strategies');
     }
-    
+
     const data = await response.json();
     return data.strategies || [];
   },
-  
+
   async createMoveFromStrategy(strategyId: string): Promise<{ move_id: string }> {
     const response = await fetch(`/api/proxy/api/v1/blackbox/${strategyId}/create-move`, {
       method: 'POST',
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to create move from strategy');
     }
-    
+
     return response.json();
   }
 };
@@ -107,7 +107,7 @@ export const useBlackboxStore = create<BlackboxStore>((set, get) => ({
       acc[strategy.id] = strategy;
       return acc;
     }, {} as Record<string, Strategy>);
-    
+
     set({ strategies: strategiesMap });
   },
 
@@ -139,7 +139,7 @@ export const useBlackboxStore = create<BlackboxStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const result = await blackboxApi.createMoveFromStrategy(strategyId);
-      
+
       // Also update the moves store if available
       try {
         const { useMovesStore } = await import('./movesStore');
@@ -149,7 +149,7 @@ export const useBlackboxStore = create<BlackboxStore>((set, get) => ({
       } catch (error) {
         console.warn('Could not update moves store:', error);
       }
-      
+
       return result.move_id;
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Unknown error' });

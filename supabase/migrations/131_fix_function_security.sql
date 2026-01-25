@@ -40,7 +40,7 @@ SET search_path = public
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         u.id,
         u.email,
         u.role,
@@ -73,12 +73,12 @@ BEGIN
         NEW.id,
         'active'
     ) RETURNING id INTO workspace_id;
-    
+
     -- Update user with workspace reference
-    UPDATE public.users 
-    SET workspace_id = workspace_id 
+    UPDATE public.users
+    SET workspace_id = workspace_id
     WHERE id = NEW.id;
-    
+
     RETURN NEW;
 END;
 $$;

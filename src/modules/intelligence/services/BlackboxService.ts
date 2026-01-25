@@ -8,11 +8,11 @@ export class BlackboxService {
    */
   async generateStrategy(request: BlackboxStrategyRequest): Promise<BlackboxStrategy> {
     const prompt = BlackboxDomain.generateStrategyPrompt(request);
-    
+
     // In a real implementation, this would call Vertex AI
     // For now, we simulate the database persistence of a generated strategy
     const supabase = await createClient();
-    
+
     const { data, error } = await supabase
       .from('strategies')
       .insert({
@@ -26,7 +26,7 @@ export class BlackboxService {
       .single();
 
     if (error) throw new Error(`Failed to save strategy: ${error.message}`);
-    
+
     return data as BlackboxStrategy;
   }
 }

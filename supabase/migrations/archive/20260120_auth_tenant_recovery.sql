@@ -5,7 +5,7 @@
 -- ============================================================================
 
 -- 1. ADD MISSING COLUMNS TO PROFILES
-DO $$ 
+DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'workspace_id') THEN
         ALTER TABLE public.profiles ADD COLUMN workspace_id UUID REFERENCES public.workspaces(id);

@@ -55,13 +55,13 @@ supabase db push 132_fix_extension_security.sql
 **Via SQL:**
 ```sql
 -- Enable leaked password protection
-UPDATE auth.users 
+UPDATE auth.users
 SET password_hash = crypt(password_hash, gen_salt('bf'))
 WHERE password_hash IS NOT NULL;
 
 -- Configure auth settings
-ALTER TABLE auth.users 
-ADD CONSTRAINT password_length_check 
+ALTER TABLE auth.users
+ADD CONSTRAINT password_length_check
 CHECK (length(password_hash) >= 8);
 ```
 
@@ -85,7 +85,7 @@ supabase db lint --fix
 
 ### 1. RLS Security Fixes
 **Problem**: Critical tables exposed without Row Level Security
-**Solution**: 
+**Solution**:
 - Enable RLS on all sensitive tables
 - Create comprehensive policies for user access control
 - Add admin-only access patterns

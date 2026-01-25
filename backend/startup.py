@@ -107,7 +107,7 @@ async def initialize_agent_dispatcher() -> bool:
     """Initialize the agent dispatcher system."""
     try:
         from backend.agents.dispatcher import AgentDispatcher
-        
+
         # Create dispatcher instance
         dispatcher = AgentDispatcher()
         # Dispatcher auto-registers agents on initialization

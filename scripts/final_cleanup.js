@@ -12,29 +12,29 @@ console.log('🧹 Starting final cleanup and verification...\n');
 // Task 1: Clean up old migration files
 function cleanupOldMigrations() {
   console.log('📁 Cleaning up old migration files...');
-  
+
   const migrationsDir = path.join(__dirname, '../supabase/migrations');
   const archiveDir = path.join(migrationsDir, 'archive');
-  
+
   // Create archive directory if it doesn't exist
   if (!fs.existsSync(archiveDir)) {
     fs.mkdirSync(archiveDir, { recursive: true });
   }
-  
+
   // Files to keep
   const keepFiles = [
     '20260122074403_final_auth_consolidation.sql'
   ];
-  
+
   // Get all migration files
   const files = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql'));
-  
+
   let movedCount = 0;
   files.forEach(file => {
     if (!keepFiles.includes(file)) {
       const src = path.join(migrationsDir, file);
       const dst = path.join(archiveDir, file);
-      
+
       try {
         fs.renameSync(src, dst);
         movedCount++;
@@ -44,7 +44,7 @@ function cleanupOldMigrations() {
       }
     }
   });
-  
+
   console.log(`✅ Archived ${movedCount} old migration files`);
   return movedCount;
 }
@@ -52,39 +52,39 @@ function cleanupOldMigrations() {
 // Task 2: Generate final schema documentation
 function generateSchemaDocs() {
   console.log('\n📚 Generating schema documentation...');
-  
+
   const schemaPath = path.join(__dirname, '../supabase/migrations/20260122074403_final_auth_consolidation.sql');
   const schemaSQL = fs.readFileSync(schemaPath, 'utf8');
-  
+
   // Extract table definitions
   const tableMatches = schemaSQL.match(/CREATE TABLE[^;]+;/g) || [];
-  
+
   let docs = '# RAPTORFLOW DATABASE SCHEMA\n\n';
   docs += `Generated: ${new Date().toISOString()}\n\n`;
   docs += '## Tables\n\n';
-  
+
   tableMatches.forEach(tableDef => {
     const tableNameMatch = tableDef.match(/CREATE TABLE[^"]+"?([^"\s]+)/);
     if (tableNameMatch) {
       const tableName = tableNameMatch[1];
       docs += `### ${tableName}\n\n`;
-      
+
       // Extract columns
       const columnMatches = tableDef.match(/(\w+)\s+([^,\n]+)/g) || [];
       docs += '| Column | Type | Notes |\n';
       docs += '|--------|------|-------|\n';
-      
+
       columnMatches.forEach(col => {
         const [name, type] = col.split(/\s+/);
         const cleanType = type.replace(/--.*/, '').trim();
         const notes = '';
         docs += `| ${name} | ${cleanType} | ${notes} |\n`;
       });
-      
+
       docs += '\n';
     }
   });
-  
+
   // Save documentation
   const docsPath = path.join(__dirname, '../DATABASE_SCHEMA.md');
   fs.writeFileSync(docsPath, docs);
@@ -94,7 +94,7 @@ function generateSchemaDocs() {
 // Task 3: Create deployment checklist
 function createChecklist() {
   console.log('\n📋 Creating deployment checklist...');
-  
+
   const checklist = `# RAPTORFLOW DEPLOYMENT CHECKLIST
 
 ## Pre-Deployment Checklist
@@ -140,7 +140,7 @@ function createChecklist() {
 
 Generated: ${new Date().toISOString()}
 `;
-  
+
   const checklistPath = path.join(__dirname, '../DEPLOYMENT_CHECKLIST.md');
   fs.writeFileSync(checklistPath, checklist);
   console.log(`✅ Checklist created: ${checklistPath}`);
@@ -149,7 +149,7 @@ Generated: ${new Date().toISOString()}
 // Task 4: Final verification
 async function finalVerification() {
   console.log('\n🔍 Running final verification...');
-  
+
   try {
     // Check if all necessary files exist
     const requiredFiles = [
@@ -160,7 +160,7 @@ async function finalVerification() {
       'scripts/pull_and_verify_schema.js',
       'scripts/verify_schema.js'
     ];
-    
+
     let missingFiles = [];
     requiredFiles.forEach(file => {
       const filePath = path.join(__dirname, '..', file);
@@ -168,26 +168,26 @@ async function finalVerification() {
         missingFiles.push(file);
       }
     });
-    
+
     if (missingFiles.length > 0) {
       console.log('❌ Missing files:', missingFiles.join(', '));
     } else {
       console.log('✅ All required files present');
     }
-    
+
     // Check package.json for scripts
     const packagePath = path.join(__dirname, '../package.json');
     const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-    
+
     console.log('\n📦 Available npm scripts:');
     Object.entries(packageJson.scripts || {}).forEach(([name, script]) => {
       if (name.includes('db') || name.includes('schema') || name.includes('deploy')) {
         console.log(`  - ${name}: ${script}`);
       }
     });
-    
+
     console.log('\n🎉 Final verification completed!');
-    
+
   } catch (error) {
     console.error('❌ Final verification failed:', error);
   }
@@ -200,7 +200,7 @@ async function runCleanup() {
     generateSchemaDocs();
     createChecklist();
     await finalVerification();
-    
+
     console.log('\n' + '='.repeat(60));
     console.log('🎊 CLEANUP COMPLETED SUCCESSFULLY!');
     console.log('='.repeat(60));
@@ -209,12 +209,12 @@ async function runCleanup() {
     console.log('✅ Generated schema documentation');
     console.log('✅ Created deployment checklist');
     console.log('✅ Final verification completed');
-    
+
     console.log('\n🚀 Ready for deployment!');
     console.log('1. Follow DATABASE_DEPLOYMENT_GUIDE.md');
     console.log('2. Use DEPLOYMENT_CHECKLIST.md for verification');
     console.log('3. Run scripts/pull_and_verify_schema.js after deployment');
-    
+
   } catch (error) {
     console.error('❌ Cleanup failed:', error);
     process.exit(1);

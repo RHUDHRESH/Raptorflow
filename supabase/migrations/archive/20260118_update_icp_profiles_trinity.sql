@@ -1,7 +1,7 @@
 -- Migration: 20260118_update_icp_profiles_trinity.sql
 -- Add Trinity fields (Persona, Avatar, Confidence) to ICP profiles
 
-ALTER TABLE public.icp_profiles 
+ALTER TABLE public.icp_profiles
 ADD COLUMN IF NOT EXISTS persona_name TEXT,
 ADD COLUMN IF NOT EXISTS avatar TEXT DEFAULT '👤',
 ADD COLUMN IF NOT EXISTS confidence INTEGER DEFAULT 0;

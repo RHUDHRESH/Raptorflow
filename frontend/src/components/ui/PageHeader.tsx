@@ -9,12 +9,12 @@ interface PageHeaderProps {
   className?: string;
 }
 
-export function PageHeader({ 
-  title, 
-  descriptor, 
-  moduleCode, 
-  actions, 
-  className 
+export function PageHeader({
+  title,
+  descriptor,
+  moduleCode,
+  actions,
+  className
 }: PageHeaderProps) {
   return (
     <div className={cn(

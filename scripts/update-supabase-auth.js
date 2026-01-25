@@ -8,7 +8,7 @@ const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 async function updateAuthConfig() {
   try {
     console.log('🔧 Updating Supabase auth configuration...');
-    
+
     const response = await fetch(`${SUPABASE_URL}/projects/${PROJECT_ID}/config/auth`, {
       method: 'PATCH',
       headers: {
@@ -19,7 +19,7 @@ async function updateAuthConfig() {
         site_url: 'http://localhost:3000',
         additional_redirect_urls: [
           'http://localhost:3000/auth/callback',
-          'http://localhost:3001/auth/callback', 
+          'http://localhost:3001/auth/callback',
           'http://localhost:3002/auth/callback',
           'http://localhost:3003/auth/callback',
           'http://localhost:3004/auth/callback',
@@ -49,7 +49,7 @@ async function updateAuthConfig() {
 async function enableGoogleProvider() {
   try {
     console.log('🔧 Enabling Google OAuth provider...');
-    
+
     const response = await fetch(`${SUPABASE_URL}/projects/${PROJECT_ID}/config/auth/providers/google`, {
       method: 'POST',
       headers: {

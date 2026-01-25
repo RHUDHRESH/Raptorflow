@@ -11,19 +11,19 @@ const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmF
 
 async function tryManagementAPI() {
   console.log('🔧 Trying Supabase Management API...\n');
-  
+
   try {
     // Read the SQL file
     const sqlPath = path.join(__dirname, '../missing_tables.sql');
     const sqlContent = fs.readFileSync(sqlPath, 'utf8');
-    
+
     console.log('📁 SQL file loaded');
-    
+
     // Try using the Management API to execute SQL
     const projectId = 'vpwwzsanuyhpkvgorcnc';
-    
+
     console.log('🔄 Attempting Management API execution...');
-    
+
     const response = await fetch(`${supabaseUrl}/v1/projects/${projectId}/database/query`, {
       method: 'POST',
       headers: {
@@ -35,26 +35,26 @@ async function tryManagementAPI() {
         query: sqlContent
       })
     });
-    
+
     if (response.ok) {
       console.log('✅ Management API execution successful!');
       const result = await response.json();
       console.log('Result:', result);
-      
+
       // Verify tables
       await verifyTables();
-      
+
     } else {
       const errorText = await response.text();
       console.log('❌ Management API failed:', response.status, errorText);
-      
+
       // Try alternative approach
       await tryAlternativeManagementAPI(sqlContent, projectId);
     }
-    
+
   } catch (error) {
     console.error('❌ Management API approach failed:', error);
-    
+
     // Final fallback - provide clear manual instructions
     console.log('\n📋 FINAL RECOMMENDATION:');
     console.log('🔗 Manual execution is the most reliable approach');
@@ -69,7 +69,7 @@ async function tryManagementAPI() {
 
 async function tryAlternativeManagementAPI(sql, projectId) {
   console.log('\n🔄 Trying alternative Management API approach...');
-  
+
   try {
     // Try using a different endpoint
     const response = await fetch(`${supabaseUrl}/v1/projects/${projectId}/database/sql`, {
@@ -83,22 +83,22 @@ async function tryAlternativeManagementAPI(sql, projectId) {
         sql: sql
       })
     });
-    
+
     if (response.ok) {
       console.log('✅ Alternative Management API successful!');
       const result = await response.json();
       console.log('Result:', result);
-      
+
       await verifyTables();
-      
+
     } else {
       const errorText = await response.text();
       console.log('❌ Alternative Management API failed:', response.status, errorText);
-      
+
       console.log('\n📋 All API approaches exhausted');
       console.log('🔗 Manual execution required');
     }
-    
+
   } catch (err) {
     console.log('❌ Alternative Management API failed:', err.message);
   }
@@ -106,10 +106,10 @@ async function tryAlternativeManagementAPI(sql, projectId) {
 
 async function verifyTables() {
   console.log('\n🔍 Verifying table creation...');
-  
+
   const tables = ['profiles', 'workspaces', 'subscriptions', 'payments', 'email_logs'];
   let existingCount = 0;
-  
+
   for (const table of tables) {
     try {
       const response = await fetch(`https://vpwwzsanuyhpkvgorcnc.supabase.co/rest/v1/${table}?select=count&limit=1`, {
@@ -118,7 +118,7 @@ async function verifyTables() {
           'apikey': serviceRoleKey
         }
       });
-      
+
       if (response.ok) {
         console.log(`✅ Table '${table}' exists and accessible`);
         existingCount++;
@@ -129,9 +129,9 @@ async function verifyTables() {
       console.log(`⚠️  Could not verify table '${table}':`, err.message);
     }
   }
-  
+
   console.log(`\n📊 Summary: ${existingCount}/5 tables exist`);
-  
+
   if (existingCount === 5) {
     console.log('\n🎉 ALL TABLES CREATED SUCCESSFULLY!');
     console.log('✅ Database schema is now 100% complete');

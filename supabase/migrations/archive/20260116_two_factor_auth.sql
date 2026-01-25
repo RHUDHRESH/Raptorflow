@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS public.user_mfa (
   last_used_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(user_id)
 );
 
@@ -224,7 +224,7 @@ BEGIN
         user_agent_param
     )
     RETURNING id INTO session_id;
-    
+
     RETURN session_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -237,7 +237,7 @@ DECLARE
 BEGIN
     DELETE FROM public.mfa_sessions
     WHERE expires_at <= NOW();
-    
+
     GET DIAGNOSTICS (ROW_COUNT, deleted_count);
     RETURN deleted_count;
 END;
@@ -251,7 +251,7 @@ DECLARE
 BEGIN
     DELETE FROM public.recovery_codes
     WHERE expires_at <= NOW();
-    
+
     GET DIAGNOSTICS (ROW_COUNT, deleted_count);
     RETURN deleted_count;
 END;
@@ -274,7 +274,7 @@ BEGIN
       AND (ip_address = ip_param OR ip_address IS NULL)
       AND created_at > NOW() - (time_window_minutes || 5) * INTERVAL '1 minute'
       AND success = false;
-    
+
     RETURN attempt_count < max_attempts;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

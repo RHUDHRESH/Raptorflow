@@ -1,6 +1,6 @@
 -- OAuth 2.0 System Implementation
 -- Migration: 20240115_oauth_system.sql
--- 
+--
 -- This migration implements a complete OAuth 2.0 authorization server
 -- with proper scopes, client management, and token handling
 
@@ -13,54 +13,54 @@ CREATE TABLE IF NOT EXISTS oauth_clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
     client_secret TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(64), 'hex')),
-    
+
     -- Client information
     name TEXT NOT NULL,
     description TEXT,
     website_url TEXT,
     logo_url TEXT,
-    
+
     -- Owner information
     owner_id UUID REFERENCES users(id),
     owner_type TEXT NOT NULL DEFAULT 'user' CHECK (
         owner_type IN ('user', 'admin', 'system')
     ),
-    
+
     -- Redirect URIs
     redirect_uris TEXT[] NOT NULL DEFAULT '{}',
-    
+
     -- Grant types supported
     grant_types TEXT[] NOT NULL DEFAULT ARRAY['authorization_code', 'refresh_token'] CHECK (
         array_length(grant_types, 1) > 0
     ),
-    
+
     -- Scopes allowed
     allowed_scopes TEXT[] NOT NULL DEFAULT '{}',
-    
+
     -- Client type
     client_type TEXT NOT NULL DEFAULT 'confidential' CHECK (
         client_type IN ('confidential', 'public')
     ),
-    
+
     -- Token settings
     access_token_lifetime INTEGER DEFAULT 3600, -- 1 hour
     refresh_token_lifetime INTEGER DEFAULT 2592000, -- 30 days
     max_refresh_tokens INTEGER DEFAULT 10,
-    
+
     -- Security
     require_pkce BOOLEAN DEFAULT TRUE,
     require_client_secret BOOLEAN DEFAULT TRUE,
-    
+
     -- Status
     is_active BOOLEAN DEFAULT TRUE,
     is_verified BOOLEAN DEFAULT FALSE,
-    
+
     -- Rate limiting
     rate_limit_per_hour INTEGER DEFAULT 1000,
-    
+
     -- Metadata
     metadata JSONB DEFAULT '{}',
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -72,21 +72,21 @@ CREATE TABLE IF NOT EXISTS oauth_scopes (
     display_name TEXT NOT NULL,
     description TEXT,
     category TEXT NOT NULL,
-    
+
     -- Scope properties
     is_default BOOLEAN DEFAULT FALSE,
     is_sensitive BOOLEAN DEFAULT FALSE,
     is_system BOOLEAN DEFAULT FALSE,
-    
+
     -- Required for specific operations
     required_for TEXT[], -- Which operations require this scope
-    
+
     -- Dependencies
     implies_scopes TEXT[] DEFAULT '{}', -- Scopes automatically included
-    
+
     -- Rate limiting
     rate_limit_per_hour INTEGER DEFAULT 1000,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -95,11 +95,11 @@ CREATE TABLE IF NOT EXISTS oauth_scopes (
 CREATE TABLE IF NOT EXISTS oauth_authorization_codes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
-    
+
     -- Client and user
     client_id TEXT NOT NULL REFERENCES oauth_clients(client_id),
     user_id UUID NOT NULL REFERENCES users(id),
-    
+
     -- Request details
     redirect_uri TEXT NOT NULL,
     scope TEXT[] NOT NULL DEFAULT '{}',
@@ -108,17 +108,17 @@ CREATE TABLE IF NOT EXISTS oauth_authorization_codes (
     code_challenge_method TEXT CHECK (
         code_challenge_method IN ('plain', 'S256')
     ),
-    
+
     -- Validity
     expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '10 minutes'),
     is_used BOOLEAN DEFAULT FALSE,
     used_at TIMESTAMPTZ,
-    
+
     -- Context
     ip_address INET,
     user_agent TEXT,
     device_fingerprint TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -126,29 +126,29 @@ CREATE TABLE IF NOT EXISTS oauth_authorization_codes (
 CREATE TABLE IF NOT EXISTS oauth_access_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     token_jti TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
-    
+
     -- Token details
     client_id TEXT NOT NULL REFERENCES oauth_clients(client_id),
     user_id UUID REFERENCES users(id),
     scope TEXT[] NOT NULL DEFAULT '{}',
-    
+
     -- Token metadata
     token_type TEXT NOT NULL DEFAULT 'Bearer',
-    
+
     -- Validity
     expires_at TIMESTAMPTZ NOT NULL,
     is_revoked BOOLEAN DEFAULT FALSE,
     revoked_at TIMESTAMPTZ,
     revoked_reason TEXT,
-    
+
     -- Context
     ip_address INET,
     user_agent TEXT,
     device_fingerprint TEXT,
-    
+
     -- Authorization info
     authorization_code_id UUID REFERENCES oauth_authorization_codes(id),
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -156,27 +156,27 @@ CREATE TABLE IF NOT EXISTS oauth_access_tokens (
 CREATE TABLE IF NOT EXISTS oauth_refresh_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     token_jti TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
-    
+
     -- Token details
     client_id TEXT NOT NULL REFERENCES oauth_clients(client_id),
     user_id UUID REFERENCES users(id),
     scope TEXT[] NOT NULL DEFAULT '{}',
-    
+
     -- Validity
     expires_at TIMESTAMPTZ NOT NULL,
     is_revoked BOOLEAN DEFAULT FALSE,
     revoked_at TIMESTAMPTZ,
     revoked_reason TEXT,
-    
+
     -- Usage tracking
     last_used_at TIMESTAMPTZ,
     usage_count INTEGER DEFAULT 0,
-    
+
     -- Context
     ip_address INET,
     user_agent TEXT,
     device_fingerprint TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -186,19 +186,19 @@ CREATE TABLE IF NOT EXISTS oauth_user_consents (
     user_id UUID NOT NULL REFERENCES users(id),
     client_id TEXT NOT NULL REFERENCES oauth_clients(client_id),
     scope TEXT[] NOT NULL DEFAULT '{}',
-    
+
     -- Consent details
     granted_at TIMESTAMPTZ DEFAULT NOW(),
     granted_ip_address INET,
     granted_user_agent TEXT,
-    
+
     -- Revocation
     is_active BOOLEAN DEFAULT TRUE,
     revoked_at TIMESTAMPTZ,
     revoked_reason TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(user_id, client_id)
 );
 
@@ -206,26 +206,26 @@ CREATE TABLE IF NOT EXISTS oauth_user_consents (
 CREATE TABLE IF NOT EXISTS oauth_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
-    
+
     -- Session details
     client_id TEXT NOT NULL REFERENCES oauth_clients(client_id),
     user_id UUID REFERENCES users(id),
-    
+
     -- Authentication
     auth_method TEXT NOT NULL DEFAULT 'password' CHECK (
         auth_method IN ('password', 'mfa', 'sso', 'api_key')
     ),
     auth_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     -- Validity
     expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '30 minutes'),
     is_active BOOLEAN DEFAULT TRUE,
-    
+
     -- Context
     ip_address INET,
     user_agent TEXT,
     device_fingerprint TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     last_accessed_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -289,7 +289,7 @@ INSERT INTO oauth_clients (
     is_verified
 ) VALUES
 -- Web application client
-('raptorflow_web', 
+('raptorflow_web',
  encode(gen_random_bytes(64), 'hex'),
  'Raptorflow Web Application',
  'Official Raptorflow web application',
@@ -379,18 +379,18 @@ CREATE INDEX idx_oauth_sessions_expires_at ON oauth_sessions(expires_at);
 CREATE INDEX idx_oauth_sessions_is_active ON oauth_sessions(is_active) WHERE is_active = TRUE;
 
 -- Create triggers for updated_at
-CREATE TRIGGER update_oauth_clients_updated_at 
-    BEFORE UPDATE ON oauth_clients 
+CREATE TRIGGER update_oauth_clients_updated_at
+    BEFORE UPDATE ON oauth_clients
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_oauth_scopes_updated_at 
-    BEFORE UPDATE ON oauth_scopes 
+CREATE TRIGGER update_oauth_scopes_updated_at
+    BEFORE UPDATE ON oauth_scopes
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_oauth_sessions_last_accessed_at 
-    BEFORE UPDATE ON oauth_sessions 
-    FOR EACH ROW 
-    EXECUTE FUNCTION 
+CREATE TRIGGER update_oauth_sessions_last_accessed_at
+    BEFORE UPDATE ON oauth_sessions
+    FOR EACH ROW
+    EXECUTE FUNCTION
     BEGIN
         NEW.last_accessed_at = NOW();
         RETURN NEW;
@@ -413,17 +413,17 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM oauth_clients WHERE client_id = p_client_id AND is_active = TRUE) THEN
         RAISE EXCEPTION 'Invalid or inactive client';
     END IF;
-    
+
     -- Validate redirect URI
     IF NOT (p_redirect_uri = ANY((SELECT redirect_uris FROM oauth_clients WHERE client_id = p_client_id))) THEN
         RAISE EXCEPTION 'Invalid redirect URI';
     END IF;
-    
+
     -- Validate scopes
     IF NOT (SELECT scope FROM oauth_scopes WHERE scope = ANY(p_scope)) THEN
         RAISE EXCEPTION 'Invalid scope requested';
     END IF;
-    
+
     -- Generate authorization code
     INSERT INTO oauth_authorization_codes (
         client_id,
@@ -446,7 +446,7 @@ BEGIN
         inet_client_addr(),
         current_setting('request.headers')::json->>'user-agent'
     ) RETURNING code INTO auth_code;
-    
+
     RETURN auth_code;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -480,55 +480,55 @@ BEGIN
     WHERE code = p_code
     AND is_used = FALSE
     AND expires_at > NOW();
-    
+
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Invalid or expired authorization code';
     END IF;
-    
+
     -- Get client
     SELECT * INTO client_record
     FROM oauth_clients
     WHERE client_id = p_client_id
     AND is_active = TRUE;
-    
+
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Invalid or inactive client';
     END IF;
-    
+
     -- Verify client secret if required
     IF client_record.require_client_secret AND p_client_secret IS NULL THEN
         RAISE EXCEPTION 'Client secret required';
     END IF;
-    
+
     IF client_record.require_client_secret AND client_record.client_secret != p_client_secret THEN
         RAISE EXCEPTION 'Invalid client secret';
     END IF;
-    
+
     -- Verify PKCE if required
     IF client_record.require_pkce AND auth_record.code_challenge IS NOT NULL THEN
         IF p_code_verifier IS NULL THEN
             RAISE EXCEPTION 'Code verifier required';
         END IF;
-        
+
         -- TODO: Implement PKCE verification
         -- This would verify the code_verifier against the code_challenge
         NULL;
     END IF;
-    
+
     -- Verify redirect URI if provided
     IF p_redirect_uri IS NOT NULL AND auth_record.redirect_uri != p_redirect_uri THEN
         RAISE EXCEPTION 'Redirect URI mismatch';
     END IF;
-    
+
     -- Mark authorization code as used
     UPDATE oauth_authorization_codes
     SET is_used = TRUE, used_at = NOW()
     WHERE id = auth_record.id;
-    
+
     -- Generate tokens
     access_token_jti := encode(gen_random_bytes(32), 'hex');
     refresh_token_jti := encode(gen_random_bytes(32), 'hex');
-    
+
     -- Create token payload
     token_payload := jsonb_build_object(
         'jti', access_token_jti,
@@ -538,7 +538,7 @@ BEGIN
         'iat', EXTRACT(EPOCH FROM NOW()),
         'exp', EXTRACT(EPOCH FROM NOW() + (client_record.access_token_lifetime || '1 hour')::INTERVAL)
     );
-    
+
     -- Store access token
     INSERT INTO oauth_access_tokens (
         token_jti,
@@ -559,7 +559,7 @@ BEGIN
         inet_client_addr(),
         current_setting('request.headers')::json->>'user-agent'
     );
-    
+
     -- Store refresh token
     INSERT INTO oauth_refresh_tokens (
         token_jti,
@@ -578,7 +578,7 @@ BEGIN
         inet_client_addr(),
         current_setting('request.headers')::json->>'user-agent'
     );
-    
+
     -- Generate JWT tokens (simplified)
     access_token := encode(token_payload::text, 'base64');
     refresh_token := encode(jsonb_build_object(
@@ -587,7 +587,7 @@ BEGIN
         'client_id', p_client_id,
         'scope', auth_record.scope
     )::text, 'base64');
-    
+
     -- Record user consent
     INSERT INTO oauth_user_consents (
         user_id,
@@ -609,8 +609,8 @@ BEGIN
         granted_ip_address = inet_client_addr(),
         granted_user_agent = current_setting('request.headers')::json->>'user-agent',
         is_active = TRUE;
-    
-    RETURN QUERY SELECT 
+
+    RETURN QUERY SELECT
         access_token,
         refresh_token,
         'Bearer' as token_type,
@@ -647,47 +647,47 @@ BEGIN
     WHERE token_jti = p_refresh_token
     AND is_revoked = FALSE
     AND expires_at > NOW();
-    
+
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Invalid or expired refresh token';
     END IF;
-    
+
     -- Get client
     SELECT * INTO client_record
     FROM oauth_clients
     WHERE client_id = p_client_id
     AND is_active = TRUE;
-    
+
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Invalid or inactive client';
     END IF;
-    
+
     -- Verify client secret if required
     IF client_record.require_client_secret AND p_client_secret IS NULL THEN
         RAISE EXCEPTION 'Client secret required';
     END IF;
-    
+
     IF client_record.require_client_secret AND client_record.client_secret != p_client_secret THEN
         RAISE EXCEPTION 'Invalid client secret';
     END IF;
-    
+
     -- Determine final scope
     final_scope := COALESCE(p_scope, refresh_record.scope);
-    
+
     -- Validate requested scope
     IF NOT (SELECT scope FROM oauth_scopes WHERE scope = ANY(final_scope)) THEN
         RAISE EXCEPTION 'Invalid scope requested';
     END IF;
-    
+
     -- Check if requested scope is subset of original scope
     IF NOT (final_scope <@ refresh_record.scope) THEN
         RAISE EXCEPTION 'Requested scope exceeds original scope';
     END IF;
-    
+
     -- Generate new tokens
     new_access_token_jti := encode(gen_random_bytes(32), 'hex');
     new_refresh_token_jti := encode(gen_random_bytes(32), 'hex');
-    
+
     -- Store new access token
     INSERT INTO oauth_access_tokens (
         token_jti,
@@ -706,7 +706,7 @@ BEGIN
         inet_client_addr(),
         current_setting('request.headers')::json->>'user-agent'
     );
-    
+
     -- Store new refresh token
     INSERT INTO oauth_refresh_tokens (
         token_jti,
@@ -725,12 +725,12 @@ BEGIN
         inet_client_addr(),
         current_setting('request.headers')::json->>'user-agent'
     );
-    
+
     -- Revoke old refresh token
     UPDATE oauth_refresh_tokens
     SET is_revoked = TRUE, revoked_at = NOW(), revoked_reason = 'refresh_used'
     WHERE id = refresh_record.id;
-    
+
     -- Generate JWT tokens (simplified)
     new_access_token := encode(jsonb_build_object(
         'jti', new_access_token_jti,
@@ -740,15 +740,15 @@ BEGIN
         'iat', EXTRACT(EPOCH FROM NOW()),
         'exp', EXTRACT(EPOCH FROM NOW() + (client_record.access_token_lifetime || '1 hour')::INTERVAL)
     )::text, 'base64');
-    
+
     new_refresh_token := encode(jsonb_build_object(
         'jti', new_refresh_token_jti,
         'sub', refresh_record.user_id,
         'client_id', p_client_id,
         'scope', final_scope
     )::text, 'base64');
-    
-    RETURN QUERY SELECT 
+
+    RETURN QUERY SELECT
         new_access_token,
         new_refresh_token,
         'Bearer' as token_type,
@@ -769,8 +769,8 @@ ALTER TABLE oauth_sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admins can manage OAuth clients" ON oauth_clients
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -790,8 +790,8 @@ CREATE POLICY "Users can read own access tokens" ON oauth_access_tokens
 CREATE POLICY "Admins can manage all access tokens" ON oauth_access_tokens
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );

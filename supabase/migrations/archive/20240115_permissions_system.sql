@@ -1,6 +1,6 @@
 -- Database-Driven Permissions System
 -- Migration: 20240115_permissions_system.sql
--- 
+--
 -- This migration implements a comprehensive, database-driven permissions system
 -- that replaces hardcoded role permissions with dynamic, auditable permissions
 
@@ -132,7 +132,7 @@ ON CONFLICT (name) DO NOTHING;
 
 -- Assign permissions to groups
 INSERT INTO permission_group_memberships (group_id, permission_id)
-SELECT 
+SELECT
     pg.id,
     p.id
 FROM permission_groups pg
@@ -148,7 +148,7 @@ AND p.name IN (
 ON CONFLICT (group_id, permission_id) DO NOTHING;
 
 INSERT INTO permission_group_memberships (group_id, permission_id)
-SELECT 
+SELECT
     pg.id,
     p.id
 FROM permission_groups pg
@@ -165,7 +165,7 @@ AND p.name IN (
 ON CONFLICT (group_id, permission_id) DO NOTHING;
 
 INSERT INTO permission_group_memberships (group_id, permission_id)
-SELECT 
+SELECT
     pg.id,
     p.id
 FROM permission_groups pg
@@ -180,7 +180,7 @@ AND p.name IN (
 ON CONFLICT (group_id, permission_id) DO NOTHING;
 
 INSERT INTO permission_group_memberships (group_id, permission_id)
-SELECT 
+SELECT
     pg.id,
     p.id
 FROM permission_groups pg
@@ -193,7 +193,7 @@ AND p.name IN (
 ON CONFLICT (group_id, permission_id) DO NOTHING;
 
 INSERT INTO permission_group_memberships (group_id, permission_id)
-SELECT 
+SELECT
     pg.id,
     p.id
 FROM permission_groups pg
@@ -206,7 +206,7 @@ ON CONFLICT (group_id, permission_id) DO NOTHING;
 
 -- Assign groups to roles
 INSERT INTO role_permission_groups (role, group_id)
-SELECT 
+SELECT
     'user',
     pg.id
 FROM permission_groups pg
@@ -214,7 +214,7 @@ WHERE pg.name = 'Basic User'
 ON CONFLICT (role, group_id) DO NOTHING;
 
 INSERT INTO role_permission_groups (role, group_id)
-SELECT 
+SELECT
     'admin',
     pg.id
 FROM permission_groups pg
@@ -222,7 +222,7 @@ WHERE pg.name IN ('Basic User', 'Workspace Admin', 'System Admin')
 ON CONFLICT (role, group_id) DO NOTHING;
 
 INSERT INTO role_permission_groups (role, group_id)
-SELECT 
+SELECT
     'super_admin',
     pg.id
 FROM permission_groups pg
@@ -230,7 +230,7 @@ WHERE pg.name IN ('Basic User', 'Workspace Admin', 'System Admin', 'Billing Mana
 ON CONFLICT (role, group_id) DO NOTHING;
 
 INSERT INTO role_permission_groups (role, group_id)
-SELECT 
+SELECT
     'billing_admin',
     pg.id
 FROM permission_groups pg
@@ -238,7 +238,7 @@ WHERE pg.name IN ('Basic User', 'Billing Manager')
 ON CONFLICT (role, group_id) DO NOTHING;
 
 INSERT INTO role_permission_groups (role, group_id)
-SELECT 
+SELECT
     'support',
     pg.id
 FROM permission_groups pg
@@ -267,17 +267,17 @@ BEGIN
     AND up.is_active = TRUE
     AND (up.expires_at IS NULL OR up.expires_at > NOW())
     LIMIT 1;
-    
+
     -- If user has explicit permission (granted or denied), return that
     IF has_user_permission IS NOT NULL THEN
         RETURN has_user_permission;
     END IF;
-    
+
     -- Get user's role
     SELECT role INTO user_role
     FROM users
     WHERE id = p_user_id;
-    
+
     -- Check role permissions through groups
     SELECT EXISTS (
         SELECT 1
@@ -286,7 +286,7 @@ BEGIN
         WHERE rp.role = user_role
         AND p.name = p_permission_name
     ) INTO has_role_permission;
-    
+
     -- If no role permission found, check through permission groups
     IF NOT has_role_permission THEN
         SELECT EXISTS (
@@ -298,7 +298,7 @@ BEGIN
             AND p.name = p_permission_name
         ) INTO has_role_permission;
     END IF;
-    
+
     RETURN COALESCE(has_role_permission, FALSE);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -329,7 +329,7 @@ RETURNS TABLE(
 BEGIN
     RETURN QUERY
     -- User-specific permissions
-    SELECT 
+    SELECT
         p.name,
         p.resource,
         p.action,
@@ -343,11 +343,11 @@ BEGIN
     WHERE up.user_id = p_user_id
     AND up.is_active = TRUE
     AND (up.expires_at IS NULL OR up.expires_at > NOW())
-    
+
     UNION ALL
-    
+
     -- Role permissions through groups
-    SELECT 
+    SELECT
         p.name,
         p.resource,
         p.action,
@@ -380,14 +380,14 @@ BEGIN
     SELECT id INTO permission_id
     FROM permissions
     WHERE name = p_permission_name;
-    
+
     IF permission_id IS NULL THEN
         RAISE EXCEPTION 'Permission % does not exist', p_permission_name;
     END IF;
-    
+
     -- Get current user as granter
     granter_id := (SELECT id FROM users WHERE auth_user_id = auth.uid());
-    
+
     -- Insert or update user permission
     INSERT INTO user_permissions (
         user_id,
@@ -412,7 +412,7 @@ BEGIN
         expires_at = p_expires_at,
         is_active = TRUE,
         granted_at = NOW();
-    
+
     -- Log the permission change
     INSERT INTO audit_logs (
         actor_id,
@@ -426,8 +426,8 @@ BEGIN
         granter_id,
         'PERMISSION_GRANTED',
         'admin',
-        format('Permission %s %s to user %s', 
-               p_permission_name, 
+        format('Permission %s %s to user %s',
+               p_permission_name,
                CASE WHEN p_granted THEN 'granted' ELSE 'denied' END,
                p_user_id),
         jsonb_build_object(
@@ -440,7 +440,7 @@ BEGIN
         TRUE,
         NOW()
     );
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -470,8 +470,8 @@ CREATE POLICY "Authenticated users can read permissions" ON permissions
 CREATE POLICY "Admins can manage role permissions" ON role_permissions
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -485,8 +485,8 @@ CREATE POLICY "Users can read own permissions" ON user_permissions
 CREATE POLICY "Admins can manage user permissions" ON user_permissions
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );

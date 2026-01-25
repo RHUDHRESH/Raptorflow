@@ -91,7 +91,7 @@ curl -X POST http://localhost:3000/api/onboarding/select-plan \
 
 Use the Auth Debug widget (top-right) to see:
 - Mock Auth status
-- Session status  
+- Session status
 - User email
 - Any errors
 

@@ -128,13 +128,16 @@ class GeminiVisionProcessor(BaseProcessor):
             try:
                 response = self.client.models.generate_content(
                     model=self.model_name,
-                    contents=[self.prompt, {"mime_type": "image/png", "data": img_bytes}],
+                    contents=[
+                        self.prompt,
+                        {"mime_type": "image/png", "data": img_bytes},
+                    ],
                     config={
                         "safety_settings": {
                             "HARASSMENT": "block_none",
                             "VIOLENCE": "block_none",
                         }
-                    }
+                    },
                 )
                 text = (response.text or "").strip()
                 if "NO_TEXT_FOUND" in text or not text:

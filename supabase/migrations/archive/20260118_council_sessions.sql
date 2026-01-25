@@ -5,21 +5,21 @@ CREATE TABLE IF NOT EXISTS public.council_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     mission TEXT NOT NULL,
-    
+
     -- Discussion state
     contributions JSONB DEFAULT '[]', -- List of CouncilContribution
     skills_loaded JSONB DEFAULT '{}',
     final_report TEXT,
-    
+
     -- Metrics
     accuracy_score FLOAT DEFAULT 0.0,
     latency_ms INTEGER DEFAULT 0,
     consensus_reached BOOLEAN DEFAULT FALSE,
-    
+
     -- Status & Escalation
     status TEXT DEFAULT 'deliberating', -- deliberating, finalized, escalated
     escalation_path TEXT DEFAULT 'lead', -- lead, escalation-team
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

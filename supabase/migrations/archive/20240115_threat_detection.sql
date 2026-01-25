@@ -1,6 +1,6 @@
 -- Advanced Threat Detection System
 -- Migration: 20240115_threat_detection.sql
--- 
+--
 -- This migration implements comprehensive threat detection with machine learning,
 -- behavioral analysis, and automated response capabilities
 
@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- Threat detection rules
 CREATE TABLE IF NOT EXISTS threat_detection_rules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Rule identification
     name TEXT NOT NULL,
     description TEXT,
@@ -21,46 +21,46 @@ CREATE TABLE IF NOT EXISTS threat_detection_rules (
     category TEXT NOT NULL CHECK (
         category IN ('authentication', 'authorization', 'data_access', 'malware', 'network', 'social_engineering', 'insider_threat')
     ),
-    
+
     -- Rule configuration
     conditions JSONB NOT NULL, -- Rule conditions in JSON format
     thresholds JSONB DEFAULT '{}', -- Thresholds for triggering
-    
+
     -- Scoring
     severity_score INTEGER NOT NULL CHECK (severity_score >= 1 AND severity_score <= 100),
     confidence_threshold DECIMAL(3,2) DEFAULT 0.7 CHECK (confidence_threshold >= 0 AND confidence_threshold <= 1),
-    
+
     -- Response configuration
     auto_response BOOLEAN DEFAULT FALSE,
     response_actions TEXT[] DEFAULT '{}', -- Actions to take when triggered
     escalation_rules JSONB DEFAULT '{}', -- When to escalate
-    
+
     -- Machine learning
     ml_model_id TEXT, -- Reference to ML model
     ml_features TEXT[] DEFAULT '{}', -- Features used for ML
     training_data JSONB DEFAULT '{}',
-    
+
     -- Status
     is_active BOOLEAN DEFAULT TRUE,
     is_system BOOLEAN DEFAULT FALSE, -- System rules cannot be deleted
-    
+
     -- Metadata
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(name)
 );
 
 -- Threat incidents
 CREATE TABLE IF NOT EXISTS threat_incidents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Incident identification
     incident_id TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
     title TEXT NOT NULL,
     description TEXT,
-    
+
     -- Classification
     threat_type TEXT NOT NULL CHECK (
         threat_type IN ('brute_force', 'credential_stuffing', 'sql_injection', 'xss', 'csrf', 'ddos', 'malware', 'phishing', 'social_engineering', 'insider_threat', 'data_exfiltration', 'account_takeover', 'unauthorized_access')
@@ -71,48 +71,48 @@ CREATE TABLE IF NOT EXISTS threat_incidents (
     status TEXT NOT NULL DEFAULT 'open' CHECK (
         status IN ('open', 'investigating', 'contained', 'resolved', 'false_positive')
     ),
-    
+
     -- Target information
     target_type TEXT NOT NULL CHECK (
         target_type IN ('user', 'workspace', 'system', 'data', 'network')
     ),
     target_id UUID,
     target_details JSONB DEFAULT '{}',
-    
+
     -- Source information
     source_ip INET,
     source_user_id UUID REFERENCES users(id),
     source_device_fingerprint TEXT,
     source_location JSONB DEFAULT '{}',
-    
+
     -- Detection details
     detection_rule_id UUID REFERENCES threat_detection_rules(id),
     detection_method TEXT NOT NULL,
     confidence_score DECIMAL(3,2) NOT NULL,
     evidence JSONB DEFAULT '{}',
-    
+
     -- Timeline
     first_detected_at TIMESTAMPTZ DEFAULT NOW(),
     last_activity_at TIMESTAMPTZ DEFAULT NOW(),
     duration_minutes INTEGER,
-    
+
     -- Impact assessment
     affected_users INTEGER DEFAULT 0,
     affected_systems TEXT[] DEFAULT '{}',
     data_exposed BOOLEAN DEFAULT FALSE,
     data_exfiltrated BOOLEAN DEFAULT FALSE,
     financial_impact DECIMAL(12,2) DEFAULT 0,
-    
+
     -- Response
     response_actions TEXT[] DEFAULT '{}',
     auto_response_taken BOOLEAN DEFAULT FALSE,
     containment_measures TEXT[] DEFAULT '{}',
-    
+
     -- Investigation
     assigned_to UUID REFERENCES users(id),
     investigation_notes TEXT,
     resolution_details TEXT,
-    
+
     -- Metadata
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -122,34 +122,34 @@ CREATE TABLE IF NOT EXISTS threat_incidents (
 -- Threat indicators
 CREATE TABLE IF NOT EXISTS threat_indicators (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Indicator identification
     indicator_id TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
     indicator_type TEXT NOT NULL CHECK (
         indicator_type IN ('ip', 'domain', 'url', 'hash', 'email', 'user_agent', 'pattern', 'signature')
     ),
     value TEXT NOT NULL,
-    
+
     -- Classification
     category TEXT NOT NULL CHECK (
         category IN ('malicious', 'suspicious', 'benign', 'unknown')
     ),
     threat_types TEXT[] NOT NULL DEFAULT '{}',
-    
+
     -- Source and confidence
     source TEXT NOT NULL, -- Source of the indicator
     confidence DECIMAL(3,2) DEFAULT 0.5 CHECK (confidence >= 0 AND confidence <= 1),
     first_seen TIMESTAMPTZ DEFAULT NOW(),
     last_seen TIMESTAMPTZ DEFAULT NOW(),
-    
+
     -- Context
     context JSONB DEFAULT '{}', -- Additional context
     tags TEXT[] DEFAULT '{}',
-    
+
     -- Status
     is_active BOOLEAN DEFAULT TRUE,
     false_positive_count INTEGER DEFAULT 0,
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -158,79 +158,79 @@ CREATE TABLE IF NOT EXISTS threat_indicators (
 -- Behavioral baselines
 CREATE TABLE IF NOT EXISTS behavioral_baselines (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Entity identification
     entity_type TEXT NOT NULL CHECK (
         entity_type IN ('user', 'ip', 'device', 'session')
     ),
     entity_id TEXT NOT NULL,
-    
+
     -- Baseline metrics
     metrics JSONB NOT NULL DEFAULT '{}', -- Behavioral metrics
     patterns JSONB DEFAULT '{}', -- Detected patterns
-    
+
     -- Statistical data
     mean_values JSONB DEFAULT '{}',
     standard_deviations JSONB DEFAULT '{}',
     percentiles JSONB DEFAULT '{}',
-    
+
     -- Training data
     sample_size INTEGER DEFAULT 0,
     training_period_days INTEGER DEFAULT 30,
     last_trained_at TIMESTAMPTZ,
-    
+
     -- Model information
     model_version TEXT DEFAULT '1.0',
     model_accuracy DECIMAL(3,2),
-    
+
     -- Status
     is_active BOOLEAN DEFAULT TRUE,
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(entity_type, entity_id)
 );
 
 -- Anomaly detections
 CREATE TABLE IF NOT EXISTS anomaly_detections (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Detection identification
     detection_id TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
-    
+
     -- Entity information
     entity_type TEXT NOT NULL,
     entity_id TEXT NOT NULL,
     baseline_id UUID REFERENCES behavioral_baselines(id),
-    
+
     -- Anomaly details
     anomaly_type TEXT NOT NULL,
     anomaly_score DECIMAL(5,2) NOT NULL, -- 0-100
     confidence DECIMAL(3,2) NOT NULL,
-    
+
     -- Anomaly metrics
     observed_values JSONB NOT NULL,
     expected_values JSONB NOT NULL,
     deviation_magnitude DECIMAL(5,2),
-    
+
     -- Context
     context JSONB DEFAULT '{}',
     related_indicators TEXT[] DEFAULT '{}',
-    
+
     -- Timeline
     detected_at TIMESTAMPTZ DEFAULT NOW(),
     duration_minutes INTEGER,
-    
+
     -- Status
     status TEXT NOT NULL DEFAULT 'detected' CHECK (
         status IN ('detected', 'investigating', 'confirmed', 'false_positive', 'resolved')
     ),
-    
+
     -- Incident linkage
     incident_id UUID REFERENCES threat_incidents(id),
-    
+
     -- Metadata
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -239,40 +239,40 @@ CREATE TABLE IF NOT EXISTS anomaly_detections (
 -- Threat intelligence feeds
 CREATE TABLE IF NOT EXISTS threat_intelligence_feeds (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Feed identification
     feed_name TEXT UNIQUE NOT NULL,
     feed_type TEXT NOT NULL CHECK (
         feed_type IN ('ioc', 'reputation', 'malware', 'phishing', 'c2')
     ),
     feed_url TEXT,
-    
+
     -- Feed configuration
     update_frequency_minutes INTEGER DEFAULT 60,
     format TEXT NOT NULL CHECK (
         format IN ('json', 'xml', 'csv', 'stix', 'taxii')
     ),
-    
+
     -- Authentication
     api_key TEXT, -- Encrypted
     auth_type TEXT CHECK (
         auth_type IN ('none', 'api_key', 'oauth', 'certificate')
     ),
-    
+
     -- Processing
     parser_config JSONB DEFAULT '{}',
     mapping_rules JSONB DEFAULT '{}',
-    
+
     -- Status
     is_active BOOLEAN DEFAULT TRUE,
     last_updated TIMESTAMPTZ,
     last_error TEXT,
-    
+
     -- Statistics
     indicators_count INTEGER DEFAULT 0,
     success_count INTEGER DEFAULT 0,
     error_count INTEGER DEFAULT 0,
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -281,43 +281,43 @@ CREATE TABLE IF NOT EXISTS threat_intelligence_feeds (
 -- ML models
 CREATE TABLE IF NOT EXISTS ml_models (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Model identification
     model_name TEXT UNIQUE NOT NULL,
     model_type TEXT NOT NULL CHECK (
         model_type IN ('classification', 'anomaly_detection', 'clustering', 'regression')
     ),
     model_version TEXT NOT NULL DEFAULT '1.0',
-    
+
     -- Model configuration
     algorithm TEXT NOT NULL,
     hyperparameters JSONB DEFAULT '{}',
     feature_columns TEXT[] NOT NULL DEFAULT '{}',
-    
+
     -- Training data
     training_dataset TEXT,
     training_samples INTEGER DEFAULT 0,
     validation_samples INTEGER DEFAULT 0,
-    
+
     -- Performance metrics
     accuracy DECIMAL(3,2),
     precision DECIMAL(3,2),
     recall DECIMAL(3,2),
     f1_score DECIMAL(3,2),
     auc_score DECIMAL(3,2),
-    
+
     -- Model files
     model_file_path TEXT,
     model_metadata JSONB DEFAULT '{}',
-    
+
     -- Status
     is_active BOOLEAN DEFAULT FALSE,
     is_deployed BOOLEAN DEFAULT FALSE,
-    
+
     -- Training
     trained_at TIMESTAMPTZ,
     trained_by UUID REFERENCES users(id),
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -353,28 +353,28 @@ CREATE INDEX idx_ml_models_is_active ON ml_models(is_active) WHERE is_active = T
 CREATE INDEX idx_ml_models_is_deployed ON ml_models(is_deployed) WHERE is_deployed = TRUE;
 
 -- Create triggers for updated_at
-CREATE TRIGGER update_threat_detection_rules_updated_at 
-    BEFORE UPDATE ON threat_detection_rules 
+CREATE TRIGGER update_threat_detection_rules_updated_at
+    BEFORE UPDATE ON threat_detection_rules
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_threat_incidents_updated_at 
-    BEFORE UPDATE ON threat_incidents 
+CREATE TRIGGER update_threat_incidents_updated_at
+    BEFORE UPDATE ON threat_incidents
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_threat_indicators_updated_at 
-    BEFORE UPDATE ON threat_indicators 
+CREATE TRIGGER update_threat_indicators_updated_at
+    BEFORE UPDATE ON threat_indicators
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_behavioral_baselines_updated_at 
-    BEFORE UPDATE ON behavioral_baselines 
+CREATE TRIGGER update_behavioral_baselines_updated_at
+    BEFORE UPDATE ON behavioral_baselines
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_threat_intelligence_feeds_updated_at 
-    BEFORE UPDATE ON threat_intelligence_feeds 
+CREATE TRIGGER update_threat_intelligence_feeds_updated_at
+    BEFORE UPDATE ON threat_intelligence_feeds
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_ml_models_updated_at 
-    BEFORE UPDATE ON ml_models 
+CREATE TRIGGER update_ml_models_updated_at
+    BEFORE UPDATE ON ml_models
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Function to detect threats
@@ -412,7 +412,7 @@ BEGIN
     AND entity_id = p_entity_id
     AND is_active = TRUE
     LIMIT 1;
-    
+
     -- Get applicable threat detection rules
     SELECT * INTO applicable_rules
     FROM threat_detection_rules
@@ -425,7 +425,7 @@ BEGIN
     )
     ORDER BY severity_score DESC
     LIMIT 1;
-    
+
     IF applicable_rules IS NOT NULL THEN
         -- Simplified threat detection logic
         -- In production, implement proper rule evaluation
@@ -443,8 +443,8 @@ BEGIN
             recommendations_val := ARRAY['Block IP', 'Require MFA', 'Notify user'];
         END IF;
     END IF;
-    
-    RETURN QUERY SELECT 
+
+    RETURN QUERY SELECT
         threat_detected_val,
         threat_type_val,
         severity_val,
@@ -476,7 +476,7 @@ DECLARE
 BEGIN
     -- Generate incident ID
     incident_id_val := format('INC_%s', encode(gen_random_bytes(16), 'hex'));
-    
+
     -- Create incident
     INSERT INTO threat_incidents (
         incident_id,
@@ -505,7 +505,7 @@ BEGIN
         p_confidence,
         p_evidence
     ) RETURNING id INTO incident_id;
-    
+
     -- Log the incident creation
     INSERT INTO audit_logs (
         action,
@@ -527,7 +527,7 @@ BEGIN
         TRUE,
         NOW()
     );
-    
+
     RETURN incident_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -544,15 +544,15 @@ DECLARE
     sample_size INTEGER;
 BEGIN
     -- Check if baseline exists
-    SELECT EXISTS(SELECT 1 FROM behavioral_baselines 
-                   WHERE entity_type = p_entity_type 
-                   AND entity_id = p_entity_id) 
+    SELECT EXISTS(SELECT 1 FROM behavioral_baselines
+                   WHERE entity_type = p_entity_type
+                   AND entity_id = p_entity_id)
     INTO baseline_exists;
-    
+
     IF baseline_exists THEN
         -- Update existing baseline
         UPDATE behavioral_baselines
-        SET 
+        SET
             metrics = p_metrics,
             patterns = COALESCE(p_patterns, patterns),
             sample_size = sample_size + 1,
@@ -575,7 +575,7 @@ BEGIN
             1
         );
     END IF;
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -613,7 +613,7 @@ BEGIN
         p_context,
         p_tags
     ) RETURNING id INTO indicator_id;
-    
+
     RETURN indicator_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -631,7 +631,7 @@ CREATE OR REPLACE FUNCTION check_threat_indicators(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         TRUE,
         category,
         threat_types,
@@ -642,7 +642,7 @@ BEGIN
     AND value = p_value
     AND is_active = TRUE
     AND category IN ('malicious', 'suspicious');
-    
+
     -- If no threats found, return false
     IF NOT FOUND THEN
         RETURN QUERY SELECT FALSE, NULL, NULL, NULL, NULL LIMIT 1;
@@ -663,8 +663,8 @@ ALTER TABLE ml_models ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admins can manage threat detection" ON threat_detection_rules
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -677,8 +677,8 @@ CREATE POLICY "Users can view own incidents" ON threat_incidents
 CREATE POLICY "Admins can manage all incidents" ON threat_incidents
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );

@@ -21,7 +21,7 @@ export function BlueprintButton({
   type = 'button'
 }: BlueprintButtonProps) {
   const baseClasses = 'inline-flex items-center justify-center rounded-[var(--radius)] font-medium transition-all focus:outline-none focus:ring-2 focus:ring-[var(--blueprint)] focus:ring-offset-2';
-  
+
   const variantClasses = {
     primary: 'bg-[var(--ink)] text-white hover:bg-[var(--ink)]/90',
     secondary: 'bg-[var(--surface)] border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--surface)]/80',

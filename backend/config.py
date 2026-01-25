@@ -107,10 +107,10 @@ class Settings(BaseSettings):
     # Database configuration
     database_url: str = Field(default="sqlite:///./raptorflow.db", env="DATABASE_URL")
     database_type: DatabaseType = Field(default=DatabaseType.SQLITE, env="DATABASE_TYPE")
-    
+
     # Redis configuration
     redis_url: str = Field(default="redis://localhost:6379", env="REDIS_URL")
-    
+
     # CORS configuration
     cors_origins: list[str] = Field(
         default=["http://localhost:3000", "http://localhost:3001"],

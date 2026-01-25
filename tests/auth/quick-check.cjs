@@ -6,7 +6,7 @@ const path = require('path');
 
 const pages = [
   'src/app/login/page.tsx',
-  'src/app/signup/page.tsx', 
+  'src/app/signup/page.tsx',
   'src/app/(shell)/dashboard/page.tsx'
 ];
 

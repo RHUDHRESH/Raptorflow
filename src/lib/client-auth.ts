@@ -1,6 +1,6 @@
 /**
  * 🔐 CLIENT-SIDE AUTHENTICATION - Textbook Implementation
- * 
+ *
  * This file contains client-only authentication functions that can be
  * used in Client Components with "use client".
  */
@@ -12,7 +12,7 @@
 /**
  * Create a simple user account (for local development)
  * This is a simplified auth system for development purposes
- * 
+ *
  * @param username - Username (used as password for simplicity)
  * @returns Success status
  */
@@ -39,7 +39,7 @@ export function createUser(username: string): boolean {
 
 /**
  * Login with username/password
- * 
+ *
  * @param username - Username
  * @param password - Password (same as username in this simple system)
  * @returns Success status
@@ -49,7 +49,7 @@ export function loginUser(username: string, password: string): boolean {
     if (typeof window !== 'undefined') {
       const users = JSON.parse(localStorage.getItem('users') || '{}');
       const user = users[username];
-      
+
       // Check if user exists and password matches (username = password)
       if (user && user.password === password) {
         localStorage.setItem('currentUser', username);
@@ -78,7 +78,7 @@ export function logoutUser(): void {
 
 /**
  * Get current user
- * 
+ *
  * @returns Current username or null
  */
 export function getCurrentClientUser(): string | null {
@@ -95,7 +95,7 @@ export function getCurrentClientUser(): string | null {
 
 /**
  * Check if user is authenticated
- * 
+ *
  * @returns True if authenticated, false otherwise
  */
 export function clientIsAuthenticated(): boolean {
@@ -113,7 +113,7 @@ export function clientRedirectToLogin(): void {
 
 /**
  * Check if a user exists
- * 
+ *
  * @param username - Username to check
  * @returns True if user exists, false otherwise
  */
@@ -132,7 +132,7 @@ export function userExists(username: string): boolean {
 
 /**
  * Get all users (for development purposes)
- * 
+ *
  * @returns Array of user objects
  */
 export function getAllUsers(): Array<{ username: string; createdAt: string }> {

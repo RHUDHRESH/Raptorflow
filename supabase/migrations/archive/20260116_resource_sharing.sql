@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS public.shared_resources (
   }'::JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(resource_type, resource_id)
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.resource_shares (
   expires_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(from_workspace_id, to_workspace_id, resource_type, resource_id)
 );
 
@@ -276,7 +276,7 @@ BEGIN
     ) THEN
         RETURN TRUE;
     END IF;
-    
+
     -- Check if user has sharing permission in workspace
     RETURN EXISTS (
         SELECT 1 FROM public.workspace_members
@@ -301,7 +301,7 @@ BEGIN
     ) THEN
         RETURN TRUE;
     END IF;
-    
+
     -- Check if resource is shared with user's workspace
     IF EXISTS (
         SELECT 1 FROM public.resource_shares
@@ -314,7 +314,7 @@ BEGIN
     ) THEN
         RETURN TRUE;
     END IF;
-    
+
     RETURN FALSE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -14,13 +14,13 @@ interface BlueprintKPIProps {
   className?: string;
 }
 
-export function BlueprintKPI({ 
-  title, 
-  value, 
-  subtitle, 
-  icon, 
-  trend, 
-  className 
+export function BlueprintKPI({
+  title,
+  value,
+  subtitle,
+  icon,
+  trend,
+  className
 }: BlueprintKPIProps) {
   const getTrendIcon = (direction: 'up' | 'down' | 'neutral') => {
     switch (direction) {
@@ -51,14 +51,14 @@ export function BlueprintKPI({
             <p className="text-xs text-[var(--muted)] mt-1">{subtitle}</p>
           )}
         </div>
-        
+
         <div className="flex flex-col items-end gap-2">
           {icon && (
             <div className="text-[var(--muted)]">
               {icon}
             </div>
           )}
-          
+
           {trend && (
             <div className={cn(
               'flex items-center gap-1 text-xs font-medium',

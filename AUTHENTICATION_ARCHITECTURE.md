@@ -37,13 +37,13 @@ The heart of the authentication system, providing three distinct services:
 class ClientAuthService {
   private supabase = createClient()
   private crossTabManager: CrossTabManager | null = null
-  
+
   // Core operations
   async getSession(): Promise<Session | null>
   async getCurrentUser(): Promise<AuthUser | null>
   async signOut(): Promise<{ success: boolean; error?: string }>
   async refreshUser(): Promise<AuthUser | null>
-  
+
   // Caching
   getCachedUser(): AuthUser | null
   private cacheUser(user: AuthUser): void
@@ -61,7 +61,7 @@ class ClientAuthService {
 // Server-side authentication for middleware/API routes
 class ServerAuthService {
   private supabase: any
-  
+
   async validateSession(): Promise<{ valid: boolean; user?: any; needsRotation?: boolean }>
   async rotateSession(): Promise<{ success: boolean; session?: Session; error?: string }>
   private async loadUserDataWithWorkspace(supabaseUser: SupabaseUser): Promise<any>
@@ -80,7 +80,7 @@ class ServerAuthService {
 class ServiceRoleAuthService {
   private static instance: ServiceRoleAuthService
   private supabase: any
-  
+
   static getInstance(): ServiceRoleAuthService
   getSupabaseClient(): any
   async updateUserRole(userId: string, role: string): Promise<{ success: boolean; error?: string }>
@@ -105,11 +105,11 @@ class CrossTabManager {
   private broadcastChannel: BroadcastChannel | null = null
   private storageKey = 'auth_session_event'
   private isEdgeRuntime: boolean
-  
+
   // Communication methods
   public broadcastSignOut(): void
   public broadcastSessionRefresh(session: Session): void
-  
+
   // Event handlers
   private handleBroadcastMessage(event: MessageEvent): void
   private handleStorageEvent(event: StorageEvent): void
@@ -136,18 +136,18 @@ export async function middleware(request: NextRequest) {
   if (!validateIP(ip)) return new NextResponse('Forbidden', { status: 403 })
   if (!validateUserAgent(userAgent)) return new NextResponse('Forbidden', { status: 403 })
   if (!validatePath(path)) return new NextResponse('Forbidden', { status: 403 })
-  
+
   // 2. Session validation
   const serverAuth = createServerAuth(request)
   const sessionValidation = await serverAuth.validateSession()
-  
+
   // 3. Rate limiting with bypasses
   if (!checkRateLimit(ip!, isAuth, user?.role === 'admin')) {
     if (!path.startsWith('/api/health') && !path.startsWith('/api/monitoring')) {
       return new NextResponse('Too Many Requests', { status: 429 })
     }
   }
-  
+
   // 4. Route protection logic
   // 5. Security headers
   // 6. Session rotation
@@ -445,18 +445,18 @@ if (adminRoutes.some(route => path.startsWith(route)) && !['admin', 'super_admin
 async function validateSession() {
   try {
     const { data: { session }, error } = await supabase.auth.getSession()
-    
+
     if (error || !session) {
       return { valid: false, error: error?.message || 'No session' }
     }
-    
+
     // Handle missing expires_at
     let needsRotation = false
     if (!session.expires_at) {
       console.warn('Session missing expires_at')
       needsRotation = true
     }
-    
+
     return { valid: true, user: session.user, needsRotation }
   } catch (error) {
     console.error('Session validation error:', error)
@@ -475,7 +475,7 @@ async function logSecurityEvent(
   request: NextRequest
 ) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1'
-  
+
   console.error(`SECURITY_EVENT: ${eventType}`, {
     severity,
     ip,
@@ -483,7 +483,7 @@ async function logSecurityEvent(
     path: request.nextUrl.pathname,
     ...details
   })
-  
+
   // In production, send to security monitoring service
 }
 ```
@@ -597,10 +597,10 @@ import { useAuth } from '@/contexts/AuthContext'
 
 function ProtectedComponent() {
   const { user, isAuthenticated, isLoading } = useAuth()
-  
+
   if (isLoading) return <LoadingSpinner />
   if (!isAuthenticated) return <LoginRequired />
-  
+
   return <Welcome user={user} />
 }
 ```
@@ -612,11 +612,11 @@ import { createServerAuth } from '@/lib/auth-service'
 export async function GET(request: NextRequest) {
   const serverAuth = createServerAuth(request)
   const { valid, user } = await serverAuth.validateSession()
-  
+
   if (!valid) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  
+
   return NextResponse.json({ user })
 }
 ```
@@ -627,16 +627,16 @@ import { serviceAuth } from '@/lib/auth-service'
 
 export async function POST(request: NextRequest) {
   const supabase = serviceAuth.getSupabaseClient()
-  
+
   const { error } = await supabase
     .from('profiles')
     .update({ role: 'admin' })
     .eq('id', userId)
-  
+
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
-  
+
   return NextResponse.json({ success: true })
 }
 ```

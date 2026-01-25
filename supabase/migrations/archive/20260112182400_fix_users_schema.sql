@@ -5,7 +5,7 @@
 DO $$ BEGIN
     CREATE TYPE onboarding_status AS ENUM (
       'pending_workspace',
-      'pending_storage', 
+      'pending_storage',
       'pending_plan_selection',
       'pending_payment',
       'active',
@@ -24,23 +24,23 @@ CREATE TABLE IF NOT EXISTS users (
   full_name TEXT,
   avatar_url TEXT,
   phone TEXT,
-  
+
   -- Onboarding state
   onboarding_status onboarding_status NOT NULL DEFAULT 'pending_workspace',
-  
+
   -- User role
   role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'super_admin', 'support', 'billing_admin')),
-  
+
   -- Account status
   is_active BOOLEAN DEFAULT true,
   is_banned BOOLEAN DEFAULT false,
   ban_reason TEXT,
   banned_at TIMESTAMPTZ,
   banned_by UUID REFERENCES users(id),
-  
+
   -- Admin notes
   notes TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),

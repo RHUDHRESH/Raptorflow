@@ -31,7 +31,7 @@
 ✅ Check: No email/password forms
 ✅ Test: Click Google login (mock mode enabled)
 
-📍 URL: http://localhost:3000/signup  
+📍 URL: http://localhost:3000/signup
 ✅ Check: Google OAuth button
 ✅ Check: No email/password forms
 ✅ Test: Click Google signup (mock mode enabled)
@@ -128,7 +128,7 @@ curl -X POST http://localhost:3000/api/onboarding/complete \
 
 Since `NEXT_PUBLIC_MOCK_GOOGLE_LOGIN=true`, you can test with:
 
-**Email**: any@gmail.com  
+**Email**: any@gmail.com
 **Password**: test123456
 
 This will create a mock user and allow you to test the complete flow without real Google OAuth.

@@ -23,7 +23,7 @@ CREATE POLICY "plans_manage_service_role" ON public.plans
 -- Only authenticated users can view their own audit logs
 CREATE POLICY "audit_logs_select_own" ON public.audit_logs
     FOR SELECT USING (
-        auth.role() = 'authenticated' AND 
+        auth.role() = 'authenticated' AND
         user_id = (select auth.uid())
     );
 
@@ -32,7 +32,7 @@ CREATE POLICY "audit_logs_select_admin" ON public.audit_logs
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         EXISTS (
-            SELECT 1 FROM public.profiles 
+            SELECT 1 FROM public.profiles
             WHERE id = (select auth.uid()) AND role = 'admin'
         )
     );
@@ -47,7 +47,7 @@ CREATE POLICY "admin_actions_select_admin" ON public.admin_actions
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         EXISTS (
-            SELECT 1 FROM public.profiles 
+            SELECT 1 FROM public.profiles
             WHERE id = (select auth.uid()) AND role = 'admin'
         )
     );
@@ -60,7 +60,7 @@ CREATE POLICY "admin_actions_insert_service" ON public.admin_actions
 -- Users can view their own security events
 CREATE POLICY "security_events_select_own" ON public.security_events
     FOR SELECT USING (
-        auth.role() = 'authenticated' AND 
+        auth.role() = 'authenticated' AND
         user_id = (select auth.uid())
     );
 
@@ -69,7 +69,7 @@ CREATE POLICY "security_events_select_admin" ON public.security_events
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         EXISTS (
-            SELECT 1 FROM public.profiles 
+            SELECT 1 FROM public.profiles
             WHERE id = (select auth.uid()) AND role = 'admin'
         )
     );

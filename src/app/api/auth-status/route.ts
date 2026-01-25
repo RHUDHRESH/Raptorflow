@@ -17,10 +17,10 @@ export async function GET() {
         },
       }
     )
-    
+
     // Get session
     const { data: { session }, error } = await supabase.auth.getSession()
-    
+
     // Get user if session exists
     let user = null
     if (session?.user) {
@@ -29,13 +29,13 @@ export async function GET() {
         .select('*')
         .eq('id', session.user.id)
         .maybeSingle()
-      
+
       user = {
         ...session.user,
         profile
       }
     }
-    
+
     return NextResponse.json({
       session,
       user,

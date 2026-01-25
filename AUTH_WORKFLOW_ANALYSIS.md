@@ -144,7 +144,7 @@ Existing user without sub → /pricing
 
 ```
 src/components/auth/MockAuthProvider.tsx ❌ DELETE
-src/components/auth/OAuthButton-simple.tsx ❌ DELETE  
+src/components/auth/OAuthButton-simple.tsx ❌ DELETE
 src/components/auth/WorkingOAuthButton.tsx ❌ DELETE
 src/lib/auth-client-only.ts ❌ DELETE (temporary fix)
 ```
@@ -161,7 +161,7 @@ src/components/auth/OAuthButton.tsx ✅ USE single implementation
 ## 🎯 Success Criteria
 
 1. ✅ Only one OAuth button component exists
-2. ✅ Only one auth service exists  
+2. ✅ Only one auth service exists
 3. ✅ No mock authentication code
 4. ✅ Login page works without encoding issues
 5. ✅ Auth callback processes correctly

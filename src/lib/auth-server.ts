@@ -78,11 +78,11 @@ export class ServerAuthService {
       // Check if session needs rotation
       let needsRotation = false
       if (session?.expires_at) {
-        const expiresAtMs = typeof session.expires_at === 'number' 
-          ? session.expires_at * 1000 
+        const expiresAtMs = typeof session.expires_at === 'number'
+          ? session.expires_at * 1000
           : new Date(session.expires_at).getTime()
         const timeUntilExpiry = expiresAtMs - Date.now()
-        
+
         if (timeUntilExpiry < 5 * 60 * 1000) {
           needsRotation = true
         }
@@ -169,11 +169,11 @@ export class ServerAuthService {
   async rotateSession(): Promise<{ success: boolean; session?: Session; error?: string }> {
     try {
       const { data: { session }, error } = await this.supabase.auth.refreshSession()
-      
+
       if (error) {
         return { success: false, error: error.message }
       }
-      
+
       return { success: true, session: session! }
     } catch (error) {
       console.error('Session rotation error:', error)
@@ -211,7 +211,7 @@ export async function createServerSupabaseClient() {
     })
     throw new Error('Supabase configuration missing')
   }
-  
+
   return createServerClient(
     supabaseUrl,
     supabaseAnonKey,
@@ -250,7 +250,7 @@ export async function createServiceSupabaseClient() {
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error('Supabase service configuration missing')
   }
-  
+
   return createServerClient(
     supabaseUrl,
     serviceRoleKey,
@@ -666,11 +666,11 @@ export async function updateProfileRecord(
  */
 export async function getCurrentUserFromDB() {
   const session = await getServerSession()
-  
+
   if (!session) {
     return null
   }
-  
+
   const supabase = await createServerSupabaseClient()
   const { profile } = await getProfileByAuthUserId(supabase, session.user.id)
   return profile
@@ -681,11 +681,11 @@ export async function getCurrentUserFromDB() {
  */
 export async function requireAuth(): Promise<Session> {
   const session = await getServerSession()
-  
+
   if (!session) {
     redirect('/login')
   }
-  
+
   return session
 }
 
@@ -695,24 +695,24 @@ export async function requireAuth(): Promise<Session> {
 export async function requireOnboarding(step?: string) {
   const session = await requireAuth()
   const supabase = await createServerSupabaseClient()
-  
+
   const { profile: user } = await getProfileByAuthUserId(supabase, session.user.id)
-  
+
   if (!user) {
     redirect('/login')
   }
-  
+
   // If user is fully onboarded, redirect to dashboard
   if (user.onboarding_status === 'active') {
     redirect('/dashboard')
   }
-  
+
   // If specific step is required and user is not at that step
   if (step && user.onboarding_status !== step) {
     const redirectPath = getRedirectPath(user.onboarding_status || 'pending')
     redirect(redirectPath)
   }
-  
+
   return { session, user }
 }
 
@@ -722,26 +722,26 @@ export async function requireOnboarding(step?: string) {
 export async function requireActiveUser() {
   const session = await requireAuth()
   const supabase = await createServerSupabaseClient()
-  
+
   const { profile: user } = await getProfileByAuthUserId(supabase, session.user.id)
-  
+
   if (!user) {
     redirect('/login')
   }
-  
+
   if (user.is_banned) {
     redirect('/account/banned')
   }
-  
+
   if (user.is_active === false) {
     redirect('/account/inactive')
   }
-  
+
   if (user.onboarding_status !== 'active') {
     const redirectPath = getRedirectPath(user.onboarding_status || 'pending')
     redirect(redirectPath)
   }
-  
+
   return { session, user }
 }
 
@@ -751,13 +751,13 @@ export async function requireActiveUser() {
 export async function requireAdmin() {
   const session = await requireAuth()
   const supabase = await createServerSupabaseClient()
-  
+
   const { profile: user } = await getProfileByAuthUserId(supabase, session.user.id)
-  
+
   if (!user || !['admin', 'super_admin', 'support', 'billing_admin'].includes(user.role || '')) {
     redirect('/unauthorized')
   }
-  
+
   return { session, user }
 }
 
@@ -767,26 +767,26 @@ export async function requireAdmin() {
 export async function hasPermission(permission: string): Promise<boolean> {
   const supabase = await createServerSupabaseClient()
   const session = await getServerSession()
-  
+
   if (!session) {
     return false
   }
-  
+
   const { data: user } = await supabase
     .from('users')
     .select('role')
     .eq('auth_user_id', session.user.id)
     .single()
-  
+
   if (!user) {
     return false
   }
-  
+
   // Super admin has all permissions
   if (user.role === 'super_admin') {
     return true
   }
-  
+
   // Define role permissions
   const rolePermissions: Record<string, string[]> = {
     admin: ['read:users', 'write:users', 'read:subscriptions', 'write:subscriptions', 'read:payments', 'read:audit_logs'],
@@ -794,9 +794,9 @@ export async function hasPermission(permission: string): Promise<boolean> {
     support: ['read:users', 'read:subscriptions'],
     user: [],
   }
-  
+
   const permissions = rolePermissions[user.role] || []
-  
+
   return permissions.includes(permission) || permissions.includes('*')
 }
 

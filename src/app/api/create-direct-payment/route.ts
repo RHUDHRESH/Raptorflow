@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
     // Generate transaction ID
     const transactionId = `TX${Date.now()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`
-    
+
     // Create payment payload for PhonePe UAT
     const payload = {
       merchantId: merchantId,
@@ -28,10 +28,10 @@ export async function POST(request: Request) {
     // For UAT testing, we can create a direct payment link
     // Using the test merchant ID that works with PhonePe's UAT environment
     const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64')
-    
+
     // Create a direct PhonePe payment URL for UAT testing
     const paymentUrl = `https://apps-staging.phonepe.com/v3/debit?txnId=${transactionId}&amount=${amount}&merchantId=${merchantId}&redirectUrl=${encodeURIComponent(payload.redirectUrl)}`
-    
+
     return NextResponse.json({
       status: 'success',
       message: 'Direct payment link created successfully!',

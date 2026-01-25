@@ -5,13 +5,13 @@
 -- ============================================================================
 
 -- 1. Evidence Vault Enhanced Columns
-ALTER TABLE IF EXISTS evidence_vault 
+ALTER TABLE IF EXISTS evidence_vault
 ADD COLUMN IF NOT EXISTS document_type VARCHAR(50),
 ADD COLUMN IF NOT EXISTS classification_confidence FLOAT DEFAULT 0.0,
 ADD COLUMN IF NOT EXISTS extracted_content JSONB DEFAULT '{}';
 
 -- Create index for document type lookups
-CREATE INDEX IF NOT EXISTS idx_evidence_vault_document_type 
+CREATE INDEX IF NOT EXISTS idx_evidence_vault_document_type
 ON evidence_vault(document_type);
 
 -- 2. Contradictions Table
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS onboarding_contradictions (
     auto_resolvable BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT fk_contradictions_workspace FOREIGN KEY (workspace_id) 
+    CONSTRAINT fk_contradictions_workspace FOREIGN KEY (workspace_id)
         REFERENCES workspaces(id) ON DELETE CASCADE
 );
 
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS onboarding_market_insights (
     suggested_solution TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT fk_market_insights_workspace FOREIGN KEY (workspace_id) 
+    CONSTRAINT fk_market_insights_workspace FOREIGN KEY (workspace_id)
         REFERENCES workspaces(id) ON DELETE CASCADE
 );
 
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS onboarding_competitors (
     verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT fk_competitors_workspace FOREIGN KEY (workspace_id) 
+    CONSTRAINT fk_competitors_workspace FOREIGN KEY (workspace_id)
         REFERENCES workspaces(id) ON DELETE CASCADE
 );
 
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS onboarding_positioning (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id UUID NOT NULL,
     workspace_id UUID NOT NULL,
-    
+
     -- Perceptual Map Data
     perceptual_map_option INTEGER DEFAULT 1, -- 1, 2, or 3
     primary_axis_name VARCHAR(100),
@@ -119,31 +119,31 @@ CREATE TABLE IF NOT EXISTS onboarding_positioning (
     secondary_axis_high VARCHAR(100),
     position_x FLOAT DEFAULT 0.5,
     position_y FLOAT DEFAULT 0.5,
-    
+
     -- Category Path
     category_path VARCHAR(50), -- safe, clever, bold
     category_rationale TEXT,
-    
+
     -- Position Grid
     market_served VARCHAR(50), -- smb, mid_market, enterprise, startups
     category_name VARCHAR(255),
     tribe VARCHAR(100), -- growth_teams, founders, marketing_leaders
     story_type VARCHAR(100), -- david_vs_goliath, built_by_practitioners, opinionated
-    
+
     -- Strategy
     positioning_strategy VARCHAR(50), -- cost_leader, differentiator, niche, quality, innovation, service
     competitive_angle TEXT,
     target_audience TEXT,
-    
+
     -- Confidence
     confidence_score FLOAT DEFAULT 0.5,
     ai_rationale TEXT,
-    
+
     -- Metadata
     is_selected BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT fk_positioning_workspace FOREIGN KEY (workspace_id) 
+    CONSTRAINT fk_positioning_workspace FOREIGN KEY (workspace_id)
         REFERENCES workspaces(id) ON DELETE CASCADE
 );
 
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS onboarding_extracted_facts (
     verified_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT fk_facts_workspace FOREIGN KEY (workspace_id) 
+    CONSTRAINT fk_facts_workspace FOREIGN KEY (workspace_id)
         REFERENCES workspaces(id) ON DELETE CASCADE
 );
 

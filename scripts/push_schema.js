@@ -18,30 +18,30 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 async function executeMigration() {
   try {
     console.log('🚀 Starting schema push to Supabase...');
-    
+
     // Read the latest migration file
     const migrationPath = path.join(__dirname, '../supabase/migrations/20260122074403_final_auth_consolidation.sql');
     const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
-    
+
     console.log('📁 Migration file loaded:', migrationPath);
-    
+
     // Split SQL into individual statements
     const statements = migrationSQL
       .split(';')
       .map(s => s.trim())
       .filter(s => s && !s.startsWith('--'));
-    
+
     console.log(`📝 Found ${statements.length} SQL statements to execute`);
-    
+
     // Execute each statement
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i];
       if (statement.trim()) {
         console.log(`⚡ Executing statement ${i + 1}/${statements.length}...`);
-        
+
         try {
           const { error } = await supabase.rpc('exec_sql', { sql: statement });
-          
+
           if (error) {
             // If exec_sql doesn't exist, try direct SQL
             console.log('🔄 Trying direct SQL execution...');
@@ -49,7 +49,7 @@ async function executeMigration() {
               .from('pg_temp')
               .select('*')
               .limit(1);
-            
+
             if (directError && directError.code === 'PGRST116') {
               // Table doesn't exist, try using raw SQL through a different approach
               console.log('⚠️  Cannot execute DDL via client. Please use Supabase Dashboard or CLI.');
@@ -70,20 +70,20 @@ async function executeMigration() {
         }
       }
     }
-    
+
     console.log('🎉 Schema push completed!');
-    
+
     // Verify tables were created
     console.log('🔍 Verifying table creation...');
     const tables = ['profiles', 'subscriptions', 'payments', 'email_logs', 'workspaces'];
-    
+
     for (const table of tables) {
       try {
         const { data, error } = await supabase
           .from(table)
           .select('*')
           .limit(1);
-        
+
         if (error && error.code === 'PGRST116') {
           console.log(`❌ Table '${table}' not found`);
         } else {
@@ -93,7 +93,7 @@ async function executeMigration() {
         console.log(`⚠️  Could not verify table '${table}':`, err.message);
       }
     }
-    
+
   } catch (error) {
     console.error('❌ Migration failed:', error);
     process.exit(1);
@@ -104,10 +104,10 @@ async function executeMigration() {
 async function executeWithFetch() {
   try {
     console.log('🚀 Starting schema push via REST API...');
-    
+
     const migrationPath = path.join(__dirname, '../supabase/migrations/20260122074403_final_auth_consolidation.sql');
     const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
-    
+
     // Use the Supabase REST API to execute SQL
     const response = await fetch(`${supabaseUrl}/rest/v1/rpc/exec_sql`, {
       method: 'POST',
@@ -118,7 +118,7 @@ async function executeWithFetch() {
       },
       body: JSON.stringify({ sql: migrationSQL })
     });
-    
+
     if (response.ok) {
       console.log('✅ Schema executed successfully via REST API');
     } else {

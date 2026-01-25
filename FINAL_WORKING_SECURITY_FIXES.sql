@@ -20,7 +20,7 @@ CREATE POLICY "plans_manage_service_role" ON public.plans
 -- Audit logs policies (completely missing)
 CREATE POLICY "audit_logs_select_own" ON public.audit_logs
     FOR SELECT USING (
-        auth.role() = 'authenticated' AND 
+        auth.role() = 'authenticated' AND
         actor_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
     );
 
@@ -28,8 +28,8 @@ CREATE POLICY "audit_logs_select_admin" ON public.audit_logs
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin', 'support', 'billing_admin')
         )
     );
@@ -42,8 +42,8 @@ CREATE POLICY "admin_actions_select_admin" ON public.admin_actions
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin', 'support', 'billing_admin')
         )
     );
@@ -54,7 +54,7 @@ CREATE POLICY "admin_actions_insert_service" ON public.admin_actions
 -- Security events policies (completely missing)
 CREATE POLICY "security_events_select_own" ON public.security_events
     FOR SELECT USING (
-        auth.role() = 'authenticated' AND 
+        auth.role() = 'authenticated' AND
         user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
     );
 
@@ -62,8 +62,8 @@ CREATE POLICY "security_events_select_admin" ON public.security_events
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin', 'support', 'billing_admin')
         )
     );
@@ -104,7 +104,7 @@ SET search_path = public
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         u.id,
         u.email,
         u.role,
@@ -159,9 +159,9 @@ CREATE POLICY "icp_disqualifiers_select_workspace" ON public.icp_disqualifiers
     FOR SELECT USING (
         auth.role() IN ('authenticated', 'service_role') AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -171,9 +171,9 @@ CREATE POLICY "icp_disqualifiers_insert_workspace" ON public.icp_disqualifiers
     FOR INSERT WITH CHECK (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -183,9 +183,9 @@ CREATE POLICY "icp_disqualifiers_update_workspace" ON public.icp_disqualifiers
     FOR UPDATE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -195,9 +195,9 @@ CREATE POLICY "icp_disqualifiers_delete_workspace" ON public.icp_disqualifiers
     FOR DELETE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -208,9 +208,9 @@ CREATE POLICY "icp_firmographics_select_workspace" ON public.icp_firmographics
     FOR SELECT USING (
         auth.role() IN ('authenticated', 'service_role') AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -220,9 +220,9 @@ CREATE POLICY "icp_firmographics_insert_workspace" ON public.icp_firmographics
     FOR INSERT WITH CHECK (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -232,9 +232,9 @@ CREATE POLICY "icp_firmographics_update_workspace" ON public.icp_firmographics
     FOR UPDATE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -244,9 +244,9 @@ CREATE POLICY "icp_firmographics_delete_workspace" ON public.icp_firmographics
     FOR DELETE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -257,9 +257,9 @@ CREATE POLICY "icp_pain_map_select_workspace" ON public.icp_pain_map
     FOR SELECT USING (
         auth.role() IN ('authenticated', 'service_role') AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -269,9 +269,9 @@ CREATE POLICY "icp_pain_map_insert_workspace" ON public.icp_pain_map
     FOR INSERT WITH CHECK (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -281,9 +281,9 @@ CREATE POLICY "icp_pain_map_update_workspace" ON public.icp_pain_map
     FOR UPDATE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -293,9 +293,9 @@ CREATE POLICY "icp_pain_map_delete_workspace" ON public.icp_pain_map
     FOR DELETE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -306,9 +306,9 @@ CREATE POLICY "icp_psycholinguistics_select_workspace" ON public.icp_psycholingu
     FOR SELECT USING (
         auth.role() IN ('authenticated', 'service_role') AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -318,9 +318,9 @@ CREATE POLICY "icp_psycholinguistics_insert_workspace" ON public.icp_psycholingu
     FOR INSERT WITH CHECK (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -330,9 +330,9 @@ CREATE POLICY "icp_psycholinguistics_update_workspace" ON public.icp_psycholingu
     FOR UPDATE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -342,9 +342,9 @@ CREATE POLICY "icp_psycholinguistics_delete_workspace" ON public.icp_psycholingu
     FOR DELETE USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -361,8 +361,8 @@ CREATE POLICY "payment_transactions_select_consolidated" ON public.payment_trans
         auth.role() = 'authenticated' AND (
             user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid()) OR
             EXISTS (
-                SELECT 1 FROM users 
-                WHERE auth_user_id = auth.uid() 
+                SELECT 1 FROM users
+                WHERE auth_user_id = auth.uid()
                 AND role IN ('admin', 'super_admin', 'billing_admin')
             )
         )
@@ -378,24 +378,24 @@ CREATE POLICY "subscriptions_select_consolidated" ON public.subscriptions
         auth.role() = 'authenticated' AND (
             user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid()) OR
             EXISTS (
-                SELECT 1 FROM users 
-                WHERE auth_user_id = auth.uid() 
+                SELECT 1 FROM users
+                WHERE auth_user_id = auth.uid()
                 AND role IN ('admin', 'super_admin', 'billing_admin')
             )
         )
     );
 
 -- STEP 7: ADD MISSING FOREIGN KEY INDEXES
-CREATE INDEX CONCURRENTLY IF NOT EXISTS 
-idx_payment_transactions_plan_id_fkey 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS
+idx_payment_transactions_plan_id_fkey
 ON public.payment_transactions(plan_id);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS 
-idx_payment_transactions_subscription_id_fkey 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS
+idx_payment_transactions_subscription_id_fkey
 ON public.payment_transactions(subscription_id);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS 
-idx_users_banned_by_fkey 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS
+idx_users_banned_by_fkey
 ON public.users(banned_by);
 
 -- STEP 8: REMOVE UNUSED INDEXES (only a few critical ones to avoid errors)
@@ -446,15 +446,15 @@ ALTER DATABASE postgres SET search_path = "$user", public, extensions;
 -- =================================================================
 -- COMPLETION MESSAGE
 -- SECURITY FIXES APPLIED!
--- 
+--
 -- Fixed:
 -- ✅ RLS on critical tables
--- ✅ Missing ICP policies  
+-- ✅ Missing ICP policies
 -- ✅ Function security
 -- ✅ Extension security
 -- ✅ Performance optimizations
 -- ✅ Missing indexes
 -- ✅ Unused indexes removed
--- 
+--
 -- Next: Enable leaked password protection in Supabase Dashboard > Authentication > Settings
 -- =================================================================

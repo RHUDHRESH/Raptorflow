@@ -24,6 +24,7 @@ except ImportError:
         def __call__(self, *args, **kwargs):
             raise RuntimeError("Celery is not installed; task execution unavailable")
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,6 +36,7 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TIMEZONE = "UTC"
 CELERY_ENABLE_UTC = True
+
 
 def create_celery_app() -> Optional[Celery]:
     """Create and configure Celery application (or None if Celery missing)."""
@@ -118,6 +120,7 @@ celery_app = create_celery_app()
 
 def celery_task(queue: str = "ai", retries: int = 3, retry_delay: int = 60):
     """Decorator for Celery tasks with default settings (no-op if Celery missing)."""
+
     def decorator(func):
         if celery_app is None or Celery is None:
             # Return original function; calls will execute directly and not enqueue
@@ -211,7 +214,9 @@ class TaskManager:
             logger.warning("Celery not installed; executing task synchronously (noop).")
             try:
                 # Attempt to import and call task directly if available
-                module_name, func_name = task_name.rsplit(".", 1) if "." in task_name else (None, task_name)
+                module_name, func_name = (
+                    task_name.rsplit(".", 1) if "." in task_name else (None, task_name)
+                )
                 if module_name:
                     module = __import__(module_name, fromlist=[func_name])
                     func = getattr(module, func_name, None)
@@ -383,7 +388,12 @@ async def get_celery_health() -> Dict[str, Any]:
     """Get Celery health status"""
     manager = get_task_manager()
     if manager.celery is None:
-        return {"status": "disabled", "broker_connected": False, "active_workers": 0, "active_tasks": 0}
+        return {
+            "status": "disabled",
+            "broker_connected": False,
+            "active_workers": 0,
+            "active_tasks": 0,
+        }
     try:
         # Check broker connection
         inspect = manager.celery.control.inspect()

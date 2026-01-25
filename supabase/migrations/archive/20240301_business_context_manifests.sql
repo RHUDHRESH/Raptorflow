@@ -28,7 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_bcm_version ON public.business_context_manifests(
 -- Row Level Security
 ALTER TABLE public.business_context_manifests ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can access their workspace's manifests" 
+CREATE POLICY "Users can access their workspace's manifests"
 ON public.business_context_manifests
 FOR SELECT
 USING (
@@ -39,7 +39,7 @@ USING (
   )
 );
 
-CREATE POLICY "Workspace admins can manage manifests" 
+CREATE POLICY "Workspace admins can manage manifests"
 ON public.business_context_manifests
 FOR ALL
 USING (

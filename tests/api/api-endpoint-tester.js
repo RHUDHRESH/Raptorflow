@@ -7,31 +7,31 @@ const API_ENDPOINTS = [
   { path: '/api/auth/reset-password-simple', method: 'POST', critical: true },
   { path: '/api/auth/verify-email', method: 'POST', critical: true },
   { path: '/api/auth/session-management', method: 'GET', critical: true },
-  
+
   // Health & Monitoring
   { path: '/api/health', method: 'GET', critical: true },
   { path: '/api/monitoring/dashboard', method: 'GET', critical: false },
   { path: '/api/monitoring/enhanced-dashboard', method: 'GET', critical: false },
-  
+
   // User Management
   { path: '/api/me/subscription', method: 'GET', critical: true },
   { path: '/api/admin/impersonate', method: 'POST', critical: false },
-  
+
   // Onboarding Core
   { path: '/api/onboarding/complete', method: 'POST', critical: true },
   { path: '/api/onboarding/create-workspace', method: 'POST', critical: true },
   { path: '/api/onboarding/classify', method: 'POST', critical: true },
-  
+
   // Payment & Billing
   { path: '/api/create-payment', method: 'POST', critical: true },
   { path: '/api/complete-mock-payment', method: 'POST', critical: true },
   { path: '/api/billing/dunning', method: 'GET', critical: false },
-  
+
   // Database & Storage
   { path: '/api/create-tables', method: 'POST', critical: false },
   { path: '/api/execute-sql', method: 'POST', critical: false },
   { path: '/api/create-storage', method: 'POST', critical: false },
-  
+
   // Integration & Testing
   { path: '/api/integration-test', method: 'GET', critical: false },
   { path: '/api/auto-setup', method: 'POST', critical: false }
@@ -53,9 +53,9 @@ class APIEndpointTester {
   async testEndpoint(endpoint) {
     const { path, method, critical } = endpoint;
     const url = `http://localhost:3000${path}`;
-    
+
     console.log(`\n🔍 Testing: ${method} ${path}`);
-    
+
     try {
       const response = await this.page.request.fetch(url, {
         method: method,
@@ -68,7 +68,7 @@ class APIEndpointTester {
       const status = response.status();
       const statusText = response.statusText();
       const contentType = response.headers()['content-type'] || 'unknown';
-      
+
       let responseBody;
       try {
         responseBody = await response.text();
@@ -93,7 +93,7 @@ class APIEndpointTester {
       };
 
       this.results.push(result);
-      
+
       if (result.success) {
         console.log(`✅ ${method} ${path} - ${status} ${statusText}`);
       } else {
@@ -102,7 +102,7 @@ class APIEndpointTester {
       }
 
       return result;
-      
+
     } catch (error) {
       const result = {
         endpoint: path,
@@ -118,14 +118,14 @@ class APIEndpointTester {
 
       this.results.push(result);
       console.log(`❌ ${method} ${path} - ERROR: ${error.message}`);
-      
+
       return result;
     }
   }
 
   async testAllEndpoints() {
     console.log(`\n🎯 Testing ${API_ENDPOINTS.length} API endpoints...\n`);
-    
+
     for (const endpoint of API_ENDPOINTS) {
       await this.testEndpoint(endpoint);
       // Small delay between requests
@@ -165,7 +165,7 @@ class APIEndpointTester {
     });
 
     console.log('\n' + '='.repeat(80));
-    
+
     if (criticalFailed === 0) {
       console.log('🎉 ALL CRITICAL ENDPOINTS WORKING!');
     } else {
@@ -183,7 +183,7 @@ class APIEndpointTester {
 // Main execution
 async function main() {
   const tester = new APIEndpointTester();
-  
+
   try {
     await tester.init();
     await tester.testAllEndpoints();

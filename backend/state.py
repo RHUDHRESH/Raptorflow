@@ -34,6 +34,7 @@ try:
 except ImportError:
     # Fallback for older redis versions
     import redis
+
     redis_client = redis
 import structlog
 from pydantic import BaseModel, ValidationError

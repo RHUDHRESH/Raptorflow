@@ -496,7 +496,7 @@ export class AdminActions {
 
     } catch (error) {
       console.error('Error processing bulk operation:', error)
-      
+
       // Mark as failed
       await this.supabase
         .from('bulk_operations')

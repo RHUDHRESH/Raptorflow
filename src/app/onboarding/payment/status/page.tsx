@@ -21,7 +21,7 @@ export default function PaymentStatus() {
         try {
             const response = await fetch('/api/me/subscription')
             const data = await response.json()
-            
+
             if (data.subscription_status === 'active') {
                 setStatus('success')
                 // Redirect based on onboarding status
@@ -48,9 +48,9 @@ export default function PaymentStatus() {
                 setStatus('failure')
                 return
             }
-            
+
             setStatus('verifying')
-            
+
             try {
                 // Call verification endpoint
                 const response = await fetch('/api/payments/verify', {
@@ -58,9 +58,9 @@ export default function PaymentStatus() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ transactionId })
                 })
-                
+
                 const data = await response.json()
-                
+
                 if (data.success) {
                     // Start polling for subscription activation
                     const isActive = await checkSubscriptionStatus()
@@ -122,7 +122,7 @@ export default function PaymentStatus() {
                                 {status === 'loading' ? 'Processing...' : 'Activating Your Subscription...'}
                             </h2>
                             <p className="text-muted-foreground">
-                                {status === 'verifying' 
+                                {status === 'verifying'
                                     ? 'This usually takes just a few seconds. Please don\'t close this window.'
                                     : 'Please wait while we verify your payment.'
                                 }
@@ -146,7 +146,7 @@ export default function PaymentStatus() {
                                     Welcome to RaptorFlow! Your subscription is now active.
                                 </p>
                             </div>
-                            
+
                             {/* Email confirmation notice */}
                             <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-left">
                                 <div className="flex items-start gap-3">
@@ -163,9 +163,9 @@ export default function PaymentStatus() {
                             <p className="text-sm text-muted-foreground">
                                 Redirecting you to complete setup...
                             </p>
-                            
-                            <Button 
-                                onClick={() => router.push('/onboarding')} 
+
+                            <Button
+                                onClick={() => router.push('/onboarding')}
                                 className="w-full"
                                 size="lg"
                             >
@@ -183,17 +183,17 @@ export default function PaymentStatus() {
                                     {error || 'Something went wrong with the transaction.'}
                                 </p>
                             </div>
-                            
+
                             <div className="space-y-3">
-                                <Button 
-                                    onClick={() => router.push('/onboarding/payment')} 
+                                <Button
+                                    onClick={() => router.push('/onboarding/payment')}
                                     className="w-full"
                                     size="lg"
                                 >
                                     Try Again
                                 </Button>
-                                <Button 
-                                    onClick={() => router.push('/onboarding/plans')} 
+                                <Button
+                                    onClick={() => router.push('/onboarding/plans')}
                                     variant="outline"
                                     className="w-full"
                                 >

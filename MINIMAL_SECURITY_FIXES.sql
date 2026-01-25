@@ -18,7 +18,7 @@ CREATE POLICY "plans_manage_service_role" ON public.plans
 
 CREATE POLICY "audit_logs_select_own" ON public.audit_logs
     FOR SELECT USING (
-        auth.role() = 'authenticated' AND 
+        auth.role() = 'authenticated' AND
         actor_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
     );
 
@@ -26,8 +26,8 @@ CREATE POLICY "audit_logs_select_admin" ON public.audit_logs
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin', 'support', 'billing_admin')
         )
     );
@@ -36,15 +36,15 @@ CREATE POLICY "admin_actions_select_admin" ON public.admin_actions
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin', 'support', 'billing_admin')
         )
     );
 
 CREATE POLICY "security_events_select_own" ON public.security_events
     FOR SELECT USING (
-        auth.role() = 'authenticated' AND 
+        auth.role() = 'authenticated' AND
         user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
     );
 
@@ -58,9 +58,9 @@ CREATE POLICY "icp_disqualifiers_select_workspace" ON public.icp_disqualifiers
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -70,9 +70,9 @@ CREATE POLICY "icp_firmographics_select_workspace" ON public.icp_firmographics
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -82,9 +82,9 @@ CREATE POLICY "icp_pain_map_select_workspace" ON public.icp_pain_map
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )
@@ -94,9 +94,9 @@ CREATE POLICY "icp_psycholinguistics_select_workspace" ON public.icp_psycholingu
     FOR SELECT USING (
         auth.role() = 'authenticated' AND
         icp_profile_id IN (
-            SELECT id FROM public.icp_profiles 
+            SELECT id FROM public.icp_profiles
             WHERE workspace_id IN (
-                SELECT id FROM public.workspaces 
+                SELECT id FROM public.workspaces
                 WHERE owner_id = auth.uid()
             )
         )

@@ -7,7 +7,7 @@
 ✅ Plans API: 3 plans returned
 ✅ Pricing: ₹5,000, ₹7,000, ₹10,000 (correct)
 ✅ Signin Page: 200 OK
-✅ Pricing Page: 200 OK  
+✅ Pricing Page: 200 OK
 ✅ Root Page: 200 OK
 ```
 

@@ -12,7 +12,7 @@ Testing authentication and account creation flows for Raptorflow using TestSprit
 - **OAuthButton.tsx** - Google OAuth integration
 - **AuthGuard.tsx** - Route protection component
 
-### Backend Components  
+### Backend Components
 - **auth.py** - Backend authentication endpoints
 - **supabase_client.py** - Database integration
 - **auth-service.ts** - Frontend auth utilities
@@ -26,7 +26,7 @@ Testing authentication and account creation flows for Raptorflow using TestSprit
 - Test error handling for invalid credentials
 - Test successful login redirect to `/system-check`
 
-#### 2. Account Creation Flow  
+#### 2. Account Creation Flow
 - Navigate to `/signup` (if exists)
 - Test new user registration
 - Test form validation

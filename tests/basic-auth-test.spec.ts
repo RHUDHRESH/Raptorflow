@@ -4,14 +4,14 @@ test.describe('Basic Authentication Test', () => {
   test('frontend loads and has login button', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/')
-    
+
     // Wait for page to load (with timeout)
     await page.waitForLoadState('networkidle', { timeout: 10000 })
-    
+
     // Check if page loaded successfully
     const title = await page.title()
     console.log(`Page title: ${title}`)
-    
+
     // Look for any login-related button or link
     const loginSelectors = [
       'text=Log in',
@@ -25,7 +25,7 @@ test.describe('Basic Authentication Test', () => {
       'a[href*="login"]',
       'a[href*="auth"]'
     ]
-    
+
     let loginElement = null
     for (const selector of loginSelectors) {
       try {
@@ -38,7 +38,7 @@ test.describe('Basic Authentication Test', () => {
         // Continue trying other selectors
       }
     }
-    
+
     if (loginElement) {
       console.log('✅ Login element found!')
       await expect(page.locator('text=Log in')).toBeVisible()
@@ -46,19 +46,19 @@ test.describe('Basic Authentication Test', () => {
       // Take screenshot for debugging
       await page.screenshot({ path: 'debug-homepage.png' })
       console.log('❌ No login element found. Screenshot saved as debug-homepage.png')
-      
+
       // Check page content for debugging
       const bodyText = await page.locator('body').textContent()
       console.log(`Page content preview: ${bodyText?.substring(0, 200)}...`)
     }
-    
+
     // Basic check that page is not completely broken
     expect(await page.locator('body')).toBeVisible()
   })
-  
+
   test('check page for any errors', async ({ page }) => {
     const responses: any[] = []
-    
+
     // Listen for network responses
     page.on('response', response => {
       if (response.status() >= 400) {
@@ -69,10 +69,10 @@ test.describe('Basic Authentication Test', () => {
         })
       }
     })
-    
+
     // Navigate to homepage
     await page.goto('/', { waitUntil: 'networkidle' })
-    
+
     // Check for any network errors
     if (responses.length > 0) {
       console.log('Network errors found:')
@@ -80,7 +80,7 @@ test.describe('Basic Authentication Test', () => {
         console.log(`  ${resp.status} ${resp.statusText} - ${resp.url}`)
       })
     }
-    
+
     // Take screenshot for visual inspection
     await page.screenshot({ path: 'homepage-screenshot.png' })
     console.log('Screenshot saved as homepage-screenshot.png')

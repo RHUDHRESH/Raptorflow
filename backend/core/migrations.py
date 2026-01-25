@@ -21,6 +21,7 @@ def get_migration_health() -> Dict[str, Any]:
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -9,17 +9,17 @@ const API_ENDPOINTS = [
   { path: '/api/auth/session-management', method: 'GET', critical: true, desc: 'Session management (GET)' },
   { path: '/api/auth/session-management', method: 'POST', critical: true, desc: 'Session management (POST)' },
   { path: '/api/auth/two-factor', method: 'POST', critical: false, desc: '2FA setup' },
-  
+
   // HEALTH & MONITORING
   { path: '/api/health', method: 'GET', critical: true, desc: 'System health check' },
   { path: '/api/monitoring/dashboard', method: 'GET', critical: false, desc: 'Monitoring dashboard' },
   { path: '/api/monitoring/enhanced-dashboard', method: 'GET', critical: false, desc: 'Enhanced dashboard' },
-  
+
   // USER MANAGEMENT
   { path: '/api/me/subscription', method: 'GET', critical: true, desc: 'User subscription info' },
   { path: '/api/admin/impersonate', method: 'POST', critical: false, desc: 'Admin impersonation' },
   { path: '/api/admin/mfa/setup', method: 'POST', critical: false, desc: 'Admin MFA setup' },
-  
+
   // ONBOARDING ENDPOINTS
   { path: '/api/onboarding/complete', method: 'POST', critical: true, desc: 'Complete onboarding' },
   { path: '/api/onboarding/create-workspace', method: 'POST', critical: true, desc: 'Create workspace' },
@@ -38,14 +38,14 @@ const API_ENDPOINTS = [
   { path: '/api/onboarding/neuroscience-copy', method: 'POST', critical: false, desc: 'Neuroscience copy' },
   { path: '/api/onboarding/perceptual-map', method: 'POST', critical: false, desc: 'Perceptual mapping' },
   { path: '/api/onboarding/positioning', method: 'POST', critical: false, desc: 'Positioning analysis' },
-  
+
   // PAYMENT & BILLING
   { path: '/api/create-payment', method: 'POST', critical: true, desc: 'Create payment' },
   { path: '/api/create-embedded-payment', method: 'POST', critical: false, desc: 'Embedded payment' },
   { path: '/api/create-direct-payment', method: 'POST', critical: false, desc: 'Direct payment' },
   { path: '/api/complete-mock-payment', method: 'POST', critical: true, desc: 'Mock payment completion' },
   { path: '/api/billing/dunning', method: 'GET', critical: false, desc: 'Billing dunning' },
-  
+
   // DATABASE & STORAGE
   { path: '/api/create-tables', method: 'POST', critical: false, desc: 'Create database tables' },
   { path: '/api/create-tables-direct', method: 'POST', critical: false, desc: 'Direct table creation' },
@@ -57,7 +57,7 @@ const API_ENDPOINTS = [
   { path: '/api/create-storage', method: 'POST', critical: false, desc: 'Create storage' },
   { path: '/api/init-storage', method: 'POST', critical: false, desc: 'Initialize storage' },
   { path: '/api/gcp-storage', method: 'GET', critical: false, desc: 'GCP storage' },
-  
+
   // INTEGRATION & UTILITIES
   { path: '/api/integration-test', method: 'GET', critical: false, desc: 'Integration test' },
   { path: '/api/auto-setup', method: 'POST', critical: false, desc: 'Auto setup' },
@@ -68,7 +68,7 @@ const API_ENDPOINTS = [
 async function testEndpoint(endpoint) {
   return new Promise((resolve) => {
     const { path, method, critical, desc } = endpoint;
-    
+
     const options = {
       hostname: 'localhost',
       port: 3000,
@@ -82,7 +82,7 @@ async function testEndpoint(endpoint) {
     };
 
     const startTime = Date.now();
-    
+
     const req = http.request(options, (res) => {
       let data = '';
       res.on('data', (chunk) => data += chunk);
@@ -137,7 +137,7 @@ async function testEndpoint(endpoint) {
     if (method === 'POST') {
       req.write('{}');
     }
-    
+
     req.end();
   });
 }
@@ -146,7 +146,7 @@ async function testAllEndpoints() {
   console.log('🔥 COMPREHENSIVE API ENDPOINT TESTING');
   console.log('='.repeat(80));
   console.log(`Testing ${API_ENDPOINTS.length} endpoints...\n`);
-  
+
   let successCount = 0;
   let failCount = 0;
   let criticalFailCount = 0;
@@ -155,14 +155,14 @@ async function testAllEndpoints() {
   for (const endpoint of API_ENDPOINTS) {
     const result = await testEndpoint(endpoint);
     results.push(result);
-    
+
     const icon = result.success ? '✅' : '❌';
     const critical = result.critical ? ' [CRITICAL]' : '';
     const time = `${result.responseTime}ms`;
-    
+
     console.log(`${icon} ${result.method} ${result.path}${critical} - ${result.status} (${time})`);
     console.log(`   ${result.desc}`);
-    
+
     if (!result.success) {
       console.log(`   Error: ${result.statusText}`);
       failCount++;
@@ -170,9 +170,9 @@ async function testAllEndpoints() {
     } else {
       successCount++;
     }
-    
+
     console.log('');
-    
+
     // Small delay between requests
     await new Promise(resolve => setTimeout(resolve, 300));
   }
@@ -184,7 +184,7 @@ async function testAllEndpoints() {
   console.log(`✅ Successful: ${successCount}/${API_ENDPOINTS.length}`);
   console.log(`❌ Failed: ${failCount}/${API_ENDPOINTS.length}`);
   console.log(`🚨 Critical Failures: ${criticalFailCount}`);
-  
+
   if (criticalFailCount > 0) {
     console.log('\n🚨 CRITICAL FAILURES:');
     results
@@ -197,7 +197,7 @@ async function testAllEndpoints() {
   // Response time analysis
   const avgResponseTime = results.reduce((sum, r) => sum + r.responseTime, 0) / results.length;
   const slowEndpoints = results.filter(r => r.responseTime > 3000);
-  
+
   console.log(`\n⏱️  Average Response Time: ${Math.round(avgResponseTime)}ms`);
   if (slowEndpoints.length > 0) {
     console.log('🐌 Slow Endpoints (>3s):');
@@ -207,13 +207,13 @@ async function testAllEndpoints() {
   }
 
   console.log('\n' + '='.repeat(80));
-  
+
   if (criticalFailCount === 0) {
     console.log('🎉 ALL CRITICAL API ENDPOINTS WORKING!');
   } else {
     console.log('⚠️  CRITICAL ISSUES FOUND - FIX REQUIRED');
   }
-  
+
   console.log('='.repeat(80));
 }
 

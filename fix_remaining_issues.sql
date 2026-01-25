@@ -4,9 +4,9 @@
 -- ============================================================================
 
 -- First, let's check what tables actually exist
-SELECT table_name, column_name, data_type 
-FROM information_schema.columns 
-WHERE table_schema = 'public' 
+SELECT table_name, column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = 'public'
 AND table_name IN ('profiles', 'workspaces', 'subscriptions', 'payments', 'email_logs')
 ORDER BY table_name, ordinal_position;
 
@@ -22,23 +22,23 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'workspaces' AND column_name = 'id' AND table_schema = 'public') THEN
             ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS id UUID PRIMARY KEY DEFAULT gen_random_uuid();
         END IF;
-        
+
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'workspaces' AND column_name = 'owner_id' AND table_schema = 'public') THEN
             ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE;
         END IF;
-        
+
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'workspaces' AND column_name = 'name' AND table_schema = 'public') THEN
             ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT 'Personal Workspace';
         END IF;
-        
+
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'workspaces' AND column_name = 'settings' AND table_schema = 'public') THEN
             ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb;
         END IF;
-        
+
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'workspaces' AND column_name = 'created_at' AND table_schema = 'public') THEN
             ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
         END IF;
-        
+
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'workspaces' AND column_name = 'updated_at' AND table_schema = 'public') THEN
             ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
         END IF;
@@ -113,8 +113,8 @@ CREATE INDEX IF NOT EXISTS idx_payments_user_id ON public.payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_email_logs_user_id ON public.email_logs(user_id);
 
 -- Final verification
-SELECT table_name, table_type 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN ('profiles', 'workspaces', 'subscriptions', 'payments', 'email_logs')
 ORDER BY table_name;

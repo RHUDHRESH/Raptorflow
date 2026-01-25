@@ -9,7 +9,7 @@ const TESTS = {
     expected: 'redirect to dashboard'
   },
   'SIGNUP': {
-    url: '/signup', 
+    url: '/signup',
     actions: ['fill form', 'click submit'],
     expected: 'redirect to onboarding'
   },
@@ -24,7 +24,7 @@ async function runSimpleAuthTest() {
   console.log('🔥 Starting Simple Auth Test...');
   const browser = await chromium.launch({ headless: false });
   const page = await browser.newPage();
-  
+
   try {
     // Test 1: Login Flow
     console.log('Testing LOGIN...');
@@ -34,13 +34,13 @@ async function runSimpleAuthTest() {
     await page.click('button[type="submit"]');
     await page.waitForURL('**/dashboard');
     console.log('✅ LOGIN: PASSED');
-    
-    // Test 2: Logout Flow  
+
+    // Test 2: Logout Flow
     console.log('Testing LOGOUT...');
     await page.click('[data-testid="logout"]');
     await page.waitForURL('**/login');
     console.log('✅ LOGOUT: PASSED');
-    
+
     // Test 3: Signup Flow
     console.log('Testing SIGNUP...');
     await page.goto('http://localhost:3000/signup');
@@ -50,7 +50,7 @@ async function runSimpleAuthTest() {
     await page.click('button[type="submit"]');
     await page.waitForURL('**/onboarding');
     console.log('✅ SIGNUP: PASSED');
-    
+
   } catch (error) {
     console.log('❌ TEST FAILED:', error.message);
   } finally {
@@ -61,9 +61,9 @@ async function runSimpleAuthTest() {
 // Database Test - Simple SQL Check
 async function testDatabaseAuth() {
   console.log('🔍 Testing Database Auth Tables...');
-  
+
   const tables = ['users', 'auth_sessions', 'user_profiles'];
-  
+
   for (const table of tables) {
     try {
       const result = await supabase
@@ -80,10 +80,10 @@ async function testDatabaseAuth() {
 // Run all tests
 async function main() {
   console.log('🚀 RAPTORFLOW AUTH TEST - NO BLOAT EDITION\n');
-  
+
   await runSimpleAuthTest();
   await testDatabaseAuth();
-  
+
   console.log('\n✨ TEST COMPLETE - If you see ✅ above, you\'re good to go!');
 }
 

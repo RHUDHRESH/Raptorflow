@@ -49,37 +49,37 @@ export function useAuthenticatedApi() {
           message: errorData.error || `HTTP ${response.status}`,
           ...errorData
         });
-        
+
         // Log error for debugging
         errorHandler.logError(error, `API call to ${url}`);
-        
+
         // Redirect if needed
         if (errorHandler.shouldRedirect(error)) {
           router.push(errorHandler.getRedirectUrl(error));
         }
-        
+
         throw error;
       }
 
       return response;
     } catch (error) {
       // If it's already an AppError, re-throw
-      if (error instanceof Error && 
-          (error instanceof AuthenticationError || 
+      if (error instanceof Error &&
+          (error instanceof AuthenticationError ||
            error instanceof AuthorizationError ||
            error instanceof ValidationError ||
            error instanceof NetworkError ||
            error instanceof ServerError)) {
         throw error;
       }
-      
+
       // Handle network errors
       if (error instanceof Error && error.message.includes('fetch')) {
         const networkError = errorHandler.handleHttpError(error);
         errorHandler.logError(networkError, `API call to ${url}`);
         throw networkError;
       }
-      
+
       // For other errors, ensure they're thrown properly
       throw error;
     }

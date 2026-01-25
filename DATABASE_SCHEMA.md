@@ -86,4 +86,3 @@ Generated: 2026-01-23T04:52:44.885Z
 | settings | JSONB |  |
 | created_at | TIMESTAMPTZ |  |
 | updated_at | TIMESTAMPTZ |  |
-

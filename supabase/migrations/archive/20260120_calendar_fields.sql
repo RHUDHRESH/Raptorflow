@@ -1,7 +1,7 @@
 -- Migration: 20260120_calendar_fields.sql
 -- Add start/end dates for high-fidelity calendar support
 
-ALTER TABLE public.moves 
+ALTER TABLE public.moves
 ADD COLUMN IF NOT EXISTS start_date TIMESTAMPTZ,
 ADD COLUMN IF NOT EXISTS end_date TIMESTAMPTZ;
 

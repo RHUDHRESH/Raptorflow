@@ -18,7 +18,7 @@ interface MovesStore {
   currentMove: Move | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setMoves: (moves: Move[]) => void;
   setCurrentMove: (move: Move | null) => void;
@@ -42,7 +42,7 @@ const movesApi = {
   async fetchMoves(): Promise<Move[]> {
     const workspaceId = getCurrentWorkspaceId();
     const userId = getCurrentUserId();
-    
+
     if (!workspaceId || !userId) {
       throw new Error('Authentication required');
     }
@@ -50,19 +50,19 @@ const movesApi = {
     const response = await authFetch(`/api/proxy/api/v1/moves/?workspace_id=${workspaceId}&user_id=${userId}`, {
       method: 'GET',
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch moves');
     }
-    
+
     const data = await response.json();
     return data.moves || [];
   },
-  
+
   async createMove(move: Omit<Move, 'id'>): Promise<Move> {
     const workspaceId = getCurrentWorkspaceId();
     const userId = getCurrentUserId();
-    
+
     if (!workspaceId || !userId) {
       throw new Error('Authentication required');
     }
@@ -75,32 +75,32 @@ const movesApi = {
         user_id: userId,
       }),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to create move');
     }
-    
+
     return response.json();
   },
-  
+
   async updateMove(id: string, updates: Partial<Move>): Promise<Move> {
     const response = await authFetch(`/api/proxy/api/v1/moves/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to update move');
     }
-    
+
     return response.json();
   },
-  
+
   async deleteMove(id: string): Promise<void> {
     const response = await authFetch(`/api/proxy/api/v1/moves/${id}`, {
       method: 'DELETE',
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to delete move');
     }
@@ -118,7 +118,7 @@ export const useMovesStore = create<MovesStore>((set, get) => ({
       acc[move.id] = move;
       return acc;
     }, {} as Record<string, Move>);
-    
+
     set({ moves: movesMap });
   },
 
@@ -159,7 +159,7 @@ export const useMovesStore = create<MovesStore>((set, get) => ({
 
   updateMove: async (moveUpdate) => {
     const { id, ...updates } = moveUpdate;
-    
+
     set({ isLoading: true, error: null });
     try {
       const updatedMove = await movesApi.updateMove(id, updates);

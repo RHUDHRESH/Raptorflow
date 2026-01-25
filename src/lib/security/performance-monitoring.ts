@@ -32,28 +32,28 @@ class PerformanceMonitor {
     memoryUsage: process.memoryUsage(),
     cpuUsage: { user: 0, system: 0 }
   };
-  
+
   private readonly SLOW_REQUEST_THRESHOLD = 1000; // 1 second
   private readonly MAX_METRICS_STORED = 1000;
   private readonly STATS_UPDATE_INTERVAL = 60000; // 1 minute
-  
+
   constructor() {
     // Start monitoring
     this.startMonitoring();
   }
-  
+
   private startMonitoring(): void {
     // Update stats periodically
     setInterval(() => {
       this.updateStats();
     }, this.STATS_UPDATE_INTERVAL);
-    
+
     // Clean up old metrics periodically
     setInterval(() => {
       this.cleanupOldMetrics();
     }, 300000); // 5 minutes
   }
-  
+
   recordRequest(
     endpoint: string,
     method: string,
@@ -69,68 +69,68 @@ class PerformanceMonitor {
       method,
       statusCode
     };
-    
+
     this.metrics.push(metric);
-    
+
     // Update stats immediately
     this.updateStats();
-    
+
     // Clean up if we have too many metrics
     if (this.metrics.length > this.MAX_METRICS_STORED) {
       this.metrics = this.metrics.slice(-this.MAX_METRICS_STORED);
     }
   }
-  
+
   private updateStats(): void {
     const now = Date.now();
     const oneMinuteAgo = now - 60000;
-    
+
     // Filter metrics from last minute for requests per minute
     const recentMetrics = this.metrics.filter(m => m.timestamp > oneMinuteAgo);
     this.stats.requestsPerMinute = recentMetrics.length;
-    
+
     // Calculate average response time
     if (this.metrics.length > 0) {
       const totalResponseTime = this.metrics.reduce((sum, m) => sum + m.responseTime, 0);
       this.stats.averageResponseTime = totalResponseTime / this.metrics.length;
     }
-    
+
     // Count slow requests
     this.stats.slowRequests = this.metrics.filter(m => m.responseTime > this.SLOW_REQUEST_THRESHOLD).length;
-    
+
     // Calculate error rate
     const errorRequests = this.metrics.filter(m => m.statusCode >= 400).length;
     this.stats.errorRate = this.metrics.length > 0 ? (errorRequests / this.metrics.length) * 100 : 0;
-    
+
     // Update memory and CPU usage
     this.stats.memoryUsage = process.memoryUsage();
     this.stats.cpuUsage = process.cpuUsage();
-    
+
     // Update total requests
     this.stats.totalRequests = this.metrics.length;
   }
-  
+
   private cleanupOldMetrics(): void {
     const oneHourAgo = Date.now() - 3600000; // 1 hour
     this.metrics = this.metrics.filter(m => m.timestamp > oneHourAgo);
   }
-  
+
   getStats(): PerformanceStats {
     return { ...this.stats };
   }
-  
+
   getMetrics(): PerformanceMetrics[] {
     return [...this.metrics];
   }
-  
+
   getSlowRequests(): PerformanceMetrics[] {
     return this.metrics.filter(m => m.responseTime > this.SLOW_REQUEST_THRESHOLD);
   }
-  
+
   getErrorRequests(): PerformanceMetrics[] {
     return this.metrics.filter(m => m.statusCode >= 400);
   }
-  
+
   getEndpointStats(endpoint: string): {
     totalRequests: number;
     averageResponseTime: number;
@@ -138,7 +138,7 @@ class PerformanceMonitor {
     slowRequests: number;
   } {
     const endpointMetrics = this.metrics.filter(m => m.endpoint === endpoint);
-    
+
     if (endpointMetrics.length === 0) {
       return {
         totalRequests: 0,
@@ -147,14 +147,14 @@ class PerformanceMonitor {
         slowRequests: 0
       };
     }
-    
+
     const totalRequests = endpointMetrics.length;
     const totalResponseTime = endpointMetrics.reduce((sum, m) => sum + m.responseTime, 0);
     const averageResponseTime = totalResponseTime / totalRequests;
     const errorRequests = endpointMetrics.filter(m => m.statusCode >= 400).length;
     const errorRate = (errorRequests / totalRequests) * 100;
     const slowRequests = endpointMetrics.filter(m => m.responseTime > this.SLOW_REQUEST_THRESHOLD).length;
-    
+
     return {
       totalRequests,
       averageResponseTime,
@@ -162,12 +162,12 @@ class PerformanceMonitor {
       slowRequests
     };
   }
-  
+
   // Performance monitoring middleware helper
   static createPerformanceMonitor() {
     return new PerformanceMonitor();
   }
-  
+
   // Performance measurement wrapper
   static async measurePerformance<T>(
     fn: () => Promise<T>,
@@ -195,7 +195,7 @@ class PerformanceMonitor {
 
     return { result: result as T, metrics };
   }
-  
+
   private static createMetric(
     endpoint: string,
     method: string,
@@ -204,7 +204,7 @@ class PerformanceMonitor {
   ): PerformanceMetrics {
     const endTime = performance.now();
     const responseTime = endTime - startTime;
-    
+
     return {
       responseTime,
       memoryUsage: process.memoryUsage(),
@@ -226,13 +226,13 @@ export function withPerformanceMonitoring(
   propertyNameKey: string = 'performance'
 ) {
   const originalMethod = target[propertyNameKey];
-  
+
   if (typeof originalMethod === 'function') {
     target[propertyNameKey] = async function (...args: any[]) {
       const startTime = performance.now();
       let statusCode = 200;
         let error: Error | null = null;
-      
+
       try {
         const result = await originalMethod.apply(this, args);
         return result;
@@ -255,7 +255,7 @@ export function withPerformanceMonitoring(
       }
     };
   }
-  
+
   return target;
 }
 
@@ -265,7 +265,7 @@ export class PerformanceReporter {
     const stats = performanceMonitor.getStats();
     const slowRequests = performanceMonitor.getSlowRequests();
     const errorRequests = performanceMonitor.getErrorRequests();
-    
+
     return `
 Performance Report
 ================
@@ -310,32 +310,32 @@ ${Object.entries(
   .join('\n')}
     `;
   }
-  
+
   static getAlerts(): string[] {
     const alerts: string[] = [];
     const stats = performanceMonitor.getStats();
-    
+
     // High error rate alert
     if (stats.errorRate > 10) {
       alerts.push(`High error rate detected: ${stats.errorRate.toFixed(2)}%`);
     }
-    
+
     // High average response time alert
     if (stats.averageResponseTime > 500) {
       alerts.push(`High average response time: ${stats.averageResponseTime.toFixed(2)}ms`);
     }
-    
+
     // Low memory alert
     const memoryUsagePercent = (stats.memoryUsage.heapUsed / stats.memoryUsage.heapTotal) * 100;
     if (memoryUsagePercent > 80) {
       alerts.push(`High memory usage: ${memoryUsagePercent.toFixed(2)}%`);
     }
-    
+
     // High CPU usage alert
     if (stats.cpuUsage.user > 80) {
       alerts.push(`High CPU usage: ${stats.cpuUsage.user.toFixed(2)}%`);
     }
-    
+
     return alerts;
   }
 }

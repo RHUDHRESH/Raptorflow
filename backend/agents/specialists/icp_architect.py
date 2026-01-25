@@ -7,8 +7,9 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from ..base import BaseAgent
 from backend.agents.config import ModelTier
+
+from ..base import BaseAgent
 from ..state import AgentState
 
 logger = logging.getLogger(__name__)

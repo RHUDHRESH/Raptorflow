@@ -151,12 +151,12 @@ import { createMiddlewareClient } from '@supabase/ssr'
 export async function middleware(request: NextRequest) {
   const supabase = createMiddlewareClient(request, NextResponse.next())
   const { data: { session } } = await supabase.auth.getSession()
-  
+
   // Implement proper session validation
   if (!session && request.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
-  
+
   return NextResponse.next()
 }
 ```
@@ -178,13 +178,13 @@ const rateLimiters = {
 // Add security headers middleware
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
-  
+
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  
+
   return response
 }
 ```
@@ -233,7 +233,7 @@ export class RBAC {
     context?: Record<string, any>
   ): Promise<boolean> {
     const permissions = await this.getUserPermissions(userId)
-    
+
     return permissions.some(permission => {
       if (permission.resource === resource && permission.action === action) {
         return this.evaluateConditions(permission.condition, context)
@@ -252,10 +252,10 @@ class SessionManager {
     try {
       const { data: { session }, error } = await supabase.auth.refreshSession()
       if (error) throw error
-      
+
       // Validate session integrity
       await this.validateSession(session)
-      
+
       return true
     } catch (error) {
       // Implement exponential backoff
@@ -263,13 +263,13 @@ class SessionManager {
       return false
     }
   }
-  
+
   private async validateSession(session: any): Promise<void> {
     // Check for suspicious activity
     const lastActivity = session.user.user_metadata.last_activity
     const currentIP = getClientIP()
     const previousIP = session.user.user_metadata.last_ip
-    
+
     if (previousIP && previousIP !== currentIP) {
       await logSecurityEvent({
         userId: session.user.id,
@@ -303,7 +303,7 @@ export async function getSecurityAnalytics() {
     supabase.from('security_audit_log').select('*').eq('event_type', 'failed_attempt'),
     supabase.from('security_audit_log').select('*').eq('severity', 'high')
   ])
-  
+
   return {
     overview: {
       totalUsers: totalUsers.length,
@@ -339,7 +339,7 @@ export async function exportUserData(userId: string): Promise<UserDataExport> {
     supabase.from('audit_logs').select('*').eq('actor_id', userId),
     supabase.from('payments').select('*').eq('user_id', userId)
   ])
-  
+
   return {
     profile: profile.data,
     subscriptions: subscriptions.data || [],
@@ -353,12 +353,12 @@ export async function exportUserData(userId: string): Promise<UserDataExport> {
 
 export async function deleteUserData(userId: string): Promise<void> {
   // Soft delete first
-  await supabase.from('profiles').update({ 
+  await supabase.from('profiles').update({
     deleted_at: new Date().toISOString(),
     deletion_reason: 'user_request',
     status: 'deleted'
   }).eq('id', userId)
-  
+
   // Schedule hard delete after 30 days
   await supabase.from('scheduled_deletions').insert({
     user_id: userId,
@@ -374,7 +374,7 @@ export async function deleteUserData(userId: string): Promise<void> {
 export class IntrusionDetection {
   async detectAnomalousActivity(userId: string): Promise<SecurityAlert[]> {
     const alerts: SecurityAlert[] = []
-    
+
     // Check for rapid login attempts
     const recentLogins = await this.getRecentLogins(userId, '1 hour')
     if (recentLogins.length > 5) {
@@ -385,7 +385,7 @@ export class IntrusionDetection {
         metadata: { count: recentLogins.length }
       })
     }
-    
+
     // Check for unusual login locations
     const loginLocations = await this.getLoginLocations(userId, '24 hours')
     if (loginLocations.length > 3) {
@@ -396,7 +396,7 @@ export class IntrusionDetection {
         metadata: { locations: loginLocations }
       })
     }
-    
+
     // Check for failed password attempts
     const failedAttempts = await this.getFailedAttempts(userId, '1 hour')
     if (failedAttempts.length > 3) {
@@ -407,7 +407,7 @@ export class IntrusionDetection {
         metadata: { count: failedAttempts.length }
       })
     }
-    
+
     return alerts
   }
 }
@@ -599,15 +599,15 @@ export async function handleSecurityIncident(incident: SecurityIncident) {
   if (incident.type === 'brute_force') {
     await blockIP(incident.ipAddress, '24 hours')
   }
-  
+
   // Suspend suspicious account
   if (incident.type === 'account_compromise') {
     await suspendAccount(incident.userId, 'manual_review')
   }
-  
+
   // Trigger security alerts
   await sendSecurityAlert(incident)
-  
+
   // Log incident
   await logSecurityIncident(incident)
 }

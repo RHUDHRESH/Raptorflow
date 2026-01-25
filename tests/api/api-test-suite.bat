@@ -56,7 +56,7 @@ echo ===================
 echo.
 echo 📊 Results Summary:
 echo • Quick Test: Critical endpoints status
-echo • Comprehensive Test: All endpoints status  
+echo • Comprehensive Test: All endpoints status
 echo • Health Check: System status
 echo • Session Test: Session management status
 echo • Payment Test: Mock payment flow status

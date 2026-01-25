@@ -13,6 +13,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from backend.core.supabase import get_supabase_client
+
 from .embeddings import get_embedding_model
 from .models import MemoryChunk, MemoryType
 from .vector_store import VectorMemory

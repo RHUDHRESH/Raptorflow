@@ -56,18 +56,18 @@ export default function PricingPage() {
       try {
         const supabase = getSupabaseClient();
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         if (session?.user) {
           setIsAuthenticated(true);
           setUserEmail(session.user.email || null);
-          
+
           // Load user profile data
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, onboarding_status')
             .eq('id', session.user.id)
             .single();
-            
+
           if (profile) {
             setUserName(profile.full_name || session.user.email?.split('@')[0] || 'User');
           }
@@ -78,7 +78,7 @@ export default function PricingPage() {
         setIsLoading(false);
       }
     };
-    
+
     checkAuth();
 
     // Debug environment
@@ -86,7 +86,7 @@ export default function PricingPage() {
     console.log(getEnvironmentSummary());
     console.log('Current URL:', window.location.href);
     console.log('Hostname:', window.location.hostname);
-    
+
     if (!pageRef.current) return;
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
     tl.fromTo("[data-anim-hero]", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 });

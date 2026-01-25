@@ -27,22 +27,22 @@ Execute these verification queries in the SQL Editor:
 
 ```sql
 -- Check table creation
-SELECT table_name, table_type 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN ('profiles', 'subscriptions', 'payments', 'email_logs', 'workspaces')
 ORDER BY table_name;
 
 -- Check RLS policies
-SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual 
-FROM pg_policies 
-WHERE schemaname = 'public' 
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual
+FROM pg_policies
+WHERE schemaname = 'public'
 ORDER BY tablename, policyname;
 
 -- Check indexes
-SELECT indexname, tablename 
-FROM pg_indexes 
-WHERE schemaname = 'public' 
+SELECT indexname, tablename
+FROM pg_indexes
+WHERE schemaname = 'public'
 AND tablename IN ('profiles', 'subscriptions', 'payments', 'email_logs', 'workspaces')
 ORDER BY tablename, indexname;
 ```
@@ -52,7 +52,7 @@ ORDER BY tablename, indexname;
 ### Test Profile Creation
 ```sql
 -- Test the trigger by creating a test user (this will fail without auth, but tests the structure)
-INSERT INTO public.profiles (id, email, full_name) 
+INSERT INTO public.profiles (id, email, full_name)
 VALUES ('00000000-0000-0000-0000-000000000000', 'test@example.com', 'Test User')
 ON CONFLICT (id) DO NOTHING;
 ```
@@ -60,8 +60,8 @@ ON CONFLICT (id) DO NOTHING;
 ### Test Workspace Query (Fixed Version)
 ```sql
 -- This query should work now (no user_id column)
-SELECT id, name, owner_id 
-FROM public.workspaces 
+SELECT id, name, owner_id
+FROM public.workspaces
 WHERE owner_id = '00000000-0000-0000-0000-000000000000'
 LIMIT 1;
 ```
@@ -96,16 +96,16 @@ After successful login, verify:
 
 ```sql
 -- Check if profile was created for the logged-in user
-SELECT id, email, full_name, onboarding_status, subscription_plan 
-FROM public.profiles 
+SELECT id, email, full_name, onboarding_status, subscription_plan
+FROM public.profiles
 WHERE email = 'your-test-email@example.com';
 ```
 
 ### Check Workspace Creation
 ```sql
 -- Check if workspace was created
-SELECT id, name, owner_id, created_at 
-FROM public.workspaces 
+SELECT id, name, owner_id, created_at
+FROM public.workspaces
 WHERE owner_id = 'user-uuid-from-above';
 ```
 

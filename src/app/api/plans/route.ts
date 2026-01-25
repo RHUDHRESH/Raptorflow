@@ -33,7 +33,7 @@ export async function GET() {
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
-      
+
       plans = fallbackPlans;
       error = fallbackError;
     }
@@ -95,8 +95,8 @@ export async function GET() {
         sort_order: p.sort_order
       };
 
-      if (p.slug === 'ascent') return { 
-        ...planData, 
+      if (p.slug === 'ascent') return {
+        ...planData,
         id: 'ascent',
         name: 'Ascent',
         slug: 'ascent',
@@ -104,8 +104,8 @@ export async function GET() {
         price_yearly_paise: 5000000, // ₹50,000/year
         features: ["Foundation setup", "3 weekly Moves", "Basic Muse AI", "Matrix analytics", "Email support"]
       };
-      if (p.slug === 'glide') return { 
-        ...planData, 
+      if (p.slug === 'glide') return {
+        ...planData,
         id: 'glide',
         name: 'Glide',
         slug: 'glide',
@@ -114,8 +114,8 @@ export async function GET() {
         features: ["Everything in Ascent", "Unlimited Moves", "Advanced Muse", "Cohort segmentation", "Priority support"],
         popular: true
       };
-      if (p.slug === 'soar') return { 
-        ...planData, 
+      if (p.slug === 'soar') return {
+        ...planData,
         id: 'soar',
         name: 'Soar',
         slug: 'soar',

@@ -12,21 +12,21 @@ CREATE SCHEMA IF NOT EXISTS extensions;
 DO $$
 BEGIN
     IF EXISTS (
-        SELECT 1 FROM pg_extension 
-        WHERE extname = 'vector' 
+        SELECT 1 FROM pg_extension
+        WHERE extname = 'vector'
         AND extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
     ) THEN
         -- Drop vector extension from public schema
         DROP EXTENSION IF EXISTS vector CASCADE;
-        
+
         -- Recreate vector extension in extensions schema
         CREATE EXTENSION IF NOT EXISTS vector SCHEMA extensions;
-        
+
         RAISE NOTICE 'Vector extension moved from public to extensions schema';
     ELSE
         -- Just create vector extension in extensions schema if it doesn't exist
         CREATE EXTENSION IF NOT EXISTS vector SCHEMA extensions;
-        
+
         RAISE NOTICE 'Vector extension created in extensions schema';
     END IF;
 END $$;

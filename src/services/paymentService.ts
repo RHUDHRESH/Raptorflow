@@ -37,8 +37,8 @@ class PaymentService {
   private baseUrl: string;
 
   private constructor() {
-    this.baseUrl = typeof window !== 'undefined' 
-      ? window.location.origin 
+    this.baseUrl = typeof window !== 'undefined'
+      ? window.location.origin
       : 'http://localhost:3001';
   }
 
@@ -63,7 +63,7 @@ class PaymentService {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         return {
           success: false,

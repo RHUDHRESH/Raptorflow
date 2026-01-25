@@ -226,7 +226,7 @@ BEGIN
       AND rule_type = 'allow'
       ORDER BY priority DESC
       LIMIT 1;
-    
+
     -- If not allowed globally, check user-specific rules
     IF NOT is_allowed AND user_uuid IS NOT NULL THEN
       SELECT 1 INTO is_allowed
@@ -241,7 +241,7 @@ BEGIN
         ORDER BY priority DESC
         LIMIT 1;
     END IF;
-    
+
     -- If still not allowed, check workspace-specific rules
     IF NOT is_allowed AND workspace_uuid IS NOT NULL THEN
       SELECT 1 INTO is_allowed
@@ -256,7 +256,7 @@ BEGIN
         ORDER BY priority DESC
         LIMIT 1;
     END IF;
-    
+
     RETURN is_allowed;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -284,7 +284,7 @@ BEGIN
       AND rule_type = 'allow'
       ORDER BY priority DESC
       LIMIT 1;
-    
+
     -- If not allowed globally, check user-specific rules
     IF NOT is_allowed AND user_uuid IS NOT NULL THEN
       SELECT 1 INTO is_allowed
@@ -300,7 +300,7 @@ BEGIN
       ORDER BY priority DESC
       LIMIT 1;
     END IF;
-    
+
     -- If still not allowed, check workspace-specific rules
     IF NOT is_allowed AND workspace_uuid IS NOT NULL THEN
       SELECT 1 INTO is_allowed
@@ -316,7 +316,7 @@ BEGIN
       ORDER BY priority DESC
       LIMIT 1;
     END IF;
-    
+
     RETURN is_allowed;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -340,7 +340,7 @@ BEGIN
       )
       ORDER BY priority DESC
       LIMIT 1;
-    
+
     -- Check user agent for VPN indicators
     IF NOT is_vpn AND user_agent_param IS NOT NULL THEN
       SELECT 1 INTO is_vpn
@@ -350,7 +350,7 @@ BEGIN
         ORDER BY priority DESC
         LIMIT 1;
     END IF;
-    
+
     RETURN is_vpn;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -770,7 +770,7 @@ BEGIN
     END IF location IS NOT NULL THEN
         RETURN location;
     END IF;
-    
+
     RETURN jsonb_build_object(
       'country_code': 'Unknown',
       'region': 'Unknown',

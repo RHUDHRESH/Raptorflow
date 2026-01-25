@@ -30,7 +30,7 @@ interface BCMStore {
   evolution: any;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setContext: (context: BCMContext) => void;
   setEvolution: (evolution: any) => void;
@@ -49,26 +49,26 @@ interface BCMStore {
 const bcmApi = {
   async fetchContext(workspaceId: string): Promise<BCMContext> {
     const response = await authFetch(`/api/proxy/api/v1/bcm/context?workspace_id=${workspaceId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch BCM context');
     }
-    
+
     const data = await response.json();
     return data.context;
   },
-  
+
   async fetchEvolution(workspaceId: string): Promise<any> {
     const response = await authFetch(`/api/proxy/api/v1/bcm/evolution?workspace_id=${workspaceId}`);
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch BCM evolution');
     }
-    
+
     const data = await response.json();
     return data.evolution;
   },
-  
+
   async recordInteraction(data: {
     agent: string;
     action: string;
@@ -78,7 +78,7 @@ const bcmApi = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to record BCM interaction');
     }

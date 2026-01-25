@@ -6,13 +6,13 @@ dotenv.config();
 
 async function testAnonKeyDifferentWays() {
   console.log('Testing anon key with different approaches...');
-  
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
+
   console.log('URL:', url);
   console.log('Anon key:', anonKey?.substring(0, 20) + '...');
-  
+
   // Test 1: Direct API call
   console.log('\n1. Testing direct API call...');
   try {
@@ -22,7 +22,7 @@ async function testAnonKeyDifferentWays() {
         'Authorization': `Bearer ${anonKey}`
       }
     });
-    
+
     console.log('Direct API response status:', response.status);
     if (response.ok) {
       console.log('✅ Direct API call works');
@@ -33,7 +33,7 @@ async function testAnonKeyDifferentWays() {
   } catch (error) {
     console.log('❌ Direct API call error:', error.message);
   }
-  
+
   // Test 2: Supabase client with simple query
   console.log('\n2. Testing Supabase client...');
   try {
@@ -47,10 +47,10 @@ async function testAnonKeyDifferentWays() {
 
     // Try a different query - maybe profiles doesn't exist or has RLS
     const { data, error } = await supabase.rpc('version', {});
-    
+
     if (error) {
       console.log('❌ RPC version failed:', error.message);
-      
+
       // Try to get auth settings instead
       const { data: authData, error: authError } = await supabase.auth.getSession();
       if (authError) {
@@ -64,7 +64,7 @@ async function testAnonKeyDifferentWays() {
   } catch (error) {
     console.log('❌ Supabase client error:', error.message);
   }
-  
+
   // Test 3: Check if the URL is correct
   console.log('\n3. Testing URL connectivity...');
   try {

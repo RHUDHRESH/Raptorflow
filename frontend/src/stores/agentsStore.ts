@@ -30,7 +30,7 @@ interface AgentsStore {
   executions: Record<string, AgentExecution>;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setAgents: (agents: Agent[]) => void;
   setExecution: (execution: AgentExecution) => void;
@@ -44,15 +44,15 @@ interface AgentsStore {
 const agentsApi = {
   async fetchAvailableAgents(): Promise<Agent[]> {
     const response = await authFetch('/api/proxy/api/v1/agents/available');
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch available agents');
     }
-    
+
     const data = await response.json();
     return data.agents;
   },
-  
+
   async executeAgent(agentId: string, task: string, context?: any): Promise<AgentExecution> {
     const response = await authFetch(`/api/proxy/api/v1/agents/${agentId}/execute`, {
       method: 'POST',
@@ -61,11 +61,11 @@ const agentsApi = {
         context: context || {}
       }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to execute agent ${agentId}`);
     }
-    
+
     const data = await response.json();
     return data.execution;
   }
@@ -82,7 +82,7 @@ export const useAgentsStore = create<AgentsStore>((set, get) => ({
       acc[agent.id] = agent;
       return acc;
     }, {} as Record<string, Agent>);
-    
+
     set({ agents: agentsMap });
   },
 

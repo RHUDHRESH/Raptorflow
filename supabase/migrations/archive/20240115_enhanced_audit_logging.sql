@@ -1,6 +1,6 @@
 -- Enhanced Audit Logging System
 -- Migration: 20240115_enhanced_audit_logging.sql
--- 
+--
 -- This migration implements comprehensive audit logging with GDPR compliance
 -- and detailed security event tracking
 
@@ -10,14 +10,14 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Enhanced audit logs table (replaces existing audit_logs)
 CREATE TABLE IF NOT EXISTS audit_logs_v2 (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Actor information
     actor_id UUID REFERENCES users(id),
     actor_role TEXT,
     actor_ip INET,
     actor_user_agent TEXT,
     actor_session_id TEXT,
-    
+
     -- Action details
     action_category TEXT NOT NULL CHECK (
         action_category IN ('read', 'write', 'delete', 'admin', 'auth', 'security', 'billing', 'workspace')
@@ -25,33 +25,33 @@ CREATE TABLE IF NOT EXISTS audit_logs_v2 (
     action_type TEXT NOT NULL,
     resource_type TEXT NOT NULL,
     resource_id UUID,
-    
+
     -- Workspace context
     workspace_id UUID REFERENCES workspaces(id),
-    
+
     -- Change details
     old_values JSONB,
     new_values JSONB,
     sensitive_fields TEXT[], -- Fields containing PII
-    
+
     -- Request context
     request_id TEXT,
     request_path TEXT,
     request_method TEXT,
-    
+
     -- Result
     success BOOLEAN NOT NULL,
     error_code TEXT,
     error_message TEXT,
-    
+
     -- Compliance
     gdpr_relevant BOOLEAN DEFAULT FALSE,
     data_subject_id UUID REFERENCES users(id), -- For GDPR data subject requests
     legal_basis TEXT, -- Legal basis for processing
-    
+
     -- Performance
     duration_ms INTEGER, -- Request processing time
-    
+
     -- Timestamps
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS data_access_logs (
 -- Security events table (enhanced)
 CREATE TABLE IF NOT EXISTS security_events_v2 (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
+
     -- Event classification
     event_type TEXT NOT NULL,
     severity TEXT NOT NULL CHECK (
@@ -83,29 +83,29 @@ CREATE TABLE IF NOT EXISTS security_events_v2 (
     category TEXT NOT NULL CHECK (
         category IN ('authentication', 'authorization', 'data_access', 'system', 'network', 'malware', 'fraud')
     ),
-    
+
     -- User information
     user_id UUID REFERENCES users(id),
     user_email TEXT,
     user_role TEXT,
-    
+
     -- Event details
     description TEXT,
     details JSONB,
     indicators JSONB, -- Threat indicators
-    
+
     -- Context
     ip_address INET,
     user_agent TEXT,
     session_id TEXT,
     workspace_id UUID REFERENCES workspaces(id),
-    
+
     -- Response
     action_taken TEXT CHECK (
         action_taken IN ('blocked', 'flagged', 'logged', 'notified', 'investigated', 'resolved')
     ),
     auto_response BOOLEAN DEFAULT FALSE,
-    
+
     -- Investigation
     investigated BOOLEAN DEFAULT FALSE,
     investigated_by UUID REFERENCES users(id),
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS security_events_v2 (
     investigation_priority TEXT DEFAULT 'medium' CHECK (
         investigation_priority IN ('low', 'medium', 'high', 'critical')
     ),
-    
+
     -- Timestamps
     created_at TIMESTAMPTZ DEFAULT NOW(),
     resolved_at TIMESTAMPTZ
@@ -123,28 +123,28 @@ CREATE TABLE IF NOT EXISTS security_events_v2 (
 CREATE TABLE IF NOT EXISTS user_behavior_baselines (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id),
-    
+
     -- Access patterns
     typical_ip_ranges INET[],
     typical_devices JSONB,
     typical_working_hours_start TIME,
     typical_working_hours_end TIME,
     typical_days_of_week INTEGER[], -- 0-6 (Sunday-Saturday)
-    
+
     -- Usage patterns
     avg_session_duration INTEGER, -- minutes
     typical_actions_per_session INTEGER,
     typical_data_access_patterns JSONB,
-    
+
     -- Metadata
     baseline_period_start TIMESTAMPTZ,
     baseline_period_end TIMESTAMPTZ,
     sample_size INTEGER DEFAULT 0, -- Number of data points used
     confidence_score DECIMAL(3,2) DEFAULT 0.5, -- 0-1
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(user_id)
 );
 
@@ -194,12 +194,12 @@ CREATE INDEX idx_user_behavior_baselines_user_id ON user_behavior_baselines(user
 CREATE INDEX idx_user_behavior_baselines_updated_at ON user_behavior_baselines(updated_at);
 
 -- Create triggers for updated_at
-CREATE TRIGGER update_user_behavior_baselines_updated_at 
-    BEFORE UPDATE ON user_behavior_baselines 
+CREATE TRIGGER update_user_behavior_baselines_updated_at
+    BEFORE UPDATE ON user_behavior_baselines
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_audit_retention_policies_updated_at 
-    BEFORE UPDATE ON audit_retention_policies 
+CREATE TRIGGER update_audit_retention_policies_updated_at
+    BEFORE UPDATE ON audit_retention_policies
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Function to log audit events
@@ -230,7 +230,7 @@ DECLARE
 BEGIN
     -- Get current user if not provided
     current_user_id := COALESCE(p_actor_id, (SELECT id FROM users WHERE auth_user_id = auth.uid()));
-    
+
     -- Insert audit record
     INSERT INTO audit_logs_v2 (
         actor_id,
@@ -281,7 +281,7 @@ BEGIN
         current_setting('request.headers')::json->>'x-session-id',
         (SELECT role FROM users WHERE id = current_user_id)
     ) RETURNING id INTO audit_id;
-    
+
     RETURN audit_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -300,7 +300,7 @@ DECLARE
 BEGIN
     -- Get current user if not provided
     current_accessor_id := COALESCE(p_accessor_id, (SELECT id FROM users WHERE auth_user_id = auth.uid()));
-    
+
     -- Insert data access record
     INSERT INTO data_access_logs (
         data_subject_id,
@@ -323,7 +323,7 @@ BEGIN
         current_setting('request.headers')::json->>'user-agent',
         current_setting('request.headers')::json->>'x-session-id'
     ) RETURNING id INTO access_id;
-    
+
     RETURN access_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -348,7 +348,7 @@ DECLARE
 BEGIN
     -- Get current user if not provided
     current_user_id := COALESCE(p_user_id, (SELECT id FROM users WHERE auth_user_id = auth.uid()));
-    
+
     -- Insert security event
     INSERT INTO security_events_v2 (
         event_type,
@@ -385,7 +385,7 @@ BEGIN
         p_auto_response,
         p_investigation_priority
     ) RETURNING id INTO event_id;
-    
+
     RETURN event_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -401,9 +401,9 @@ DECLARE
     baseline_exists BOOLEAN;
 BEGIN
     -- Check if baseline exists
-    SELECT EXISTS(SELECT 1 FROM user_behavior_baselines WHERE user_id = p_user_id) 
+    SELECT EXISTS(SELECT 1 FROM user_behavior_baselines WHERE user_id = p_user_id)
     INTO baseline_exists;
-    
+
     IF baseline_exists THEN
         -- Update existing baseline
         UPDATE user_behavior_baselines SET
@@ -439,7 +439,7 @@ BEGIN
             1
         );
     END IF;
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -466,13 +466,13 @@ BEGIN
     SELECT * INTO baseline
     FROM user_behavior_baselines
     WHERE user_id = p_user_id;
-    
+
     IF NOT FOUND THEN
         -- No baseline available, create one
         PERFORM update_user_behavior_baseline(p_user_id, p_session_duration, p_actions_count);
         RETURN;
     END IF;
-    
+
     -- Check for IP anomalies
     IF p_current_ip IS NOT NULL AND baseline.typical_ip_ranges IS NOT NULL THEN
         IF NOT (p_current_ip = ANY(baseline.typical_ip_ranges)) THEN
@@ -487,7 +487,7 @@ BEGIN
             );
         END IF;
     END IF;
-    
+
     -- Check for time anomalies
     IF EXTRACT(HOUR FROM p_current_time) < EXTRACT(HOUR FROM baseline.typical_working_hours_start) OR
        EXTRACT(HOUR FROM p_current_time) > EXTRACT(HOUR FROM baseline.typical_working_hours_end) THEN
@@ -504,7 +504,7 @@ BEGIN
             )
         );
     END IF;
-    
+
     -- Check for session duration anomalies
     IF p_session_duration IS NOT NULL AND baseline.avg_session_duration IS NOT NULL THEN
         IF p_session_duration > baseline.avg_session_duration * 3 THEN
@@ -520,10 +520,10 @@ BEGIN
             );
         END IF;
     END IF;
-    
+
     -- Return detected anomalies
     RETURN QUERY
-    SELECT 
+    SELECT
         anomaly->>'type' as anomaly_type,
         anomaly->>'severity' as severity,
         (anomaly->>'confidence')::decimal(3,2) as confidence,
@@ -542,22 +542,22 @@ DECLARE
     policy_record RECORD;
     deleted_count INTEGER;
 BEGIN
-    FOR policy_record IN 
-        SELECT table_name, retention_period 
-        FROM audit_retention_policies 
+    FOR policy_record IN
+        SELECT table_name, retention_period
+        FROM audit_retention_policies
         WHERE is_active = TRUE
     LOOP
         -- Dynamic cleanup based on retention policies
         EXECUTE format('WITH deleted AS (
-            DELETE FROM %I 
-            WHERE created_at < NOW() - %L 
+            DELETE FROM %I
+            WHERE created_at < NOW() - %L
             RETURNING 1
-        ) SELECT COUNT(*) FROM deleted', 
-            policy_record.table_name, 
+        ) SELECT COUNT(*) FROM deleted',
+            policy_record.table_name,
             policy_record.retention_period
         ) INTO deleted_count;
-        
-        RETURN QUERY SELECT 
+
+        RETURN QUERY SELECT
             policy_record.table_name,
             deleted_count,
             policy_record.retention_period;
@@ -580,8 +580,8 @@ CREATE POLICY "Users can read own audit logs" ON audit_logs_v2
 CREATE POLICY "Admins can read all audit logs" ON audit_logs_v2
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -595,8 +595,8 @@ CREATE POLICY "Users can read own data access logs" ON data_access_logs
 CREATE POLICY "Admins can read all data access logs" ON data_access_logs
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -610,8 +610,8 @@ CREATE POLICY "Users can read own security events" ON security_events_v2
 CREATE POLICY "Admins can read all security events" ON security_events_v2
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );

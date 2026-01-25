@@ -6,7 +6,7 @@
 -- We'll update the onboarding_sessions table to support the new step flow
 
 -- Add new columns for enhanced onboarding tracking
-ALTER TABLE onboarding_sessions 
+ALTER TABLE onboarding_sessions
 ADD COLUMN IF NOT EXISTS current_step_index INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS step_progress JSONB DEFAULT '{}',
 ADD COLUMN IF NOT EXISTS ai_processing_status JSONB DEFAULT '{}',
@@ -209,7 +209,7 @@ ALTER TABLE channel_strategies ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own evidence classifications" ON evidence_classifications
     FOR SELECT USING (
         session_id IN (
-            SELECT id FROM onboarding_sessions 
+            SELECT id FROM onboarding_sessions
             WHERE workspace_id IN (
                 SELECT id FROM workspaces WHERE user_id = auth.uid()
             )
@@ -219,7 +219,7 @@ CREATE POLICY "Users can view their own evidence classifications" ON evidence_cl
 CREATE POLICY "Users can insert their own evidence classifications" ON evidence_classifications
     FOR INSERT WITH CHECK (
         session_id IN (
-            SELECT id FROM onboarding_sessions 
+            SELECT id FROM onboarding_sessions
             WHERE workspace_id IN (
                 SELECT id FROM workspaces WHERE user_id = auth.uid()
             )
@@ -229,7 +229,7 @@ CREATE POLICY "Users can insert their own evidence classifications" ON evidence_
 CREATE POLICY "Users can update their own evidence classifications" ON evidence_classifications
     FOR UPDATE USING (
         session_id IN (
-            SELECT id FROM onboarding_sessions 
+            SELECT id FROM onboarding_sessions
             WHERE workspace_id IN (
                 SELECT id FROM workspaces WHERE user_id = auth.uid()
             )
@@ -240,7 +240,7 @@ CREATE POLICY "Users can update their own evidence classifications" ON evidence_
 CREATE POLICY "Users can manage their own extracted facts" ON extracted_facts
     FOR ALL USING (
         session_id IN (
-            SELECT id FROM onboarding_sessions 
+            SELECT id FROM onboarding_sessions
             WHERE workspace_id IN (
                 SELECT id FROM workspaces WHERE user_id = auth.uid()
             )
@@ -250,7 +250,7 @@ CREATE POLICY "Users can manage their own extracted facts" ON extracted_facts
 CREATE POLICY "Users can manage their own contradictions" ON fact_contradictions
     FOR ALL USING (
         session_id IN (
-            SELECT id FROM onboarding_sessions 
+            SELECT id FROM onboarding_sessions
             WHERE workspace_id IN (
                 SELECT id FROM workspaces WHERE user_id = auth.uid()
             )
@@ -260,7 +260,7 @@ CREATE POLICY "Users can manage their own contradictions" ON fact_contradictions
 CREATE POLICY "Users can manage their own reddit research" ON reddit_research
     FOR ALL USING (
         session_id IN (
-            SELECT id FROM onboarding_sessions 
+            SELECT id FROM onboarding_sessions
             WHERE workspace_id IN (
                 SELECT id FROM workspaces WHERE user_id = auth.uid()
             )
@@ -270,7 +270,7 @@ CREATE POLICY "Users can manage their own reddit research" ON reddit_research
 CREATE POLICY "Users can manage their own perceptual maps" ON perceptual_maps
     FOR ALL USING (
         session_id IN (
-            SELECT id FROM onboarding_sessions 
+            SELECT id FROM onboarding_sessions
             WHERE workspace_id IN (
                 SELECT id FROM workspaces WHERE user_id = auth.uid()
             )
@@ -280,7 +280,7 @@ CREATE POLICY "Users can manage their own perceptual maps" ON perceptual_maps
 CREATE POLICY "Users can manage their own copy variants" ON neuroscience_copy_variants
     FOR ALL USING (
         session_id IN (
-            SELECT id FROM onboarding_sessions 
+            SELECT id FROM onboarding_sessions
             WHERE workspace_id IN (
                 SELECT id FROM workspaces WHERE user_id = auth.uid()
             )
@@ -290,7 +290,7 @@ CREATE POLICY "Users can manage their own copy variants" ON neuroscience_copy_va
 CREATE POLICY "Users can manage their own channel strategies" ON channel_strategies
     FOR ALL USING (
         session_id IN (
-            SELECT id FROM onboarding_sessions 
+            SELECT id FROM onboarding_sessions
             WHERE workspace_id IN (
                 SELECT id FROM workspaces WHERE user_id = auth.uid()
             )
@@ -328,7 +328,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         osd.step_number,
         osd.step_key,
         osd.step_name,
@@ -353,22 +353,22 @@ BEGIN
     SELECT COALESCE(current_step_index, -1) INTO current_step_index
     FROM onboarding_sessions
     WHERE id = p_session_id;
-    
+
     -- Get max step index
     SELECT MAX(step_number) - 1 INTO max_step_index
     FROM onboarding_step_definitions
     WHERE is_active = TRUE;
-    
+
     -- Advance if not at max
     IF current_step_index < max_step_index THEN
         UPDATE onboarding_sessions
         SET current_step_index = current_step_index + 1,
             updated_at = NOW()
         WHERE id = p_session_id;
-        
+
         RETURN TRUE;
     END IF;
-    
+
     RETURN FALSE;
 END;
 $$ LANGUAGE plpgsql;
@@ -386,15 +386,15 @@ BEGIN
     SELECT COUNT(*) INTO total_steps
     FROM onboarding_step_definitions
     WHERE is_active = TRUE;
-    
+
     -- Get completed steps (based on current_step_index)
     SELECT COALESCE(current_step_index, 0) INTO completed_steps
     FROM onboarding_sessions
     WHERE id = p_session_id;
-    
+
     -- Calculate percentage
     progress_percentage := (completed_steps::DECIMAL / total_steps::DECIMAL) * 100;
-    
+
     -- Build result
     result := jsonb_build_object(
         'total_steps', total_steps,
@@ -403,7 +403,7 @@ BEGIN
         'current_step', completed_steps + 1,
         'is_complete', completed_steps >= total_steps
     );
-    
+
     RETURN result;
 END;
 $$ LANGUAGE plpgsql;

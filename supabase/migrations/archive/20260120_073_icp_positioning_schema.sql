@@ -8,41 +8,41 @@ CREATE TABLE IF NOT EXISTS onboarding_icp_deep (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE,
-    
+
     -- ICP basics
     icp_id TEXT NOT NULL,
     name TEXT NOT NULL,
     tier TEXT DEFAULT 'primary', -- primary, secondary, tertiary
     description TEXT,
-    
+
     -- Firmographics
     firmographics JSONB DEFAULT '{}'::jsonb,
-    
+
     -- Psychographics
     psychographics JSONB DEFAULT '{}'::jsonb,
-    
+
     -- Pain points and triggers
     pain_points JSONB DEFAULT '[]'::jsonb,
     trigger_events JSONB DEFAULT '[]'::jsonb,
     disqualifiers JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Buyer info
     buyer_types JSONB DEFAULT '[]'::jsonb,
     key_stakeholders JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Messaging
     key_messages JSONB DEFAULT '[]'::jsonb,
     objections JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Sales metrics
     estimated_deal_size TEXT,
     sales_cycle_length TEXT,
     win_rate_estimate TEXT,
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(session_id, icp_id)
 );
 
@@ -51,29 +51,29 @@ CREATE TABLE IF NOT EXISTS onboarding_positioning_statements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE,
-    
+
     -- Statement info
     statement_id TEXT NOT NULL,
     statement_type TEXT NOT NULL, -- full, elevator, tagline, value_prop, category
     framework TEXT NOT NULL, -- classic, challenger, category_creator, benefit_focused, comparison
-    
+
     -- Content
     statement TEXT NOT NULL,
     audience TEXT,
     key_elements JSONB DEFAULT '{}'::jsonb,
-    
+
     -- Quality
     score DECIMAL(3,2) DEFAULT 0.50,
     is_primary BOOLEAN DEFAULT FALSE,
-    
+
     -- Status
     is_approved BOOLEAN DEFAULT FALSE,
     notes TEXT,
-    
+
     -- Metadata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(session_id, statement_id)
 );
 
@@ -82,11 +82,11 @@ CREATE TABLE IF NOT EXISTS onboarding_only_we_claims (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE,
-    
+
     claim TEXT NOT NULL,
     is_verified BOOLEAN DEFAULT FALSE,
     verification_source TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -95,12 +95,12 @@ CREATE TABLE IF NOT EXISTS onboarding_positioning_matrix (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     session_id UUID NOT NULL REFERENCES onboarding_sessions(id) ON DELETE CASCADE UNIQUE,
-    
+
     axes JSONB DEFAULT '[]'::jsonb,
     your_position JSONB DEFAULT '{}'::jsonb,
     competitor_positions JSONB DEFAULT '{}'::jsonb,
     white_space TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

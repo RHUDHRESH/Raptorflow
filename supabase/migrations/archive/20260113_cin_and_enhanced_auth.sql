@@ -1,7 +1,7 @@
 -- ============================================================================
 -- RaptorFlow CIN (Customer Identification Number) & Enhanced Auth Schema
 -- Migration: 20260113_cin_and_enhanced_auth.sql
--- 
+--
 -- This migration adds:
 -- 1. CIN (Customer Identification Number) - unique immutable customer ID
 -- 2. Enhanced user profile fields
@@ -10,37 +10,37 @@
 -- ============================================================================
 
 -- 1. Add CIN column to users table if not exists
-DO $$ 
+DO $$
 BEGIN
     -- Add CIN column
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name = 'users' AND column_name = 'cin') THEN
         ALTER TABLE users ADD COLUMN cin TEXT UNIQUE;
     END IF;
-    
+
     -- Add subscription fields if not exist
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name = 'users' AND column_name = 'subscription_plan') THEN
         ALTER TABLE users ADD COLUMN subscription_plan TEXT;
     END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name = 'users' AND column_name = 'subscription_status') THEN
         ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'none';
     END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name = 'users' AND column_name = 'subscription_expires_at') THEN
         ALTER TABLE users ADD COLUMN subscription_expires_at TIMESTAMPTZ;
     END IF;
-    
+
     -- Add storage allocation field
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name = 'users' AND column_name = 'storage_bytes_used') THEN
         ALTER TABLE users ADD COLUMN storage_bytes_used BIGINT DEFAULT 0;
     END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name = 'users' AND column_name = 'storage_bytes_limit') THEN
         ALTER TABLE users ADD COLUMN storage_bytes_limit BIGINT DEFAULT 1073741824; -- 1GB default
     END IF;
@@ -60,12 +60,12 @@ BEGIN
         date_part := to_char(NOW(), 'YYYYMMDD');
         random_part := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 5));
         new_cin := 'RF-' || date_part || '-' || random_part;
-        
+
         -- Check if this CIN already exists
         IF NOT EXISTS (SELECT 1 FROM users WHERE cin = new_cin) THEN
             RETURN new_cin;
         END IF;
-        
+
         attempt := attempt + 1;
         IF attempt > 100 THEN
             RAISE EXCEPTION 'Failed to generate unique CIN after 100 attempts';
@@ -82,11 +82,11 @@ DECLARE
 BEGIN
     -- Generate unique CIN
     new_cin := generate_cin();
-    
+
     INSERT INTO public.users (
-        auth_user_id, 
-        email, 
-        full_name, 
+        auth_user_id,
+        email,
+        full_name,
         avatar_url,
         cin,
         onboarding_status,
@@ -106,7 +106,7 @@ BEGIN
         full_name = COALESCE(EXCLUDED.full_name, users.full_name),
         avatar_url = COALESCE(EXCLUDED.avatar_url, users.avatar_url),
         updated_at = NOW();
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -118,14 +118,14 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- 5. Backfill existing users without CIN
-UPDATE users 
-SET cin = generate_cin() 
+UPDATE users
+SET cin = generate_cin()
 WHERE cin IS NULL;
 
 -- 6. Make CIN NOT NULL after backfill
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM information_schema.columns 
+    IF EXISTS (SELECT 1 FROM information_schema.columns
                WHERE table_name = 'users' AND column_name = 'cin' AND is_nullable = 'YES') THEN
         ALTER TABLE users ALTER COLUMN cin SET NOT NULL;
     END IF;
@@ -139,7 +139,7 @@ CREATE INDEX IF NOT EXISTS idx_users_subscription_status ON users(subscription_s
 DO $$
 BEGIN
     -- Add user_cin column to payments if it doesn't exist
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name = 'payments' AND column_name = 'user_cin') THEN
         ALTER TABLE payments ADD COLUMN user_cin TEXT REFERENCES users(cin);
     END IF;
@@ -150,8 +150,8 @@ CREATE OR REPLACE FUNCTION update_user_subscription_on_payment()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.status = 'completed' AND OLD.status != 'completed' THEN
-        UPDATE users 
-        SET 
+        UPDATE users
+        SET
             subscription_status = 'active',
             subscription_plan = NEW.metadata->>'plan_name',
             subscription_expires_at = NOW() + INTERVAL '1 month',
@@ -171,7 +171,7 @@ CREATE TRIGGER on_payment_completed
 
 -- 11. Create view for customer records with CIN
 CREATE OR REPLACE VIEW customer_records AS
-SELECT 
+SELECT
     u.cin AS customer_id,
     u.email,
     u.full_name,

@@ -16,7 +16,7 @@ export class AuthenticationError extends Error {
 
 export class DatabaseError extends Error {
   public cause?: any;
-  
+
   constructor(message: string, originalError?: any) {
     super(message);
     this.name = 'DatabaseError';
@@ -32,7 +32,7 @@ export function sanitizeInput(input: string): string {
   if (typeof input !== 'string') {
     throw new ValidationError('Input must be a string');
   }
-  
+
   // Basic sanitization
   return input
     .trim()

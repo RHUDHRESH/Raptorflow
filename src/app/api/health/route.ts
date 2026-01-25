@@ -90,10 +90,10 @@ export async function GET() {
 
 async function checkDatabaseHealth(): Promise<ServiceStatus> {
   const startTime = Date.now();
-  
+
   try {
     const supabase = await createServerSupabaseClient();
-    
+
     // Test basic database connection with profiles table
     const { data, error } = await supabase
       .from('profiles')
@@ -123,7 +123,7 @@ async function checkDatabaseHealth(): Promise<ServiceStatus> {
 
 async function checkEmailHealth(): Promise<ServiceStatus> {
   const startTime = Date.now();
-  
+
   try {
     // Check if Resend API key is configured
     if (!process.env.RESEND_API_KEY) {
@@ -150,7 +150,7 @@ async function checkEmailHealth(): Promise<ServiceStatus> {
 
 async function checkStorageHealth(): Promise<ServiceStatus> {
   const startTime = Date.now();
-  
+
   try {
     // Check if storage is configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -177,7 +177,7 @@ async function checkStorageHealth(): Promise<ServiceStatus> {
 
 async function checkAuthHealth(): Promise<ServiceStatus> {
   const startTime = Date.now();
-  
+
   try {
     // Check if auth configuration is complete
     const requiredVars = [
@@ -187,7 +187,7 @@ async function checkAuthHealth(): Promise<ServiceStatus> {
     ];
 
     const missingVars = requiredVars.filter(v => !process.env[v]);
-    
+
     if (missingVars.length > 0) {
       return {
         status: 'unhealthy',

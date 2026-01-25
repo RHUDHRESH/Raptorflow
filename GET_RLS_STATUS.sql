@@ -3,16 +3,16 @@
 -- =================================================================
 
 -- Get RLS status on all tables
-SELECT 
+SELECT
     schemaname,
     tablename,
     rowsecurity
-FROM pg_tables 
+FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY tablename;
 
 -- Get all existing RLS policies
-SELECT 
+SELECT
     schemaname,
     tablename,
     policyname,
@@ -20,6 +20,6 @@ SELECT
     roles,
     cmd,
     qual
-FROM pg_policies 
+FROM pg_policies
 WHERE schemaname = 'public'
 ORDER BY tablename, policyname;

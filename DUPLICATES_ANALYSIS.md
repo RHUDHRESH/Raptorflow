@@ -13,7 +13,7 @@
 ```sql
 -- Current pricing (HIGH)
 Ascent:  ₹5,000/month (500,000 paise)
-Glide:  ₹7,000/month (700,000 paise)  
+Glide:  ₹7,000/month (700,000 paise)
 Soar:  ₹10,000/month (1,000,000 paise)
 ```
 
@@ -37,7 +37,7 @@ subscription_plans (basic table only)
 #### **Archive Schema (Comprehensive):**
 ```sql
 subscription_plans
-user_subscriptions  
+user_subscriptions
 user_onboarding
 plan_usage_limits
 subscription_events

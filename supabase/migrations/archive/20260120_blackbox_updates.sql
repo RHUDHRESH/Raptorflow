@@ -1,7 +1,7 @@
 -- Migration: 20260120_blackbox_updates.sql
 -- Enhance Blackbox Strategy tracking
 
-ALTER TABLE public.blackbox_strategies 
+ALTER TABLE public.blackbox_strategies
 ADD COLUMN IF NOT EXISTS last_run_at TIMESTAMPTZ DEFAULT NOW(),
 ADD COLUMN IF NOT EXISTS engine_version TEXT DEFAULT 'v4.0-infinity';
 

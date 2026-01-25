@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS public.plan_usage_limits (
 
 -- Step 5: Insert subscription plans
 INSERT INTO public.subscription_plans (slug, name, display_name, description, price_monthly, price_annual, currency, features, limits, sort_order, is_active)
-VALUES 
+VALUES
     ('ascent', 'Ascent', 'Ascent Plan', 'Perfect for small teams getting started', 500000, 5000000, 'INR', '{"campaigns": 3, "team_seats": 1, "moves_per_week": 3}', '{"moves_per_week": "3", "campaigns": "3", "team_seats": "1"}', 1, true),
     ('glide', 'Glide', 'Glide Plan', 'Ideal for growing businesses', 700000, 7000000, 'INR', '{"campaigns": -1, "team_seats": 5, "moves_per_week": -1}', '{"moves_per_week": "-1", "campaigns": "-1", "team_seats": "5"}', 2, true),
     ('soar', 'Soar', 'Soar Plan', 'Enterprise solution for large teams', 1000000, 10000000, 'INR', '{"campaigns": -1, "team_seats": -1, "moves_per_week": -1}', '{"moves_per_week": "-1", "campaigns": "-1", "team_seats": "-1"}', 3, true)
@@ -84,18 +84,18 @@ BEGIN
     SELECT id, price_monthly, price_annual INTO plan_record
     FROM public.subscription_plans
     WHERE slug = p_plan_slug AND is_active = true;
-    
+
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Plan not found: %', p_plan_slug;
     END IF;
-    
+
     -- Calculate expiration date
     IF p_billing_cycle = 'annual' THEN
         expires_date := NOW() + INTERVAL '1 year';
     ELSE
         expires_date := NOW() + INTERVAL '1 month';
     END IF;
-    
+
     -- Create subscription
     INSERT INTO public.user_subscriptions (
         user_id,
@@ -116,26 +116,26 @@ BEGIN
         expires_date,
         expires_date
     ) RETURNING id INTO new_subscription_id;
-    
+
     -- Create onboarding record
     INSERT INTO public.user_onboarding (user_id, subscription_id)
     VALUES (p_user_id, new_subscription_id);
-    
+
     -- Initialize usage limits
     INSERT INTO public.plan_usage_limits (subscription_id, metric_name, limit_value)
-    SELECT 
+    SELECT
         new_subscription_id,
         key,
         value
     FROM jsonb_each_text(
-        CASE 
+        CASE
             WHEN p_plan_slug = 'ascent' THEN '{"moves_per_week": "3", "campaigns": "3", "team_seats": "1"}'
             WHEN p_plan_slug = 'glide' THEN '{"moves_per_week": "-1", "campaigns": "-1", "team_seats": "5"}'
             WHEN p_plan_slug = 'soar' THEN '{"moves_per_week": "-1", "campaigns": "-1", "team_seats": "-1"}'
             ELSE '{}'
         END::jsonb
     );
-    
+
     RETURN new_subscription_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

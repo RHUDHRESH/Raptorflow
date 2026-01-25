@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const { planId, billingCycle } = await request.json()
 
     const supabase = await createServerSupabaseClient()
-    
+
     // Use getUser() for secure authentication (not getSession which can be spoofed)
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     // Allow plan selection from multiple states (new users, navigating back, etc.)
     // 'pending' = new user from OAuth
-    // 'pending_plan_selection' = user in plan selection flow  
+    // 'pending_plan_selection' = user in plan selection flow
     // 'pending_payment' = user navigating back from payment
     // 'none' = fallback for edge cases
     const validStates = ['pending', 'pending_plan_selection', 'pending_payment', 'none', null, undefined]
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         .select('*')
         .eq('slug', planId)
         .single();
-      
+
       plan = fallbackPlan;
       planError = fallbackError;
     }

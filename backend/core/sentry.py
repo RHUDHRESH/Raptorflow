@@ -9,11 +9,11 @@ from typing import Any, Dict, Optional
 
 import sentry_sdk
 from fastapi import FastAPI, Request
-from starlette.middleware.base import BaseHTTPMiddleware
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
 

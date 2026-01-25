@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 async function executeSQL() {
   try {
     console.log('🔗 Connecting to Supabase...');
-    
+
     // Try to execute raw SQL using the service role key
     const response = await fetch(`${supabaseUrl}/rest/v1/rpc/_exec`, {
       method: 'POST',
@@ -21,7 +21,7 @@ async function executeSQL() {
         'apikey': serviceRoleKey,
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         query: `
           -- Create payments table
           CREATE TABLE IF NOT EXISTS public.payments (
@@ -38,7 +38,7 @@ async function executeSQL() {
               created_at TIMESTAMPTZ DEFAULT NOW(),
               verified_at TIMESTAMPTZ
           );
-          
+
           -- Create email_logs table
           CREATE TABLE IF NOT EXISTS public.email_logs (
               id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -50,22 +50,22 @@ async function executeSQL() {
               metadata JSONB DEFAULT '{}'::jsonb,
               created_at TIMESTAMPTZ DEFAULT NOW()
           );
-          
+
           -- Enable RLS
           ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
           ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
-          
+
           -- Add RLS policies
           CREATE POLICY "payments_self_view" ON public.payments FOR SELECT USING (auth.uid() = user_id);
           CREATE POLICY "email_logs_self_view" ON public.email_logs FOR SELECT USING (auth.uid() = user_id);
-          
+
           -- Add indexes
           CREATE INDEX IF NOT EXISTS idx_payments_user_id ON public.payments(user_id);
           CREATE INDEX IF NOT EXISTS idx_email_logs_user_id ON public.email_logs(user_id);
         `
       })
     });
-    
+
     if (response.ok) {
       console.log('✅ SQL executed successfully!');
       console.log('Response:', await response.text());
@@ -95,4 +95,3 @@ executeSQL().then(success => {
   console.error('❌ Script error:', err);
   process.exit(1);
 });
-    

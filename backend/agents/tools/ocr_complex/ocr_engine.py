@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import cv2
-from google import genai
 import numpy as np
 import pytesseract
+from google import genai
 from pdf2image import convert_from_path
 from PIL import Image
 
@@ -199,7 +199,10 @@ class GeminiProcessor(BaseProcessor):
                 # Process with Gemini
                 response = self.client.models.generate_content(
                     model=self.model_name,
-                    contents=[self.prompt, {"mime_type": "image/png", "data": img_bytes}]
+                    contents=[
+                        self.prompt,
+                        {"mime_type": "image/png", "data": img_bytes},
+                    ],
                 )
 
                 extracted_text = response.text.strip()

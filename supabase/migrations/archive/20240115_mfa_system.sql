@@ -1,6 +1,6 @@
 -- Multi-Factor Authentication System
 -- Migration: 20240115_mfa_system.sql
--- 
+--
 -- This migration implements a comprehensive MFA system with TOTP, SMS, and backup codes
 
 -- Enable necessary extensions
@@ -11,39 +11,39 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE IF NOT EXISTS user_mfa (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    
+
     -- MFA type and configuration
     mfa_type TEXT NOT NULL CHECK (
         mfa_type IN ('totp', 'sms', 'email', 'backup_codes')
     ),
     is_enabled BOOLEAN DEFAULT FALSE,
     is_primary BOOLEAN DEFAULT FALSE, -- Primary MFA method
-    
+
     -- TOTP configuration
     secret TEXT, -- Encrypted TOTP secret
     backup_codes TEXT[], -- Encrypted backup codes
     last_used_backup_code TEXT, -- Track used backup codes
-    
+
     -- SMS/Email configuration
     phone_number TEXT,
     email_address TEXT,
-    
+
     -- Setup tracking
     setup_completed_at TIMESTAMPTZ,
     setup_ip_address INET,
     setup_user_agent TEXT,
-    
+
     -- Usage tracking
     last_used_at TIMESTAMPTZ,
     usage_count INTEGER DEFAULT 0,
-    
+
     -- Security
     failed_attempts INTEGER DEFAULT 0,
     locked_until TIMESTAMPTZ,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(user_id, mfa_type)
 );
 
@@ -54,27 +54,27 @@ CREATE TABLE IF NOT EXISTS mfa_challenges (
     mfa_type TEXT NOT NULL CHECK (
         mfa_type IN ('totp', 'sms', 'email', 'backup_code')
     ),
-    
+
     -- Challenge details
     challenge_code TEXT, -- Encrypted challenge code
     challenge_token TEXT UNIQUE NOT NULL DEFAULT (encode(gen_random_bytes(32), 'hex')),
     challenge_data JSONB, -- Additional challenge data
-    
+
     -- Validity
     expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '10 minutes'),
     is_used BOOLEAN DEFAULT FALSE,
     used_at TIMESTAMPTZ,
-    
+
     -- Context
     session_id TEXT,
     ip_address INET,
     user_agent TEXT,
     device_fingerprint TEXT,
-    
+
     -- Result
     success BOOLEAN,
     failure_reason TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -83,22 +83,22 @@ CREATE TABLE IF NOT EXISTS mfa_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     session_token TEXT UNIQUE NOT NULL,
-    
+
     -- MFA requirements
     mfa_required BOOLEAN DEFAULT FALSE,
     mfa_completed BOOLEAN DEFAULT FALSE,
     required_mfa_types TEXT[], -- Which MFA types are required
-    
+
     -- Session details
     ip_address INET,
     user_agent TEXT,
     device_fingerprint TEXT,
-    
+
     -- Validity
     created_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '30 minutes'),
     completed_at TIMESTAMPTZ,
-    
+
     -- Security
     is_active BOOLEAN DEFAULT TRUE,
     revoked_at TIMESTAMPTZ,
@@ -111,19 +111,19 @@ CREATE TABLE IF NOT EXISTS mfa_trusted_devices (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     device_fingerprint TEXT NOT NULL,
     device_name TEXT,
-    
+
     -- Trust settings
     is_trusted BOOLEAN DEFAULT TRUE,
     trust_duration_days INTEGER DEFAULT 30,
     expires_at TIMESTAMPTZ,
-    
+
     -- Context
     ip_address INET,
     user_agent TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     last_used_at TIMESTAMPTZ DEFAULT NOW(),
-    
+
     UNIQUE(user_id, device_fingerprint)
 );
 
@@ -147,14 +147,14 @@ CREATE INDEX idx_mfa_trusted_devices_fingerprint ON mfa_trusted_devices(device_f
 CREATE INDEX idx_mfa_trusted_devices_expires_at ON mfa_trusted_devices(expires_at);
 
 -- Create triggers for updated_at
-CREATE TRIGGER update_user_mfa_updated_at 
-    BEFORE UPDATE ON user_mfa 
+CREATE TRIGGER update_user_mfa_updated_at
+    BEFORE UPDATE ON user_mfa
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_mfa_trusted_devices_last_used_at 
-    BEFORE UPDATE ON mfa_trusted_devices 
-    FOR EACH ROW 
-    EXECUTE FUNCTION 
+CREATE TRIGGER update_mfa_trusted_devices_last_used_at
+    BEFORE UPDATE ON mfa_trusted_devices
+    FOR EACH ROW
+    EXECUTE FUNCTION
     BEGIN
         NEW.last_used_at = NOW();
         RETURN NEW;
@@ -199,10 +199,10 @@ DECLARE
 BEGIN
     -- Generate secret if not provided
     totp_secret := COALESCE(p_secret, generate_totp_secret());
-    
+
     -- Generate backup codes
     backup_codes := generate_backup_codes(p_backup_codes_count);
-    
+
     -- Insert or update TOTP configuration
     INSERT INTO user_mfa (
         user_id,
@@ -229,14 +229,14 @@ BEGIN
         setup_ip_address = inet_client_addr(),
         setup_user_agent = current_setting('request.headers')::json->>'user-agent',
         updated_at = NOW();
-    
+
     -- Generate QR code URL (for authenticator apps)
     qr_url := format(
         'otpauth://totp/Raptorflow:%s?secret=%s&issuer=Raptorflow',
         (SELECT email FROM users WHERE id = p_user_id),
         totp_secret
     );
-    
+
     RETURN QUERY SELECT totp_secret, backup_codes, qr_url;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -270,7 +270,7 @@ BEGIN
         setup_ip_address = inet_client_addr(),
         setup_user_agent = current_setting('request.headers')::json->>'user-agent',
         updated_at = NOW();
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -293,7 +293,7 @@ BEGIN
     SELECT email, phone INTO user_email, user_phone
     FROM users
     WHERE id = p_user_id;
-    
+
     -- Generate challenge code
     CASE p_mfa_type
         WHEN 'totp' THEN
@@ -307,12 +307,12 @@ BEGIN
         ELSE
             RAISE EXCEPTION 'Unsupported MFA type: %', p_mfa_type;
     END CASE;
-    
+
     -- Encrypt challenge code
     IF challenge_code IS NOT NULL THEN
         encrypted_code := pgp_sym_encrypt(challenge_code, current_setting('app.mfa_encryption_key'));
     END IF;
-    
+
     -- Create challenge record
     INSERT INTO mfa_challenges (
         user_id,
@@ -331,10 +331,10 @@ BEGIN
         inet_client_addr(),
         current_setting('request.headers')::json->>'user-agent'
     ) RETURNING id INTO challenge_id;
-    
+
     -- TODO: Send SMS/Email with challenge code
     -- This would integrate with external SMS/email services
-    
+
     RETURN challenge_id::text;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -364,100 +364,100 @@ BEGIN
     WHERE challenge_token = p_challenge_token
     AND is_used = FALSE
     AND expires_at > NOW();
-    
+
     IF NOT FOUND THEN
         RETURN QUERY SELECT FALSE, NULL, NULL, NULL, 'Invalid or expired challenge';
         RETURN;
     END IF;
-    
+
     -- Get user MFA configuration
     SELECT * INTO user_mfa_record
     FROM user_mfa
     WHERE user_id = challenge_record.user_id
     AND mfa_type = challenge_record.mfa_type
     AND is_enabled = TRUE;
-    
+
     IF NOT FOUND THEN
         RETURN QUERY SELECT FALSE, NULL, NULL, NULL, 'MFA method not enabled';
         RETURN;
     END IF;
-    
+
     -- Check if MFA is locked
     IF user_mfa_record.locked_until > NOW() THEN
         RETURN QUERY SELECT FALSE, NULL, NULL, NULL, 'MFA method locked due to failed attempts';
         RETURN;
     END IF;
-    
+
     -- Verify code based on MFA type
     CASE challenge_record.mfa_type
         WHEN 'totp' THEN
             -- TODO: Implement TOTP verification
             -- This would use a TOTP library to verify the code
             NULL; -- Placeholder
-            
+
         WHEN 'sms', 'email' THEN
             -- Decrypt and verify challenge code
             decrypted_code := pgp_sym_decrypt(challenge_record.challenge_code::bytea, current_setting('app.mfa_encryption_key'));
-            
+
             IF decrypted_code != p_code THEN
                 -- Increment failed attempts
                 UPDATE user_mfa
-                SET 
+                SET
                     failed_attempts = failed_attempts + 1,
-                    locked_until = CASE 
+                    locked_until = CASE
                         WHEN failed_attempts + 1 >= 5 THEN NOW() + INTERVAL '15 minutes'
                         ELSE NULL
                     END,
                     updated_at = NOW()
                 WHERE id = user_mfa_record.id;
-                
+
                 RETURN QUERY SELECT FALSE, NULL, NULL, NULL, 'Invalid verification code';
                 RETURN;
             END IF;
-            
+
         WHEN 'backup_code' THEN
             -- Check against backup codes
             is_backup_code := p_code = ANY(user_mfa_record.backup_codes);
-            
+
             IF NOT is_backup_code THEN
                 RETURN QUERY SELECT FALSE, NULL, NULL, NULL, 'Invalid backup code';
                 RETURN;
             END IF;
-            
+
             -- Mark backup code as used
             UPDATE user_mfa
-            SET 
+            SET
                 backup_codes = array_remove(backup_codes, p_code),
                 last_used_backup_code = p_code,
                 updated_at = NOW()
             WHERE id = user_mfa_record.id;
-            
+
         ELSE
             RETURN QUERY SELECT FALSE, NULL, NULL, NULL, 'Unsupported MFA type';
             RETURN;
     END CASE;
-    
+
     -- Mark challenge as used
     UPDATE mfa_challenges
-    SET 
+    SET
         is_used = TRUE,
         used_at = NOW(),
         success = TRUE
     WHERE id = challenge_record.id;
-    
+
     -- Update MFA usage
     UPDATE user_mfa
-    SET 
+    SET
         last_used_at = NOW(),
         usage_count = usage_count + 1,
         failed_attempts = 0,
         locked_until = NULL,
         updated_at = NOW()
     WHERE id = user_mfa_record.id;
-    
+
     -- Generate session token
     session_token := encode(gen_random_bytes(32), 'hex');
-    
+
     -- Create MFA session
     INSERT INTO mfa_sessions (
         user_id,
@@ -476,7 +476,7 @@ BEGIN
         current_setting('request.headers')::json->>'user-agent',
         p_device_fingerprint
     );
-    
+
     RETURN QUERY SELECT TRUE, challenge_record.mfa_type, challenge_record.user_id, session_token, NULL;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -489,12 +489,12 @@ CREATE OR REPLACE FUNCTION toggle_mfa_method(
 ) RETURNS BOOLEAN AS $$
 BEGIN
     UPDATE user_mfa
-    SET 
+    SET
         is_enabled = p_enabled,
         updated_at = NOW()
     WHERE user_id = p_user_id
     AND mfa_type = p_mfa_type;
-    
+
     -- Log the change
     INSERT INTO audit_logs (
         actor_id,
@@ -508,8 +508,8 @@ BEGIN
         p_user_id,
         CASE WHEN p_enabled THEN 'MFA_ENABLED' ELSE 'MFA_DISABLED' END,
         'security',
-        format('MFA method %s %s for user %s', 
-               p_mfa_type, 
+        format('MFA method %s %s for user %s',
+               p_mfa_type,
                CASE WHEN p_enabled THEN 'enabled' ELSE 'disabled' END,
                p_user_id),
         jsonb_build_object(
@@ -519,7 +519,7 @@ BEGIN
         TRUE,
         NOW()
     );
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -536,7 +536,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         um.mfa_type,
         um.is_enabled,
         um.is_primary,
@@ -564,8 +564,8 @@ CREATE POLICY "Users can manage own MFA" ON user_mfa
 CREATE POLICY "Admins can view all MFA" ON user_mfa
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth_user_id = auth.uid() 
+            SELECT 1 FROM users
+            WHERE auth_user_id = auth.uid()
             AND role IN ('admin', 'super_admin')
         )
     );

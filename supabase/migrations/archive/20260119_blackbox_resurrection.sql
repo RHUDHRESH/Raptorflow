@@ -2,7 +2,7 @@
 -- Description: Align blackbox_strategies with current implementation and create strategy_reviews table
 
 -- 1. Update blackbox_strategies with missing columns
-DO $$ 
+DO $$
 BEGIN
     -- Add risk_reasons if it doesn't exist
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='blackbox_strategies' AND column_name='risk_reasons') THEN
@@ -78,7 +78,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='blackbox_strategies' AND column_name='conversion_summary') THEN
         ALTER TABLE public.blackbox_strategies ADD COLUMN conversion_summary JSONB DEFAULT '{}';
     END IF;
-    
+
     -- Add review_status if it doesn't exist
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='blackbox_strategies' AND column_name='review_status') THEN
         ALTER TABLE public.blackbox_strategies ADD COLUMN review_status TEXT DEFAULT 'pending';
@@ -103,7 +103,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='blackbox_strategies' AND column_name='reviewed_at') THEN
         ALTER TABLE public.blackbox_strategies ADD COLUMN reviewed_at TIMESTAMPTZ;
     END IF;
-    
+
     -- Add converted_to_move_id if it doesn't exist
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='blackbox_strategies' AND column_name='converted_to_move_id') THEN
         ALTER TABLE public.blackbox_strategies ADD COLUMN converted_to_move_id UUID REFERENCES moves(id);

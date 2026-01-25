@@ -1,5 +1,5 @@
 -- CRITICAL FIX: Foreign Key Reference Inconsistencies
--- Problem: subscriptions, payment_transactions reference users(id) 
+-- Problem: subscriptions, payment_transactions reference users(id)
 -- But code uses profiles.id (which = auth.uid())
 -- users.id is a different auto-generated UUID, users.auth_user_id = auth.uid()
 
@@ -12,42 +12,42 @@
 
 -- 1. Fix subscriptions table
 ALTER TABLE public.subscriptions DROP CONSTRAINT IF EXISTS subscriptions_user_id_fkey;
-ALTER TABLE public.subscriptions 
-    ADD CONSTRAINT subscriptions_user_id_fkey 
+ALTER TABLE public.subscriptions
+    ADD CONSTRAINT subscriptions_user_id_fkey
     FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
--- 2. Fix payment_transactions table  
+-- 2. Fix payment_transactions table
 ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS payment_transactions_user_id_fkey;
-ALTER TABLE public.payment_transactions 
-    ADD CONSTRAINT payment_transactions_user_id_fkey 
+ALTER TABLE public.payment_transactions
+    ADD CONSTRAINT payment_transactions_user_id_fkey
     FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
 -- 3. Fix audit_logs table
 ALTER TABLE public.audit_logs DROP CONSTRAINT IF EXISTS audit_logs_actor_id_fkey;
-ALTER TABLE public.audit_logs 
-    ADD CONSTRAINT audit_logs_actor_id_fkey 
+ALTER TABLE public.audit_logs
+    ADD CONSTRAINT audit_logs_actor_id_fkey
     FOREIGN KEY (actor_id) REFERENCES public.profiles(id) ON DELETE SET NULL;
 
 -- 4. Fix admin_actions table
 ALTER TABLE public.admin_actions DROP CONSTRAINT IF EXISTS admin_actions_admin_id_fkey;
 ALTER TABLE public.admin_actions DROP CONSTRAINT IF EXISTS admin_actions_target_user_id_fkey;
-ALTER TABLE public.admin_actions 
-    ADD CONSTRAINT admin_actions_admin_id_fkey 
+ALTER TABLE public.admin_actions
+    ADD CONSTRAINT admin_actions_admin_id_fkey
     FOREIGN KEY (admin_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
-ALTER TABLE public.admin_actions 
-    ADD CONSTRAINT admin_actions_target_user_id_fkey 
+ALTER TABLE public.admin_actions
+    ADD CONSTRAINT admin_actions_target_user_id_fkey
     FOREIGN KEY (target_user_id) REFERENCES public.profiles(id) ON DELETE SET NULL;
 
 -- 5. Fix security_events table
 ALTER TABLE public.security_events DROP CONSTRAINT IF EXISTS security_events_user_id_fkey;
-ALTER TABLE public.security_events 
-    ADD CONSTRAINT security_events_user_id_fkey 
+ALTER TABLE public.security_events
+    ADD CONSTRAINT security_events_user_id_fkey
     FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE SET NULL;
 
 -- 6. Fix user_sessions table
 ALTER TABLE public.user_sessions DROP CONSTRAINT IF EXISTS user_sessions_user_id_fkey;
-ALTER TABLE public.user_sessions 
-    ADD CONSTRAINT user_sessions_user_id_fkey 
+ALTER TABLE public.user_sessions
+    ADD CONSTRAINT user_sessions_user_id_fkey
     FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
 -- 7. Fix workspaces table - use owner_id consistently
@@ -60,12 +60,12 @@ ALTER TABLE public.workspaces ALTER COLUMN user_id DROP NOT NULL;
 -- ============================================================================
 
 -- Add missing columns to profiles if they don't exist
-DO $$ 
+DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'phone') THEN
         ALTER TABLE public.profiles ADD COLUMN phone text;
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'ucid') THEN
         ALTER TABLE public.profiles ADD COLUMN ucid text UNIQUE;
     END IF;
@@ -93,7 +93,7 @@ CREATE TRIGGER generate_ucid_trigger
     FOR EACH ROW EXECUTE FUNCTION generate_ucid();
 
 -- Update existing profiles without UCID
-UPDATE public.profiles 
+UPDATE public.profiles
 SET ucid = 'RF-' || UPPER(SUBSTRING(MD5(id::text || created_at::text) FROM 1 FOR 8))
 WHERE ucid IS NULL;
 
@@ -103,21 +103,21 @@ WHERE ucid IS NULL;
 
 -- Drop and recreate comprehensive policies
 DROP POLICY IF EXISTS "profiles_service_all" ON public.profiles;
-CREATE POLICY "profiles_service_all" ON public.profiles 
-    FOR ALL 
-    USING (true) 
+CREATE POLICY "profiles_service_all" ON public.profiles
+    FOR ALL
+    USING (true)
     WITH CHECK (true);
 
 DROP POLICY IF EXISTS "subscriptions_service_all" ON public.subscriptions;
-CREATE POLICY "subscriptions_service_all" ON public.subscriptions 
-    FOR ALL 
-    USING (true) 
+CREATE POLICY "subscriptions_service_all" ON public.subscriptions
+    FOR ALL
+    USING (true)
     WITH CHECK (true);
 
 DROP POLICY IF EXISTS "plans_service_all" ON public.plans;
-CREATE POLICY "plans_service_all" ON public.plans 
-    FOR ALL 
-    USING (true) 
+CREATE POLICY "plans_service_all" ON public.plans
+    FOR ALL
+    USING (true)
     WITH CHECK (true);
 
 -- FIX INFINITE RECURSION: Disable all problematic policies on users table
@@ -129,9 +129,9 @@ DROP POLICY IF EXISTS "Users can update own profile" ON public.users;
 DROP POLICY IF EXISTS "Admins can update users" ON public.users;
 
 -- Create simple non-recursive policy for users (service role access only)
-CREATE POLICY "users_service_all" ON public.users 
-    FOR ALL 
-    USING (true) 
+CREATE POLICY "users_service_all" ON public.users
+    FOR ALL
+    USING (true)
     WITH CHECK (true);
 
 -- Grant full permissions to service_role
@@ -156,13 +156,13 @@ DECLARE
 BEGIN
     -- Generate UCID
     new_ucid := 'RF-' || UPPER(SUBSTRING(MD5(NEW.id::text || NOW()::text) FROM 1 FOR 8));
-    
+
     -- Create profile (profiles.id = auth.users.id for direct lookup)
     INSERT INTO public.profiles (
-        id, 
-        email, 
-        full_name, 
-        avatar_url, 
+        id,
+        email,
+        full_name,
+        avatar_url,
         ucid,
         role,
         onboarding_status,
@@ -191,8 +191,8 @@ BEGIN
     -- Create default workspace
     INSERT INTO public.workspaces (owner_id, name, slug, status)
     VALUES (
-        NEW.id, 
-        'My Workspace', 
+        NEW.id,
+        'My Workspace',
         'ws-' || LOWER(SUBSTRING(MD5(NEW.id::text) FROM 1 FOR 12)),
         'active'
     )
@@ -228,7 +228,7 @@ GRANT EXECUTE ON FUNCTION public.handle_new_user() TO authenticated;
 
 -- Create profiles for any auth.users that don't have one
 INSERT INTO public.profiles (id, email, full_name, avatar_url, ucid, role, onboarding_status, subscription_status, is_active)
-SELECT 
+SELECT
     au.id,
     au.email,
     COALESCE(au.raw_user_meta_data->>'full_name', au.raw_user_meta_data->>'name', split_part(au.email, '@', 1)),
@@ -247,7 +247,7 @@ ON CONFLICT (id) DO NOTHING;
 -- ============================================================================
 
 INSERT INTO public.plans (id, name, description, price_monthly_paise, price_yearly_paise, features, storage_limit_bytes, is_active, display_order, popular)
-VALUES 
+VALUES
     ('ascent', 'Ascent', 'For founders just getting started', 500000, 5000000, '{"projects": 3, "team_members": 1, "support": "email"}'::jsonb, 5368709120, true, 1, false),
     ('glide', 'Glide', 'For founders scaling their marketing', 700000, 7000000, '{"projects": 10, "team_members": 5, "support": "priority"}'::jsonb, 26843545600, true, 2, true),
     ('soar', 'Soar', 'For teams running multi-channel campaigns', 1000000, 10000000, '{"projects": -1, "team_members": -1, "support": "dedicated"}'::jsonb, 107374182400, true, 3, false)

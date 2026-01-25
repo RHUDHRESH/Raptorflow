@@ -230,7 +230,7 @@ export class TOTPUtils {
     const encodedSecret = encodeURIComponent(secret)
     const encodedEmail = encodeURIComponent(email)
     const encodedIssuer = encodeURIComponent(issuer)
-    
+
     return `otpauth://totp/${encodedIssuer}:${encodedEmail}?secret=${encodedSecret}&issuer=${encodedIssuer}`
   }
 
@@ -286,7 +286,7 @@ export class DeviceFingerprint {
   static generateFingerprint(): string {
     const info = this.getBrowserInfo()
     const fingerprintString = Object.values(info).join('|')
-    
+
     // Simple hash (in production, use a proper hashing library)
     let hash = 0
     for (let i = 0; i < fingerprintString.length; i++) {
@@ -294,7 +294,7 @@ export class DeviceFingerprint {
       hash = ((hash << 5) - hash) + char
       hash = hash & hash // Convert to 32-bit integer
     }
-    
+
     return Math.abs(hash).toString(16)
   }
 
@@ -308,7 +308,7 @@ export class DeviceFingerprint {
         ctx.font = '14px Arial'
         ctx.fillText('Device fingerprint', 2, 2)
         const canvasFingerprint = canvas.toDataURL()
-        
+
         // Combine with basic fingerprint
         const basicFingerprint = this.generateFingerprint()
         return this.simpleHash(basicFingerprint + canvasFingerprint)
@@ -316,7 +316,7 @@ export class DeviceFingerprint {
     } catch (error) {
       console.error('Advanced fingerprinting error:', error)
     }
-    
+
     return this.generateFingerprint()
   }
 
@@ -347,12 +347,12 @@ export class MFASession {
     if (typeof window !== 'undefined') {
       const sessionToken = localStorage.getItem(this.SESSION_KEY)
       const deviceFingerprint = localStorage.getItem(this.DEVICE_KEY)
-      
+
       if (sessionToken && deviceFingerprint) {
         return { sessionToken, deviceFingerprint }
       }
     }
-    
+
     return null
   }
 

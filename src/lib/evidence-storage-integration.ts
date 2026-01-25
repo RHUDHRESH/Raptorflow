@@ -1,15 +1,15 @@
 /**
  * 🎯 EVIDENCE VAULT INTEGRATION
- * 
+ *
  * Drop-in replacement for existing evidence vault upload system.
  * Simply replace the old uploadToBackend function with this one.
- * 
+ *
  * USAGE:
  * import { uploadEvidenceToUnifiedStorage } from '@/lib/evidence-storage-integration';
- * 
+ *
  * // Replace this line:
  * // const success = await uploadToBackend(file, item.id);
- * 
+ *
  * // With this:
  * const success = await uploadEvidenceToUnifiedStorage(file, item.id, session?.sessionId);
  */
@@ -25,9 +25,9 @@ export interface EvidenceUploadOptions {
 
 /**
  * 🚀 MAIN EVIDENCE UPLOAD FUNCTION
- * 
+ *
  * This is the drop-in replacement for uploadToBackend in Step1EvidenceVault.tsx
- * 
+ *
  * @param file - File to upload
  * @param itemId - Evidence item ID
  * @param sessionId - Session ID (optional)
@@ -35,8 +35,8 @@ export interface EvidenceUploadOptions {
  * @returns Promise<boolean> - Success/failure
  */
 export async function uploadEvidenceToUnifiedStorage(
-  file: File, 
-  itemId: string, 
+  file: File,
+  itemId: string,
   sessionId?: string,
   options?: Partial<EvidenceUploadOptions>
 ): Promise<boolean> {
@@ -58,10 +58,10 @@ export async function uploadEvidenceToUnifiedStorage(
 
     if (result.success) {
       console.log(`✅ [EvidenceStorage] Upload successful: ${result.fileId}`);
-      
+
       // Store the file reference for later retrieval
       await storeEvidenceReference(itemId, result, sessionId);
-      
+
       return true;
     } else {
       console.error(`❌ [EvidenceStorage] Upload failed: ${result.error}`);
@@ -107,12 +107,12 @@ export async function deleteEvidenceFile(itemId: string, sessionId?: string): Pr
 
     // Delete file
     const success = await unifiedStorage.deleteFile(reference.fileId, sessionId);
-    
+
     if (success) {
       // Remove reference
       await removeEvidenceReference(itemId, sessionId);
     }
-    
+
     return success;
   } catch (error) {
     console.error(`❌ [EvidenceStorage] Failed to delete file:`, error);
@@ -139,8 +139,8 @@ const EVIDENCE_STORAGE_KEY = 'raptorflow-evidence-references';
  * Store evidence reference in localStorage
  */
 async function storeEvidenceReference(
-  itemId: string, 
-  result: UnifiedStorageResult, 
+  itemId: string,
+  result: UnifiedStorageResult,
   sessionId?: string
 ): Promise<void> {
   try {
@@ -153,10 +153,10 @@ async function storeEvidenceReference(
       uploadTime: new Date().toISOString(),
       provider: result.provider
     };
-    
+
     references[itemId] = newReference;
     localStorage.setItem(EVIDENCE_STORAGE_KEY, JSON.stringify(references));
-    
+
     console.log(`💾 [EvidenceStorage] Stored reference for item: ${itemId}`);
   } catch (error) {
     console.error(`❌ [EvidenceStorage] Failed to store reference:`, error);
@@ -170,13 +170,13 @@ async function getEvidenceReference(itemId: string, sessionId?: string): Promise
   try {
     const references = getEvidenceReferences();
     const reference = references[itemId];
-    
+
     // Verify session matches (if provided)
     if (reference && sessionId && reference.sessionId !== sessionId) {
       console.warn(`⚠️ [EvidenceStorage] Session mismatch for item: ${itemId}`);
       return null;
     }
-    
+
     return reference || null;
   } catch (error) {
     console.error(`❌ [EvidenceStorage] Failed to get reference:`, error);
@@ -192,7 +192,7 @@ async function removeEvidenceReference(itemId: string, _sessionId?: string): Pro
     const references = getEvidenceReferences();
     delete references[itemId];
     localStorage.setItem(EVIDENCE_STORAGE_KEY, JSON.stringify(references));
-    
+
     console.log(`🗑️ [EvidenceStorage] Removed reference for item: ${itemId}`);
   } catch (error) {
     console.error(`❌ [EvidenceStorage] Failed to remove reference:`, error);
@@ -218,29 +218,29 @@ function getEvidenceReferences(): Record<string, EvidenceReference> {
 
 /**
  * 🔄 MIGRATE OLD EVIDENCE TO NEW STORAGE
- * 
+ *
  * Use this to migrate existing evidence to the new unified storage system
  */
 export async function migrateEvidenceToUnifiedStorage(sessionId?: string): Promise<void> {
   console.log(`🔄 [EvidenceStorage] Starting migration for session: ${sessionId}`);
-  
+
   try {
     const references = getEvidenceReferences();
     let migrated = 0;
     const failed = 0;
-    
+
     for (const [itemId, reference] of Object.entries(references)) {
       if (reference.provider === 'local' || reference.provider === 'backend') {
         // This item needs migration
         console.log(`🔄 [EvidenceStorage] Migrating item: ${itemId}`);
-        
+
         // TODO: Implement actual migration logic
         // This would involve downloading the old file and re-uploading
-        
+
         migrated++;
       }
     }
-    
+
     console.log(`✅ [EvidenceStorage] Migration complete: ${migrated} migrated, ${failed} failed`);
   } catch (error) {
     console.error(`❌ [EvidenceStorage] Migration failed:`, error);
@@ -261,18 +261,18 @@ export async function getEvidenceStorageUsage(sessionId?: string): Promise<{
 }> {
   try {
     const references = getEvidenceReferences();
-    const sessionReferences = sessionId 
+    const sessionReferences = sessionId
       ? Object.values(references).filter(ref => ref.sessionId === sessionId)
       : Object.values(references);
-    
+
     const filesByProvider: Record<string, number> = {};
     const totalSize = 0;
-    
+
     for (const ref of sessionReferences) {
       filesByProvider[ref.provider] = (filesByProvider[ref.provider] || 0) + 1;
       // TODO: Get actual file sizes from storage provider
     }
-    
+
     return {
       totalFiles: sessionReferences.length,
       totalSize,
@@ -292,9 +292,9 @@ export async function cleanupOldEvidenceReferences(olderThanDays: number = 30): 
     const references = getEvidenceReferences();
     const cutoffTime = new Date();
     cutoffTime.setDate(cutoffTime.getDate() - olderThanDays);
-    
+
     let cleaned = 0;
-    
+
     for (const [itemId, reference] of Object.entries(references)) {
       const uploadTime = new Date(reference.uploadTime);
       if (uploadTime < cutoffTime) {
@@ -302,7 +302,7 @@ export async function cleanupOldEvidenceReferences(olderThanDays: number = 30): 
         cleaned++;
       }
     }
-    
+
     console.log(`🧹 [EvidenceStorage] Cleaned up ${cleaned} old references`);
   } catch (error) {
     console.error(`❌ [EvidenceStorage] Cleanup failed:`, error);

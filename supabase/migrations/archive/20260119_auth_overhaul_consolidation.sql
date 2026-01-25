@@ -107,9 +107,9 @@ CREATE POLICY "workspaces_owner_all" ON public.workspaces FOR ALL USING (auth.ui
 -- 9. BACKFILL EXISTING USERS
 -- Ensure all existing auth users have profiles and workspaces
 INSERT INTO public.profiles (id, email, full_name, avatar_url)
-SELECT 
-  id, 
-  email, 
+SELECT
+  id,
+  email,
   COALESCE(raw_user_meta_data->>'full_name', raw_user_meta_data->>'name', ''),
   COALESCE(raw_user_meta_data->>'avatar_url', raw_user_meta_data->>'picture', '')
 FROM auth.users
@@ -118,8 +118,8 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Backfill workspaces for profiles without one
 INSERT INTO public.workspaces (owner_id, name, slug)
-SELECT 
-    id, 
+SELECT
+    id,
     'My Personal Workspace',
     'personal-' || id::text
 FROM public.profiles

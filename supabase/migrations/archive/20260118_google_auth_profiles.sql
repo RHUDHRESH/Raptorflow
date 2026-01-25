@@ -45,7 +45,7 @@ BEGIN
     full_name = EXCLUDED.full_name,
     avatar_url = EXCLUDED.avatar_url,
     updated_at = NOW();
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -59,9 +59,9 @@ CREATE TRIGGER on_auth_user_created
 
 -- 6. Backfill existing users (if any exist without profiles)
 INSERT INTO public.profiles (id, email, full_name, avatar_url)
-SELECT 
-  id, 
-  email, 
+SELECT
+  id,
+  email,
   COALESCE(raw_user_meta_data->>'full_name', raw_user_meta_data->>'name', ''),
   COALESCE(raw_user_meta_data->>'avatar_url', raw_user_meta_data->>'picture', '')
 FROM auth.users

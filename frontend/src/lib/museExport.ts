@@ -30,23 +30,23 @@ export async function exportAssets(assets: Asset[], format: ExportFormat, option
 
 async function exportMarkdown(assets: Asset[], options: ExportOptions): Promise<void> {
   let markdown = '';
-  
+
   assets.forEach((asset, index) => {
     markdown += `# ${asset.title}\n\n`;
-    
+
     if (options.includeMetadata) {
       markdown += `**Type:** ${asset.type}\n`;
       markdown += `**Tags:** ${asset.tags.join(', ')}\n`;
       markdown += `**Created:** ${new Date(asset.createdAt).toLocaleDateString()}\n\n`;
     }
-    
+
     markdown += `${asset.content}\n\n`;
-    
+
     if (index < assets.length - 1) {
       markdown += '---\n\n';
     }
   });
-  
+
   downloadFile(markdown, 'muse-export.md', 'text/markdown');
 }
 
@@ -55,13 +55,13 @@ async function exportPDF(assets: Asset[], options: ExportOptions): Promise<void>
   let yPosition = 20;
   const pageHeight = pdf.internal.pageSize.height;
   const lineHeight = 7;
-  
+
   assets.forEach((asset, index) => {
     // Title
     pdf.setFontSize(18);
     pdf.text(asset.title, 20, yPosition);
     yPosition += lineHeight * 2;
-    
+
     // Metadata
     if (options.includeMetadata) {
       pdf.setFontSize(10);
@@ -72,11 +72,11 @@ async function exportPDF(assets: Asset[], options: ExportOptions): Promise<void>
       pdf.text(`Created: ${new Date(asset.createdAt).toLocaleDateString()}`, 20, yPosition);
       yPosition += lineHeight * 2;
     }
-    
+
     // Content
     pdf.setFontSize(12);
     const lines = pdf.splitTextToSize(asset.content, 170);
-    
+
     lines.forEach((line: string) => {
       if (yPosition > pageHeight - 20) {
         pdf.addPage();
@@ -85,7 +85,7 @@ async function exportPDF(assets: Asset[], options: ExportOptions): Promise<void>
       pdf.text(line, 20, yPosition);
       yPosition += lineHeight;
     });
-    
+
     // Add separator between assets
     if (index < assets.length - 1) {
       yPosition += lineHeight;
@@ -97,7 +97,7 @@ async function exportPDF(assets: Asset[], options: ExportOptions): Promise<void>
       yPosition += lineHeight * 2;
     }
   });
-  
+
   pdf.save('muse-export.pdf');
 }
 
@@ -108,7 +108,7 @@ async function exportHTML(assets: Asset[], options: ExportOptions): Promise<void
 
 export function generateHTML(assets: Asset[], options: ExportOptions = {}): string {
   const timestamp = options.includeTimestamp ? new Date().toISOString() : '';
-  
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -162,11 +162,11 @@ export function generateHTML(assets: Asset[], options: ExportOptions = {}): stri
 </head>
 <body>
     ${timestamp ? `<div class="timestamp">Exported on ${new Date(timestamp).toLocaleString()}</div>` : ''}
-    
+
     ${assets.map((asset, index) => `
         <div class="asset">
             <h1>${asset.title}</h1>
-            
+
             ${options.includeMetadata ? `
                 <div class="metadata">
                     <span><strong>Type:</strong> ${asset.type}</span>
@@ -174,13 +174,13 @@ export function generateHTML(assets: Asset[], options: ExportOptions = {}): stri
                     <span><strong>Created:</strong> ${new Date(asset.createdAt).toLocaleDateString()}</span>
                 </div>
             ` : ''}
-            
+
             <div class="content">${asset.content}</div>
-            
+
             ${index < assets.length - 1 ? '<div class="separator"></div>' : ''}
         </div>
     `).join('')}
-    
+
     <script>
         // Auto-print functionality
         if (window.location.search.includes('autoPrint=true')) {
@@ -196,7 +196,7 @@ async function exportCSV(assets: Asset[], options: ExportOptions): Promise<void>
   if (options.includeMetadata) {
     headers.push('ID', 'Updated At');
   }
-  
+
   const rows = assets.map(asset => {
     const row = [
       `"${asset.title.replace(/"/g, '""')}"`,
@@ -205,14 +205,14 @@ async function exportCSV(assets: Asset[], options: ExportOptions): Promise<void>
       `"${asset.tags.join('; ')}"`,
       new Date(asset.createdAt).toISOString()
     ];
-    
+
     if (options.includeMetadata) {
       row.push(asset.id, new Date(asset.updatedAt).toISOString());
     }
-    
+
     return row.join(',');
   });
-  
+
   const csv = [headers.join(','), ...rows].join('\n');
   downloadFile(csv, 'muse-export.csv', 'text/csv');
 }
@@ -247,7 +247,7 @@ export async function copyToClipboard(text: string): Promise<void> {
 }
 
 export function openInNewTab(content: string, title: string = 'Muse Content'): void {
-  const html = generateHTML([{ 
+  const html = generateHTML([{
     id: 'temp',
     title,
     content,
@@ -256,7 +256,7 @@ export function openInNewTab(content: string, title: string = 'Muse Content'): v
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }], { includeMetadata: true });
-  
+
   const newWindow = window.open();
   if (newWindow) {
     newWindow.document.write(html);
@@ -286,7 +286,7 @@ function showToast(message: string): void {
     z-index: 10000;
     animation: slideInUp 0.3s ease;
   `;
-  
+
   // Add animation
   const style = document.createElement('style');
   style.textContent = `
@@ -296,9 +296,9 @@ function showToast(message: string): void {
     }
   `;
   document.head.appendChild(style);
-  
+
   document.body.appendChild(toast);
-  
+
   // Remove after 3 seconds
   setTimeout(() => {
     toast.style.animation = 'slideInUp 0.3s ease reverse';

@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     // Create folder structure in Supabase Storage
     // We use workspace-specific buckets with standardized paths
     const { generateWorkspacePath } = await import('../../../../lib/storage-paths')
-    
+
     // Create placeholder files to establish folder structure
     const folders = [
       { category: 'uploads', filename: '.keep' },
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       for (const folder of folders) {
         const storagePath = generateWorkspacePath(workspace.slug, folder.category, folder.filename)
         const bucket = folder.category === 'assets' ? 'workspace-assets' : `workspace-${folder.category}`
-        
+
         // Upload empty file to create folder structure
         const { error } = await supabase.storage
           .from(bucket)
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
               workspace_slug: workspace.slug
             }
           })
-        
+
         if (error) {
           console.warn(`Failed to create folder ${folder.category}:`, error)
         }

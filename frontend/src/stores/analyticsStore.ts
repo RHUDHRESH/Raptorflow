@@ -33,7 +33,7 @@ interface AnalyticsStore {
   dashboard: AnalyticsDashboard | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setDashboard: (dashboard: AnalyticsDashboard) => void;
   fetchDashboard: () => Promise<void>;
@@ -45,11 +45,11 @@ interface AnalyticsStore {
 const analyticsApi = {
   async fetchDashboard(): Promise<AnalyticsDashboard> {
     const response = await authFetch('/api/proxy/api/v1/analytics/dashboard');
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch analytics dashboard');
     }
-    
+
     const data = await response.json();
     return data.dashboard;
   }

@@ -31,7 +31,7 @@ export default function MuseVertexAIChat() {
         try {
             const response = await fetch('http://localhost:8000/api/v1/muse/status');
             const data = await response.json();
-            
+
             if (data.status === 'available') {
                 setApiStatus('connected');
                 console.log('✅ REAL API connected:', data.model);
@@ -186,7 +186,7 @@ export default function MuseVertexAIChat() {
                             </p>
                         </div>
                     </div>
-                    
+
                     {/* Quick Actions */}
                     <div className="flex gap-2">
                         <button
@@ -218,7 +218,7 @@ export default function MuseVertexAIChat() {
                         <p className="text-sm text-gray-600 mb-6">
                             I'm your AI content creation assistant powered by Gemini 2.0 Flash.
                         </p>
-                        
+
                         <div className="space-y-2">
                             <p className="text-xs text-gray-500">Try asking me:</p>
                             <div className="space-y-1">
@@ -249,7 +249,7 @@ export default function MuseVertexAIChat() {
                                 <Bot className="w-3 h-3 text-white" />
                             </div>
                         )}
-                        
+
                         <div
                             className={`max-w-[80%] p-3 rounded-lg ${
                                 message.role === 'user'
@@ -258,7 +258,7 @@ export default function MuseVertexAIChat() {
                             }`}
                         >
                             <div className="whitespace-pre-wrap text-sm">{message.content}</div>
-                            
+
                             {/* Metadata */}
                             {(message.tokens_used || message.cost_usd) && (
                                 <div className="mt-2 pt-2 border-t border-gray-300 text-xs text-gray-500">
@@ -268,7 +268,7 @@ export default function MuseVertexAIChat() {
                                 </div>
                             )}
                         </div>
-                        
+
                         {message.role === 'user' && (
                             <div className="w-6 h-6 bg-gray-500 rounded-full flex items-center justify-center flex-shrink-0">
                                 <User className="w-3 h-3 text-white" />

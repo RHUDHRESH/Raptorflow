@@ -102,7 +102,7 @@ BEGIN
             full_name = EXCLUDED.full_name,
             onboarding_status = EXCLUDED.onboarding_status,
             updated_at = NOW();
-        
+
         -- Optional: DROP TABLE public.users; -- Keep it for safety for now
     END IF;
 END $$;

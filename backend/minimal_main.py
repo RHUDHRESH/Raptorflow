@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="RaptorFlow Payment API",
     description="Minimal payment API for PhonePe integration testing",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Configure CORS
@@ -43,6 +43,7 @@ app.add_middleware(
 # Include payment router
 app.include_router(payments_router, prefix="/api/payments/v2", tags=["payments"])
 
+
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -50,8 +51,9 @@ async def root():
         "message": "RaptorFlow Payment API",
         "status": "running",
         "timestamp": datetime.utcnow().isoformat(),
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
+
 
 @app.get("/health")
 async def health_check():
@@ -63,15 +65,16 @@ async def health_check():
             "services": {
                 "api": "running",
                 "phonepe": "configured",
-                "database": "connected"
-            }
+                "database": "connected",
+            },
         }
     except Exception as e:
         return {
             "status": "unhealthy",
             "timestamp": datetime.utcnow().isoformat(),
-            "error": str(e)
+            "error": str(e),
         }
+
 
 @app.get("/api/payments/v2/health")
 async def payments_health():
@@ -79,22 +82,23 @@ async def payments_health():
     try:
         # Test PhonePe SDK import
         from services.phonepe_sdk_gateway_fixed import phonepe_sdk_gateway_fixed
-        
+
         # Test gateway health
         health = await phonepe_sdk_gateway_fixed.health_check()
-        
+
         return {
             "status": "healthy",
             "timestamp": datetime.utcnow().isoformat(),
             "phonepe_gateway": health,
-            "environment": os.getenv("PHONEPE_ENV", "UAT")
+            "environment": os.getenv("PHONEPE_ENV", "UAT"),
         }
     except Exception as e:
         return {
             "status": "unhealthy",
             "timestamp": datetime.utcnow().isoformat(),
-            "error": str(e)
+            "error": str(e),
         }
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -104,10 +108,11 @@ async def startup_event():
     logger.info(f"💳 PhonePe Gateway: Configured")
     logger.info("✅ Payment API ready")
 
+
 if __name__ == "__main__":
     import uvicorn
-    
+
     port = int(os.environ.get("PORT", 8080))
     logger.info(f"🌐 Starting server on port {port}")
-    
+
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

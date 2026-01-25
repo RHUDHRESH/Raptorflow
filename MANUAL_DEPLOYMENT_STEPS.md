@@ -5,7 +5,7 @@
 The automated push failed because Supabase doesn't allow direct SQL execution via REST API without the `exec_sql` function. However, I can see that **some tables already exist**!
 
 ## 📊 CURRENT STATUS
-- ✅ `profiles` table - ACCESSIBLE  
+- ✅ `profiles` table - ACCESSIBLE
 - ✅ `workspaces` table - ACCESSIBLE
 - ✅ `subscriptions` table - ACCESSIBLE
 - ❌ `payments` table - MISSING
@@ -79,9 +79,9 @@ Run this verification query:
 
 ```sql
 -- Check all tables exist
-SELECT table_name, table_type 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN ('profiles', 'workspaces', 'subscriptions', 'payments', 'email_logs')
 ORDER BY table_name;
 ```
@@ -92,8 +92,8 @@ Test the critical workspace query that was causing issues:
 
 ```sql
 -- This should work now (no user_id column)
-SELECT id, name, owner_id 
-FROM public.workspaces 
+SELECT id, name, owner_id
+FROM public.workspaces
 WHERE owner_id = '00000000-0000-0000-0000-000000000000'
 LIMIT 1;
 ```

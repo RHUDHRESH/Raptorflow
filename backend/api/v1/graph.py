@@ -818,9 +818,7 @@ async def find_path(
     from_entity: str = Query(...),
     to_entity: str = Query(...),
     max_depth: int = Query(5, ge=1, le=10),
-    weight_function: str = Query(
-        "shortest", pattern="^(shortest|weighted|semantic)$"
-    ),
+    weight_function: str = Query("shortest", pattern="^(shortest|weighted|semantic)$"),
 ):
     """
     Find path between two entities.

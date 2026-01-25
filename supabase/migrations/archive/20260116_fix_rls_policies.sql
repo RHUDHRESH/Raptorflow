@@ -11,8 +11,8 @@ DROP POLICY IF EXISTS "Admins can view all users" ON users;
 CREATE POLICY "Admins can view all users" ON users
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = id
             AND role IN ('admin', 'super_admin', 'support', 'billing_admin')
         )
     );
@@ -25,8 +25,8 @@ DROP POLICY IF EXISTS "Admins can update users" ON users;
 CREATE POLICY "Admins can update users" ON users
     FOR UPDATE USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = id
             AND role IN ('admin', 'super_admin')
         )
     );
@@ -35,8 +35,8 @@ DROP POLICY IF EXISTS "Super admins can delete users" ON users;
 CREATE POLICY "Super admins can delete users" ON users
     FOR DELETE USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = id
             AND role = 'super_admin'
         )
     );
@@ -122,8 +122,8 @@ CREATE POLICY "Admins can view all subscriptions" ON subscriptions
     FOR SELECT
     USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = id
             AND role IN ('admin', 'super_admin', 'billing_admin')
         )
     );
@@ -139,8 +139,8 @@ CREATE POLICY "Admins can view all transactions" ON payment_transactions
     FOR SELECT
     USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = id
             AND role IN ('admin', 'super_admin', 'billing_admin')
         )
     );
@@ -156,8 +156,8 @@ CREATE POLICY "Admins can view all audit logs" ON audit_logs
     FOR SELECT
     USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = id
             AND role IN ('admin', 'super_admin', 'support')
         )
     );
@@ -173,8 +173,8 @@ CREATE POLICY "Admins can view all security events" ON security_events
     FOR SELECT
     USING (
         EXISTS (
-            SELECT 1 FROM users 
-            WHERE auth.uid() = id 
+            SELECT 1 FROM users
+            WHERE auth.uid() = id
             AND role IN ('admin', 'super_admin', 'support')
         )
     );
@@ -212,7 +212,7 @@ DROP POLICY IF EXISTS "Users can view their workspaces" ON user_workspaces;
 CREATE POLICY "Users can view their workspaces" ON user_workspaces
     FOR SELECT
     USING (
-        user_workspaces.workspace_id = workspaces.id 
+        user_workspaces.workspace_id = workspaces.id
         AND user_workspaces.user_id = auth.uid()
     );
 

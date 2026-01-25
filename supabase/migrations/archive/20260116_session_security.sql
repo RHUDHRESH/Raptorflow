@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS public.device_fingerprints (
   first_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   access_count INTEGER NOT NULL DEFAULT 1,
-  
+
   UNIQUE(user_id, fingerprint_hash)
 );
 
@@ -190,7 +190,7 @@ BEGIN
     WHERE user_id = user_uuid
     AND is_active = true
     AND expires_at > NOW();
-    
+
     RETURN current_count < max_sessions;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -211,7 +211,7 @@ BEGIN
     AND device_fingerprint_id = device_fingerprint_id
     AND is_active = true
     AND expires_at > NOW();
-    
+
     RETURN current_count < max_per_device;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -229,7 +229,7 @@ BEGIN
     FROM public.device_fingerprints
     WHERE user_id = user_uuid
     AND fingerprint_hash = device_hash;
-    
+
     RETURN device_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -266,7 +266,7 @@ BEGIN
         user_agent_param
     )
     RETURNING id INTO event_id;
-    
+
     RETURN event_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -282,7 +282,7 @@ BEGIN
         last_accessed = NOW()
     WHERE expires_at <= NOW()
     AND is_active = true;
-    
+
     GET DIAGNOSTICS (ROW_COUNT, deleted_count);
     RETURN deleted_count;
 END;
@@ -303,7 +303,7 @@ BEGIN
         FROM public.user_sessions
         WHERE is_active = true
     );
-    
+
     GET DIAGNOSTICS (ROW_COUNT, deleted_count);
     RETURN deleted_count;
 END;

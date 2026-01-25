@@ -24,7 +24,7 @@
 ### **Available API Endpoints:**
 ```
 POST /api/payments/v2/initiate           - Initiate payment
-GET  /api/payments/v2/status/{id}        - Check payment status  
+GET  /api/payments/v2/status/{id}        - Check payment status
 POST /api/payments/v2/webhook            - Handle PhonePe webhook
 GET  /api/payments/v2/health             - Health check
 ```
@@ -95,7 +95,7 @@ curl -X POST http://localhost:8000/api/payments/v2/initiate \
 
 ### **Payment Flow:**
 ```
-Frontend (Next.js) 
+Frontend (Next.js)
     ↓ POST /api/payments/v2/initiate
 Backend (FastAPI)
     ↓ PhonePe SDK Gateway

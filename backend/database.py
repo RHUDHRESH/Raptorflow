@@ -3,17 +3,16 @@ Database Configuration and Connection Management
 Provides proper connection pooling and lifecycle management
 """
 
-import os
 import asyncio
+import os
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 
 import asyncpg
-from sqlalchemy import create_engine, MetaData
+from config_clean import get_settings
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-
-from config_clean import get_settings
 
 settings = get_settings()
 
@@ -38,6 +37,7 @@ AsyncSessionLocal = async_sessionmaker(
 Base = declarative_base()
 metadata = MetaData()
 
+
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for getting database session"""
     async with AsyncSessionLocal() as session:
@@ -50,6 +50,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
+
 @asynccontextmanager
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """Context manager for database sessions"""
@@ -61,10 +62,12 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             await session.rollback()
             raise
 
+
 async def init_database() -> None:
     """Initialize database tables"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
 
 async def close_database() -> None:
     """Close database connections"""
