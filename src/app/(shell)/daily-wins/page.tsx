@@ -20,7 +20,7 @@ import {
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { cn } from "@/lib/utils";
 import { openPlatform } from "@/lib/external-links";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    DAILY WINS — Quick Content Wins
