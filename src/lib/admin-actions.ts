@@ -461,10 +461,11 @@ export class AdminActions {
               await this.activateUser(operation.admin_id, userId, operation.reason)
               result = { success: true }
               break
-            case 'reset_passwords':
+            case 'reset_passwords': {
               const tempPassword = await this.resetUserPassword(operation.admin_id, userId, operation.reason)
               result = { success: true, tempPassword }
               break
+            }
             case 'force_mfa_reset':
               await this.forceMFAReset(operation.admin_id, userId, operation.reason)
               result = { success: true }
@@ -495,7 +496,7 @@ export class AdminActions {
 
     } catch (error) {
       console.error('Error processing bulk operation:', error)
-      
+
       // Mark as failed
       await this.supabase
         .from('bulk_operations')

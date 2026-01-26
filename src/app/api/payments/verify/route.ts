@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/auth-server'
+import { createServerSupabaseClient, getProfileByAuthUserId, upsertProfileForAuthUser, updateProfileRecord } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { sendPaymentConfirmationEmail } from '@/lib/email'
@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const { transactionId } = await request.json()
 
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
 
     // Get current user
     const { data: { session } } = await supabase.auth.getSession()
@@ -46,42 +46,57 @@ export async function POST(request: Request) {
         })
         .eq('transaction_id', transactionId)
 
-      // Get user
-      const { data: user } = await supabase
-        .from('users')
-        .select('id, email, full_name')
-        .eq('auth_user_id', session.user.id)
-        .single()
+    let { profile } = await getProfileByAuthUserId(supabase, session.user.id)
 
-      // Activate subscription
+    if (!profile) {
+      const created = await upsertProfileForAuthUser(supabase, session.user)
+      profile = created.profile
+    }
+
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
+
+      // Calculate period end
       const now = new Date()
       const periodEnd = transaction.billing_cycle === 'yearly'
         ? new Date(now.setFullYear(now.getFullYear() + 1))
         : new Date(now.setMonth(now.getMonth() + 1))
 
+      // Activate subscription in subscriptions table
       await supabase
         .from('subscriptions')
-        .update({
+        .upsert({
+          user_id: profile!.id,
+          plan_id: transaction.plan_id,
+          billing_cycle: transaction.billing_cycle,
           status: 'active',
-          phonepe_transaction_id: transactionId,
           current_period_start: new Date().toISOString(),
           current_period_end: periodEnd.toISOString()
+        }, {
+          onConflict: 'user_id'
         })
-        .eq('user_id', user!.id)
 
-      // Update user status to active
-      await supabase
-        .from('users')
-        .update({ onboarding_status: 'active' })
-        .eq('id', user!.id)
+      // Update profile status to pending onboarding
+      await updateProfileRecord(
+        supabase,
+        { authUserId: session.user.id, profileId: profile.id },
+        {
+          subscription_plan: transaction.plan_id,
+          subscription_status: 'active',
+          onboarding_status: 'pending',
+          updated_at: new Date().toISOString()
+        }
+      )
 
       // Send confirmation email via Resend
       try {
+        const email = profile.email || session.user.email || ''
         await sendPaymentConfirmationEmail({
-          email: user!.email,
-          name: user!.full_name || user!.email.split('@')[0],
+          email,
+          name: profile.full_name || email.split('@')[0] || 'User',
           planName: transaction.plan_id.toUpperCase(),
-          amount: `₹${(transaction.amount_paise / 100).toLocaleString()}`,
+          amount: `₹${(transaction.amount / 100).toLocaleString()}`,
           transactionId: transactionId,
           date: new Date().toLocaleDateString()
         });
@@ -92,7 +107,7 @@ export async function POST(request: Request) {
 
       // Log success
       await supabase.from('audit_logs').insert({
-        actor_id: user!.id,
+        actor_id: profile!.id,
         action: 'payment_completed',
         action_category: 'payment',
         description: `Payment completed for plan: ${transaction.plan_id}`,

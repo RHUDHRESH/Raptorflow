@@ -1,8 +1,8 @@
 # COMPLETE SYSTEM IMPLEMENTATION GUIDE
 ## RaptorFlow Production Hardening & Authentication Overhaul
 
-**Version:** 1.0.0  
-**Last Updated:** January 2026  
+**Version:** 1.0.0
+**Last Updated:** January 2026
 **Status:** Production Implementation Guide
 
 ---
@@ -115,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading: true,
     error: null,
   });
-  
+
   const router = useRouter();
   const supabase = createClient();
 
@@ -124,9 +124,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) throw error;
-        
+
         setState({
           user: session?.user ?? null,
           session,
@@ -157,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_OUT') {
           router.push('/login');
         }
-        
+
         if (event === 'TOKEN_REFRESHED') {
           console.log('Token refreshed successfully');
         }
@@ -171,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -183,7 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = useCallback(async (email: string, password: string, metadata?: object) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -336,7 +336,7 @@ const adminRoutes = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Skip public routes
   if (publicRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next();
@@ -525,10 +525,10 @@ def get_supabase_client() -> Client:
     """Get authenticated Supabase client"""
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_SERVICE_KEY")
-    
+
     if not url or not key:
         raise AuthenticationError("Missing Supabase credentials")
-    
+
     return create_client(url, key)
 
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
@@ -537,25 +537,25 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
     NO BYPASSES - ALWAYS VALIDATES TOKEN.
     """
     token = credentials.credentials
-    
+
     if not token:
         raise HTTPException(status_code=401, detail="No token provided")
-    
+
     try:
         supabase = get_supabase_client()
-        
+
         # Verify the token with Supabase
         response = supabase.auth.get_user(token)
-        
+
         if not response.user:
             raise HTTPException(status_code=401, detail="Invalid token")
-        
+
         return {
             "id": response.user.id,
             "email": response.user.email,
             "role": response.user.user_metadata.get("role", "user"),
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
 
@@ -572,32 +572,32 @@ def require_auth(func: Callable):
                 if isinstance(arg, Request):
                     request = arg
                     break
-        
+
         if not request:
             raise HTTPException(status_code=500, detail="Request object not found")
-        
+
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Missing authorization header")
-        
+
         token = auth_header.split(" ")[1]
-        
+
         # Verify token - NO BYPASSES
         try:
             supabase = get_supabase_client()
             response = supabase.auth.get_user(token)
-            
+
             if not response.user:
                 raise HTTPException(status_code=401, detail="Invalid token")
-            
+
             # Attach user to request state
             request.state.user = response.user
-            
+
         except Exception as e:
             raise HTTPException(status_code=401, detail=str(e))
-        
+
         return await func(*args, **kwargs)
-    
+
     return wrapper
 
 def require_admin(func: Callable):
@@ -613,20 +613,20 @@ def require_admin(func: Callable):
                 if isinstance(arg, Request):
                     request = arg
                     break
-        
+
         user = getattr(request.state, 'user', None)
         if not user:
             raise HTTPException(status_code=401, detail="Not authenticated")
-        
+
         # Check role in database - NOT just token claims
         supabase = get_supabase_client()
         result = supabase.table('profiles').select('role').eq('id', user.id).single().execute()
-        
+
         if not result.data or result.data.get('role') not in ['admin', 'superadmin']:
             raise HTTPException(status_code=403, detail="Admin access required")
-        
+
         return await func(*args, **kwargs)
-    
+
     return wrapper
 ```
 
@@ -666,7 +666,7 @@ async def create_data(request: Request, user: dict = Depends(verify_token)):
     workspace_id = user.get('workspace_id')
     if not workspace_id:
         raise HTTPException(status_code=400, detail="No workspace assigned")
-    
+
     # Process with workspace isolation
     return {"success": True, "workspace_id": workspace_id}
 ```
@@ -677,7 +677,7 @@ async def create_data(request: Request, user: dict = Depends(verify_token)):
 
 ```typescript
 // BEFORE (INSECURE - REMOVE THIS):
-// const user = process.env.NODE_ENV === 'development' 
+// const user = process.env.NODE_ENV === 'development'
 //   ? { id: 'mock-user', email: 'dev@test.com' }
 //   : await getUser();
 
@@ -688,36 +688,36 @@ import { redirect } from 'next/navigation';
 
 export async function getAuthenticatedUser() {
   const supabase = await createServerSupabaseClient();
-  
+
   const { data: { user }, error } = await supabase.auth.getUser();
-  
+
   if (error || !user) {
     redirect('/login');
   }
-  
+
   return user;
 }
 
 export async function getUserWithProfile() {
   const supabase = await createServerSupabaseClient();
-  
+
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+
   if (authError || !user) {
     redirect('/login');
   }
-  
+
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single();
-  
+
   if (profileError) {
     console.error('Failed to fetch profile:', profileError);
     redirect('/onboarding');
   }
-  
+
   return { user, profile };
 }
 ```
@@ -731,67 +731,67 @@ import { createClient } from '@/lib/supabase/client';
 
 class SecureAPIClient {
   private baseUrl: string;
-  
+
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
   }
-  
+
   private async getAuthHeaders(): Promise<Headers> {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     if (!session?.access_token) {
       throw new Error('Not authenticated');
     }
-    
+
     return new Headers({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${session.access_token}`,
     });
   }
-  
+
   async get<T>(endpoint: string): Promise<T> {
     const headers = await this.getAuthHeaders();
-    
+
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'GET',
       headers,
     });
-    
+
     if (response.status === 401) {
       // Token expired - trigger refresh
       window.location.href = '/login?expired=true';
       throw new Error('Session expired');
     }
-    
+
     if (!response.ok) {
       throw new Error(`API Error: ${response.statusText}`);
     }
-    
+
     return response.json();
   }
-  
+
   async post<T>(endpoint: string, data: unknown): Promise<T> {
     const headers = await this.getAuthHeaders();
-    
+
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(data),
     });
-    
+
     if (response.status === 401) {
       window.location.href = '/login?expired=true';
       throw new Error('Session expired');
     }
-    
+
     if (!response.ok) {
       throw new Error(`API Error: ${response.statusText}`);
     }
-    
+
     return response.json();
   }
-  
+
   // Similar for PUT, DELETE, PATCH...
 }
 
@@ -1118,7 +1118,7 @@ RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM public.workspace_members
-    WHERE workspace_id = ws_id 
+    WHERE workspace_id = ws_id
     AND user_id = auth.uid()
     AND role IN ('owner', 'admin')
   );
@@ -1134,7 +1134,7 @@ BEGIN
   SELECT workspace_id INTO ws_id
   FROM public.profiles
   WHERE id = auth.uid();
-  
+
   RETURN ws_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -1203,7 +1203,7 @@ class WorkspaceMember:
 class WorkspaceService:
     def __init__(self, supabase_client):
         self.supabase = supabase_client
-    
+
     async def create_workspace(
         self,
         owner_id: str,
@@ -1215,7 +1215,7 @@ class WorkspaceService:
         """
         if not slug:
             slug = self._generate_slug(name)
-        
+
         # Create workspace
         workspace_data = {
             'name': name,
@@ -1224,10 +1224,10 @@ class WorkspaceService:
             'plan': 'free',
             'settings': {},
         }
-        
+
         result = self.supabase.table('workspaces').insert(workspace_data).execute()
         workspace = result.data[0]
-        
+
         # Add owner as workspace member
         member_data = {
             'workspace_id': workspace['id'],
@@ -1235,14 +1235,14 @@ class WorkspaceService:
             'role': 'owner',
         }
         self.supabase.table('workspace_members').insert(member_data).execute()
-        
+
         # Update user's profile with workspace
         self.supabase.table('profiles').update({
             'workspace_id': workspace['id']
         }).eq('id', owner_id).execute()
-        
+
         return Workspace(**workspace)
-    
+
     async def get_user_workspaces(self, user_id: str) -> List[Workspace]:
         """
         Get all workspaces a user is a member of.
@@ -1251,12 +1251,12 @@ class WorkspaceService:
             .select('workspace_id, workspaces(*)') \
             .eq('user_id', user_id) \
             .execute()
-        
+
         return [
             Workspace(**item['workspaces'])
             for item in result.data
         ]
-    
+
     async def add_member(
         self,
         workspace_id: str,
@@ -1273,22 +1273,22 @@ class WorkspaceService:
             .eq('email', user_email) \
             .single() \
             .execute()
-        
+
         if not user_result.data:
             raise ValueError(f"User with email {user_email} not found")
-        
+
         user_id = user_result.data['id']
-        
+
         # Check if already a member
         existing = self.supabase.table('workspace_members') \
             .select('id') \
             .eq('workspace_id', workspace_id) \
             .eq('user_id', user_id) \
             .execute()
-        
+
         if existing.data:
             raise ValueError("User is already a member of this workspace")
-        
+
         # Add member
         member_data = {
             'workspace_id': workspace_id,
@@ -1296,10 +1296,10 @@ class WorkspaceService:
             'role': role,
             'invited_by': invited_by,
         }
-        
+
         result = self.supabase.table('workspace_members').insert(member_data).execute()
         return WorkspaceMember(**result.data[0])
-    
+
     async def remove_member(self, workspace_id: str, user_id: str) -> bool:
         """
         Remove a member from workspace.
@@ -1309,9 +1309,9 @@ class WorkspaceService:
             .eq('workspace_id', workspace_id) \
             .eq('user_id', user_id) \
             .execute()
-        
+
         return True
-    
+
     async def update_member_role(
         self,
         workspace_id: str,
@@ -1326,9 +1326,9 @@ class WorkspaceService:
             .eq('workspace_id', workspace_id) \
             .eq('user_id', user_id) \
             .execute()
-        
+
         return WorkspaceMember(**result.data[0])
-    
+
     def _generate_slug(self, name: str) -> str:
         """Generate URL-safe slug from name."""
         import re
@@ -1389,7 +1389,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const supabase = createClient();
 
   // Load user's workspaces
@@ -1404,7 +1404,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     const loadWorkspaces = async () => {
       try {
         setLoading(true);
-        
+
         // Get user's profile to find current workspace
         const { data: profile } = await supabase
           .from('profiles')
@@ -1623,7 +1623,7 @@ export class TokenManager {
 
   async initialize() {
     const { data: { session } } = await this.supabase.auth.getSession();
-    
+
     if (session) {
       this.scheduleRefresh(session.expires_at!);
     }
@@ -1633,7 +1633,7 @@ export class TokenManager {
       if (event === 'TOKEN_REFRESHED' && session) {
         this.scheduleRefresh(session.expires_at!);
       }
-      
+
       if (event === 'SIGNED_OUT') {
         this.clearRefreshTimer();
       }
@@ -1875,27 +1875,27 @@ class PhonePeClient:
         self.salt_index = os.environ.get("PHONEPE_SALT_INDEX", "1")
         env = os.environ.get("PHONEPE_ENV", "UAT")
         self.base_url = PhonePeEnv[env].value
-        
+
         if not all([self.merchant_id, self.salt_key]):
             raise ValueError("PhonePe credentials not configured")
-    
+
     def _generate_checksum(self, payload: str, endpoint: str) -> str:
         """Generate X-VERIFY checksum for PhonePe API."""
         data_to_hash = payload + endpoint + self.salt_key
         sha256_hash = hashlib.sha256(data_to_hash.encode()).hexdigest()
         return f"{sha256_hash}###{self.salt_index}"
-    
+
     def _encode_payload(self, data: Dict) -> str:
         """Base64 encode the payload."""
         json_str = json.dumps(data)
         return base64.b64encode(json_str.encode()).decode()
-    
+
     def initiate_payment(self, request: PaymentRequest) -> PaymentResponse:
         """
         Initiate a payment request to PhonePe.
         """
         endpoint = "/pg/v1/pay"
-        
+
         payload_data = {
             "merchantId": self.merchant_id,
             "merchantTransactionId": request.merchant_transaction_id,
@@ -1908,22 +1908,22 @@ class PhonePeClient:
                 "type": "PAY_PAGE"
             }
         }
-        
+
         if request.mobile_number:
             payload_data["mobileNumber"] = request.mobile_number
-        
+
         encoded_payload = self._encode_payload(payload_data)
         checksum = self._generate_checksum(encoded_payload, endpoint)
-        
+
         headers = {
             "Content-Type": "application/json",
             "X-VERIFY": checksum
         }
-        
+
         body = {
             "request": encoded_payload
         }
-        
+
         try:
             response = requests.post(
                 f"{self.base_url}{endpoint}",
@@ -1931,9 +1931,9 @@ class PhonePeClient:
                 headers=headers,
                 timeout=30
             )
-            
+
             result = response.json()
-            
+
             if result.get("success"):
                 redirect_url = result.get("data", {}).get("instrumentResponse", {}).get("redirectInfo", {}).get("url")
                 return PaymentResponse(
@@ -1951,37 +1951,37 @@ class PhonePeClient:
                     message=result.get("message", "Payment initiation failed"),
                     data=result
                 )
-                
+
         except requests.RequestException as e:
             return PaymentResponse(
                 success=False,
                 code="NETWORK_ERROR",
                 message=str(e)
             )
-    
+
     def check_payment_status(self, merchant_transaction_id: str) -> PaymentResponse:
         """
         Check the status of a payment.
         """
         endpoint = f"/pg/v1/status/{self.merchant_id}/{merchant_transaction_id}"
-        
+
         checksum = self._generate_checksum("", endpoint)
-        
+
         headers = {
             "Content-Type": "application/json",
             "X-VERIFY": checksum,
             "X-MERCHANT-ID": self.merchant_id
         }
-        
+
         try:
             response = requests.get(
                 f"{self.base_url}{endpoint}",
                 headers=headers,
                 timeout=30
             )
-            
+
             result = response.json()
-            
+
             return PaymentResponse(
                 success=result.get("success", False),
                 code=result.get("code", "UNKNOWN"),
@@ -1989,14 +1989,14 @@ class PhonePeClient:
                 transaction_id=merchant_transaction_id,
                 data=result.get("data")
             )
-            
+
         except requests.RequestException as e:
             return PaymentResponse(
                 success=False,
                 code="NETWORK_ERROR",
                 message=str(e)
             )
-    
+
     def verify_webhook_signature(self, payload: str, received_checksum: str) -> bool:
         """
         Verify the webhook callback signature.
@@ -2019,27 +2019,27 @@ CREATE TABLE IF NOT EXISTS public.payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id),
-  
+
   -- Transaction details
   merchant_transaction_id TEXT UNIQUE NOT NULL,
   phonepe_transaction_id TEXT,
   amount INTEGER NOT NULL,  -- Amount in paise
   currency TEXT NOT NULL DEFAULT 'INR',
-  
+
   -- Status tracking
-  status TEXT NOT NULL DEFAULT 'initiated' 
+  status TEXT NOT NULL DEFAULT 'initiated'
     CHECK (status IN ('initiated', 'pending', 'success', 'failed', 'refunded')),
   payment_method TEXT,
-  
+
   -- Subscription linkage
   subscription_id UUID REFERENCES public.subscriptions(id),
   plan_id TEXT,
-  
+
   -- Metadata
   metadata JSONB DEFAULT '{}',
   error_code TEXT,
   error_message TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -2112,13 +2112,13 @@ async def initiate_payment(
     Initiate a new payment for subscription.
     """
     payment_service = PaymentService()
-    
+
     # Generate unique transaction ID
     merchant_transaction_id = f"TXN_{uuid.uuid4().hex[:16].upper()}"
-    
+
     # Amount in paise (multiply by 100)
     amount_paise = request.amount * 100
-    
+
     # Create payment record
     payment = await payment_service.create_payment(
         workspace_id=user['workspace_id'],
@@ -2127,7 +2127,7 @@ async def initiate_payment(
         amount=amount_paise,
         plan_id=request.plan_id
     )
-    
+
     # Initiate PhonePe payment
     phonepe_request = PaymentRequest(
         merchant_id=phonepe_client.merchant_id,
@@ -2137,9 +2137,9 @@ async def initiate_payment(
         callback_url=f"{os.environ.get('API_URL')}/api/webhooks/phonepe",
         user_id=user['id']
     )
-    
+
     response = phonepe_client.initiate_payment(phonepe_request)
-    
+
     if not response.success:
         await payment_service.update_payment_status(
             merchant_transaction_id,
@@ -2148,7 +2148,7 @@ async def initiate_payment(
             error_message=response.message
         )
         raise HTTPException(status_code=400, detail=response.message)
-    
+
     return {
         "transaction_id": merchant_transaction_id,
         "redirect_url": response.redirect_url
@@ -2163,16 +2163,16 @@ async def get_payment_status(
     Get payment status.
     """
     payment_service = PaymentService()
-    
+
     payment = await payment_service.get_payment(transaction_id)
-    
+
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
-    
+
     # Verify user has access
     if payment['user_id'] != user['id']:
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     return PaymentStatusResponse(
         transaction_id=payment['merchant_transaction_id'],
         status=payment['status'],
@@ -2191,13 +2191,13 @@ async def get_payment_history(
     Get payment history for workspace.
     """
     payment_service = PaymentService()
-    
+
     payments = await payment_service.get_workspace_payments(
         workspace_id=user['workspace_id'],
         limit=limit,
         offset=offset
     )
-    
+
     return {
         "payments": [
             {
@@ -2234,24 +2234,24 @@ async def phonepe_webhook(request: Request, background_tasks: BackgroundTasks):
     """
     try:
         body = await request.json()
-        
+
         # Verify signature
         x_verify = request.headers.get("X-VERIFY", "")
         encoded_response = body.get("response", "")
-        
+
         if not phonepe_client.verify_webhook_signature(encoded_response, x_verify):
             raise HTTPException(status_code=400, detail="Invalid signature")
-        
+
         # Decode response
         decoded = base64.b64decode(encoded_response).decode()
         payment_data = json.loads(decoded)
-        
+
         merchant_transaction_id = payment_data.get("merchantTransactionId")
         status_code = payment_data.get("code")
-        
+
         payment_service = PaymentService()
         subscription_service = SubscriptionService()
-        
+
         if status_code == "PAYMENT_SUCCESS":
             # Update payment status
             await payment_service.update_payment_status(
@@ -2260,10 +2260,10 @@ async def phonepe_webhook(request: Request, background_tasks: BackgroundTasks):
                 phonepe_transaction_id=payment_data.get("transactionId"),
                 completed_at=True
             )
-            
+
             # Get payment details
             payment = await payment_service.get_payment(merchant_transaction_id)
-            
+
             if payment and payment.get('plan_id'):
                 # Activate subscription
                 background_tasks.add_task(
@@ -2272,7 +2272,7 @@ async def phonepe_webhook(request: Request, background_tasks: BackgroundTasks):
                     plan_id=payment['plan_id'],
                     payment_id=payment['id']
                 )
-        
+
         elif status_code in ["PAYMENT_ERROR", "PAYMENT_DECLINED"]:
             await payment_service.update_payment_status(
                 merchant_transaction_id,
@@ -2280,9 +2280,9 @@ async def phonepe_webhook(request: Request, background_tasks: BackgroundTasks):
                 error_code=status_code,
                 error_message=payment_data.get("message", "Payment failed")
             )
-        
+
         return {"status": "received"}
-        
+
     except Exception as e:
         print(f"Webhook error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -2319,24 +2319,24 @@ CREATE TABLE IF NOT EXISTS public.plans (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
-  
+
   -- Pricing
   price_monthly INTEGER NOT NULL,  -- Price in paise
   price_yearly INTEGER,
-  
+
   -- Limits
   max_users INTEGER NOT NULL DEFAULT 1,
   max_campaigns INTEGER NOT NULL DEFAULT 5,
   max_api_calls INTEGER NOT NULL DEFAULT 1000,
   max_storage_mb INTEGER NOT NULL DEFAULT 100,
-  
+
   -- Features (JSON array of feature keys)
   features JSONB NOT NULL DEFAULT '[]',
-  
+
   -- Display
   is_public BOOLEAN NOT NULL DEFAULT true,
   sort_order INTEGER NOT NULL DEFAULT 0,
-  
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -2353,30 +2353,30 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
   plan_id TEXT NOT NULL REFERENCES public.plans(id),
-  
+
   -- Status
-  status TEXT NOT NULL DEFAULT 'active' 
+  status TEXT NOT NULL DEFAULT 'active'
     CHECK (status IN ('active', 'past_due', 'cancelled', 'expired', 'trialing')),
-  
+
   -- Billing cycle
   billing_cycle TEXT NOT NULL DEFAULT 'monthly' CHECK (billing_cycle IN ('monthly', 'yearly')),
   current_period_start TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   current_period_end TIMESTAMPTZ NOT NULL,
-  
+
   -- Trial
   trial_start TIMESTAMPTZ,
   trial_end TIMESTAMPTZ,
-  
+
   -- Cancellation
   cancel_at_period_end BOOLEAN NOT NULL DEFAULT false,
   cancelled_at TIMESTAMPTZ,
-  
+
   -- Payment
   last_payment_id UUID REFERENCES public.payments(id),
-  
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(workspace_id)
 );
 
@@ -2400,18 +2400,18 @@ CREATE POLICY "subscriptions_select_workspace" ON public.subscriptions
 CREATE TABLE IF NOT EXISTS public.usage_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
-  
+
   -- Usage metrics
   metric_name TEXT NOT NULL,
   usage_count INTEGER NOT NULL DEFAULT 0,
-  
+
   -- Period
   period_start TIMESTAMPTZ NOT NULL,
   period_end TIMESTAMPTZ NOT NULL,
-  
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(workspace_id, metric_name, period_start)
 );
 
@@ -2473,26 +2473,26 @@ class SubscriptionService:
             os.environ.get("SUPABASE_URL"),
             os.environ.get("SUPABASE_SERVICE_KEY")  # Use service key for admin operations
         )
-    
+
     async def get_plan(self, plan_id: str) -> Optional[Plan]:
         """Get plan details by ID."""
         result = self.supabase.table('plans').select('*').eq('id', plan_id).single().execute()
-        
+
         if not result.data:
             return None
-        
+
         return Plan(**result.data)
-    
+
     async def get_all_plans(self, public_only: bool = True) -> List[Plan]:
         """Get all available plans."""
         query = self.supabase.table('plans').select('*').order('sort_order')
-        
+
         if public_only:
             query = query.eq('is_public', True)
-        
+
         result = query.execute()
         return [Plan(**p) for p in result.data]
-    
+
     async def get_subscription(self, workspace_id: str) -> Optional[Subscription]:
         """Get current subscription for workspace."""
         result = self.supabase.table('subscriptions') \
@@ -2500,12 +2500,12 @@ class SubscriptionService:
             .eq('workspace_id', workspace_id) \
             .single() \
             .execute()
-        
+
         if not result.data:
             return None
-        
+
         return Subscription(**result.data)
-    
+
     async def create_subscription(
         self,
         workspace_id: str,
@@ -2515,12 +2515,12 @@ class SubscriptionService:
     ) -> Subscription:
         """Create a new subscription."""
         now = datetime.utcnow()
-        
+
         if billing_cycle == 'monthly':
             period_end = now + timedelta(days=30)
         else:
             period_end = now + timedelta(days=365)
-        
+
         data = {
             'workspace_id': workspace_id,
             'plan_id': plan_id,
@@ -2529,20 +2529,20 @@ class SubscriptionService:
             'current_period_start': now.isoformat(),
             'current_period_end': period_end.isoformat(),
         }
-        
+
         if trial_days > 0:
             data['trial_start'] = now.isoformat()
             data['trial_end'] = (now + timedelta(days=trial_days)).isoformat()
-        
+
         result = self.supabase.table('subscriptions').insert(data).execute()
-        
+
         # Update workspace plan
         self.supabase.table('workspaces').update({
             'plan': plan_id
         }).eq('id', workspace_id).execute()
-        
+
         return Subscription(**result.data[0])
-    
+
     async def activate_subscription(
         self,
         workspace_id: str,
@@ -2551,16 +2551,16 @@ class SubscriptionService:
     ) -> Subscription:
         """Activate subscription after successful payment."""
         now = datetime.utcnow()
-        
+
         # Get billing cycle from existing subscription or default to monthly
         existing = await self.get_subscription(workspace_id)
         billing_cycle = existing.billing_cycle if existing else 'monthly'
-        
+
         if billing_cycle == 'monthly':
             period_end = now + timedelta(days=30)
         else:
             period_end = now + timedelta(days=365)
-        
+
         data = {
             'plan_id': plan_id,
             'status': 'active',
@@ -2570,7 +2570,7 @@ class SubscriptionService:
             'cancel_at_period_end': False,
             'trial_end': None,
         }
-        
+
         if existing:
             result = self.supabase.table('subscriptions') \
                 .update(data) \
@@ -2580,14 +2580,14 @@ class SubscriptionService:
             data['workspace_id'] = workspace_id
             data['billing_cycle'] = billing_cycle
             result = self.supabase.table('subscriptions').insert(data).execute()
-        
+
         # Update workspace plan
         self.supabase.table('workspaces').update({
             'plan': plan_id
         }).eq('id', workspace_id).execute()
-        
+
         return Subscription(**result.data[0])
-    
+
     async def cancel_subscription(
         self,
         workspace_id: str,
@@ -2595,7 +2595,7 @@ class SubscriptionService:
     ) -> Subscription:
         """Cancel subscription."""
         now = datetime.utcnow()
-        
+
         if immediate:
             data = {
                 'status': 'cancelled',
@@ -2606,20 +2606,20 @@ class SubscriptionService:
                 'cancel_at_period_end': True,
                 'cancelled_at': now.isoformat(),
             }
-        
+
         result = self.supabase.table('subscriptions') \
             .update(data) \
             .eq('workspace_id', workspace_id) \
             .execute()
-        
+
         if immediate:
             # Downgrade to free plan
             self.supabase.table('workspaces').update({
                 'plan': 'free'
             }).eq('id', workspace_id).execute()
-        
+
         return Subscription(**result.data[0])
-    
+
     async def check_feature_access(
         self,
         workspace_id: str,
@@ -2627,18 +2627,18 @@ class SubscriptionService:
     ) -> bool:
         """Check if workspace has access to a feature."""
         subscription = await self.get_subscription(workspace_id)
-        
+
         if not subscription or subscription.status not in ['active', 'trialing']:
             # Default to free plan features
             plan = await self.get_plan('free')
         else:
             plan = await self.get_plan(subscription.plan_id)
-        
+
         if not plan:
             return False
-        
+
         return feature in plan.features or 'all_features' in plan.features
-    
+
     async def check_usage_limit(
         self,
         workspace_id: str,
@@ -2647,12 +2647,12 @@ class SubscriptionService:
     ) -> Dict[str, Any]:
         """Check if workspace is within usage limits."""
         subscription = await self.get_subscription(workspace_id)
-        
+
         if not subscription:
             plan = await self.get_plan('free')
         else:
             plan = await self.get_plan(subscription.plan_id)
-        
+
         # Get limit for metric
         limit_map = {
             'users': plan.max_users,
@@ -2660,33 +2660,33 @@ class SubscriptionService:
             'api_calls': plan.max_api_calls,
             'storage_mb': plan.max_storage_mb,
         }
-        
+
         limit = limit_map.get(metric, 0)
-        
+
         # -1 means unlimited
         if limit == -1:
             return {'allowed': True, 'current': 0, 'limit': -1}
-        
+
         # Get current usage
         now = datetime.utcnow()
         period_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        
+
         usage_result = self.supabase.table('usage_records') \
             .select('usage_count') \
             .eq('workspace_id', workspace_id) \
             .eq('metric_name', metric) \
             .gte('period_start', period_start.isoformat()) \
             .execute()
-        
+
         current_usage = sum(u['usage_count'] for u in usage_result.data) if usage_result.data else 0
-        
+
         return {
             'allowed': (current_usage + increment) <= limit,
             'current': current_usage,
             'limit': limit,
             'remaining': max(0, limit - current_usage)
         }
-    
+
     async def record_usage(
         self,
         workspace_id: str,
@@ -2697,7 +2697,7 @@ class SubscriptionService:
         now = datetime.utcnow()
         period_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         period_end = (period_start + timedelta(days=32)).replace(day=1) - timedelta(seconds=1)
-        
+
         # Upsert usage record
         self.supabase.rpc('increment_usage', {
             'p_workspace_id': workspace_id,
@@ -2735,27 +2735,27 @@ Customer ID management links users to their billing entities, enabling proper in
 CREATE TABLE IF NOT EXISTS public.customers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
-  
+
   -- Customer identification
   customer_id TEXT UNIQUE NOT NULL,  -- Formatted customer ID
-  
+
   -- Billing information
   billing_name TEXT,
   billing_email TEXT NOT NULL,
   billing_phone TEXT,
   billing_address JSONB DEFAULT '{}',
-  
+
   -- Tax information
   gstin TEXT,  -- GST Number for India
   pan TEXT,    -- PAN for India
-  
+
   -- Preferences
   currency TEXT NOT NULL DEFAULT 'INR',
   invoice_prefix TEXT,
-  
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   UNIQUE(workspace_id)
 );
 
@@ -2779,33 +2779,33 @@ CREATE TABLE IF NOT EXISTS public.invoices (
   customer_id UUID NOT NULL REFERENCES public.customers(id),
   workspace_id UUID NOT NULL REFERENCES public.workspaces(id),
   payment_id UUID REFERENCES public.payments(id),
-  
+
   -- Invoice details
   invoice_number TEXT UNIQUE NOT NULL,
   invoice_date DATE NOT NULL DEFAULT CURRENT_DATE,
   due_date DATE,
-  
+
   -- Amounts (all in paise)
   subtotal INTEGER NOT NULL,
   tax_amount INTEGER NOT NULL DEFAULT 0,
   discount_amount INTEGER NOT NULL DEFAULT 0,
   total_amount INTEGER NOT NULL,
-  
+
   -- Tax breakdown
   cgst_amount INTEGER DEFAULT 0,
   sgst_amount INTEGER DEFAULT 0,
   igst_amount INTEGER DEFAULT 0,
-  
+
   -- Status
-  status TEXT NOT NULL DEFAULT 'draft' 
+  status TEXT NOT NULL DEFAULT 'draft'
     CHECK (status IN ('draft', 'sent', 'paid', 'cancelled', 'refunded')),
-  
+
   -- Line items
   line_items JSONB NOT NULL DEFAULT '[]',
-  
+
   -- PDF storage
   pdf_url TEXT,
-  
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -2821,7 +2821,7 @@ CREATE SEQUENCE IF NOT EXISTS invoice_number_seq START 1;
 CREATE OR REPLACE FUNCTION public.generate_invoice_number()
 RETURNS TEXT AS $$
 BEGIN
-  RETURN 'INV-' || TO_CHAR(CURRENT_DATE, 'YYYYMM') || '-' || 
+  RETURN 'INV-' || TO_CHAR(CURRENT_DATE, 'YYYYMM') || '-' ||
          LPAD(nextval('invoice_number_seq')::TEXT, 5, '0');
 END;
 $$ LANGUAGE plpgsql;
@@ -2888,7 +2888,7 @@ class CustomerService:
             os.environ.get("SUPABASE_URL"),
             os.environ.get("SUPABASE_SERVICE_KEY")
         )
-    
+
     async def get_or_create_customer(
         self,
         workspace_id: str,
@@ -2902,14 +2902,14 @@ class CustomerService:
             .eq('workspace_id', workspace_id) \
             .single() \
             .execute()
-        
+
         if result.data:
             return Customer(**result.data)
-        
+
         # Generate customer ID
         customer_id_result = self.supabase.rpc('generate_customer_id').execute()
         customer_id = customer_id_result.data
-        
+
         # Create new customer
         data = {
             'workspace_id': workspace_id,
@@ -2917,10 +2917,10 @@ class CustomerService:
             'billing_email': billing_email,
             'billing_name': billing_name,
         }
-        
+
         result = self.supabase.table('customers').insert(data).execute()
         return Customer(**result.data[0])
-    
+
     async def update_billing_info(
         self,
         workspace_id: str,
@@ -2931,16 +2931,16 @@ class CustomerService:
             'billing_name', 'billing_email', 'billing_phone',
             'billing_address', 'gstin', 'pan'
         ]
-        
+
         update_data = {k: v for k, v in billing_info.items() if k in allowed_fields}
-        
+
         result = self.supabase.table('customers') \
             .update(update_data) \
             .eq('workspace_id', workspace_id) \
             .execute()
-        
+
         return Customer(**result.data[0])
-    
+
     async def create_invoice(
         self,
         customer_id: str,
@@ -2954,11 +2954,11 @@ class CustomerService:
         subtotal = sum(item['amount'] for item in line_items)
         tax_amount = int(subtotal * tax_rate)
         total_amount = subtotal + tax_amount
-        
+
         # Generate invoice number
         invoice_number_result = self.supabase.rpc('generate_invoice_number').execute()
         invoice_number = invoice_number_result.data
-        
+
         data = {
             'customer_id': customer_id,
             'workspace_id': workspace_id,
@@ -2972,10 +2972,10 @@ class CustomerService:
             'line_items': line_items,
             'status': 'paid',
         }
-        
+
         result = self.supabase.table('invoices').insert(data).execute()
         return Invoice(**result.data[0])
-    
+
     async def get_invoices(
         self,
         workspace_id: str,
@@ -2988,7 +2988,7 @@ class CustomerService:
             .order('invoice_date', desc=True) \
             .limit(limit) \
             .execute()
-        
+
         return [Invoice(**inv) for inv in result.data]
 ```
 
@@ -3042,9 +3042,9 @@ class UserResponse(BaseModel):
 async def list_workspace_users(user: dict = Depends(verify_token)):
     """List all users in the current workspace."""
     workspace_service = WorkspaceService()
-    
+
     members = await workspace_service.get_workspace_members(user['workspace_id'])
-    
+
     return {
         "users": [
             UserResponse(
@@ -3066,24 +3066,24 @@ async def invite_user(
     """Invite a user to the workspace."""
     workspace_service = WorkspaceService()
     subscription_service = SubscriptionService()
-    
+
     # Check user limit
     usage = await subscription_service.check_usage_limit(
         user['workspace_id'],
         'users'
     )
-    
+
     if not usage['allowed']:
         raise HTTPException(
             status_code=403,
             detail=f"User limit reached ({usage['limit']}). Upgrade your plan."
         )
-    
+
     # Validate role
     valid_roles = ['admin', 'member', 'viewer']
     if request.role not in valid_roles:
         raise HTTPException(status_code=400, detail=f"Invalid role. Use: {valid_roles}")
-    
+
     try:
         member = await workspace_service.add_member(
             workspace_id=user['workspace_id'],
@@ -3091,12 +3091,12 @@ async def invite_user(
             role=request.role,
             invited_by=user['id']
         )
-        
+
         # Record usage
         await subscription_service.record_usage(user['workspace_id'], 'users', 1)
-        
+
         return {"success": True, "member_id": member.id}
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -3108,35 +3108,35 @@ async def update_user_role(
 ):
     """Update a user's role in the workspace."""
     workspace_service = WorkspaceService()
-    
+
     # Check if current user is admin
     current_member = await workspace_service.get_member(
         user['workspace_id'],
         user['id']
     )
-    
+
     if current_member.role not in ['owner', 'admin']:
         raise HTTPException(status_code=403, detail="Only admins can change roles")
-    
+
     # Cannot change owner role
     target_member = await workspace_service.get_member(
         user['workspace_id'],
         user_id
     )
-    
+
     if target_member.role == 'owner':
         raise HTTPException(status_code=403, detail="Cannot change owner role")
-    
+
     valid_roles = ['admin', 'member', 'viewer']
     if request.role not in valid_roles:
         raise HTTPException(status_code=400, detail=f"Invalid role. Use: {valid_roles}")
-    
+
     await workspace_service.update_member_role(
         user['workspace_id'],
         user_id,
         request.role
     )
-    
+
     return {"success": True}
 
 @router.delete("/{user_id}")
@@ -3146,27 +3146,27 @@ async def remove_user(
 ):
     """Remove a user from the workspace."""
     workspace_service = WorkspaceService()
-    
+
     # Check permissions
     current_member = await workspace_service.get_member(
         user['workspace_id'],
         user['id']
     )
-    
+
     if current_member.role not in ['owner', 'admin']:
         raise HTTPException(status_code=403, detail="Only admins can remove users")
-    
+
     # Cannot remove owner
     target_member = await workspace_service.get_member(
         user['workspace_id'],
         user_id
     )
-    
+
     if target_member.role == 'owner':
         raise HTTPException(status_code=403, detail="Cannot remove workspace owner")
-    
+
     await workspace_service.remove_member(user['workspace_id'], user_id)
-    
+
     return {"success": True}
 ```
 
@@ -3207,9 +3207,9 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 async def admin_dashboard(request):
     """Get admin dashboard statistics."""
     admin_service = AdminService()
-    
+
     stats = await admin_service.get_dashboard_stats()
-    
+
     return {
         "total_users": stats['total_users'],
         "total_workspaces": stats['total_workspaces'],
@@ -3229,13 +3229,13 @@ async def list_all_users(
 ):
     """List all users in the system."""
     admin_service = AdminService()
-    
+
     users, total = await admin_service.list_users(
         page=page,
         limit=limit,
         search=search
     )
-    
+
     return {
         "users": users,
         "total": total,
@@ -3253,13 +3253,13 @@ async def list_all_workspaces(
 ):
     """List all workspaces."""
     admin_service = AdminService()
-    
+
     workspaces, total = await admin_service.list_workspaces(
         page=page,
         limit=limit,
         plan_filter=plan
     )
-    
+
     return {
         "workspaces": workspaces,
         "total": total,
@@ -3279,7 +3279,7 @@ async def list_all_payments(
 ):
     """List all payments."""
     admin_service = AdminService()
-    
+
     payments, total = await admin_service.list_payments(
         page=page,
         limit=limit,
@@ -3287,7 +3287,7 @@ async def list_all_payments(
         from_date=from_date,
         to_date=to_date
     )
-    
+
     return {
         "payments": payments,
         "total": total,
@@ -3300,9 +3300,9 @@ async def list_all_payments(
 async def suspend_user(request, user_id: str):
     """Suspend a user account."""
     admin_service = AdminService()
-    
+
     await admin_service.suspend_user(user_id)
-    
+
     return {"success": True, "message": "User suspended"}
 
 @router.post("/users/{user_id}/activate")
@@ -3310,9 +3310,9 @@ async def suspend_user(request, user_id: str):
 async def activate_user(request, user_id: str):
     """Activate a suspended user account."""
     admin_service = AdminService()
-    
+
     await admin_service.activate_user(user_id)
-    
+
     return {"success": True, "message": "User activated"}
 
 @router.post("/workspaces/{workspace_id}/plan")
@@ -3324,9 +3324,9 @@ async def change_workspace_plan(
 ):
     """Manually change a workspace's plan (admin override)."""
     admin_service = AdminService()
-    
+
     await admin_service.change_plan(workspace_id, plan_id)
-    
+
     return {"success": True, "message": f"Plan changed to {plan_id}"}
 ```
 
@@ -3347,47 +3347,47 @@ class AdminService:
             os.environ.get("SUPABASE_URL"),
             os.environ.get("SUPABASE_SERVICE_KEY")
         )
-    
+
     async def get_dashboard_stats(self) -> Dict[str, Any]:
         """Get admin dashboard statistics."""
         now = datetime.utcnow()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         week_start = today_start - timedelta(days=7)
         month_start = today_start.replace(day=1)
-        
+
         # Total users
         users_result = self.supabase.table('profiles').select('id', count='exact').execute()
-        
+
         # Total workspaces
         workspaces_result = self.supabase.table('workspaces').select('id', count='exact').execute()
-        
+
         # Active subscriptions
         subs_result = self.supabase.table('subscriptions') \
             .select('id', count='exact') \
             .eq('status', 'active') \
             .execute()
-        
+
         # Revenue this month
         revenue_result = self.supabase.table('payments') \
             .select('amount') \
             .eq('status', 'success') \
             .gte('created_at', month_start.isoformat()) \
             .execute()
-        
+
         revenue = sum(p['amount'] for p in revenue_result.data) if revenue_result.data else 0
-        
+
         # New users today
         new_today = self.supabase.table('profiles') \
             .select('id', count='exact') \
             .gte('created_at', today_start.isoformat()) \
             .execute()
-        
+
         # New users this week
         new_week = self.supabase.table('profiles') \
             .select('id', count='exact') \
             .gte('created_at', week_start.isoformat()) \
             .execute()
-        
+
         return {
             'total_users': users_result.count or 0,
             'total_workspaces': workspaces_result.count or 0,
@@ -3396,7 +3396,7 @@ class AdminService:
             'new_users_today': new_today.count or 0,
             'new_users_this_week': new_week.count or 0,
         }
-    
+
     async def list_users(
         self,
         page: int = 1,
@@ -3405,18 +3405,18 @@ class AdminService:
     ) -> Tuple[List[Dict], int]:
         """List all users with pagination."""
         offset = (page - 1) * limit
-        
+
         query = self.supabase.table('profiles').select('*', count='exact')
-        
+
         if search:
             query = query.or_(f"email.ilike.%{search}%,full_name.ilike.%{search}%")
-        
+
         result = query.order('created_at', desc=True) \
             .range(offset, offset + limit - 1) \
             .execute()
-        
+
         return result.data, result.count or 0
-    
+
     async def list_workspaces(
         self,
         page: int = 1,
@@ -3425,19 +3425,19 @@ class AdminService:
     ) -> Tuple[List[Dict], int]:
         """List all workspaces with pagination."""
         offset = (page - 1) * limit
-        
+
         query = self.supabase.table('workspaces') \
             .select('*, profiles!workspaces_owner_id_fkey(email)', count='exact')
-        
+
         if plan_filter:
             query = query.eq('plan', plan_filter)
-        
+
         result = query.order('created_at', desc=True) \
             .range(offset, offset + limit - 1) \
             .execute()
-        
+
         return result.data, result.count or 0
-    
+
     async def list_payments(
         self,
         page: int = 1,
@@ -3448,45 +3448,45 @@ class AdminService:
     ) -> Tuple[List[Dict], int]:
         """List all payments with filters."""
         offset = (page - 1) * limit
-        
+
         query = self.supabase.table('payments').select('*', count='exact')
-        
+
         if status:
             query = query.eq('status', status)
         if from_date:
             query = query.gte('created_at', from_date)
         if to_date:
             query = query.lte('created_at', to_date)
-        
+
         result = query.order('created_at', desc=True) \
             .range(offset, offset + limit - 1) \
             .execute()
-        
+
         return result.data, result.count or 0
-    
+
     async def suspend_user(self, user_id: str):
         """Suspend a user account."""
         # Update profile
         self.supabase.table('profiles').update({
             'status': 'suspended'
         }).eq('id', user_id).execute()
-        
+
         # Revoke sessions (would need Supabase admin API)
         # For now, the user's role check will fail
-    
+
     async def activate_user(self, user_id: str):
         """Activate a suspended user."""
         self.supabase.table('profiles').update({
             'status': 'active'
         }).eq('id', user_id).execute()
-    
+
     async def change_plan(self, workspace_id: str, plan_id: str):
         """Admin override to change workspace plan."""
         # Update workspace
         self.supabase.table('workspaces').update({
             'plan': plan_id
         }).eq('id', workspace_id).execute()
-        
+
         # Update subscription
         now = datetime.utcnow()
         self.supabase.table('subscriptions').update({
@@ -3508,1708 +3508,5 @@ class AdminService:
 
 ---
 
-# PHASE 11: PLAN UPGRADES & DOWNGRADES
-
-## 11.1 Overview
-
-Seamless plan transitions ensure users can upgrade for more features or downgrade when needed, with proper proration and feature access management.
-
-## 11.2 Plan Change API
-
-```python
-# backend/api/v1/billing.py
-
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
-
-from core.auth import verify_token
-from services.subscription_service import SubscriptionService
-from services.payment_service import PaymentService
-
-router = APIRouter(prefix="/billing", tags=["Billing"])
-
-class ChangePlanRequest(BaseModel):
-    new_plan_id: str
-    billing_cycle: Optional[str] = None  # 'monthly' or 'yearly'
-
-class PlanChangeResponse(BaseModel):
-    success: bool
-    message: str
-    payment_required: bool
-    payment_amount: Optional[int] = None
-    redirect_url: Optional[str] = None
-
-@router.post("/change-plan")
-async def change_plan(
-    request: ChangePlanRequest,
-    user: dict = Depends(verify_token)
-):
-    """
-    Change subscription plan (upgrade or downgrade).
-    """
-    subscription_service = SubscriptionService()
-    payment_service = PaymentService()
-    
-    workspace_id = user['workspace_id']
-    
-    # Get current subscription
-    current_sub = await subscription_service.get_subscription(workspace_id)
-    current_plan = await subscription_service.get_plan(
-        current_sub.plan_id if current_sub else 'free'
-    )
-    new_plan = await subscription_service.get_plan(request.new_plan_id)
-    
-    if not new_plan:
-        raise HTTPException(status_code=400, detail="Invalid plan")
-    
-    billing_cycle = request.billing_cycle or (
-        current_sub.billing_cycle if current_sub else 'monthly'
-    )
-    
-    # Calculate price difference
-    current_price = current_plan.price_monthly if billing_cycle == 'monthly' else current_plan.price_yearly
-    new_price = new_plan.price_monthly if billing_cycle == 'monthly' else new_plan.price_yearly
-    
-    # Upgrade - requires payment
-    if new_price > current_price:
-        # Calculate prorated amount
-        if current_sub and current_sub.status == 'active':
-            remaining_days = (current_sub.current_period_end - datetime.utcnow()).days
-            total_days = 30 if billing_cycle == 'monthly' else 365
-            proration = (remaining_days / total_days) * current_price
-            amount_due = new_price - int(proration)
-        else:
-            amount_due = new_price
-        
-        # Generate payment link
-        payment_result = await payment_service.create_upgrade_payment(
-            workspace_id=workspace_id,
-            user_id=user['id'],
-            plan_id=request.new_plan_id,
-            amount=amount_due,
-            billing_cycle=billing_cycle
-        )
-        
-        return PlanChangeResponse(
-            success=True,
-            message="Payment required to complete upgrade",
-            payment_required=True,
-            payment_amount=amount_due // 100,
-            redirect_url=payment_result['redirect_url']
-        )
-    
-    # Downgrade - schedule for end of period
-    elif new_price < current_price:
-        await subscription_service.schedule_downgrade(
-            workspace_id=workspace_id,
-            new_plan_id=request.new_plan_id
-        )
-        
-        return PlanChangeResponse(
-            success=True,
-            message=f"Your plan will change to {new_plan.name} at the end of your current billing period",
-            payment_required=False
-        )
-    
-    # Same price - just change plan
-    else:
-        await subscription_service.change_plan(
-            workspace_id=workspace_id,
-            new_plan_id=request.new_plan_id
-        )
-        
-        return PlanChangeResponse(
-            success=True,
-            message=f"Plan changed to {new_plan.name}",
-            payment_required=False
-        )
-
-@router.post("/cancel")
-async def cancel_subscription(
-    user: dict = Depends(verify_token),
-    immediate: bool = False
-):
-    """
-    Cancel subscription.
-    """
-    subscription_service = SubscriptionService()
-    
-    await subscription_service.cancel_subscription(
-        workspace_id=user['workspace_id'],
-        immediate=immediate
-    )
-    
-    if immediate:
-        return {"success": True, "message": "Subscription cancelled immediately"}
-    else:
-        return {"success": True, "message": "Subscription will cancel at end of billing period"}
-
-@router.get("/current")
-async def get_current_billing(user: dict = Depends(verify_token)):
-    """
-    Get current billing status.
-    """
-    subscription_service = SubscriptionService()
-    
-    subscription = await subscription_service.get_subscription(user['workspace_id'])
-    
-    if not subscription:
-        plan = await subscription_service.get_plan('free')
-        return {
-            "plan": plan.__dict__,
-            "status": "free",
-            "billing_cycle": None,
-            "current_period_end": None,
-            "cancel_at_period_end": False
-        }
-    
-    plan = await subscription_service.get_plan(subscription.plan_id)
-    
-    return {
-        "plan": plan.__dict__,
-        "status": subscription.status,
-        "billing_cycle": subscription.billing_cycle,
-        "current_period_end": subscription.current_period_end.isoformat(),
-        "cancel_at_period_end": subscription.cancel_at_period_end
-    }
-```
-
-## 11.3 Downgrade Scheduling
-
-```python
-# backend/services/subscription_service.py - Additional methods
-
-async def schedule_downgrade(
-    self,
-    workspace_id: str,
-    new_plan_id: str
-):
-    """Schedule a downgrade for end of billing period."""
-    self.supabase.table('subscriptions').update({
-        'scheduled_plan_id': new_plan_id,
-        'updated_at': datetime.utcnow().isoformat()
-    }).eq('workspace_id', workspace_id).execute()
-
-async def process_scheduled_changes(self):
-    """
-    Cron job to process scheduled plan changes.
-    Run daily to check for expired periods.
-    """
-    now = datetime.utcnow()
-    
-    # Find subscriptions that need processing
-    result = self.supabase.table('subscriptions') \
-        .select('*') \
-        .lte('current_period_end', now.isoformat()) \
-        .execute()
-    
-    for sub in result.data:
-        workspace_id = sub['workspace_id']
-        
-        # Check for scheduled downgrade
-        if sub.get('scheduled_plan_id'):
-            self.supabase.table('subscriptions').update({
-                'plan_id': sub['scheduled_plan_id'],
-                'scheduled_plan_id': None,
-                'updated_at': now.isoformat()
-            }).eq('id', sub['id']).execute()
-            
-            self.supabase.table('workspaces').update({
-                'plan': sub['scheduled_plan_id']
-            }).eq('id', workspace_id).execute()
-        
-        # Check for cancellation
-        elif sub.get('cancel_at_period_end'):
-            self.supabase.table('subscriptions').update({
-                'status': 'cancelled',
-                'updated_at': now.isoformat()
-            }).eq('id', sub['id']).execute()
-            
-            self.supabase.table('workspaces').update({
-                'plan': 'free'
-            }).eq('id', workspace_id).execute()
-        
-        # Check for renewal needed
-        elif sub['status'] == 'active':
-            # Mark as past_due if no auto-renewal
-            self.supabase.table('subscriptions').update({
-                'status': 'past_due',
-                'updated_at': now.isoformat()
-            }).eq('id', sub['id']).execute()
-```
-
-## 11.4 Verification Checklist - Phase 11
-
-- [ ] Upgrade flow works with proration
-- [ ] Payment redirect works for upgrades
-- [ ] Downgrade scheduling works
-- [ ] Scheduled changes process correctly
-- [ ] Cancellation at period end works
-- [ ] Immediate cancellation works
-- [ ] Free plan fallback works
-
----
-
-# PHASE 12: DEPLOYMENT PIPELINE
-
-## 12.1 Overview
-
-A robust CI/CD pipeline ensures reliable, repeatable deployments with proper testing, staging, and production environments.
-
-## 12.2 GitHub Actions Workflow
-
-### 12.2.1 Backend CI/CD
-
-```yaml
-# .github/workflows/backend-ci-cd.yml
-
-name: Backend CI/CD
-
-on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend-*.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'backend/**'
-
-env:
-  PYTHON_VERSION: '3.11'
-  REGISTRY: gcr.io
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  SERVICE_NAME: raptorflow-api
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      
-      - name: Install dependencies
-        run: |
-          cd backend
-          pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio
-      
-      - name: Run linting
-        run: |
-          cd backend
-          pip install flake8 black isort
-          flake8 . --max-line-length=100
-          black --check .
-          isort --check-only .
-      
-      - name: Run tests
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: |
-          cd backend
-          pytest tests/ -v --cov=. --cov-report=xml
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: backend/coverage.xml
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
-      - name: Configure Docker for GCR
-        run: gcloud auth configure-docker gcr.io
-      
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}
-          tags: |
-            type=sha,prefix=
-            type=raw,value=latest
-      
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  deploy-staging:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: staging
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
-      - name: Deploy to Cloud Run (Staging)
-        run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }}-staging \
-            --image ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest \
-            --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated \
-            --set-env-vars "ENVIRONMENT=staging"
-
-  deploy-production:
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    environment: production
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
-      - name: Deploy to Cloud Run (Production)
-        run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest \
-            --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated \
-            --min-instances 1 \
-            --max-instances 10 \
-            --set-env-vars "ENVIRONMENT=production"
-```
-
-### 12.2.2 Frontend CI/CD
-
-```yaml
-# .github/workflows/frontend-ci-cd.yml
-
-name: Frontend CI/CD
-
-on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend-*.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'frontend/**'
-
-env:
-  NODE_VERSION: '20'
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
-      
-      - name: Run linting
-        run: |
-          cd frontend
-          npm run lint
-      
-      - name: Run type check
-        run: |
-          cd frontend
-          npm run type-check
-      
-      - name: Run tests
-        run: |
-          cd frontend
-          npm run test:ci
-      
-      - name: Build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: |
-          cd frontend
-          npm run build
-
-  deploy-preview:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Deploy to Vercel Preview
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: frontend
-
-  deploy-production:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Deploy to Vercel Production
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          working-directory: frontend
-```
-
-## 12.3 Dockerfile
-
-```dockerfile
-# backend/Dockerfile
-
-FROM python:3.11-slim as builder
-
-WORKDIR /app
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
-
-# Production image
-FROM python:3.11-slim
-
-WORKDIR /app
-
-# Create non-root user
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser
-
-# Copy wheels and install
-COPY --from=builder /app/wheels /wheels
-RUN pip install --no-cache /wheels/*
-
-# Copy application
-COPY . .
-
-# Set ownership
-RUN chown -R appuser:appgroup /app
-
-# Switch to non-root user
-USER appuser
-
-# Environment
-ENV PYTHONUNBUFFERED=1
-ENV PORT=8080
-
-EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8080/health')" || exit 1
-
-# Run
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
-```
-
-## 12.4 Verification Checklist - Phase 12
-
-- [ ] CI runs tests on every PR
-- [ ] Linting enforced in CI
-- [ ] Docker builds successfully
-- [ ] Staging deployment works
-- [ ] Production deployment requires approval
-- [ ] Environment variables properly set
-- [ ] Health checks pass
-
----
-
-# PHASE 13: INFRASTRUCTURE HARDENING
-
-## 13.1 Overview
-
-Infrastructure hardening ensures the system is resilient, secure, and performant under production loads.
-
-## 13.2 Security Headers
-
-### 13.2.1 Next.js Security Headers
-
-```typescript
-// next.config.js
-
-const securityHeaders = [
-  {
-    key: 'X-DNS-Prefetch-Control',
-    value: 'on'
-  },
-  {
-    key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload'
-  },
-  {
-    key: 'X-Frame-Options',
-    value: 'SAMEORIGIN'
-  },
-  {
-    key: 'X-Content-Type-Options',
-    value: 'nosniff'
-  },
-  {
-    key: 'X-XSS-Protection',
-    value: '1; mode=block'
-  },
-  {
-    key: 'Referrer-Policy',
-    value: 'origin-when-cross-origin'
-  },
-  {
-    key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=()'
-  },
-  {
-    key: 'Content-Security-Policy',
-    value: `
-      default-src 'self';
-      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com;
-      style-src 'self' 'unsafe-inline';
-      img-src 'self' data: https: blob:;
-      font-src 'self' data:;
-      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.phonepe.com;
-      frame-src 'self' https://js.stripe.com https://mercury-t2.phonepe.com;
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self';
-      frame-ancestors 'self';
-    `.replace(/\s+/g, ' ').trim()
-  }
-];
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: securityHeaders,
-      },
-    ];
-  },
-  
-  // Disable x-powered-by header
-  poweredByHeader: false,
-  
-  // Production optimizations
-  compress: true,
-  
-  // Image optimization
-  images: {
-    domains: ['your-cdn.com'],
-    formats: ['image/avif', 'image/webp'],
-  },
-};
-
-module.exports = nextConfig;
-```
-
-### 13.2.2 Backend Security Middleware
-
-```python
-# backend/middleware/security.py
-
-from fastapi import FastAPI, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-import time
-
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
-        
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        
-        return response
-
-class RateLimitMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, calls_per_minute: int = 60):
-        super().__init__(app)
-        self.calls_per_minute = calls_per_minute
-        self.requests = {}
-    
-    async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host
-        current_time = time.time()
-        
-        # Clean old entries
-        self.requests = {
-            ip: times for ip, times in self.requests.items()
-            if current_time - times[-1] < 60
-        }
-        
-        # Check rate limit
-        if client_ip in self.requests:
-            times = [t for t in self.requests[client_ip] if current_time - t < 60]
-            if len(times) >= self.calls_per_minute:
-                return Response(
-                    content='{"error": "Rate limit exceeded"}',
-                    status_code=429,
-                    media_type="application/json"
-                )
-            times.append(current_time)
-            self.requests[client_ip] = times
-        else:
-            self.requests[client_ip] = [current_time]
-        
-        return await call_next(request)
-
-def setup_security(app: FastAPI):
-    """Configure all security middleware."""
-    
-    # CORS
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[
-            "https://raptorflow.com",
-            "https://www.raptorflow.com",
-            "https://app.raptorflow.com",
-        ],
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-        allow_headers=["*"],
-        max_age=86400,
-    )
-    
-    # Trusted hosts
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=[
-            "raptorflow.com",
-            "*.raptorflow.com",
-            "localhost",
-        ]
-    )
-    
-    # Security headers
-    app.add_middleware(SecurityHeadersMiddleware)
-    
-    # Rate limiting
-    app.add_middleware(RateLimitMiddleware, calls_per_minute=100)
-```
-
-## 13.3 Database Connection Pooling
-
-```python
-# backend/core/database.py
-
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator
-import os
-
-from supabase import create_client, Client
-from supabase.lib.client_options import ClientOptions
-
-# Connection pool settings
-POOL_SIZE = int(os.environ.get("DB_POOL_SIZE", "10"))
-MAX_OVERFLOW = int(os.environ.get("DB_MAX_OVERFLOW", "20"))
-
-class DatabasePool:
-    _instance = None
-    _client: Client = None
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-    
-    def initialize(self):
-        """Initialize the Supabase client with connection pooling."""
-        if self._client is None:
-            options = ClientOptions(
-                postgrest_client_timeout=30,
-                storage_client_timeout=60,
-            )
-            
-            self._client = create_client(
-                os.environ.get("SUPABASE_URL"),
-                os.environ.get("SUPABASE_SERVICE_KEY"),
-                options=options
-            )
-    
-    @property
-    def client(self) -> Client:
-        if self._client is None:
-            self.initialize()
-        return self._client
-    
-    async def health_check(self) -> bool:
-        """Check database connectivity."""
-        try:
-            result = self.client.table('profiles').select('id').limit(1).execute()
-            return True
-        except Exception:
-            return False
-
-# Global instance
-db_pool = DatabasePool()
-
-def get_db() -> Client:
-    """Get database client from pool."""
-    return db_pool.client
-```
-
-## 13.4 Redis Caching
-
-```python
-# backend/core/cache.py
-
-import redis
-import json
-import os
-from typing import Optional, Any
-from functools import wraps
-import hashlib
-
-class RedisCache:
-    def __init__(self):
-        self.redis = redis.Redis(
-            host=os.environ.get("REDIS_HOST", "localhost"),
-            port=int(os.environ.get("REDIS_PORT", "6379")),
-            password=os.environ.get("REDIS_PASSWORD"),
-            decode_responses=True,
-            socket_connect_timeout=5,
-            socket_keepalive=True,
-        )
-        self.default_ttl = 300  # 5 minutes
-    
-    def get(self, key: str) -> Optional[Any]:
-        """Get value from cache."""
-        try:
-            value = self.redis.get(key)
-            if value:
-                return json.loads(value)
-            return None
-        except Exception:
-            return None
-    
-    def set(self, key: str, value: Any, ttl: int = None) -> bool:
-        """Set value in cache."""
-        try:
-            self.redis.setex(
-                key,
-                ttl or self.default_ttl,
-                json.dumps(value)
-            )
-            return True
-        except Exception:
-            return False
-    
-    def delete(self, key: str) -> bool:
-        """Delete key from cache."""
-        try:
-            self.redis.delete(key)
-            return True
-        except Exception:
-            return False
-    
-    def delete_pattern(self, pattern: str) -> int:
-        """Delete all keys matching pattern."""
-        try:
-            keys = self.redis.keys(pattern)
-            if keys:
-                return self.redis.delete(*keys)
-            return 0
-        except Exception:
-            return 0
-
-cache = RedisCache()
-
-def cached(ttl: int = 300, key_prefix: str = ""):
-    """Decorator for caching function results."""
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Generate cache key
-            key_data = f"{key_prefix}:{func.__name__}:{args}:{kwargs}"
-            cache_key = hashlib.md5(key_data.encode()).hexdigest()
-            
-            # Try cache first
-            cached_value = cache.get(cache_key)
-            if cached_value is not None:
-                return cached_value
-            
-            # Execute function
-            result = await func(*args, **kwargs)
-            
-            # Cache result
-            cache.set(cache_key, result, ttl)
-            
-            return result
-        return wrapper
-    return decorator
-```
-
-## 13.5 Verification Checklist - Phase 13
-
-- [ ] Security headers set correctly
-- [ ] CORS configured for production domains
-- [ ] Rate limiting active
-- [ ] Database connection pooling configured
-- [ ] Redis caching operational
-- [ ] Health checks passing
-- [ ] No sensitive data in logs
-
----
-
-# PHASE 14: MONITORING & ALERTING
-
-## 14.1 Overview
-
-Comprehensive monitoring ensures early detection of issues and provides visibility into system health and performance.
-
-## 14.2 Application Logging
-
-```python
-# backend/core/logging.py
-
-import logging
-import json
-import sys
-from datetime import datetime
-from typing import Any, Dict
-import os
-
-class JSONFormatter(logging.Formatter):
-    """JSON log formatter for structured logging."""
-    
-    def format(self, record: logging.LogRecord) -> str:
-        log_data = {
-            "timestamp": datetime.utcnow().isoformat(),
-            "level": record.levelname,
-            "logger": record.name,
-            "message": record.getMessage(),
-            "module": record.module,
-            "function": record.funcName,
-            "line": record.lineno,
-        }
-        
-        # Add exception info if present
-        if record.exc_info:
-            log_data["exception"] = self.formatException(record.exc_info)
-        
-        # Add extra fields
-        if hasattr(record, "extra"):
-            log_data.update(record.extra)
-        
-        return json.dumps(log_data)
-
-def setup_logging():
-    """Configure application logging."""
-    
-    # Create logger
-    logger = logging.getLogger("raptorflow")
-    logger.setLevel(logging.INFO)
-    
-    # Console handler with JSON formatting
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(JSONFormatter())
-    logger.addHandler(console_handler)
-    
-    # Set third-party loggers to WARNING
-    logging.getLogger("uvicorn").setLevel(logging.WARNING)
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    
-    return logger
-
-# Initialize logger
-logger = setup_logging()
-
-def log_request(
-    method: str,
-    path: str,
-    status_code: int,
-    duration_ms: float,
-    user_id: str = None,
-    **kwargs
-):
-    """Log HTTP request with structured data."""
-    logger.info(
-        f"{method} {path} {status_code}",
-        extra={
-            "extra": {
-                "type": "request",
-                "method": method,
-                "path": path,
-                "status_code": status_code,
-                "duration_ms": duration_ms,
-                "user_id": user_id,
-                **kwargs
-            }
-        }
-    )
-
-def log_error(
-    error: Exception,
-    context: Dict[str, Any] = None
-):
-    """Log error with context."""
-    logger.error(
-        str(error),
-        exc_info=True,
-        extra={
-            "extra": {
-                "type": "error",
-                "error_type": type(error).__name__,
-                "context": context or {}
-            }
-        }
-    )
-
-def log_event(
-    event_type: str,
-    data: Dict[str, Any]
-):
-    """Log application event."""
-    logger.info(
-        f"Event: {event_type}",
-        extra={
-            "extra": {
-                "type": "event",
-                "event_type": event_type,
-                **data
-            }
-        }
-    )
-```
-
-## 14.3 Metrics Collection
-
-```python
-# backend/core/metrics.py
-
-from prometheus_client import Counter, Histogram, Gauge, generate_latest
-from functools import wraps
-import time
-
-# Request metrics
-REQUEST_COUNT = Counter(
-    'http_requests_total',
-    'Total HTTP requests',
-    ['method', 'endpoint', 'status']
-)
-
-REQUEST_LATENCY = Histogram(
-    'http_request_duration_seconds',
-    'HTTP request latency',
-    ['method', 'endpoint'],
-    buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
-)
-
-# Business metrics
-ACTIVE_USERS = Gauge(
-    'active_users_total',
-    'Number of active users'
-)
-
-PAYMENT_COUNT = Counter(
-    'payments_total',
-    'Total payments processed',
-    ['status', 'plan']
-)
-
-PAYMENT_AMOUNT = Counter(
-    'payment_amount_total',
-    'Total payment amount in paise',
-    ['plan']
-)
-
-API_ERRORS = Counter(
-    'api_errors_total',
-    'Total API errors',
-    ['endpoint', 'error_type']
-)
-
-def track_request(method: str, endpoint: str, status: int, duration: float):
-    """Track HTTP request metrics."""
-    REQUEST_COUNT.labels(method=method, endpoint=endpoint, status=status).inc()
-    REQUEST_LATENCY.labels(method=method, endpoint=endpoint).observe(duration)
-
-def track_payment(status: str, plan: str, amount: int = 0):
-    """Track payment metrics."""
-    PAYMENT_COUNT.labels(status=status, plan=plan).inc()
-    if amount > 0:
-        PAYMENT_AMOUNT.labels(plan=plan).inc(amount)
-
-def track_error(endpoint: str, error_type: str):
-    """Track API error metrics."""
-    API_ERRORS.labels(endpoint=endpoint, error_type=error_type).inc()
-
-def timed(func):
-    """Decorator to time function execution."""
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        start = time.time()
-        try:
-            result = await func(*args, **kwargs)
-            return result
-        finally:
-            duration = time.time() - start
-            # Log if too slow
-            if duration > 1.0:
-                from core.logging import logger
-                logger.warning(
-                    f"Slow function: {func.__name__}",
-                    extra={"extra": {"duration": duration}}
-                )
-    return wrapper
-
-# Metrics endpoint
-async def metrics_endpoint():
-    """Return Prometheus metrics."""
-    return generate_latest()
-```
-
-## 14.4 Health Check Endpoints
-
-```python
-# backend/api/health.py
-
-from fastapi import APIRouter, Response
-from datetime import datetime
-import os
-
-from core.database import db_pool
-from core.cache import cache
-
-router = APIRouter(tags=["Health"])
-
-@router.get("/health")
-async def health_check():
-    """Basic health check."""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
-        "version": os.environ.get("APP_VERSION", "unknown")
-    }
-
-@router.get("/health/ready")
-async def readiness_check():
-    """Readiness check - verifies all dependencies."""
-    checks = {
-        "database": False,
-        "cache": False,
-    }
-    
-    # Check database
-    try:
-        checks["database"] = await db_pool.health_check()
-    except Exception:
-        pass
-    
-    # Check Redis
-    try:
-        cache.redis.ping()
-        checks["cache"] = True
-    except Exception:
-        pass
-    
-    all_healthy = all(checks.values())
-    
-    return Response(
-        content={
-            "status": "ready" if all_healthy else "not_ready",
-            "checks": checks,
-            "timestamp": datetime.utcnow().isoformat()
-        },
-        status_code=200 if all_healthy else 503
-    )
-
-@router.get("/health/live")
-async def liveness_check():
-    """Liveness check - basic process health."""
-    return {"status": "alive"}
-```
-
-## 14.5 Alert Configuration
-
-```yaml
-# monitoring/alerting-rules.yml
-
-groups:
-  - name: raptorflow-alerts
-    rules:
-      # High error rate
-      - alert: HighErrorRate
-        expr: |
-          sum(rate(api_errors_total[5m])) / sum(rate(http_requests_total[5m])) > 0.05
-        for: 5m
-        labels:
-          severity: critical
-        annotations:
-          summary: "High API error rate (>5%)"
-          description: "Error rate is {{ $value | humanizePercentage }}"
-      
-      # High latency
-      - alert: HighLatency
-        expr: |
-          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High API latency (P95 > 2s)"
-          description: "P95 latency is {{ $value }}s"
-      
-      # Database connection issues
-      - alert: DatabaseUnhealthy
-        expr: up{job="raptorflow-db"} == 0
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Database connection failed"
-      
-      # Payment failures
-      - alert: PaymentFailures
-        expr: |
-          sum(rate(payments_total{status="failed"}[1h])) / 
-          sum(rate(payments_total[1h])) > 0.1
-        for: 15m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High payment failure rate (>10%)"
-      
-      # Low disk space
-      - alert: LowDiskSpace
-        expr: node_filesystem_avail_bytes / node_filesystem_size_bytes < 0.1
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Low disk space (<10%)"
-```
-
-## 14.6 Verification Checklist - Phase 14
-
-- [ ] Structured logging configured
-- [ ] Prometheus metrics exposed
-- [ ] Health endpoints responding
-- [ ] Alert rules configured
-- [ ] Dashboards created
-- [ ] On-call rotation set up
-- [ ] Runbooks documented
-
----
-
-# PHASE 15: RED-TEAM VERIFICATION & FINAL CHECKLIST
-
-## 15.1 Overview
-
-Red-team testing validates that all security measures are working as intended by simulating real attack scenarios.
-
-## 15.2 Security Test Cases
-
-### 15.2.1 Authentication Tests
-
-```python
-# tests/security/test_authentication.py
-
-import pytest
-import httpx
-
-BASE_URL = "http://localhost:8000"
-
-class TestAuthenticationSecurity:
-    """Security tests for authentication system."""
-    
-    @pytest.mark.asyncio
-    async def test_unauthenticated_access_blocked(self):
-        """Verify unauthenticated requests are rejected."""
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"{BASE_URL}/api/v1/users")
-            assert response.status_code == 401
-    
-    @pytest.mark.asyncio
-    async def test_invalid_token_rejected(self):
-        """Verify invalid tokens are rejected."""
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{BASE_URL}/api/v1/users",
-                headers={"Authorization": "Bearer invalid_token_here"}
-            )
-            assert response.status_code == 401
-    
-    @pytest.mark.asyncio
-    async def test_expired_token_rejected(self):
-        """Verify expired tokens are rejected."""
-        # Use an expired JWT
-        expired_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZXhwIjoxfQ.xxx"
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{BASE_URL}/api/v1/users",
-                headers={"Authorization": f"Bearer {expired_token}"}
-            )
-            assert response.status_code == 401
-    
-    @pytest.mark.asyncio
-    async def test_sql_injection_in_login(self):
-        """Verify SQL injection is blocked."""
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{BASE_URL}/api/auth/login",
-                json={
-                    "email": "admin@test.com' OR '1'='1",
-                    "password": "password"
-                }
-            )
-            assert response.status_code in [400, 401]
-    
-    @pytest.mark.asyncio
-    async def test_brute_force_protection(self):
-        """Verify rate limiting prevents brute force."""
-        async with httpx.AsyncClient() as client:
-            # Attempt 20 rapid login attempts
-            for i in range(20):
-                await client.post(
-                    f"{BASE_URL}/api/auth/login",
-                    json={"email": "test@test.com", "password": f"wrong{i}"}
-                )
-            
-            # 21st attempt should be rate limited
-            response = await client.post(
-                f"{BASE_URL}/api/auth/login",
-                json={"email": "test@test.com", "password": "wrong"}
-            )
-            assert response.status_code == 429
-```
-
-### 15.2.2 Authorization Tests
-
-```python
-# tests/security/test_authorization.py
-
-import pytest
-import httpx
-
-class TestAuthorizationSecurity:
-    """Security tests for authorization system."""
-    
-    @pytest.mark.asyncio
-    async def test_cross_workspace_access_blocked(self, user_a_token, user_b_workspace_id):
-        """Verify users cannot access other workspaces."""
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{BASE_URL}/api/v1/workspaces/{user_b_workspace_id}",
-                headers={"Authorization": f"Bearer {user_a_token}"}
-            )
-            assert response.status_code == 403
-    
-    @pytest.mark.asyncio
-    async def test_cross_workspace_data_blocked(self, user_a_token, user_b_campaign_id):
-        """Verify users cannot access other workspace's data."""
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{BASE_URL}/api/v1/campaigns/{user_b_campaign_id}",
-                headers={"Authorization": f"Bearer {user_a_token}"}
-            )
-            assert response.status_code in [403, 404]
-    
-    @pytest.mark.asyncio
-    async def test_admin_route_blocked_for_users(self, regular_user_token):
-        """Verify non-admins cannot access admin routes."""
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{BASE_URL}/api/v1/admin/users",
-                headers={"Authorization": f"Bearer {regular_user_token}"}
-            )
-            assert response.status_code == 403
-    
-    @pytest.mark.asyncio
-    async def test_idor_prevention(self, user_token):
-        """Verify IDOR attacks are prevented."""
-        async with httpx.AsyncClient() as client:
-            # Try to access incrementing IDs
-            for i in range(1, 100):
-                response = await client.get(
-                    f"{BASE_URL}/api/v1/payments/{i}",
-                    headers={"Authorization": f"Bearer {user_token}"}
-                )
-                # Should only get 404 (not found) or 403 (forbidden)
-                # Never 200 for other users' data
-                assert response.status_code in [403, 404]
-```
-
-### 15.2.3 Input Validation Tests
-
-```python
-# tests/security/test_input_validation.py
-
-import pytest
-import httpx
-
-class TestInputValidation:
-    """Security tests for input validation."""
-    
-    @pytest.mark.asyncio
-    async def test_xss_prevention(self, user_token):
-        """Verify XSS payloads are sanitized."""
-        xss_payloads = [
-            "<script>alert('xss')</script>",
-            "<img src=x onerror=alert('xss')>",
-            "javascript:alert('xss')",
-            "<svg onload=alert('xss')>",
-        ]
-        
-        async with httpx.AsyncClient() as client:
-            for payload in xss_payloads:
-                response = await client.post(
-                    f"{BASE_URL}/api/v1/campaigns",
-                    headers={"Authorization": f"Bearer {user_token}"},
-                    json={"name": payload, "description": payload}
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    # Verify payload is escaped or rejected
-                    assert "<script>" not in data.get("name", "")
-                    assert "onerror=" not in data.get("name", "")
-    
-    @pytest.mark.asyncio
-    async def test_path_traversal_blocked(self, user_token):
-        """Verify path traversal attacks are blocked."""
-        traversal_payloads = [
-            "../../../etc/passwd",
-            "..\\..\\..\\windows\\system32\\config\\sam",
-            "%2e%2e%2f%2e%2e%2f",
-        ]
-        
-        async with httpx.AsyncClient() as client:
-            for payload in traversal_payloads:
-                response = await client.get(
-                    f"{BASE_URL}/api/v1/files/{payload}",
-                    headers={"Authorization": f"Bearer {user_token}"}
-                )
-                assert response.status_code in [400, 403, 404]
-    
-    @pytest.mark.asyncio
-    async def test_large_payload_rejected(self, user_token):
-        """Verify oversized payloads are rejected."""
-        large_payload = "x" * (10 * 1024 * 1024)  # 10MB
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{BASE_URL}/api/v1/campaigns",
-                headers={"Authorization": f"Bearer {user_token}"},
-                json={"name": large_payload}
-            )
-            assert response.status_code in [400, 413]
-```
-
-## 15.3 Penetration Testing Checklist
-
-### 15.3.1 OWASP Top 10 Verification
-
-```markdown
-## OWASP Top 10 (2021) Checklist
-
-### A01:2021 - Broken Access Control
-- [ ] All API endpoints require authentication
-- [ ] Role-based access control enforced
-- [ ] CORS properly configured
-- [ ] Directory listing disabled
-- [ ] JWT tokens validated correctly
-- [ ] No auth bypasses exist
-
-### A02:2021 - Cryptographic Failures
-- [ ] HTTPS enforced everywhere
-- [ ] Strong TLS configuration (TLS 1.2+)
-- [ ] Passwords hashed with bcrypt/argon2
-- [ ] API keys/secrets not in code
-- [ ] Sensitive data encrypted at rest
-
-### A03:2021 - Injection
-- [ ] Parameterized queries used
-- [ ] Input validation on all endpoints
-- [ ] No SQL injection possible
-- [ ] No command injection possible
-- [ ] No LDAP injection possible
-
-### A04:2021 - Insecure Design
-- [ ] Threat modeling completed
-- [ ] Security requirements documented
-- [ ] Secure development lifecycle followed
-- [ ] Security unit tests in place
-
-### A05:2021 - Security Misconfiguration
-- [ ] No default credentials
-- [ ] Unnecessary features disabled
-- [ ] Error messages don't leak info
-- [ ] Security headers configured
-- [ ] Debug mode disabled in production
-
-### A06:2021 - Vulnerable Components
-- [ ] Dependencies up to date
-- [ ] No known vulnerabilities (npm audit, pip audit)
-- [ ] Component versions tracked
-- [ ] Automated vulnerability scanning
-
-### A07:2021 - Authentication Failures
-- [ ] Strong password policy
-- [ ] Account lockout after failed attempts
-- [ ] Session timeout implemented
-- [ ] Secure session management
-- [ ] MFA available (if applicable)
-
-### A08:2021 - Software and Data Integrity
-- [ ] CI/CD pipeline secured
-- [ ] Signed releases
-- [ ] Dependency integrity verified
-- [ ] No unsigned code execution
-
-### A09:2021 - Security Logging and Monitoring
-- [ ] Authentication events logged
-- [ ] Authorization failures logged
-- [ ] Security alerts configured
-- [ ] Log integrity protected
-- [ ] Incident response plan exists
-
-### A10:2021 - Server-Side Request Forgery
-- [ ] URL validation implemented
-- [ ] Allowlist for external requests
-- [ ] Internal services not exposed
-```
-
-## 15.4 Production Launch Checklist
-
-### 15.4.1 Security Checklist
-
-```markdown
-## Production Security Checklist
-
-### Authentication & Authorization
-- [ ] All auth bypasses removed
-- [ ] JWT validation working correctly
-- [ ] Session management secure
-- [ ] Password reset flow tested
-- [ ] Account lockout working
-- [ ] RLS policies active on all tables
-
-### Infrastructure
-- [ ] HTTPS enforced
-- [ ] Security headers configured
-- [ ] WAF rules active
-- [ ] DDoS protection enabled
-- [ ] Rate limiting active
-- [ ] IP allowlisting for admin
-
-### Data Protection
-- [ ] Encryption at rest enabled
-- [ ] Encryption in transit (TLS)
-- [ ] Backups encrypted
-- [ ] PII handling compliant
-- [ ] Data retention policy implemented
-
-### Monitoring
-- [ ] Security event logging
-- [ ] Alerting configured
-- [ ] Incident response documented
-- [ ] On-call rotation set up
-
-### Compliance
-- [ ] Privacy policy updated
-- [ ] Terms of service updated
-- [ ] Cookie consent implemented
-- [ ] GDPR compliance verified (if applicable)
-```
-
-### 15.4.2 Operational Checklist
-
-```markdown
-## Production Operations Checklist
-
-### Deployment
-- [ ] CI/CD pipeline tested
-- [ ] Rollback procedure documented
-- [ ] Blue-green deployment ready
-- [ ] Database migrations tested
-- [ ] Environment variables set
-
-### Performance
-- [ ] Load testing completed
-- [ ] Auto-scaling configured
-- [ ] CDN configured
-- [ ] Database indexes optimized
-- [ ] Caching working
-
-### Reliability
-- [ ] Health checks passing
-- [ ] Backup strategy tested
-- [ ] Disaster recovery documented
-- [ ] Failover tested
-- [ ] SLA defined
-
-### Support
-- [ ] Documentation complete
-- [ ] Support channels set up
-- [ ] Runbooks created
-- [ ] Knowledge base populated
-```
-
-## 15.5 Final Sign-Off
-
-```markdown
-## Production Readiness Sign-Off
-
-### Stakeholder Approvals
-
-| Role | Name | Date | Signature |
-|------|------|------|-----------|
-| Engineering Lead | _______ | _______ | _______ |
-| Security Officer | _______ | _______ | _______ |
-| Product Manager | _______ | _______ | _______ |
-| DevOps Lead | _______ | _______ | _______ |
-
-### Critical Verification
-
-- [ ] All 15 phases completed
-- [ ] Security audit passed
-- [ ] Performance benchmarks met
-- [ ] Backup/restore tested
-- [ ] Monitoring verified
-- [ ] Documentation complete
-
-### Launch Authorization
-
-Authorized by: _______________________
-Date: _______________________
-Version: _______________________
-```
-
----
-
-## Appendix A: Environment Variables Reference
-
-```bash
-# Frontend (.env.local)
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-NEXT_PUBLIC_API_URL=https://api.raptorflow.com
-
-# Backend (.env.production)
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=your-service-key
-PHONEPE_MERCHANT_ID=your-merchant-id
-PHONEPE_SALT_KEY=your-salt-key
-PHONEPE_SALT_INDEX=1
-PHONEPE_ENV=PRODUCTION
-REDIS_HOST=redis.internal
-REDIS_PORT=6379
-REDIS_PASSWORD=your-redis-password
-```
-
-## Appendix B: Database Migration Order
-
-```sql
--- Run migrations in this order:
--- 001_profiles.sql
--- 002_profiles_rls.sql
--- 003_workspaces_rls.sql
--- 004_campaigns_rls.sql
--- 005_data_tables_rls.sql
--- 006_security_functions.sql
--- 007_session_tracking.sql
--- 008_payments.sql
--- 009_subscriptions.sql
--- 010_customers.sql
-```
-
-## Appendix C: Quick Reference Commands
-
-```bash
-# Deploy backend
-gcloud run deploy raptorflow-api --image gcr.io/PROJECT/raptorflow-api:latest
-
-# Deploy frontend
-vercel --prod
-
-# Run security tests
-pytest tests/security/ -v
-
-# Check for vulnerabilities
-npm audit
-pip-audit
-
-# View logs
-gcloud logging read "resource.type=cloud_run_revision"
-
-# Check metrics
-curl http://localhost:8080/metrics
-```
-
----
-
-**Document Complete**
-
-*Total Phases: 15*
-*Total Verification Checklists: 15*
-*Estimated Implementation Time: 4-6 weeks*
-
----
-
-*This document was generated as a comprehensive implementation guide for RaptorFlow production hardening. Follow each phase sequentially and verify all checklist items before proceeding to the next phase.*
+*End of Chunk 2 - Phases 6-10*
+*Continue to Chunk 3 for Phases 11-15*

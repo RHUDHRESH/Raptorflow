@@ -74,7 +74,7 @@ class HealthReport:
 class HealthChecker:
     """Base health checker class."""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str = "health"):
         """Initialize health checker."""
         self.name = name
 

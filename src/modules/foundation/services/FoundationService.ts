@@ -7,8 +7,8 @@ export class FoundationService {
    * Retrieves the foundation data for a given workspace.
    */
   async getFoundation(workspaceId: string): Promise<Foundation | null> {
-    const supabase = createClient();
-    
+    const supabase = await createClient();
+
     const { data, error } = await supabase
       .from('foundations')
       .select('*')
@@ -29,8 +29,8 @@ export class FoundationService {
     // 1. Validate domain rules
     FoundationDomain.validate(data);
 
-    const supabase = createClient();
-    
+    const supabase = await createClient();
+
     const { data: updated, error } = await supabase
       .from('foundations')
       .update({

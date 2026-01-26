@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { RaptorLogo } from "@/components/ui/CompassLogo";
-import { CheckmarkCircle02Icon } from "hugeicons-react";
+import { CheckCircle } from "lucide-react";
 
 const BEFORE_ITEMS = [
     "Staring at a blank cursor every Monday morning.",
@@ -204,9 +204,7 @@ export default function ParallaxTransformation() {
                                     whileHover={{ scale: 1.2, rotate: 360 }}
                                     transition={{ type: "spring" }}
                                 >
-                                    {React.createElement(CheckmarkCircle02Icon as any, {
-                                        className: "w-6 h-6 text-green-600 flex-shrink-0 mt-0.5 group-hover:text-green-500 transition-colors"
-                                    })}
+                                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5 group-hover:text-green-500 transition-colors" />
                                 </motion.span>
                                 {item}
                             </motion.li>

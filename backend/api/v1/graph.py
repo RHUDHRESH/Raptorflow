@@ -818,7 +818,7 @@ async def find_path(
     from_entity: str = Query(...),
     to_entity: str = Query(...),
     max_depth: int = Query(5, ge=1, le=10),
-    weight_function: str = Query("shortest", regex="^(shortest|weighted|semantic)$"),
+    weight_function: str = Query("shortest", pattern="^(shortest|weighted|semantic)$"),
 ):
     """
     Find path between two entities.
@@ -1105,7 +1105,7 @@ async def get_cytoscape_visualization(
 async def export_graph_data(
     user: User = Depends(get_current_user),
     workspace_id: str = Depends(get_workspace_id),
-    format: str = Query("json", regex="^(json|csv|graphml)$"),
+    format: str = Query("json", pattern="^(json|csv|graphml)$"),
     include_embeddings: bool = Query(False),
 ):
     """

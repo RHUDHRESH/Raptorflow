@@ -10,7 +10,7 @@ const PASSWORD_REGEX = {
   hasUpperCase: /[A-Z]/,
   hasLowerCase: /[a-z]/,
   hasNumber: /\d/,
-  hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+  hasSpecialChar: /[[\]!@#$%^&*()_+\-=\\{};':"\\|,.<>/?]/,
   noSpaces: /^\S+$/
 };
 
@@ -29,38 +29,38 @@ export const validateEmail = (email: string): boolean => {
 
 export const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   if (!password || typeof password !== 'string') {
     errors.push('Password is required');
     return { isValid: false, errors };
   }
-  
+
   const trimmedPassword = password.trim();
-  
+
   if (trimmedPassword.length < PASSWORD_REGEX.minLength) {
     errors.push(`Password must be at least ${PASSWORD_REGEX.minLength} characters long`);
   }
-  
+
   if (!PASSWORD_REGEX.hasUpperCase.test(trimmedPassword)) {
     errors.push('Password must contain at least one uppercase letter');
   }
-  
+
   if (!PASSWORD_REGEX.hasLowerCase.test(trimmedPassword)) {
     errors.push('Password must contain at least one lowercase letter');
   }
-  
+
   if (!PASSWORD_REGEX.hasNumber.test(trimmedPassword)) {
     errors.push('password must contain at least one number');
   }
-  
+
   if (!PASSWORD_REGEX.hasSpecialChar.test(trimmedPassword)) {
     errors.push('Password must contain at least one special character');
   }
-  
+
   if (!PASSWORD_REGEX.noSpaces.test(trimmedPassword)) {
     errors.push('Password cannot contain spaces');
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -69,28 +69,28 @@ export const validatePassword = (password: string): { isValid: boolean; errors: 
 
 export const validateName = (name: string, minLength: number = 2, maxLength: number = 100): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   if (!name || typeof name !== 'string') {
     errors.push('Name is required');
     return { isValid: false, errors };
   }
-  
+
   const trimmedName = name.trim();
-  
+
   if (trimmedName.length < minLength) {
     errors.push(`Name must be at least ${minLength} characters long`);
   }
-  
+
   if (trimmedName.length > maxLength) {
     errors.push(`Name cannot be more than ${maxLength} characters long`);
   }
-  
+
   // Check for valid characters (letters, spaces, hyphens, apostrophes)
   const nameRegex = /^[a-zA-Z\s\-']+$/;
   if (!nameRegex.test(trimmedName)) {
     errors.push('Name can only contain letters, spaces, hyphens, and apostrophes');
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -99,10 +99,10 @@ export const validateName = (name: string, minLength: number = 2, maxLength: num
 
 export const sanitizeInput = (input: string): string => {
   if (!input || typeof input !== 'string') return '';
-  
+
   // Remove any HTML/JS tags and scripts
   const sanitized = DOMPurify.sanitize(input, SANITIZE_CONFIG);
-  
+
   // Additional sanitization
   return sanitized
     .replace(/<script[^>]*>.*?<\/script>/gi, '') // Remove scripts
@@ -113,7 +113,7 @@ export const sanitizeInput = (input: string): string => {
 
 export const validateUrl = (url: string): boolean => {
   if (!url || typeof url !== 'string') return false;
-  
+
   try {
     new URL(url);
     return true;
@@ -124,9 +124,9 @@ export const validateUrl = (url: string): boolean => {
 
 export const validatePhone = (phone: string): boolean => {
   if (!phone || typeof phone !== 'string') return false;
-  
+
   // Basic phone validation (10 digits, optional country code)
-  const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+  const phoneRegex = /^\+?[\d\s\-()]{10,}$/;
   return phoneRegex.test(phone.replace(/\D/g, ''));
 };
 
@@ -147,7 +147,7 @@ export const validateAlphaNumeric = (input: string): boolean => {
 
 export const validateDate = (dateString: string): boolean => {
   if (!dateString || typeof dateString !== 'string') return false;
-  
+
   const date = new Date(dateString);
   return date instanceof Date && !isNaN(date.getTime());
 };
@@ -161,7 +161,7 @@ export const validateUuid = (uuid: string): boolean => {
 // SQL injection prevention
 export const sanitizeSqlInput = (input: string): string => {
   if (!input || typeof input !== 'string') return '';
-  
+
   // Remove common SQL injection patterns
   return input
     .replace(/['"]/g, '') // Remove quotes
@@ -176,7 +176,7 @@ export const sanitizeSqlInput = (input: string): string => {
 // XSS prevention
 export const escapeHtml = (unsafe: string): string => {
   if (!unsafe || typeof unsafe !== 'string') return '';
-  
+
   return unsafe
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -191,7 +191,7 @@ export const validateCsrfToken = (token: string, sessionToken: string): boolean 
   if (!token || !sessionToken || typeof token !== 'string' || typeof sessionToken !== 'string') {
     return false;
   }
-  
+
   // Simple token comparison (in production, use HMAC)
   return token === sessionToken && token.length > 20;
 };
@@ -199,33 +199,33 @@ export const validateCsrfToken = (token: string, sessionToken: string): boolean 
 // File upload validation
 export const validateFileUpload = (file: File, allowedTypes: string[], maxSize: number): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   if (!file) {
     errors.push('No file provided');
     return { isValid: false, errors };
   }
-  
+
   // Check file type
   if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
     errors.push(`File type ${file.type} is not allowed`);
   }
-  
+
   // Check file size
   if (file.size > maxSize) {
     errors.push(`File size exceeds maximum allowed size of ${maxSize} bytes`);
   }
-  
+
   // Check file name for suspicious patterns
   const suspiciousPatterns = ['<script', 'javascript:', 'vbscript:', 'onload=', 'onerror='];
   const fileName = file.name.toLowerCase();
-  
+
   for (const pattern of suspiciousPatterns) {
     if (fileName.includes(pattern)) {
       errors.push('File name contains suspicious content');
       break;
     }
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -250,12 +250,12 @@ export const getSecurityHeaders = (): Record<string, string> => ({
 // Input sanitization middleware helper
 export const sanitizeRequestData = (data: Record<string, any>): Record<string, any> => {
   const sanitized: Record<string, any> = {};
-  
+
   for (const [key, value] of Object.entries(data)) {
     if (typeof value === 'string') {
       sanitized[key] = sanitizeInput(value);
     } else if (Array.isArray(value)) {
-      sanitized[key] = value.map(item => 
+      sanitized[key] = value.map(item =>
         typeof item === 'string' ? sanitizeInput(item) : item
       );
     } else if (typeof value === 'object' && value !== null) {
@@ -264,6 +264,6 @@ export const sanitizeRequestData = (data: Record<string, any>): Record<string, a
       sanitized[key] = value;
     }
   }
-  
+
   return sanitized;
 };

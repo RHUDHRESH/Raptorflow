@@ -1,0 +1,123 @@
+﻿{
+  "tech_stack": [
+    "Python",
+    "FastAPI",
+    "Supabase",
+    "Redis",
+    "Vertex AI",
+    "Google Cloud Storage",
+    "SQLAlchemy",
+    "Pydantic",
+    "Uvicorn",
+    "Google Generative AI",
+    "LangChain",
+    "Upstash Redis"
+  ],
+  "features": [
+    {
+      "name": "Authentication API",
+      "description": "Backend authentication endpoints with JWT tokens, session management, and user validation",
+      "files": [
+        "backend/api/v1/auth.py",
+        "backend/api/v1/sessions.py",
+        "backend/api/v1/users.py"
+      ]
+    },
+    {
+      "name": "Payment Processing",
+      "description": "PhonePe payment integration with subscription management and webhook handling",
+      "files": [
+        "backend/api/v1/payments.py",
+        "backend/api/v1/payments_enhanced.py",
+        "backend/api/v1/payments_v2.py"
+      ]
+    },
+    {
+      "name": "ICP Management",
+      "description": "Ideal Customer Profile creation, management, and AI-powered generation endpoints",
+      "files": [
+        "backend/api/v1/icps.py",
+        "backend/api/v1/foundation.py"
+      ]
+    },
+    {
+      "name": "AI Inference Engine",
+      "description": "Vertex AI integration for cognitive analysis, content generation, and AI agent workflows",
+      "files": [
+        "backend/api/v1/ai_inference.py",
+        "backend/api/v1/ai_proxy.py",
+        "backend/api/v1/cognitive.py",
+        "backend/llm.py"
+      ]
+    },
+    {
+      "name": "Onboarding System",
+      "description": "User onboarding workflow with foundation data processing and cohort creation",
+      "files": [
+        "backend/api/v1/onboarding.py",
+        "backend/api/v1/onboarding_v2.py",
+        "backend/api/v1/onboarding_sync.py"
+      ]
+    },
+    {
+      "name": "Analytics Engine",
+      "description": "Business analytics, metrics collection, and performance tracking endpoints",
+      "files": [
+        "backend/api/v1/analytics.py",
+        "backend/api/v1/analytics_v2.py",
+        "backend/api/v1/metrics.py"
+      ]
+    },
+    {
+      "name": "Storage Integration",
+      "description": "Google Cloud Storage integration for file uploads, evidence vault, and document management",
+      "files": [
+        "backend/api/v1/storage.py",
+        "backend/api/v1/ocr.py"
+      ]
+    },
+    {
+      "name": "Campaign Management",
+      "description": "Marketing campaign creation, management, and performance tracking",
+      "files": [
+        "backend/api/v1/campaigns.py",
+        "backend/api/v1/campaigns_new.py"
+      ]
+    },
+    {
+      "name": "Admin Operations",
+      "description": "Administrative functions, user management, and system configuration",
+      "files": [
+        "backend/api/v1/admin.py",
+        "backend/api/v1/config.py",
+        "backend/api/v1/validation.py"
+      ]
+    },
+    {
+      "name": "Health Monitoring",
+      "description": "System health checks, database monitoring, and performance metrics",
+      "files": [
+        "backend/api/v1/health.py",
+        "backend/api/v1/health_comprehensive.py",
+        "backend/api/v1/database_health.py"
+      ]
+    },
+    {
+      "name": "Memory Management",
+      "description": "AI memory system for context retention and conversation history",
+      "files": [
+        "backend/api/v1/memory.py",
+        "backend/api/v1/memory_endpoints.py",
+        "backend/memory_services.py"
+      ]
+    },
+    {
+      "name": "Rate Limiting",
+      "description": "API rate limiting and abuse prevention mechanisms",
+      "files": [
+        "backend/api/v1/rate_limit.py",
+        "backend/redis_client.py"
+      ]
+    }
+  ]
+}

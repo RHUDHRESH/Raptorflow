@@ -7,10 +7,10 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 from backend.core.supabase_mgr import get_supabase_client
+from backend.db.filters import Filter, build_query
+from backend.db.pagination import PaginatedResult, Pagination
 
 from .base import BaseModel, Repository
-from .filters import Filter, build_query
-from .pagination import PaginatedResult, Pagination
 
 
 @dataclass

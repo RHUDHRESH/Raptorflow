@@ -1,0 +1,465 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - link "RaptorFlow" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e10]: RaptorFlow
+      - navigation [ref=e11]:
+        - link "System" [ref=e12] [cursor=pointer]:
+          - /url: "#system"
+        - link "How it works" [ref=e13] [cursor=pointer]:
+          - /url: "#how"
+        - link "Pricing" [ref=e14] [cursor=pointer]:
+          - /url: "#pricing"
+        - link "Log in" [ref=e15] [cursor=pointer]:
+          - /url: /login
+        - link "Start Now" [ref=e16] [cursor=pointer]:
+          - /url: /signup
+    - generic [ref=e17]:
+      - generic [ref=e20]:
+        - generic [ref=e23]: Now in public beta
+        - heading "Stop posting. ✨ Start building." [level=1] [ref=e24]:
+          - generic [ref=e25]:
+            - text: Stop posting.
+            - generic [ref=e26]: ✨
+          - text: Start building.
+        - paragraph [ref=e27]: The first operating system for founder-led marketing. Strategy, content, and execution—unified at last.
+        - generic [ref=e28]:
+          - link "Get Started" [ref=e29] [cursor=pointer]:
+            - /url: /signup
+            - text: Get Started
+            - img [ref=e30]
+          - link "See how it works" [ref=e32] [cursor=pointer]:
+            - /url: "#how"
+        - paragraph [ref=e33]:
+          - generic [ref=e34]: No commitment required
+          - generic [ref=e35]: ·
+          - generic [ref=e36]: Setup in 20 mins ⚡
+          - generic [ref=e37]: ·
+          - generic [ref=e38]: Cancel anytime
+      - generic:
+        - generic: 🚀
+        - generic: ✨
+        - generic: 💡
+        - generic: 🎯
+        - generic: ⚡
+    - generic [ref=e43]:
+      - paragraph [ref=e44]:
+        - text: Trusted by
+        - generic [ref=e45]: 0+
+        - text: founders
+      - generic [ref=e46]:
+        - generic [ref=e47]: ProductHunt
+        - generic [ref=e48]: Indie Hackers
+        - generic [ref=e49]: YC
+        - generic [ref=e50]: Techstars
+        - generic [ref=e51]: 500 Global
+    - generic [ref=e53]:
+      - generic [ref=e54]: 💡 Founders spend 15+ hours weekly on marketing—we cut that to 5
+      - generic [ref=e55]: 🎯 Our AI trained on 10,000+ successful campaigns
+      - generic [ref=e56]: "⚡ Average setup time: 22 minutes"
+      - generic [ref=e57]: 🚀 Users ship 3x more content per week
+      - generic [ref=e58]: 📈 87% see pipeline growth in 6 weeks
+      - generic [ref=e59]: 💡 Founders spend 15+ hours weekly on marketing—we cut that to 5
+      - generic [ref=e60]: 🎯 Our AI trained on 10,000+ successful campaigns
+      - generic [ref=e61]: "⚡ Average setup time: 22 minutes"
+      - generic [ref=e62]: 🚀 Users ship 3x more content per week
+      - generic [ref=e63]: 📈 87% see pipeline growth in 6 weeks
+    - generic [ref=e65]:
+      - paragraph [ref=e66]: You didn't start a company to spend 15 hours a week fighting with generic AI prompts and social media schedulers. Tool sprawl is the villain of your growth. Six months of posting. Zero pipeline.
+      - paragraph [ref=e67]: The problem isn’t your effort; it’s your architecture.
+    - generic [ref=e69]:
+      - generic [ref=e70]:
+        - paragraph [ref=e71]: The Technical Spine
+        - heading "Six modules. One unified engine." [level=2] [ref=e72]:
+          - text: Six modules.
+          - text: One unified engine.
+        - paragraph [ref=e73]: Everything you need to go from business context to market domination. No more tool-switching. Marketing, finally under control.
+      - generic [ref=e74]:
+        - img
+        - generic [ref=e75] [cursor=pointer]:
+          - generic [ref=e77]: ◈
+          - generic [ref=e78]:
+            - generic [ref=e79]: Strategy
+            - text: Foundation
+        - generic [ref=e80] [cursor=pointer]:
+          - generic [ref=e82]: ◉
+          - generic [ref=e83]:
+            - generic [ref=e84]: Intelligence
+            - text: Cohorts
+        - generic [ref=e85] [cursor=pointer]:
+          - generic [ref=e87]: ▲
+          - generic [ref=e88]:
+            - generic [ref=e89]: Execution
+            - text: Moves
+        - generic [ref=e90] [cursor=pointer]:
+          - generic [ref=e92]: ✦
+          - generic [ref=e93]:
+            - generic [ref=e94]: Creation
+            - text: Muse
+        - generic [ref=e95] [cursor=pointer]:
+          - generic [ref=e97]: ◇
+          - generic [ref=e98]:
+            - generic [ref=e99]: Analytics
+            - text: Matrix
+        - generic [ref=e100] [cursor=pointer]:
+          - generic [ref=e102]: ■
+          - generic [ref=e103]:
+            - generic [ref=e104]: Memory
+            - text: Blackbox
+    - generic [ref=e106]:
+      - generic [ref=e107]:
+        - paragraph [ref=e108]: The Implementation Plan
+        - heading "Deploy your OS. In three steps." [level=2] [ref=e109]:
+          - text: Deploy your OS.
+          - text: In three steps.
+      - generic [ref=e114]:
+        - generic [ref=e115] [cursor=pointer]:
+          - generic [ref=e117]: "01"
+          - heading "Synchronize Context" [level=3] [ref=e119]
+          - paragraph [ref=e120]: Connect your specific business context. We build your RICP, positioning, and 90-day execution plan automatically.
+        - generic [ref=e121] [cursor=pointer]:
+          - generic [ref=e123]: "02"
+          - heading "Deploy Weekly Moves" [level=3] [ref=e124]
+          - paragraph [ref=e125]: Click to explore
+        - generic [ref=e126] [cursor=pointer]:
+          - generic [ref=e128]: "03"
+          - heading "Execute & Track" [level=3] [ref=e129]
+          - paragraph [ref=e130]: Click to explore
+    - generic [ref=e132]:
+      - generic [ref=e133]:
+        - paragraph [ref=e134]: See it in Action
+        - heading "Watch the magic. Live." [level=2] [ref=e135]
+      - generic [ref=e136]:
+        - generic [ref=e142]: raptorflow-cli
+        - generic [ref=e145]:
+          - generic [ref=e146]:
+            - generic [ref=e147]: ❯
+            - generic [ref=e148]: rf init --founder "TechStartup Inc"
+          - generic [ref=e149]: ⚡ Initializing Foundation...
+          - generic [ref=e150]: "✓ ICP defined: B2B SaaS founders, Series A-B"
+          - generic [ref=e151]: "✓ Positioning: \"The developer-first marketing OS\""
+          - generic [ref=e152]: "✓ Voice profile: Confident, technical, witty"
+          - generic [ref=e154]: 🎉 Foundation ready. Run 'rf generate-move' to start.
+        - generic [ref=e156]:
+          - generic [ref=e157]: ↵
+          - text: See RaptorFlow in action
+    - generic [ref=e159]:
+      - generic [ref=e160]:
+        - heading "The Transformation." [level=2] [ref=e161]
+        - paragraph [ref=e162]: From marketing chaos to surgical execution.
+      - generic [ref=e165]:
+        - generic [ref=e166]:
+          - generic:
+            - generic: ×
+            - generic: ×
+            - generic: ×
+            - generic: ×
+            - generic: ×
+            - generic: ×
+          - heading "× Before RaptorFlow" [level=3] [ref=e167]:
+            - generic [ref=e168]: ×
+            - text: Before RaptorFlow
+          - list [ref=e169]:
+            - listitem [ref=e170]:
+              - generic [ref=e171]: —
+              - generic [ref=e172]: Staring at a blank cursor every Monday morning.
+            - listitem [ref=e173]:
+              - generic [ref=e174]: —
+              - generic [ref=e175]: Guessing which channels are actually driving growth.
+            - listitem [ref=e176]:
+              - generic [ref=e177]: —
+              - generic [ref=e178]: Switching between Buffer, Notion, and generic AI prompts.
+            - listitem [ref=e179]:
+              - generic [ref=e180]: —
+              - generic [ref=e181]: Spending 15+ hours a week on 'marketing activities'.
+            - listitem [ref=e182]:
+              - generic [ref=e183]: —
+              - generic [ref=e184]: Zero pipeline visibility and inconsistent messaging.
+        - generic [ref=e187]: →
+        - generic [ref=e188]:
+          - img [ref=e190]
+          - generic:
+            - generic: ✓
+            - generic: ✓
+            - generic: ✓
+            - generic: ✓
+            - generic: ✓
+            - generic: ✓
+          - heading "✓ After RaptorFlow" [level=3] [ref=e192]:
+            - generic [ref=e193]: ✓
+            - text: After RaptorFlow
+          - list [ref=e194]:
+            - listitem [ref=e195]:
+              - img [ref=e197]
+              - text: Ready-to-ship Move packets delivered every Monday.
+            - listitem [ref=e200]:
+              - img [ref=e202]
+              - text: Surgical precision in ICP and behavior targeting.
+            - listitem [ref=e205]:
+              - img [ref=e207]
+              - text: A single, unified OS for strategy and execution.
+            - listitem [ref=e210]:
+              - img [ref=e212]
+              - text: Save 10+ hours a week through technical automation.
+            - listitem [ref=e215]:
+              - img [ref=e217]
+              - text: Full pipeline tracking and institutional memory.
+    - generic [ref=e221]:
+      - generic [ref=e222]:
+        - heading "Why founders switch." [level=2] [ref=e223]
+        - paragraph [ref=e224]: RaptorFlow isn't another tool. It's the tool that replaces five others.
+      - generic [ref=e225]:
+        - generic [ref=e228]:
+          - img [ref=e231]
+          - generic [ref=e234]:
+            - heading "Save 10+ hours per week" [level=3] [ref=e235]
+            - paragraph [ref=e236]: Stop context-switching between tools. Everything lives in one place.
+        - generic [ref=e240]:
+          - img [ref=e243]
+          - generic [ref=e246]:
+            - heading "Ship content that converts" [level=3] [ref=e247]
+            - paragraph [ref=e248]: No more guessing what to post. Every Move is backed by your strategy.
+        - generic [ref=e252]:
+          - img [ref=e255]
+          - generic [ref=e258]:
+            - heading "Know what's working" [level=3] [ref=e259]
+            - paragraph [ref=e260]: Real attribution, not vanity metrics. See the full pipeline picture.
+        - generic [ref=e264]:
+          - img [ref=e267]
+          - generic [ref=e270]:
+            - heading "Build institutional memory" [level=3] [ref=e271]
+            - paragraph [ref=e272]: Every experiment, every outcome. Never repeat the same mistakes.
+    - generic [ref=e275]:
+      - generic [ref=e276]:
+        - paragraph [ref=e277]: Testimonials
+        - heading "Founders who ship." [level=2] [ref=e278]
+      - generic [ref=e279]:
+        - generic:
+          - generic:
+            - paragraph: "\"I actually look forward to marketing Mondays now. That's new.\""
+            - generic:
+              - generic: EW
+              - generic:
+                - paragraph: Emma Wilson
+                - paragraph: Solo Founder, Craftly
+        - generic [ref=e281] [cursor=pointer]:
+          - paragraph [ref=e282]: "\"RaptorFlow replaced our entire marketing stack. On...\""
+          - generic [ref=e283]:
+            - generic [ref=e284]: PS
+            - generic [ref=e285]: Priya
+        - generic [ref=e287] [cursor=pointer]:
+          - paragraph [ref=e288]: "\"We went from 0 to 10K followers in 8 weeks. The Mo...\""
+          - generic [ref=e289]:
+            - generic [ref=e290]: MC
+            - generic [ref=e291]: Marcus
+        - generic [ref=e293] [cursor=pointer]:
+          - paragraph [ref=e294]: "\"Finally, marketing that feels like engineering. Sy...\""
+          - generic [ref=e295]:
+            - generic [ref=e296]: SJ
+            - generic [ref=e297]: Sarah
+        - generic [ref=e299] [cursor=pointer]:
+          - paragraph [ref=e300]: "\"The Foundation module alone saved us 3 months of p...\""
+          - generic [ref=e301]:
+            - generic [ref=e302]: RP
+            - generic [ref=e303]: Raj
+        - generic [ref=e304]:
+          - button [ref=e305] [cursor=pointer]
+          - button [ref=e306] [cursor=pointer]
+          - button [ref=e307] [cursor=pointer]
+          - button [ref=e308] [cursor=pointer]
+          - button [ref=e309] [cursor=pointer]
+    - generic [ref=e311]:
+      - generic [ref=e312]:
+        - paragraph [ref=e313]: Explore Features
+        - heading "Deal through the deck." [level=2] [ref=e314]
+        - paragraph [ref=e315]: Five modules that power your marketing OS.
+      - generic [ref=e316]:
+        - generic [ref=e317]:
+          - generic [ref=e318]: Swipe or click to explore
+          - generic [ref=e319]: →
+        - generic [ref=e321]:
+          - img [ref=e323]
+          - heading "Foundation" [level=3] [ref=e327]
+          - paragraph [ref=e328]: Define your ICP, positioning, and voice in 20 minutes. The strategic bedrock everything else builds on.
+          - generic [ref=e329]:
+            - generic [ref=e330]: 1 of 5
+            - generic [ref=e331]: Swipe →
+        - generic [ref=e333]:
+          - img [ref=e335]
+          - heading "Muse AI" [level=3] [ref=e339]
+          - paragraph [ref=e340]: Train the AI on your voice. It learns how you write, what you care about, and generates content that sounds like you.
+          - generic [ref=e342]: 2 of 5
+        - generic [ref=e344]:
+          - img [ref=e346]
+          - heading "Weekly Moves" [level=3] [ref=e351]
+          - paragraph [ref=e352]: Get ready-to-ship content packets every Monday. LinkedIn posts, tweets, emails—all aligned to your strategy.
+          - generic [ref=e354]: 3 of 5
+        - generic [ref=e356]:
+          - img [ref=e358]
+          - heading "Matrix Analytics" [level=3] [ref=e361]
+          - paragraph [ref=e362]: See what's working. Track impressions, engagement, and pipeline impact across all your channels.
+          - generic [ref=e364]: 4 of 5
+        - generic [ref=e366]:
+          - img [ref=e368]
+          - heading "Blackbox Vault" [level=3] [ref=e372]
+          - paragraph [ref=e373]: Your institutional memory. Every Move, insight, and winning hook stored and searchable forever.
+          - generic [ref=e375]: 5 of 5
+    - generic [ref=e383]:
+      - generic [ref=e384]:
+        - paragraph [ref=e385]: Pricing
+        - heading "Simple. Honest. No surprises." [level=2] [ref=e386]
+        - paragraph [ref=e387]: Choose your plan and get started today.
+      - generic [ref=e388]:
+        - generic [ref=e391]:
+          - heading "Ascent" [level=3] [ref=e392]
+          - generic [ref=e393]: ₹5,000/mo
+          - paragraph [ref=e394]: For founders getting started
+          - list [ref=e395]:
+            - listitem [ref=e396]:
+              - img [ref=e397]
+              - generic [ref=e400]: Foundation setup
+            - listitem [ref=e401]:
+              - img [ref=e402]
+              - generic [ref=e405]: 3 weekly Moves
+            - listitem [ref=e406]:
+              - img [ref=e407]
+              - generic [ref=e410]: Basic Muse AI
+            - listitem [ref=e411]:
+              - img [ref=e412]
+              - generic [ref=e415]: Matrix analytics
+            - listitem [ref=e416]:
+              - img [ref=e417]
+              - generic [ref=e420]: Email support
+          - link "Choose Plan" [ref=e421] [cursor=pointer]:
+            - /url: /signup
+        - generic [ref=e424]:
+          - generic [ref=e425]: Most popular
+          - heading "Glide" [level=3] [ref=e426]
+          - generic [ref=e427]: ₹7,000/mo
+          - paragraph [ref=e428]: For founders scaling up
+          - list [ref=e429]:
+            - listitem [ref=e430]:
+              - img [ref=e431]
+              - generic [ref=e434]: Everything in Ascent
+            - listitem [ref=e435]:
+              - img [ref=e436]
+              - generic [ref=e439]: Unlimited Moves
+            - listitem [ref=e440]:
+              - img [ref=e441]
+              - generic [ref=e444]: Advanced Muse (voice training)
+            - listitem [ref=e445]:
+              - img [ref=e446]
+              - generic [ref=e449]: Cohort segmentation
+            - listitem [ref=e450]:
+              - img [ref=e451]
+              - generic [ref=e454]: Priority support
+            - listitem [ref=e455]:
+              - img [ref=e456]
+              - generic [ref=e459]: Blackbox vault
+          - link "Choose Plan" [ref=e460] [cursor=pointer]:
+            - /url: /signup
+        - generic [ref=e463]:
+          - heading "Soar" [level=3] [ref=e464]
+          - generic [ref=e465]: ₹10,000/mo
+          - paragraph [ref=e466]: For teams
+          - list [ref=e467]:
+            - listitem [ref=e468]:
+              - img [ref=e469]
+              - generic [ref=e472]: Everything in Glide
+            - listitem [ref=e473]:
+              - img [ref=e474]
+              - generic [ref=e477]: 5 team seats
+            - listitem [ref=e478]:
+              - img [ref=e479]
+              - generic [ref=e482]: Custom AI training
+            - listitem [ref=e483]:
+              - img [ref=e484]
+              - generic [ref=e487]: API access
+            - listitem [ref=e488]:
+              - img [ref=e489]
+              - generic [ref=e492]: Dedicated success manager
+          - link "Choose Plan" [ref=e493] [cursor=pointer]:
+            - /url: /signup
+    - generic [ref=e495]:
+      - generic [ref=e496]:
+        - paragraph [ref=e497]: FAQ
+        - heading "Questions? Answered." [level=2] [ref=e498]
+      - generic [ref=e499]:
+        - generic [ref=e502] [cursor=pointer]:
+          - generic [ref=e503]:
+            - heading "How is RaptorFlow different from other marketing tools?" [level=3] [ref=e504]
+            - generic [ref=e506]: +
+          - paragraph [ref=e508]: RaptorFlow isn't a tool—it's an operating system. Others give you features in isolation. We connect strategy to execution in one unified workflow.
+        - generic [ref=e513] [cursor=pointer]:
+          - heading "Do I need a marketing team?" [level=3] [ref=e514]
+          - generic [ref=e516]: +
+        - generic [ref=e520] [cursor=pointer]:
+          - heading "What if I don't know my positioning yet?" [level=3] [ref=e521]
+          - generic [ref=e523]: +
+        - generic [ref=e527] [cursor=pointer]:
+          - heading "How long until I see results?" [level=3] [ref=e528]
+          - generic [ref=e530]: +
+    - generic [ref=e532]:
+      - heading "Ready to stop guessing? 👋" [level=2] [ref=e533]:
+        - text: Ready to stop guessing?
+        - generic [ref=e534]: 👋
+      - paragraph [ref=e535]:
+        - text: Join
+        - generic [ref=e536]: 0+
+        - text: founders who replaced marketing chaos with a system that works.
+      - link "Get Started" [ref=e538] [cursor=pointer]:
+        - /url: /signup
+        - text: Get Started
+        - img [ref=e539]
+    - generic [ref=e542]:
+      - generic [ref=e543]:
+        - generic [ref=e544]:
+          - generic [ref=e545]:
+            - img [ref=e546]
+            - generic [ref=e548]: RaptorFlow
+          - paragraph [ref=e549]: The operating system for founder-led marketing.
+        - generic [ref=e550]:
+          - generic [ref=e551]:
+            - heading "Product" [level=4] [ref=e552]
+            - list [ref=e553]:
+              - listitem [ref=e554]:
+                - link "Features" [ref=e555] [cursor=pointer]:
+                  - /url: "#system"
+              - listitem [ref=e556]:
+                - link "Pricing" [ref=e557] [cursor=pointer]:
+                  - /url: "#pricing"
+              - listitem [ref=e558]:
+                - link "Log in" [ref=e559] [cursor=pointer]:
+                  - /url: /login
+          - generic [ref=e560]:
+            - heading "Legal" [level=4] [ref=e561]
+            - list [ref=e562]:
+              - listitem [ref=e563]:
+                - link "Privacy" [ref=e564] [cursor=pointer]:
+                  - /url: /legal/privacy
+              - listitem [ref=e565]:
+                - link "Terms" [ref=e566] [cursor=pointer]:
+                  - /url: /legal/terms
+      - generic [ref=e567]:
+        - paragraph [ref=e568]: © 2026 RaptorFlow Inc. • Built with ❤️ for founders
+        - generic [ref=e569]:
+          - button "🔇 Sound Off" [ref=e570] [cursor=pointer]:
+            - generic [ref=e571]: 🔇
+            - generic [ref=e572]: Sound Off
+          - generic [ref=e573]:
+            - generic [ref=e574]: 🚀
+            - generic [ref=e575]: Afternoon productivity mode
+    - generic [ref=e576]:
+      - generic [ref=e577]: Psst... there's more below
+      - generic [ref=e578]: 👇
+    - generic [ref=e583]: New Foundation completed
+    - button "💬" [ref=e584] [cursor=pointer]:
+      - generic [ref=e585]: 💬
+  - region "Notifications alt+T"
+  - alert [ref=e586]
+```

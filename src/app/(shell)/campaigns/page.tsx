@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { useCampaignStore, CampaignMove, MoveStatus } from "@/stores/campaignStore";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/contexts/AuthContext";
 import { CampaignWizard } from "@/components/campaigns/CampaignWizard";
 import { CampaignTimeline } from "@/components/campaigns/CampaignTimeline";
 
@@ -52,6 +52,7 @@ export default function CampaignsPage() {
     setActiveCampaign,
     updateCampaignMoveStatus,
     addCampaign,
+    createCampaign,
     fetchCampaigns,
     getActiveCampaign
   } = useCampaignStore();
@@ -73,7 +74,7 @@ export default function CampaignsPage() {
     if (profile?.workspace_id) {
       fetchCampaigns(profile.workspace_id);
     }
-  }, [profile?.workspace_id]);
+  }, [profile?.workspace_id, fetchCampaigns]);
 
   useEffect(() => {
     if (!pageRef.current || !mounted) return;
@@ -121,7 +122,7 @@ export default function CampaignsPage() {
   };
 
   // Wizard completion
-  const handleWizardComplete = (data: {
+  const handleWizardComplete = async (data: {
     name: string;
     goal: string;
     objective: string;
@@ -130,6 +131,14 @@ export default function CampaignsPage() {
     icp: string;
     channels: string[];
   }) => {
+    if (profile?.workspace_id) {
+      const created = await createCampaign(data, profile.workspace_id);
+      if (created) {
+        setActiveCampaign(created.id);
+        setView("DETAIL");
+        return;
+      }
+    }
     const newCampaign = {
       id: `CMP-${Math.floor(Math.random() * 1000)}`,
       name: data.name,

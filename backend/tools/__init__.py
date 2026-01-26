@@ -218,12 +218,12 @@ tool_manager = ToolManager()
 def initialize_default_tools():
     """Initialize default tool instances."""
     default_tools = {
-        "web_search": {},
-        "web_scraper": {},
-        # "content_generator": {},
-        # "template_tool": {},
-        # "feedback_tool": {},
-        # "export_tool": {},
+        "WebSearchTool": {},
+        "WebScraperTool": {},
+        # "ContentGeneratorTool": {},
+        # "TemplateTool": {},
+        # "FeedbackTool": {},
+        # "ExportTool": {},
     }
 
     for tool_name, config in default_tools.items():

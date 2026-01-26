@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { CheckmarkCircle02Icon } from "hugeicons-react";
+import { CheckCircle } from "lucide-react";
 
 interface Benefit {
     title: string;
@@ -105,9 +105,7 @@ function MagneticCard({ benefit, index }: { benefit: Benefit; index: number }) {
                     }}
                     transition={{ type: "spring", stiffness: 200 }}
                 >
-                    {React.createElement(CheckmarkCircle02Icon as any, {
-                        className: `w-6 h-6 transition-colors duration-300 ${isHovered ? "text-[var(--rf-coral)]" : "text-[var(--canvas)]"}`
-                    })}
+                    <CheckCircle className={`w-6 h-6 transition-colors duration-300 ${isHovered ? "text-[var(--rf-coral)]" : "text-[var(--canvas)]"}`} />
                 </motion.div>
 
                 {/* Content */}

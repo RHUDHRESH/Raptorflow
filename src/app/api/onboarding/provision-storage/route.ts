@@ -1,18 +1,15 @@
 import { createServerSupabaseClient } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
-import { Storage } from '@google-cloud/storage'
+import { createClient } from '@supabase/supabase-js'
 
-// Initialize Google Cloud Storage
-const storage = new Storage({
-  projectId: process.env.GCP_PROJECT_ID,
-  credentials: JSON.parse(process.env.GCP_SERVICE_ACCOUNT_KEY || '{}'),
-})
-
-const MAIN_BUCKET = process.env.GCS_MAIN_BUCKET!
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(request: Request) {
   try {
-    const supabase = createServerSupabaseClient()
 
     // Get current user
     const { data: { session } } = await supabase.auth.getSession()
@@ -48,48 +45,54 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create folder structure in GCS
-    // We use a shared bucket with user-specific folders
-    const bucket = storage.bucket(MAIN_BUCKET)
-    const userFolder = `workspaces/${workspace.slug}/`
+    // Create folder structure in Supabase Storage
+    // We use workspace-specific buckets with standardized paths
+    const { generateWorkspacePath } = await import('../../../../lib/storage-paths')
 
     // Create placeholder files to establish folder structure
     const folders = [
-      `${userFolder}uploads/`,
-      `${userFolder}exports/`,
-      `${userFolder}temp/`,
-      `${userFolder}backups/`,
-      `${userFolder}assets/`,
+      { category: 'uploads', filename: '.keep' },
+      { category: 'exports', filename: '.keep' },
+      { category: 'temp', filename: '.keep' },
+      { category: 'backups', filename: '.keep' },
+      { category: 'assets', filename: '.keep' },
     ]
 
     try {
       for (const folder of folders) {
-        const file = bucket.file(`${folder}.keep`)
-        await file.save('', {
-          metadata: {
+        const storagePath = generateWorkspacePath(workspace.slug, folder.category, folder.filename)
+        const bucket = folder.category === 'assets' ? 'workspace-assets' : `workspace-${folder.category}`
+
+        // Upload empty file to create folder structure
+        const { error } = await supabase.storage
+          .from(bucket)
+          .upload(storagePath, new Uint8Array(), {
             contentType: 'text/plain',
-            cacheControl: 'no-cache',
-          },
-        })
+            metadata: {
+              folder_structure: true,
+              category: folder.category,
+              workspace_slug: workspace.slug
+            }
+          })
+
+        if (error) {
+          console.warn(`Failed to create folder ${folder.category}:`, error)
+        }
       }
-    } catch (gcsError) {
-      console.error('GCS folder creation error:', gcsError)
+    } catch (supabaseError) {
+      console.error('Supabase folder creation error:', supabaseError)
       return NextResponse.json(
         { error: 'Failed to create storage folders' },
         { status: 500 }
       )
     }
 
-    // Set up IAM permissions for the user folder
-    // Note: In production, you might want to use signed URLs or Cloud IAM
-    // For now, we'll rely on application-level access control
-
     // Update workspace with storage info
     const { error: workspaceError } = await supabase
       .from('workspaces')
       .update({
-        gcs_bucket_name: MAIN_BUCKET,
-        gcs_folder_path: userFolder,
+        supabase_bucket: 'workspace-uploads',
+        supabase_folder_path: `workspace/${workspace.slug}/`,
         status: 'active'
       })
       .eq('id', workspace.id)
@@ -123,9 +126,9 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       storage: {
-        bucket: MAIN_BUCKET,
-        folder: userFolder,
-        region: 'asia-south1', // Mumbai
+        provider: 'supabase',
+        workspace_slug: workspace.slug,
+        buckets: ['workspace-uploads', 'workspace-exports', 'workspace-backups', 'workspace-assets', 'workspace-temp'],
         capacity: '5 GB',
       }
     })

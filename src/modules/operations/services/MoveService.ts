@@ -7,7 +7,7 @@ export class MoveService {
    * Retrieves all moves for a workspace.
    */
   async getMoves(workspaceId: string): Promise<StrategicMove[]> {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('moves')
       .select('*')
@@ -21,7 +21,7 @@ export class MoveService {
    * Synchronizes moves within a campaign, applying 'Breathing Arcs' logic.
    */
   async synchronizeCampaign(campaignId: string): Promise<void> {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: moves, error } = await supabase
       .from('moves')
       .select('*')
@@ -40,7 +40,7 @@ export class MoveService {
       if (!move) continue;
 
       const newEndDate = new Date(new Date(move.end_date).getTime() + days * 24 * 60 * 60 * 1000);
-      
+
       await supabase
         .from('moves')
         .update({ end_date: newEndDate.toISOString() })

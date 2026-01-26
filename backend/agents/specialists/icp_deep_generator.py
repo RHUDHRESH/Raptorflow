@@ -10,8 +10,9 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from backend.agents.config import ModelTier
+
 from ..base import BaseAgent
-from ..config import ModelTier
 from ..state import AgentState
 
 logger = logging.getLogger(__name__)

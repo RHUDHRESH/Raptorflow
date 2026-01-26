@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/auth-client'
+import { authenticator } from 'otplib'
 
 // MFA types
 export interface MFASetup {
@@ -229,7 +230,7 @@ export class TOTPUtils {
     const encodedSecret = encodeURIComponent(secret)
     const encodedEmail = encodeURIComponent(email)
     const encodedIssuer = encodeURIComponent(issuer)
-    
+
     return `otpauth://totp/${encodedIssuer}:${encodedEmail}?secret=${encodedSecret}&issuer=${encodedIssuer}`
   }
 
@@ -243,9 +244,6 @@ export class TOTPUtils {
     // This is a simplified implementation
     // In production, use a proper TOTP library like 'otplib'
     try {
-      // Import otplib dynamically for client-side usage
-      const { authenticator } = require('otplib')
-      
       return authenticator.verify({
         token,
         secret,
@@ -260,7 +258,6 @@ export class TOTPUtils {
   // Generate current TOTP code
   static generateTOTP(secret: string): string {
     try {
-      const { authenticator } = require('otplib')
       return authenticator.generate(secret)
     } catch (error) {
       console.error('TOTP generation error:', error)
@@ -289,7 +286,7 @@ export class DeviceFingerprint {
   static generateFingerprint(): string {
     const info = this.getBrowserInfo()
     const fingerprintString = Object.values(info).join('|')
-    
+
     // Simple hash (in production, use a proper hashing library)
     let hash = 0
     for (let i = 0; i < fingerprintString.length; i++) {
@@ -297,7 +294,7 @@ export class DeviceFingerprint {
       hash = ((hash << 5) - hash) + char
       hash = hash & hash // Convert to 32-bit integer
     }
-    
+
     return Math.abs(hash).toString(16)
   }
 
@@ -311,7 +308,7 @@ export class DeviceFingerprint {
         ctx.font = '14px Arial'
         ctx.fillText('Device fingerprint', 2, 2)
         const canvasFingerprint = canvas.toDataURL()
-        
+
         // Combine with basic fingerprint
         const basicFingerprint = this.generateFingerprint()
         return this.simpleHash(basicFingerprint + canvasFingerprint)
@@ -319,7 +316,7 @@ export class DeviceFingerprint {
     } catch (error) {
       console.error('Advanced fingerprinting error:', error)
     }
-    
+
     return this.generateFingerprint()
   }
 
@@ -350,12 +347,12 @@ export class MFASession {
     if (typeof window !== 'undefined') {
       const sessionToken = localStorage.getItem(this.SESSION_KEY)
       const deviceFingerprint = localStorage.getItem(this.DEVICE_KEY)
-      
+
       if (sessionToken && deviceFingerprint) {
         return { sessionToken, deviceFingerprint }
       }
     }
-    
+
     return null
   }
 

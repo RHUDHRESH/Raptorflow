@@ -1,7 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, NextRequest } from 'next/server'
-import type { CookieOptions } from '@supabase/ssr'
-import { authRateLimit, apiRateLimit, generalRateLimit } from './middleware/rate-limiter-fixed'
+import { createServerAuth } from './lib/auth-server'
 import { getBaseUrl } from './lib/env-utils'
 
 // Type definitions for middleware
@@ -69,9 +67,13 @@ async function logSecurityEvent(
 ) {
   try {
     // In production, send to security monitoring service
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      '127.0.0.1'
+
     console.error(`SECURITY_EVENT: ${eventType}`, {
       severity,
-      ip: request.ip,
+      ip,
       userAgent: request.headers.get('user-agent'),
       path: request.nextUrl.pathname,
       ...details
@@ -146,95 +148,36 @@ function validateIP(ip: string | null): boolean {
 
   if (!ip) return false
 
-  // Block private IPs in production (adjust as needed)
-  const privateIPRanges = [
-    /^10\./,
-    /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
-    /^192\.168\./,
-    /^127\./,
-    /^localhost$/i
+  // Allow localhost and private IPs for development and behind proxies
+  const allowedIPRanges = [
+    /^10\./,           // Private network
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // Private network
+    /^192\.168\./,    // Private network
+    /^127\./,         // Localhost (127.x.x.x)
+    /^localhost$/i,   // Localhost
+    /^::1$/,          // IPv6 localhost
+    /^fc00:/,         // IPv6 private
+    /^fe80:/,         // IPv6 link-local
+    /^169\.254\./,    // Link-local (Windows DHCP)
+    /^0\./,           // Reserved for localhost
+    /^::ffff:127\./,  // IPv4-mapped IPv6 localhost
+    /^::ffff:10\./,   // IPv4-mapped private network
+    /^::ffff:172\.(1[6-9]|2[0-9]|3[0-1])\./, // IPv4-mapped private network
+    /^::ffff:192\.168\./ // IPv4-mapped private network
   ]
 
-  // In development, allow private IPs
-  if (process.env.NODE_ENV === 'development') {
-    return true
+  // Check if IP is in allowed ranges
+  for (const range of allowedIPRanges) {
+    if (range.test(ip)) {
+      return true
+    }
   }
 
-  // Check for common proxy headers
-  if (ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
-    return false
-  }
+  // For production, you might want to be more restrictive
+  // For now, allow all IPs but log suspicious ones
+  console.log('IP validation:', { ip, userAgent: 'logged for security monitoring' })
 
   return true
-}
-
-// Session validation and rotation
-async function validateSession(
-  supabase: any,
-  request: NextRequest
-): Promise<{ valid: boolean; user?: any; needsRotation?: boolean }> {
-  try {
-    const { data: { session }, error } = await supabase.auth.getSession()
-
-    if (error || !session) {
-      return { valid: false }
-    }
-
-    // Check session age
-    const sessionAge = Date.now() - new Date(session.expires_at!).getTime()
-    const needsRotation = sessionAge > SECURITY_CONFIG.SESSION.ROTATION_AGE
-
-    // Get basic user info from session
-    let workspaceId = session.user.user_metadata?.workspace_id
-    let onboardingStatus = session.user.user_metadata?.onboarding_status
-
-    // ROBUSTNESS: If workspace_id is missing from metadata, try to fetch it from the database once
-    // This prevents redirect loops for existing users with stale metadata
-    if (!workspaceId) {
-      const { data: workspace } = await supabase
-        .from('workspaces')
-        .select('id')
-        .or(`owner_id.eq.${session.user.id},user_id.eq.${session.user.id}`)
-        .limit(1)
-        .maybeSingle()
-      
-      if (workspace) {
-        workspaceId = workspace.id
-      }
-    }
-
-    // Also check profile for onboarding status if missing
-    if (!onboardingStatus || onboardingStatus === 'pending') {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_status')
-        .eq('id', session.user.id)
-        .maybeSingle()
-      
-      if (profile) {
-        onboardingStatus = profile.onboarding_status
-      }
-    }
-
-    const user = {
-      id: session.user.id,
-      email: session.user.email,
-      role: session.user.user_metadata?.role || 'user',
-      is_active: true,
-      is_banned: false,
-      workspace_id: workspaceId,
-      onboarding_status: onboardingStatus
-    }
-
-    return {
-      valid: true,
-      user: { ...session.user, ...user },
-      needsRotation
-    }
-  } catch (error) {
-    console.error('Session validation error:', error)
-    return { valid: false }
-  }
 }
 
 // Main middleware function
@@ -247,9 +190,9 @@ export async function middleware(request: NextRequest) {
 
   try {
     // Extract client information
-    const ip = request.ip ||
-      request.headers.get('x-forwarded-for')?.split(',')[0] ||
-      request.headers.get('x-real-ip')
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      '127.0.0.1'
 
     const userAgent = request.headers.get('user-agent')
     const path = request.nextUrl.pathname
@@ -270,38 +213,27 @@ export async function middleware(request: NextRequest) {
       return new NextResponse('Forbidden', { status: 403 })
     }
 
-    // Create Supabase client
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll()
-          },
-          setAll(cookiesToSet: CookieToSet[]) {
-            cookiesToSet.forEach(({ name, value, options }: CookieToSet) => {
-              request.cookies.set(name, value)
-              response.cookies.set(name, value, options)
-            })
-          },
-        },
-      }
-    )
+    // Create auth service instance
+    const serverAuth = createServerAuth(request)
 
     // Validate session
-    const sessionValidation = await validateSession(supabase, request)
+    const sessionValidation = await serverAuth.validateSession()
     const isAuth = sessionValidation.valid
     const user = sessionValidation.user
 
-    // Rate limiting
+    // Rate limiting with bypass for health checks
     if (!checkRateLimit(ip!, isAuth, user?.role === 'admin')) {
-      await logSecurityEvent('RATE_LIMIT_EXCEEDED', 'medium', {
-        ip,
-        isAuth,
-        path
-      }, request)
-      return new NextResponse('Too Many Requests', { status: 429 })
+      // Bypass rate limiting for health checks and monitoring
+      if (path.startsWith('/api/health') || path.startsWith('/api/monitoring')) {
+        // Allow health checks to pass through
+      } else {
+        await logSecurityEvent('RATE_LIMIT_EXCEEDED', 'medium', {
+          ip,
+          isAuth,
+          path
+        }, request)
+        return new NextResponse('Too Many Requests', { status: 429 })
+      }
     }
 
     // Security headers
@@ -311,7 +243,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
 
-    // Content Security Policy
+    // Content Security Policy - Updated to include localhost ports 3001-3005
     response.headers.set(
       'Content-Security-Policy',
       [
@@ -320,15 +252,22 @@ export async function middleware(request: NextRequest) {
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: https: blob:",
         "font-src 'self' data:",
-        "connect-src 'self' https://api.supabase.io https://*.supabase.co http://127.0.0.1:54321 ws://127.0.0.1:54321 http://localhost:54321 ws://localhost:54321 http://localhost:8000 http://localhost:3000",
+        "connect-src 'self' https://api.supabase.io https://*.supabase.co http://127.0.0.1:54321 ws://127.0.0.1:54321 http://localhost:54321 ws://localhost:54321 http://localhost:8000 http://localhost:3000 http://localhost:3001 http://localhost:3002 http://localhost:3003 http://localhost:3004 http://localhost:3005 ws://localhost:3001 ws://localhost:3002 ws://localhost:3003 ws://localhost:3004 ws://localhost:3005",
         "frame-ancestors 'none'"
       ].join('; ')
     )
 
     // Route protection
     const protectedRoutes = ['/dashboard', '/onboarding', '/admin', '/api/protected']
-    const authRoutes = ['/login', '/signup', '/auth']
+    const authRoutes = ['/login', '/signup', '/auth/reset-password']
+    // Explicitly exclude callback route from all redirect logic - it must process OAuth codes
+    const callbackRoute = '/auth/callback'
     const adminRoutes = ['/admin', '/api/admin']
+
+    // Skip all auth route logic for callback route - it must process OAuth codes
+    if (path.startsWith(callbackRoute)) {
+      return response
+    }
 
     // Redirect unauthenticated users from protected routes
     if (protectedRoutes.some(route => path.startsWith(route)) && !isAuth) {
@@ -337,27 +276,41 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl)
     }
 
-    // Redirect authenticated users from auth routes
-    if (authRoutes.some(route => path.startsWith(route)) && isAuth) {
-      // If user has a workspace or completed onboarding, go to dashboard
-      // Note: we check workspace_id from metadata or database which was populated in validateSession
-      if (user?.workspace_id || user?.onboarding_status === 'active') {
+    // Redirect authenticated users from auth routes (but not /auth/callback which needs to process OAuth)
+    if (authRoutes.some(route => path === route || path.startsWith(route + '/')) && isAuth) {
+      // If user has active subscription and completed onboarding, go to dashboard
+      if (user?.subscription_status === 'active' && user?.onboarding_status === 'active') {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
-      return NextResponse.redirect(new URL('/onboarding', request.url))
+      // If user has active subscription but not completed onboarding, go to step 1
+      if (user?.subscription_status === 'active' && user?.onboarding_status !== 'active') {
+        return NextResponse.redirect(new URL('/onboarding/session/step/1', request.url))
+      }
+      // For users without active subscription, redirect to plans (PhonePe payment required)
+      return NextResponse.redirect(new URL('/onboarding/plans', request.url))
     }
 
-    // New: If authenticated but on dashboard/other routes and has no workspace or not active, redirect to onboarding
-    if (path.startsWith('/dashboard') && isAuth && (!user?.workspace_id || user?.onboarding_status !== 'active')) {
-       return NextResponse.redirect(new URL('/onboarding', request.url))
+    // If on dashboard without active subscription, redirect to plans (payment required)
+    if (path.startsWith('/dashboard') && isAuth && user?.subscription_status !== 'active') {
+      return NextResponse.redirect(new URL('/onboarding/plans', request.url))
+    }
+
+    // If on dashboard with subscription but onboarding not done, redirect to onboarding step 1
+    if (path.startsWith('/dashboard') && isAuth && user?.subscription_status === 'active' && user?.onboarding_status !== 'active') {
+      return NextResponse.redirect(new URL('/onboarding/session/step/1', request.url))
+    }
+
+    // Block access to onboarding steps if no active subscription (payment required first)
+    if (path.startsWith('/onboarding/session') && isAuth && user?.subscription_status !== 'active') {
+      return NextResponse.redirect(new URL('/onboarding/plans', request.url))
     }
 
     // Admin route protection
     if (adminRoutes.some(route => path.startsWith(route)) && isAuth) {
-      if (!['admin', 'super_admin'].includes(user.role)) {
+      if (!user || !['admin', 'super_admin'].includes(user.role)) {
         await logSecurityEvent('UNAUTHORIZED_ADMIN_ACCESS', 'high', {
-          userId: user.id,
-          userRole: user.role,
+          userId: user?.id,
+          userRole: user?.role,
           path
         }, request)
         return new NextResponse('Forbidden', { status: 403 })
@@ -366,11 +319,10 @@ export async function middleware(request: NextRequest) {
 
     // Session rotation
     if (isAuth && sessionValidation.needsRotation) {
-      const { data: { session: newSession }, error: rotationError } =
-        await supabase.auth.refreshSession()
+      const rotationResult = await serverAuth.rotateSession()
 
-      if (!rotationError && newSession) {
-        response.cookies.set('access_token', newSession.access_token, {
+      if (rotationResult.success && rotationResult.session) {
+        response.cookies.set('access_token', rotationResult.session.access_token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
@@ -378,7 +330,7 @@ export async function middleware(request: NextRequest) {
         })
 
         await logSecurityEvent('SESSION_ROTATED', 'low', {
-          userId: user.id
+          userId: user?.id
         }, request)
       }
     }

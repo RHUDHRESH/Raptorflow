@@ -18,19 +18,19 @@ export function isDevelopment(): boolean {
   if (process.env.NEXT_PUBLIC_APP_ENV === 'development') {
     return true;
   }
-  
+
   // Check NODE_ENV (server-side)
   if (process.env.NODE_ENV === 'development') {
     return true;
   }
-  
+
   // Client-side fallback
   if (typeof window !== 'undefined') {
-    return window.location.hostname === 'localhost' || 
-           window.location.hostname === '127.0.0.1' ||
-           window.location.hostname === '0.0.0.0';
+    return window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '0.0.0.0';
   }
-  
+
   return false;
 }
 
@@ -38,16 +38,16 @@ export function isDevelopment(): boolean {
  * Check if running in production environment
  */
 export function isProduction(): boolean {
-  return process.env.NEXT_PUBLIC_APP_ENV === 'production' || 
-         process.env.NODE_ENV === 'production';
+  return process.env.NEXT_PUBLIC_APP_ENV === 'production' ||
+    process.env.NODE_ENV === 'production';
 }
 
 /**
  * Check if running in test environment
  */
 export function isTest(): boolean {
-  return process.env.NODE_ENV === 'test' || 
-         process.env.NEXT_PUBLIC_APP_ENV === 'test';
+  return process.env.NODE_ENV === 'test' ||
+    process.env.NEXT_PUBLIC_APP_ENV === 'test';
 }
 
 /**
@@ -77,8 +77,8 @@ export function getBaseUrl(): string {
   if (isProduction()) {
     return 'https://raptorflow.in';
   }
-  
-  // Default to localhost for unknown environments
+
+  // Default to localhost for unknown environments (support ports 3000-3005)
   return 'http://localhost:3000';
 }
 

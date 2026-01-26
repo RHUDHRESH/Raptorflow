@@ -1,9 +1,9 @@
 /**
  * RAPTORFLOW UNIFIED AUTHENTICATION LIBRARY
- * 
+ *
  * This is the SINGLE SOURCE OF TRUTH for all authentication operations.
  * DO NOT use any other auth files - they are deprecated.
- * 
+ *
  * Supports:
  * - Email/Password authentication
  * - Google OAuth (SSO)
@@ -14,11 +14,11 @@
  */
 
 import { createBrowserClient } from '@supabase/ssr'
-import type { 
-  Session, 
-  User as SupabaseUser, 
+import type {
+  Session,
+  User as SupabaseUser,
   AuthError,
-  Provider 
+  Provider
 } from '@supabase/supabase-js'
 import { getAuthCallbackUrl } from './env-utils'
 
@@ -356,63 +356,109 @@ export async function getUserProfile(): Promise<AuthResult<RaptorflowUser | null
       return { data: null, error: authError || new Error('Not authenticated') }
     }
 
-    const { data: profile, error: profileError } = await supabase
+    const { data: usersProfile } = await supabase
       .from('users')
-      .select(`
-        *,
-        user_subscriptions (
-          status,
-          subscription_plans (
-            slug,
-            name
-          )
-        )
-      `)
+      .select('id, auth_user_id, email, full_name, avatar_url, phone, role, is_active, is_banned, onboarding_status, subscription_plan, subscription_tier, subscription_status, created_at, updated_at')
       .eq('auth_user_id', authUser.id)
-      .single()
+      .maybeSingle()
 
-    if (profileError) {
-      // User might not exist in public.users yet (first login)
-      // Return basic info from auth user
+    if (usersProfile) {
       return {
         data: {
-          id: authUser.id,
-          authUserId: authUser.id,
-          email: authUser.email || '',
-          fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
-          role: 'user',
-          isActive: true,
-          isBanned: false,
-          subscriptionTier: null,
-          subscriptionStatus: null,
-          onboardingStatus: 'pending',
-          createdAt: authUser.created_at,
-          updatedAt: authUser.updated_at || authUser.created_at,
+          id: usersProfile.id,
+          authUserId: usersProfile.auth_user_id || authUser.id,
+          email: usersProfile.email || authUser.email || '',
+          fullName: usersProfile.full_name || usersProfile.email?.split('@')[0] || 'User',
+          avatarUrl: usersProfile.avatar_url,
+          phone: usersProfile.phone,
+          role: usersProfile.role || 'user',
+          isActive: usersProfile.is_active ?? true,
+          isBanned: usersProfile.is_banned ?? false,
+          subscriptionTier: usersProfile.subscription_plan || usersProfile.subscription_tier || null,
+          subscriptionStatus: usersProfile.subscription_status || null,
+          onboardingStatus: usersProfile.onboarding_status || 'pending',
+          createdAt: usersProfile.created_at,
+          updatedAt: usersProfile.updated_at,
         },
         error: null,
       }
     }
 
-    // Map database fields to RaptorflowUser interface
-    const subscription = profile.user_subscriptions?.[0]
-    
+    const { data: profilesRecord } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, avatar_url, role, onboarding_status, subscription_plan, subscription_status, workspace_id, created_at, updated_at')
+      .eq('id', authUser.id)
+      .maybeSingle()
+
+    if (profilesRecord) {
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('status, plan_id')
+        .eq('user_id', profilesRecord.id)
+        .maybeSingle()
+
+      return {
+        data: {
+          id: profilesRecord.id,
+          authUserId: authUser.id,
+          email: profilesRecord.email || authUser.email || '',
+          fullName: profilesRecord.full_name || profilesRecord.email?.split('@')[0] || 'User',
+          avatarUrl: profilesRecord.avatar_url,
+          role: profilesRecord.role || 'user',
+          isActive: true,
+          isBanned: false,
+          subscriptionTier: subscription?.plan_id || profilesRecord.subscription_plan || null,
+          subscriptionStatus: subscription?.status || profilesRecord.subscription_status || null,
+          onboardingStatus: profilesRecord.onboarding_status || 'pending',
+          defaultWorkspaceId: profilesRecord.workspace_id,
+          createdAt: profilesRecord.created_at,
+          updatedAt: profilesRecord.updated_at,
+        },
+        error: null,
+      }
+    }
+
+    const { data: userProfilesRecord } = await supabase
+      .from('user_profiles')
+      .select('id, email, full_name, avatar_url, subscription_plan, subscription_status, created_at, updated_at')
+      .eq('id', authUser.id)
+      .maybeSingle()
+
+    if (userProfilesRecord) {
+      return {
+        data: {
+          id: userProfilesRecord.id,
+          authUserId: authUser.id,
+          email: userProfilesRecord.email || authUser.email || '',
+          fullName: userProfilesRecord.full_name || userProfilesRecord.email?.split('@')[0] || 'User',
+          avatarUrl: userProfilesRecord.avatar_url,
+          role: 'user',
+          isActive: true,
+          isBanned: false,
+          subscriptionTier: userProfilesRecord.subscription_plan || null,
+          subscriptionStatus: userProfilesRecord.subscription_status || null,
+          onboardingStatus: 'pending',
+          createdAt: userProfilesRecord.created_at,
+          updatedAt: userProfilesRecord.updated_at,
+        },
+        error: null,
+      }
+    }
+
     return {
       data: {
-        id: profile.id,
-        authUserId: profile.auth_user_id || profile.id,
-        email: profile.email,
-        fullName: profile.full_name || profile.email?.split('@')[0] || 'User',
-        avatarUrl: profile.avatar_url,
-        phone: profile.phone,
-        role: profile.role || 'user',
-        isActive: profile.is_active ?? true,
-        isBanned: profile.is_banned ?? false,
-        subscriptionTier: subscription?.subscription_plans?.slug || null,
-        subscriptionStatus: subscription?.status || null,
-        onboardingStatus: profile.onboarding_status || 'pending',
-        defaultWorkspaceId: profile.default_workspace_id,
-        createdAt: profile.created_at,
-        updatedAt: profile.updated_at,
+        id: authUser.id,
+        authUserId: authUser.id,
+        email: authUser.email || '',
+        fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+        role: 'user',
+        isActive: true,
+        isBanned: false,
+        subscriptionTier: null,
+        subscriptionStatus: null,
+        onboardingStatus: 'pending',
+        createdAt: authUser.created_at,
+        updatedAt: authUser.updated_at || authUser.created_at,
       },
       error: null,
     }
@@ -552,7 +598,7 @@ export async function isMFARequired(): Promise<boolean> {
 
   try {
     const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-    
+
     if (error) return false
 
     // If current level is aal1 but next level requires aal2, MFA is needed
@@ -605,7 +651,7 @@ export function onAuthStateChange(
   callback: (event: string, session: Session | null) => void
 ): { unsubscribe: () => void } {
   const supabase = getSupabaseClient()
-  
+
   if (!supabase) {
     return { unsubscribe: () => {} }
   }
@@ -664,18 +710,18 @@ export function validateEmail(email: string): boolean {
 export default {
   // Client
   getSupabaseClient,
-  
+
   // Auth methods
   signUp,
   signIn,
   signInWithOAuth,
   signInWithMagicLink,
   signOut,
-  
+
   // Password
   resetPassword,
   updatePassword,
-  
+
   // Session & User
   getSession,
   getAuthUser,
@@ -683,19 +729,19 @@ export default {
   isAuthenticated,
   hasActiveSubscription,
   hasCompletedOnboarding,
-  
+
   // MFA
   enrollTOTP,
   verifyTOTP,
   getMFAFactors,
   isMFARequired,
-  
+
   // Email
   resendVerificationEmail,
-  
+
   // Listener
   onAuthStateChange,
-  
+
   // Utilities
   validatePassword,
   validateEmail,

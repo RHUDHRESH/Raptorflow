@@ -17,20 +17,20 @@ const defaultLimits: Record<string, RateLimitConfig> = {
   // Authentication endpoints
   '/api/auth/callback': { windowMs: 60 * 1000, maxRequests: 10 },
   '/api/login': { windowMs: 15 * 60 * 1000, maxRequests: 5 },
-  
+
   // Payment endpoints
   '/api/payments/initiate': { windowMs: 60 * 1000, maxRequests: 3 },
   '/api/payments/verify': { windowMs: 60 * 1000, maxRequests: 10 },
-  
+
   // Admin endpoints
   '/api/admin': { windowMs: 60 * 1000, maxRequests: 100 },
-  
+
   // General API limits
   '/api/': { windowMs: 60 * 1000, maxRequests: 60 },
-  
+
   // Data export
   '/api/gdpr/data-export': { windowMs: 60 * 60 * 1000, maxRequests: 1 },
-  
+
   // Email sending
   '/api/send-email': { windowMs: 60 * 1000, maxRequests: 10 }
 }
@@ -41,21 +41,21 @@ export async function rateLimit(
   endpoint: string
 ): Promise<{ success: boolean; limit: number; remaining: number; resetTime: number }> {
   // Find matching limit config
-  const config = Object.entries(defaultLimits).find(([path]) => 
+  const config = Object.entries(defaultLimits).find(([path]) =>
     endpoint.startsWith(path)
   )?.[1] || defaultLimits['/api/']
-  
+
   const now = new Date()
   const windowStart = new Date(now.getTime() - config.windowMs)
   const windowEnd = now
-  
+
   try {
     // Clean up old entries
     await supabase
       .from('api_rate_limits')
       .delete()
       .lt('window_end', windowStart.toISOString())
-    
+
     // Get current count
     const { data: existing } = await supabase
       .from('api_rate_limits')
@@ -65,13 +65,13 @@ export async function rateLimit(
       .gte('window_start', windowStart.toISOString())
       .lte('window_end', windowEnd.toISOString())
       .single()
-    
+
     let currentCount = 0
-    let resetTime = windowEnd.getTime()
-    
+    const resetTime = windowEnd.getTime()
+
     if (existing) {
       currentCount = existing.request_count
-      
+
       // Update existing record
       await supabase
         .from('api_rate_limits')
@@ -93,13 +93,13 @@ export async function rateLimit(
           window_start: windowStart.toISOString(),
           window_end: windowEnd.toISOString()
         })
-      
+
       currentCount = 1
     }
-    
+
     const remaining = Math.max(0, config.maxRequests - currentCount)
     const success = currentCount <= config.maxRequests
-    
+
     // Log rate limit violations
     if (!success) {
       await supabase
@@ -117,14 +117,14 @@ export async function rateLimit(
           risk_score: 50
         })
     }
-    
+
     return {
       success,
       limit: config.maxRequests,
       remaining,
       resetTime
     }
-    
+
   } catch (error) {
     console.error('Rate limiting error:', error)
     // Fail open - allow request if rate limiting fails
@@ -145,11 +145,11 @@ export function getIdentifier(request: NextRequest): string {
     // For now, use the token as identifier
     return `user:${authHeader.slice(7)}`
   }
-  
+
   // Fall back to IP address
   const forwarded = request.headers.get('x-forwarded-for')
   const ip = forwarded ? forwarded.split(',')[0] : request.ip || 'unknown'
-  
+
   return `ip:${ip}`
 }
 
@@ -160,7 +160,7 @@ export async function ddosProtection(request: NextRequest): Promise<{
   score: number
 }> {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || request.ip || 'unknown'
-  
+
   try {
     // Get recent requests from this IP
     const { data: recentRequests } = await supabase
@@ -168,14 +168,14 @@ export async function ddosProtection(request: NextRequest): Promise<{
       .select('request_count, endpoint')
       .eq('identifier', `ip:${ip}`)
       .gte('window_start', new Date(Date.now() - 60 * 1000).toISOString())
-    
+
     let riskScore = 0
     let blocked = false
     let reason: string | undefined
-    
+
     if (recentRequests) {
       const totalRequests = recentRequests.reduce((sum: number, r: any) => sum + r.request_count, 0)
-      
+
       // Calculate risk score
       if (totalRequests > 1000) {
         riskScore += 80
@@ -185,29 +185,29 @@ export async function ddosProtection(request: NextRequest): Promise<{
       } else if (totalRequests > 200) {
         riskScore += 20
       }
-      
+
       // Check for suspicious patterns
       const uniqueEndpoints = new Set(recentRequests.map((r: any) => r.endpoint)).size
       if (uniqueEndpoints === 1 && totalRequests > 100) {
         riskScore += 40
         reason = 'Single endpoint abuse'
       }
-      
+
       // Check for authentication attempts
       const authAttempts = recentRequests
         .filter((r: any) => r.endpoint.includes('/api/auth') || r.endpoint.includes('/api/login'))
         .reduce((sum: number, r: any) => sum + r.request_count, 0)
-      
+
       if (authAttempts > 20) {
         riskScore += 60
         reason = 'Excessive authentication attempts'
       }
     }
-    
+
     // Block if risk score is too high
     if (riskScore >= 80) {
       blocked = true
-      
+
       // Log DDoS attempt
       await supabase
         .from('security_events')
@@ -223,9 +223,9 @@ export async function ddosProtection(request: NextRequest): Promise<{
           risk_score: riskScore
         })
     }
-    
+
     return { blocked, reason, score: riskScore }
-    
+
   } catch (error) {
     console.error('DDoS protection error:', error)
     return { blocked: false, score: 0 }
@@ -236,7 +236,7 @@ export async function ddosProtection(request: NextRequest): Promise<{
 export async function applyRateLimit(request: NextRequest, endpoint: string) {
   // First check DDoS protection
   const ddosResult = await ddosProtection(request)
-  
+
   if (ddosResult.blocked) {
     return {
       allowed: false,
@@ -250,11 +250,11 @@ export async function applyRateLimit(request: NextRequest, endpoint: string) {
       }
     }
   }
-  
+
   // Apply normal rate limiting
   const identifier = getIdentifier(request)
   const rateLimitResult = await rateLimit(request, identifier, endpoint)
-  
+
   if (!rateLimitResult.success) {
     return {
       allowed: false,
@@ -268,7 +268,7 @@ export async function applyRateLimit(request: NextRequest, endpoint: string) {
       }
     }
   }
-  
+
   return {
     allowed: true,
     headers: {

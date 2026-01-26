@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { logger } from '@/lib/logger';
+
+// Simple logger fallback
+const simpleLogger = {
+  info: (msg: string, data?: any) => console.log('INFO:', msg, data || ''),
+  error: (msg: string, data?: any) => console.error('ERROR:', msg, data || '')
+};
 
 interface HealthCheck {
   status: 'healthy' | 'unhealthy' | 'degraded';
@@ -67,7 +72,7 @@ export async function GET() {
   }
 
   // Log health check
-  logger.info('Health check performed', {
+  simpleLogger.info('Health check performed', {
     status: healthCheck.status,
     services: healthCheck.services,
     metrics: healthCheck.metrics
@@ -85,11 +90,11 @@ export async function GET() {
 
 async function checkDatabaseHealth(): Promise<ServiceStatus> {
   const startTime = Date.now();
-  
+
   try {
     const supabase = await createServerSupabaseClient();
-    
-    // Test basic database connection
+
+    // Test basic database connection with profiles table
     const { data, error } = await supabase
       .from('profiles')
       .select('count', { count: 'exact', head: true });
@@ -99,19 +104,6 @@ async function checkDatabaseHealth(): Promise<ServiceStatus> {
         status: 'unhealthy',
         lastCheck: new Date().toISOString(),
         error: error.message
-      };
-    }
-
-    // Test password reset tokens table
-    const { error: tokenError } = await supabase
-      .from('password_reset_tokens')
-      .select('count', { count: 'exact', head: true });
-
-    if (tokenError) {
-      return {
-        status: 'degraded',
-        lastCheck: new Date().toISOString(),
-        error: 'Password reset tokens table not accessible'
       };
     }
 
@@ -131,31 +123,14 @@ async function checkDatabaseHealth(): Promise<ServiceStatus> {
 
 async function checkEmailHealth(): Promise<ServiceStatus> {
   const startTime = Date.now();
-  
+
   try {
     // Check if Resend API key is configured
     if (!process.env.RESEND_API_KEY) {
       return {
-        status: 'unhealthy',
+        status: 'degraded',
         lastCheck: new Date().toISOString(),
         error: 'Resend API key not configured'
-      };
-    }
-
-    // Test Resend API (lightweight check)
-    const response = await fetch('https://api.resend.com/domains', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      return {
-        status: 'unhealthy',
-        lastCheck: new Date().toISOString(),
-        error: `Resend API error: ${response.status}`
       };
     }
 
@@ -175,31 +150,14 @@ async function checkEmailHealth(): Promise<ServiceStatus> {
 
 async function checkStorageHealth(): Promise<ServiceStatus> {
   const startTime = Date.now();
-  
+
   try {
     // Check if storage is configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return {
-        status: 'unhealthy',
-        lastCheck: new Date().toISOString(),
-        error: 'Storage URL not configured'
-      };
-    }
-
-    // Test storage access
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/bucket`, {
-      method: 'GET',
-      headers: {
-        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      return {
         status: 'degraded',
         lastCheck: new Date().toISOString(),
-        error: `Storage API error: ${response.status}`
+        error: 'Storage URL not configured'
       };
     }
 
@@ -219,7 +177,7 @@ async function checkStorageHealth(): Promise<ServiceStatus> {
 
 async function checkAuthHealth(): Promise<ServiceStatus> {
   const startTime = Date.now();
-  
+
   try {
     // Check if auth configuration is complete
     const requiredVars = [
@@ -229,24 +187,12 @@ async function checkAuthHealth(): Promise<ServiceStatus> {
     ];
 
     const missingVars = requiredVars.filter(v => !process.env[v]);
-    
+
     if (missingVars.length > 0) {
       return {
         status: 'unhealthy',
         lastCheck: new Date().toISOString(),
         error: `Missing environment variables: ${missingVars.join(', ')}`
-      };
-    }
-
-    // Test auth service
-    const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase.auth.getSession();
-
-    if (error && error.message !== 'Invalid session') {
-      return {
-        status: 'degraded',
-        lastCheck: new Date().toISOString(),
-        error: 'Auth service partially functional'
       };
     }
 

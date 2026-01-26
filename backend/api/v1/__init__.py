@@ -10,7 +10,6 @@
 # from . import config
 # from . import context
 # from . import council
-from . import daily_wins
 # from . import database_automation
 # from . import database_health
 # from . import episodes
@@ -35,7 +34,8 @@ from . import daily_wins
 # from . import onboarding_v2
 # from . import payments
 # from . import payments_enhanced
-# from . import payments_v2
+from . import daily_wins, payments_v2
+
 # from . import rate_limit
 # from . import redis_metrics
 # from . import search

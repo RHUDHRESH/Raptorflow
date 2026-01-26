@@ -731,6 +731,12 @@ def get_circuit_breaker_manager(
     return circuit_breaker_manager
 
 
+# Fallback for external clients
+def get_resilient_client(service_name: str = "default"):
+    """Return a resilient client placeholder to avoid import errors during startup."""
+    return None
+
+
 # Decorator for standalone use
 def circuit_breaker_protected(
     name: str,

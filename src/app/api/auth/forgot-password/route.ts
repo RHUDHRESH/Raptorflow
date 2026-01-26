@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     await storeToken(token, email, expires);
 
     // Create reset link
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`;
+    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/auth/reset-password?token=${token}`;
 
     // Email configuration
     const primaryEmail = 'rhudhresh3697@gmail.com'; // Verified email
@@ -55,32 +55,32 @@ export async function POST(request: Request) {
           <div class="header">
             <div class="logo">🦅 RaptorFlow</div>
           </div>
-          
+
           <div class="content">
             <h2>Reset Your Password</h2>
             <p>We received a request to reset the password for your RaptorFlow account.</p>
-            
+
             <div style="text-align: center; margin: 30px 0;">
               <a href="${resetLink}" class="button">Reset Password</a>
             </div>
-            
+
             <p>Or copy and paste this link in your browser:</p>
             <p style="word-break: break-all; background: #f4f4f4; padding: 10px; border-radius: 4px;">
               ${resetLink}
             </p>
-            
+
             ${targetEmail !== primaryEmail ? `
             <div class="note">
-              <strong>Note:</strong> This password reset was requested for ${targetEmail}. 
+              <strong>Note:</strong> This password reset was requested for ${targetEmail}.
               For delivery, this email was routed to ${primaryEmail}.
             </div>
             ` : ''}
-            
+
             <p style="color: #666; font-size: 14px;">
               This link will expire in 1 hour for security reasons.
             </p>
           </div>
-          
+
           <div class="footer">
             <p>© 2026 RaptorFlow. All rights reserved.</p>
             <p>If you didn't request this password reset, you can safely ignore this email.</p>

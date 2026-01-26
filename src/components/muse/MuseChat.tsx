@@ -73,9 +73,12 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
             const authHeader = session?.access_token
                 ? { Authorization: `Bearer ${session.access_token}` }
                 : {};
+            const workspaceHeader = profile?.workspace_id
+                ? { "x-workspace-id": profile.workspace_id }
+                : {};
             const response = await fetch(`${API_BASE_URL}/api/v1/muse/generate`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...authHeader },
+                headers: { 'Content-Type': 'application/json', ...authHeader, ...workspaceHeader },
                 body: JSON.stringify({
                     topic: messageText, // Treat message as topic/task
                     task: messageText,
@@ -131,9 +134,12 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
             const authHeader = session?.access_token
                 ? { Authorization: `Bearer ${session.access_token}` }
                 : {};
+            const workspaceHeader = profile?.workspace_id
+                ? { "x-workspace-id": profile.workspace_id }
+                : {};
             const response = await fetch(`${API_BASE_URL}/api/v1/muse/generate`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...authHeader },
+                headers: { 'Content-Type': 'application/json', ...authHeader, ...workspaceHeader },
                 body: JSON.stringify({
                     topic: task,
                     task: task, // Some backends might use task

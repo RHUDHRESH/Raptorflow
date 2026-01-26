@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, status
-from infrastructure.secrets import get_secrets_manager
 
 from backend.core.celery_manager import get_celery_health
 from backend.core.circuit_breaker import get_resilient_client
@@ -19,6 +18,7 @@ from backend.core.posthog import get_health_status as get_posthog_health
 from backend.core.redis import get_redis_client
 from backend.core.sentry import get_health_status
 from backend.dependencies import get_db, get_redis
+from backend.infrastructure.secrets import get_secrets_manager
 
 logger = logging.getLogger(__name__)
 

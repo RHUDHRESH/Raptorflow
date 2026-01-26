@@ -14,9 +14,11 @@ from pydantic import BaseModel
 
 # Import Vertex AI service
 try:
-    from services.vertex_ai_service import vertex_ai_service
+    from backend.services.vertex_ai_client import get_vertex_ai_client
+
+    vertex_ai_client = get_vertex_ai_client()
 except ImportError:
-    vertex_ai_service = None
+    vertex_ai_client = None
 
 try:
     from core.auth import get_current_user
@@ -31,22 +33,25 @@ except ImportError:
         return None
 
 
-from services.advanced_analytics_service import advanced_analytics_service
-from services.audit_service import audit_service
-from services.automation_service import automation_service
-from services.brand_voice_service import brand_voice_service
-from services.brief_service import brief_service
-from services.coaching_service import coaching_service
-from services.collaboration_service import ApprovalStatus, collaboration_service
+from backend.services.advanced_analytics_service import advanced_analytics_service
+from backend.services.audit_service import audit_service
+from backend.services.automation_service import automation_service
+from backend.services.brand_voice_service import brand_voice_service
+from backend.services.brief_service import brief_service
+from backend.services.coaching_service import coaching_service
+from backend.services.collaboration_service import ApprovalStatus, collaboration_service
 
 # Import Services
-from services.crm_service import CRMProvider, crm_service
-from services.distribution_service import DistributionPlatform, distribution_service
-from services.marketplace_service import marketplace_service
-from services.onboarding_service import muse_onboarding_service
-from services.premium_service import premium_service
-from services.repurposing_service import PlatformType, repurposing_service
-from services.seo_service import seo_service
+from backend.services.crm_service import CRMProvider, crm_service
+from backend.services.distribution_service import (
+    DistributionPlatform,
+    distribution_service,
+)
+from backend.services.marketplace_service import marketplace_service
+from backend.services.onboarding_service import muse_onboarding_service
+from backend.services.premium_service import premium_service
+from backend.services.repurposing_service import PlatformType, repurposing_service
+from backend.services.seo_service import seo_service
 
 router = APIRouter(prefix="/muse", tags=["muse"])
 
@@ -198,6 +203,7 @@ async def generate_content(
     # Record in BCM Ledger
     try:
         from backend.services.bcm_integration import bcm_evolution
+
         await bcm_evolution.record_interaction(
             workspace_id=request.workspace_id,
             agent_name="Muse",
@@ -205,11 +211,12 @@ async def generate_content(
             payload={
                 "task": request.task,
                 "content_type": request.content_type,
-                "asset_id": asset_id
-            }
+                "asset_id": asset_id,
+            },
         )
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error(f"Failed to ledger Muse generation: {e}")
 
     return ContentResponse(
@@ -233,16 +240,16 @@ async def chat(request: ChatRequest, user=Depends(get_current_user)):
         # Record in BCM Ledger
         try:
             from backend.services.bcm_integration import bcm_evolution
+
             await bcm_evolution.record_interaction(
                 workspace_id=request.workspace_id,
                 agent_name="Muse",
                 interaction_type="CHAT",
-                payload={
-                    "message_preview": request.message[:100]
-                }
+                payload={"message_preview": request.message[:100]},
             )
         except Exception as e:
             import logging
+
             logging.getLogger(__name__).error(f"Failed to ledger Muse chat: {e}")
 
         return ChatResponse(

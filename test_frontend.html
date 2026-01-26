@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raptorflow Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 RAPTORFLOW INTEGRATION TEST</h1>
+
+    <div class="test-section">
+        <h2>1. Backend Connection Test</h2>
+        <button onclick="testBackendConnection()">Test Backend</button>
+        <div id="backend-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Proxy Connection Test</h2>
+        <button onclick="testProxyConnection()">Test Proxy</button>
+        <div id="proxy-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Moves System Test</h2>
+        <button onclick="testMovesSystem()">Test Moves</button>
+        <div id="moves-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Campaigns System Test</h2>
+        <button onclick="testCampaignsSystem()">Test Campaigns</button>
+        <div id="campaigns-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Daily Wins System Test</h2>
+        <button onclick="testDailyWinsSystem()">Test Daily Wins</button>
+        <div id="dailywins-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Blackbox System Test</h2>
+        <button onclick="testBlackboxSystem()">Test Blackbox</button>
+        <div id="blackbox-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>7. Muse System Test</h2>
+        <button onclick="testMuseSystem()">Test Muse</button>
+        <div id="muse-result"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:8000';
+        const PROXY_URL = '/api/proxy';
+
+        function showResult(elementId, success, message, data = null) {
+            const element = document.getElementById(elementId);
+            const className = success ? 'success' : 'error';
+            const emoji = success ? '✅' : '❌';
+
+            let html = `<div class="result ${className}">${emoji} ${message}</div>`;
+
+            if (data) {
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+
+            element.innerHTML = html;
+        }
+
+        async function testBackendConnection() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/health`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('backend-result', true, 'Backend connection successful', data);
+                } else {
+                    showResult('backend-result', false, `Backend returned status: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('backend-result', false, `Backend connection failed: ${error.message}`);
+            }
+        }
+
+        async function testProxyConnection() {
+            try {
+                const response = await fetch(`${PROXY_URL}/health`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('proxy-result', true, 'Proxy connection successful', data);
+                } else {
+                    showResult('proxy-result', false, `Proxy returned status: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('proxy-result', false, `Proxy connection failed: ${error.message}`);
+            }
+        }
+
+        async function testMovesSystem() {
+            try {
+                // Test fetching moves
+                const response = await fetch(`${PROXY_URL}/api/v1/moves/`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('moves-result', true, `Moves system working - found ${data.moves.length} moves`, data);
+
+                    // Test creating a move
+                    const createResponse = await fetch(`${PROXY_URL}/api/v1/moves/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: 'Test Move from Frontend',
+                            focusArea: 'Testing',
+                            desiredOutcome: 'Verify frontend integration',
+                            volatilityLevel: 2,
+                            steps: ['Step 1', 'Step 2']
+                        })
+                    });
+
+                    if (createResponse.ok) {
+                        const createData = await createResponse.json();
+                        showResult('moves-result', true, `Move creation successful - ID: ${createData.id}`, createData);
+                    } else {
+                        showResult('moves-result', false, `Move creation failed: ${createResponse.status}`);
+                    }
+                } else {
+                    showResult('moves-result', false, `Moves system failed: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('moves-result', false, `Moves system error: ${error.message}`);
+            }
+        }
+
+        async function testCampaignsSystem() {
+            try {
+                const response = await fetch(`${PROXY_URL}/api/v1/campaigns/`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('campaigns-result', true, `Campaigns system working - found ${data.campaigns.length} campaigns`, data);
+                } else {
+                    showResult('campaigns-result', false, `Campaigns system failed: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('campaigns-result', false, `Campaigns system error: ${error.message}`);
+            }
+        }
+
+        async function testDailyWinsSystem() {
+            try {
+                const response = await fetch(`${PROXY_URL}/api/v1/daily_wins/`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('dailywins-result', true, `Daily Wins system working - found ${data.wins.length} wins`, data);
+                } else {
+                    showResult('dailywins-result', false, `Daily Wins system failed: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('dailywins-result', false, `Daily Wins system error: ${error.message}`);
+            }
+        }
+
+        async function testBlackboxSystem() {
+            try {
+                const response = await fetch(`${PROXY_URL}/api/v1/blackbox/strategies`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('blackbox-result', true, `Blackbox system working - found ${data.strategies.length} strategies`, data);
+                } else {
+                    showResult('blackbox-result', false, `Blackbox system failed: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('blackbox-result', false, `Blackbox system error: ${error.message}`);
+            }
+        }
+
+        async function testMuseSystem() {
+            try {
+                const response = await fetch(`${PROXY_URL}/api/v1/muse/assets`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('muse-result', true, `Muse system working - found ${data.assets.length} assets`, data);
+                } else {
+                    showResult('muse-result', false, `Muse system failed: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('muse-result', false, `Muse system error: ${error.message}`);
+            }
+        }
+
+        // Auto-run backend test on page load
+        window.onload = function() {
+            testBackendConnection();
+        };
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createServerSupabaseClient, getRedirectPath } from '@/lib/auth-server'
+import { createServerSupabaseClient, getProfileByAuthUserId, getRedirectPath } from '@/lib/auth-server'
 
 const ONBOARDING_STEPS = [
   { id: 'workspace', label: 'Create Workspace', status: 'pending_workspace' },
@@ -13,10 +13,25 @@ export default async function OnboardingLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createServerSupabaseClient()
+  let supabase;
+  try {
+    supabase = await createServerSupabaseClient()
+  } catch (error) {
+    console.error('Failed to create Supabase client in onboarding layout:', error)
+    // Redirect to login if we can't initialize auth
+    redirect('/login')
+  }
 
   // Get session
-  const { data: { session } } = await supabase.auth.getSession()
+  let session;
+  try {
+    const { data } = await supabase.auth.getSession()
+    session = data?.session
+  } catch (error) {
+    console.error('Failed to get session in onboarding layout:', error)
+    // Redirect to login if we can't get session
+    redirect('/login')
+  }
 
   // DEV BYPASS: If no session, mock a user for UI viewing purposes
   let user;
@@ -25,38 +40,33 @@ export default async function OnboardingLayout({
     console.log("No session found in OnboardingLayout. Using DEV BYPASS mock user.");
     user = {
       onboarding_status: 'pending_workspace',
-      is_banned: false,
-      is_active: true // Set to false to test inactive redirect, but true to see onboarding
+      role: 'user'
     };
   } else {
     // Get user status from DB
-    const { data: dbUser } = await supabase
-      .from('users')
-      .select('onboarding_status, is_banned, is_active')
-      .eq('auth_user_id', session.user.id)
-      .single()
-
-    user = dbUser;
+    try {
+      const { profile } = await getProfileByAuthUserId(supabase, session.user.id)
+      user = profile;
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error)
+      // Use default user if DB query fails
+      user = { onboarding_status: 'pending_workspace', role: 'user' };
+    }
   }
 
   // Fallback if DB fetch failed even with session
   if (!user && session) {
-    // Handle case where user exists in Auth but not in public.users table yet
-    user = { onboarding_status: 'pending_workspace', is_banned: false, is_active: true };
+    // Handle case where user exists in Auth but not in public.profiles table yet
+    user = { onboarding_status: 'pending_workspace', role: 'user' };
   }
 
   if (!user) {
     redirect('/login')
   }
 
-  // Check if user is banned
-  if (user.is_banned) {
+  // Check if user is banned (role-based check)
+  if (user.role === 'banned') {
     redirect('/account/banned')
-  }
-
-  // Check if user is inactive
-  if (!user.is_active) {
-    redirect('/account/inactive')
   }
 
   // If already active, go to dashboard
@@ -77,8 +87,8 @@ export default async function OnboardingLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* 
-        LEGACY LAYOUT CLEARED 
+      {/*
+        LEGACY LAYOUT CLEARED
         The internal OnboardingShell now handles the full UI, Sidebar, and Progress.
         We simply render the children full-width here.
       */}

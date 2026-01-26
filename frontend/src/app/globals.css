@@ -1,0 +1,58 @@
+/* Raptorflow Global Styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Blueprint Design System Colors */
+  --ink: #0f172a;
+  --ink-muted: #64748b;
+  --paper: #ffffff;
+  --canvas: #f8fafc;
+  --structure-subtle: #e2e8f0;
+  --border: #cbd5e1;
+  --blueprint: #3b82f6;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --error: #ef4444;
+
+  /* Radius */
+  --radius: 0.5rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  line-height: 1.6;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-muted);
+}

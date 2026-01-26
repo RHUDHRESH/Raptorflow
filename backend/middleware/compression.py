@@ -288,7 +288,7 @@ class AdaptiveCompressionMiddleware(BaseHTTPMiddleware):
 
         # Initialize compression middleware instances
         if self.enable_brotli:
-            self.brotli_middleware = BrotliMiddleware(app, **kwargs)
+            self.brotli_middleware = BrotliMiddleware(app)
 
         if self.enable_gzip:
             self.gzip_middleware = CompressionMiddleware(app, **kwargs)

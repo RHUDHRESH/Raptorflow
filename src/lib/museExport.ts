@@ -38,8 +38,7 @@ export const exportAssets = async (
             downloadFile(content, `${filename}.json`, "application/json");
             break;
 
-        case 'csv':
-            // Basic CSV implementation
+        case 'csv': {
             const headers = ["ID", "Title", "Type", "Created At", "Content"];
             const rows = assets.map(a => [
                 a.id,
@@ -51,6 +50,7 @@ export const exportAssets = async (
             content = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
             downloadFile(content, `${filename}.csv`, "text/csv");
             break;
+        }
 
         case 'html':
             content = `
@@ -83,9 +83,7 @@ ${assets.map(asset => `
             downloadFile(content, `${filename}.html`, "text/html");
             break;
 
-        case 'pdf':
-            // For PDF, strictly we might need a library like jspdf.
-            // For now, we'll just trigger a print on an HTML version or alert not supported.
+        case 'pdf': {
             console.warn("Direct PDF export requires additional libraries. Opening print view.");
             const printWindow = window.open('', '_blank');
             if (printWindow) {
@@ -94,6 +92,7 @@ ${assets.map(asset => `
                 printWindow.print();
             }
             break;
+        }
     }
 };
 

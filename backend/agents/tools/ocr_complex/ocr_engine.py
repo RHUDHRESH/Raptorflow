@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import cv2
-import google.generativeai as genai
 import numpy as np
 import pytesseract
+from google import genai
 from pdf2image import convert_from_path
 from PIL import Image
 
@@ -154,8 +154,8 @@ class GeminiProcessor(BaseProcessor):
         if not self.api_key:
             raise ValueError("Gemini API key required")
 
-        genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        self.client = genai.Client(api_key=self.api_key)
+        self.model_name = "gemini-1.5-flash"
         self.prompt = config.get("prompt", self._get_default_prompt())
 
     def _get_default_prompt(self) -> str:
@@ -197,8 +197,12 @@ class GeminiProcessor(BaseProcessor):
                 img_bytes = img_byte_arr.getvalue()
 
                 # Process with Gemini
-                response = self.model.generate_content(
-                    [self.prompt, {"mime_type": "image/png", "data": img_bytes}]
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=[
+                        self.prompt,
+                        {"mime_type": "image/png", "data": img_bytes},
+                    ],
                 )
 
                 extracted_text = response.text.strip()
