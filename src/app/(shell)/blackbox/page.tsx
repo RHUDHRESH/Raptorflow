@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { useMovesStore } from "@/stores/movesStore";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useFoundationStore } from "@/stores/foundationStore";
 
 /* ════════════════════════════════════════════════════════════════════════════

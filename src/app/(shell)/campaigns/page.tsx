@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { useCampaignStore, CampaignMove, MoveStatus } from "@/stores/campaignStore";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { CampaignWizard } from "@/components/campaigns/CampaignWizard";
 import { CampaignTimeline } from "@/components/campaigns/CampaignTimeline";
 

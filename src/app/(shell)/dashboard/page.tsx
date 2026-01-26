@@ -8,7 +8,7 @@ import { DashboardFocus } from "@/components/dashboard/DashboardFocus";
 import { DashboardActivity, ActivityItem } from "@/components/dashboard/DashboardActivity";
 import { useMovesStore } from "@/stores/movesStore";
 import { useCampaignStore } from "@/stores/campaignStore";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Activity, Target, Users, Zap } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════════
