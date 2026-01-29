@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
-from .services.bcm_projector import BCMProjector
 from schemas.bcm_evolution import EventType
+
+from .services.bcm_projector import BCMProjector
 
 
 @pytest.mark.asyncio

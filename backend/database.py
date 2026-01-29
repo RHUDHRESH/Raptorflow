@@ -9,10 +9,11 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 
 import asyncpg
-from ..config_clean import get_settings
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+
+from ..config_clean import get_settings
 
 settings = get_settings()
 

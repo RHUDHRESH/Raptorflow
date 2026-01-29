@@ -9,26 +9,26 @@ import signal
 import sys
 from typing import Optional
 
-from resources import (
-    get_resource_manager,
-    start_resource_manager,
-    stop_resource_manager,
+from cleanup_scheduler import (
+    get_cleanup_scheduler,
+    start_cleanup_scheduler,
+    stop_cleanup_scheduler,
 )
 from metrics_collector import (
     get_metrics_collector,
     start_metrics_collector,
     stop_metrics_collector,
 )
+from quota_manager import get_quota_manager, start_quota_manager, stop_quota_manager
 from resource_analytics import (
     get_resource_analyzer,
     start_resource_analyzer,
     stop_resource_analyzer,
 )
-from quota_manager import get_quota_manager, start_quota_manager, stop_quota_manager
-from cleanup_scheduler import (
-    get_cleanup_scheduler,
-    start_cleanup_scheduler,
-    stop_cleanup_scheduler,
+from resources import (
+    get_resource_manager,
+    start_resource_manager,
+    stop_resource_manager,
 )
 
 logger = logging.getLogger(__name__)

@@ -5,11 +5,12 @@ This package provides episodic memory storage and retrieval
 for conversations, user interactions, and session history.
 """
 
-from ..models import ConversationTurn, Episode
 from replay import EpisodeReplay
 from retrieval import EpisodicRetrieval
 from store import EpisodicMemory
 from summarizer import EpisodeSummarizer
+
+from ..models import ConversationTurn, Episode
 
 __all__ = [
     "Episode",

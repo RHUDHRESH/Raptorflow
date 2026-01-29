@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Test script to verify payment service dependencies"""
 
-import sys
 import os
+import sys
 
 try:
     print("Testing payment service dependencies...")
@@ -10,9 +10,9 @@ try:
     # Test email service dependencies
     import logging
     import os
+    from dataclasses import dataclass
     from datetime import datetime
     from typing import Any, Dict, List, Optional
-    from dataclasses import dataclass
 
     os.environ["RESEND_API_KEY"] = "test-key"
     os.environ["FROM_EMAIL"] = "test@example.com"

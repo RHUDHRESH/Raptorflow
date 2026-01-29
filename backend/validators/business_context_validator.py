@@ -5,11 +5,11 @@ Comprehensive validation module for business context data
 with schema validation, quality assessment, and consistency checks.
 """
 
-import logging
-from typing import Any, Dict, List, Optional, Tuple
-from datetime import datetime
 import json
+import logging
 import re
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 
 from schemas.business_context import BusinessContext, ValidationError
 

@@ -4,8 +4,10 @@ Prevents contradictory moves within the same campaign agenda.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
+
 from synapse import brain
+
 from .agents.skills.registry import get_skills_registry
 
 logger = logging.getLogger("conflict_resolver_node")

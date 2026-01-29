@@ -19,16 +19,15 @@ import asyncio
 import json
 import logging
 import time
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
-import uuid
 
-import structlog
 import aiohttp
-
-from inference_optimizer import get_cost_optimizer, ProviderPricing
+import structlog
+from inference_optimizer import ProviderPricing, get_cost_optimizer
 
 logger = structlog.get_logger(__name__)
 
@@ -603,7 +602,7 @@ class FallbackProviderManager:
         **kwargs,
     ) -> Tuple[str, float]:
         """Execute real inference with specific provider using LLMManager."""
-        from llm import llm_manager, LLMRequest, LLMMessage, LLMRole
+        from llm import LLMMessage, LLMRequest, LLMRole, llm_manager
 
         start_time = time.time()
 

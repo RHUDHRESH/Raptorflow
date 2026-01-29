@@ -7,11 +7,11 @@ Handles LITE, RESEARCH, and DEEP intelligence modes.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from ..agents.tools.base import RaptorflowTool, ToolResult
-from ..services.titan.orchestrator import TitanOrchestrator, TitanMode
+from ..services.titan.orchestrator import TitanMode, TitanOrchestrator
 
 logger = logging.getLogger("raptorflow.tools.titan")
 

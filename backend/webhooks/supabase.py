@@ -12,9 +12,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from handler import WebhookHandler, get_webhook_handler
 from infrastructure.cloud_monitoring import get_cloud_monitoring
 from infrastructure.logging import get_cloud_logging
-from handler import WebhookHandler, get_webhook_handler
+
 from .models import WebhookEvent, WebhookResponse
 
 logger = logging.getLogger(__name__)

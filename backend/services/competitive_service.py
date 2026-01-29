@@ -8,20 +8,20 @@ market share estimation, and competitive intelligence gathering.
 
 import asyncio
 import re
-from datetime import datetime
-from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from bs4 import BeautifulSoup
 import aiohttp
 import numpy as np
+from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from .services.llm_service import LLMService, ExtractionContext
 from .config import get_settings
 from .core.logging import get_logger
+from .services.llm_service import ExtractionContext, LLMService
 
 logger = get_logger(__name__)
 settings = get_settings()

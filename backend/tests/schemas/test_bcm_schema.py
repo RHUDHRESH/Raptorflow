@@ -5,31 +5,31 @@ Comprehensive tests for BCM JSON schema validation, serialization,
 and business logic.
 """
 
-import pytest
 from datetime import datetime
-from pydantic import ValidationError
 
+import pytest
+from pydantic import ValidationError
 from schemas.bcm_schema import (
+    KPI,
+    BCMMigration,
+    BCMSchemaValidator,
+    BCMVersion,
     BusinessContextManifest,
+    ChannelInfo,
+    ChannelType,
     CompanyInfo,
-    ICPProfile,
-    ICPPainPoint,
-    ICPGoal,
+    CompanyStage,
     CompetitorInfo,
+    Contradiction,
+    Goal,
+    ICPGoal,
+    ICPPainPoint,
+    ICPProfile,
+    IndustryType,
     MarketSizing,
     MessagingValueProp,
-    ChannelInfo,
-    Goal,
-    KPI,
-    Contradiction,
     RecentWin,
     Risk,
-    BCMSchemaValidator,
-    BCMMigration,
-    BCMVersion,
-    IndustryType,
-    CompanyStage,
-    ChannelType,
 )
 
 

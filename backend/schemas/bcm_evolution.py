@@ -1,8 +1,9 @@
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+from business_context import BrandIdentity, MarketPosition, StrategicAudience
 from pydantic import BaseModel, Field
-from datetime import datetime
-from business_context import BrandIdentity, StrategicAudience, MarketPosition
 
 
 class EventType(str, Enum):

@@ -1,17 +1,18 @@
 """Integration tests for complete payment flow"""
 
-import pytest
 import json
-from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime, timezone
+import os
 
 # Import payment service components
 import sys
-import os
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from services.payment_service import PaymentService, PaymentRequest, PaymentError
+from services.payment_service import PaymentError, PaymentRequest, PaymentService
 
 
 class TestPaymentFlowIntegration:

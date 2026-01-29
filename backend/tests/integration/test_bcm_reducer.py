@@ -5,16 +5,16 @@ Integration tests for the Business Context Manifest reducer
 with Redis session manager and onboarding data.
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from integration.bcm_reducer import BCMReducer
 from schemas.bcm_schema import (
     BusinessContextManifest,
     CompanyInfo,
-    IndustryType,
     CompanyStage,
+    IndustryType,
 )
 
 

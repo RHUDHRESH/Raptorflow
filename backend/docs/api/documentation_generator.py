@@ -4,13 +4,14 @@ Provides comprehensive API documentation with interactive examples and tutorials
 """
 
 import json
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from openapi_specification import (
+    api_versioning,
     get_openapi_spec,
     interactive_examples,
     rate_limiting,
     security_considerations,
-    api_versioning,
 )
 
 

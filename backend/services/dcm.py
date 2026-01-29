@@ -8,12 +8,13 @@ Uses vector similarity sorting to find the most relevant business context
 """
 
 import logging
-from typing import Dict, List, Optional, Any
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from typing import Any, Dict, List, Optional
 
-from memory.vector_store import VectorMemory
-from .services.upstash_client import get_upstash_client
 from memory.models import MemoryType
+from memory.vector_store import VectorMemory
+
+from .services.upstash_client import get_upstash_client
 
 logger = logging.getLogger("raptorflow.services.dcm")
 

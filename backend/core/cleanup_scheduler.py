@@ -5,17 +5,17 @@ Provides scheduled cleanup with configurable intervals and triggers.
 
 import asyncio
 import logging
+import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
-import schedule
-import threading
 
-from resources import get_resource_manager, ResourceType
+import schedule
 from metrics_collector import get_metrics_collector
+from resources import ResourceType, get_resource_manager
 
 logger = logging.getLogger(__name__)
 

@@ -6,10 +6,10 @@ Tests the complete flow from API endpoints to Redis storage.
 
 import asyncio
 import json
-import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 from main import app
 

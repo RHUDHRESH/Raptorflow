@@ -18,27 +18,27 @@ Features:
 
 import asyncio
 import json
-import pytest
 import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
+import pytest
 import pytest_asyncio
 
 from .api.v1.ai_inference import (
-    InferenceRequestModel,
     BatchInferenceRequestModel,
-    InferenceResponseModel,
     BatchInferenceResponseModel,
+    InferenceRequestModel,
+    InferenceResponseModel,
 )
 from .core.batch_processor import InferenceRequest, RequestStatus
-from .core.inference_cache import get_inference_cache, CacheEntry, CacheLevel
-from .core.inference_optimizer import get_cost_optimizer, OptimizationStrategy
-from .core.inference_queue import get_queue_manager, QueuePriority
+from .core.fallback_providers import FailoverStrategy, get_fallback_manager
+from .core.inference_cache import CacheEntry, CacheLevel, get_inference_cache
+from .core.inference_optimizer import OptimizationStrategy, get_cost_optimizer
+from .core.inference_queue import QueuePriority, get_queue_manager
 from .core.streaming_inference import get_streaming_manager
-from .core.fallback_providers import get_fallback_manager, FailoverStrategy
 
 
 class TestInferenceAPI:
@@ -766,8 +766,9 @@ class TestPerformanceAndLoad:
     @pytest.mark.asyncio
     async def test_memory_usage(self, setup_components):
         """Test memory usage under load."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss

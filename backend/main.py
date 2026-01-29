@@ -20,14 +20,6 @@ load_dotenv()
 import redis
 import vertexai
 
-# Import job scheduler
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import Depends, FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-
-# GCP Imports
-from google.cloud import aiplatform, bigquery, storage
-
 # Import API routers
 from api.v1 import (  # episodes,
     admin,
@@ -72,39 +64,33 @@ from api.v1 import (  # episodes,
     users,
     workspaces,
 )
-from core.database_automation import (
-    start_database_automation,
-    stop_database_automation,
-)
+
+# Import job scheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from core.database_automation import start_database_automation, stop_database_automation
 
 # Import database automation
 from core.database_integration import shutdown_database, startup_database
 from core.database_scaling import start_database_scaling, stop_database_scaling
 from core.posthog import add_posthog_middleware
-from core.prometheus_metrics import (
-    PrometheusMiddleware,
-    init_prometheus_metrics,
-)
+from core.prometheus_metrics import PrometheusMiddleware, init_prometheus_metrics
 
 # Import monitoring
 from core.sentry import init_sentry
 
 # Import dependencies
-from dependencies import (
-    get_cognitive_engine,
-    get_db,
-    get_memory_controller,
-    get_redis,
-)
+from dependencies import get_cognitive_engine, get_db, get_memory_controller, get_redis
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
+# GCP Imports
+from google.cloud import aiplatform, bigquery, storage
 from middleware.compression import add_compression_middleware
 from middleware.errors import ErrorMiddleware
 from middleware.logging import LoggingMiddleware
 from middleware.metrics import MetricsMiddleware
 from middleware.rate_limit import create_rate_limit_middleware
-from redis_services_activation import (
-    activate_redis_services,
-    deactivate_redis_services,
-)
+from redis_services_activation import activate_redis_services, deactivate_redis_services
 from services.bcm_sweeper import BCMSweeper
 
 # Import payment status service

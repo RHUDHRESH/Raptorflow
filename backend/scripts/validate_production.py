@@ -19,10 +19,10 @@ from infrastructure.gcp import GCPClient
 from infrastructure.secrets import SecretsManager
 from infrastructure.storage import CloudStorage
 from monitoring.health import HealthAggregator
-from .redis.client import RedisClient
-from .redis.config import RedisConfig, validate_redis_config
 
 from .config.settings import get_settings
+from .redis.client import RedisClient
+from .redis.config import RedisConfig, validate_redis_config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

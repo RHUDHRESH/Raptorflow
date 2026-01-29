@@ -3,15 +3,14 @@ AI API Proxy - Secure backend proxy for external AI services
 Hides API keys and provides rate limiting for AI endpoints
 """
 
-import os
 import logging
+import os
 from typing import Any, Dict, Optional
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, status
-
 from core.auth import get_current_user
 from core.models import User
+from fastapi import APIRouter, Depends, HTTPException, status
 
 router = APIRouter(prefix="/ai", tags=["ai-proxy"])
 logger = logging.getLogger(__name__)

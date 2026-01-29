@@ -7,8 +7,10 @@ Vectorizes strategic outcomes into the DCM learning pool.
 
 import logging
 from typing import Any, Dict, List, Optional
-from .core.supabase_mgr import get_supabase_client
+
 from memory.bcm_vector_manager import BCMVectorManager
+
+from .core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

@@ -7,15 +7,16 @@ market opportunity identification, and positioning statement generation.
 """
 
 import asyncio
-import numpy as np
-from datetime import datetime
-from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .services.llm_service import LLMService, ExtractionContext
+import numpy as np
+
 from .config import get_settings
 from .core.logging import get_logger
+from .services.llm_service import ExtractionContext, LLMService
 
 logger = get_logger(__name__)
 settings = get_settings()

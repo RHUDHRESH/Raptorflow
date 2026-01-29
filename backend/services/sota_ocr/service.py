@@ -4,27 +4,28 @@ Main service integrating all OCR components
 """
 
 import asyncio
+import io
 import logging
-from typing import Dict, List, Optional, Any, Union
+import os
+import tempfile
 from dataclasses import dataclass
 from datetime import datetime
-import io
-import tempfile
-import os
+from typing import Any, Dict, List, Optional, Union
 
-from orchestrator import OCRModelOrchestrator, ModelSelectionStrategy
-from preprocessor import DocumentPreprocessor
-from quality_assurance import QualityAssurance
 from ensemble import OCREnsemble
 from monitoring import OCRMonitoring
+from orchestrator import ModelSelectionStrategy, OCRModelOrchestrator
+from preprocessor import DocumentPreprocessor
+from quality_assurance import QualityAssurance
+
 from ..models import (
-    OCRModelResult,
-    EnsembleResult,
-    QualityAssessment,
-    DocumentCharacteristics,
-    OCRProcessingResponse,
     BatchProcessingResponse,
+    DocumentCharacteristics,
+    EnsembleResult,
+    OCRModelResult,
+    OCRProcessingResponse,
     ProcessingStats,
+    QualityAssessment,
     SotaOCRConfig,
 )
 

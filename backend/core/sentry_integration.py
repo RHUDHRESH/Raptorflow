@@ -13,49 +13,43 @@ Features:
 - Integration with existing monitoring systems
 """
 
+import json
+import logging
 import os
 import sys
-import json
-import time
-import logging
 import threading
-from typing import Dict, List, Optional, Any, Union, Callable
+import time
+import traceback
+from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from contextlib import contextmanager
-import traceback
-from datetime import datetime, timezone
+from typing import Any, Callable, Dict, List, Optional, Union
 
 try:
     import sentry_sdk
     from sentry_sdk import (
-        configure_scope,
-        set_tag,
-        set_context,
         add_breadcrumb,
         capture_exception,
         capture_message,
-        flush,
-        last_event_id,
-        get_current_span,
-        start_span,
+        configure_scope,
         continue_trace,
+        flush,
+        get_current_span,
+        last_event_id,
+        set_context,
+        set_tag,
+        start_span,
     )
-    from sentry_sdk.integrations import (
-        Integration,
-        redis,
-        sqlalchemy,
-        httpx,
-        aiohttp,
-        fastapi,
-        celery,
-        logging as sentry_logging,
-        threading as sentry_threading,
-        atexit as sentry_atexit,
-        modules as sentry_modules,
-        stdlib as sentry_stdlib,
-    )
+    from sentry_sdk.integrations import Integration, aiohttp
+    from sentry_sdk.integrations import atexit as sentry_atexit
+    from sentry_sdk.integrations import celery, fastapi, httpx
+    from sentry_sdk.integrations import logging as sentry_logging
+    from sentry_sdk.integrations import modules as sentry_modules
+    from sentry_sdk.integrations import redis, sqlalchemy
+    from sentry_sdk.integrations import stdlib as sentry_stdlib
+    from sentry_sdk.integrations import threading as sentry_threading
     from sentry_sdk.tracing import Span, Transaction
     from sentry_sdk.utils import Dsn
 

@@ -7,16 +7,17 @@ with Business Context Manifest (BCM) integration.
 
 import logging
 from datetime import datetime
-from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..services.onboarding_migration_service import (
-    OnboardingMigrationService,
-    MigrationStatus,
     LegacyOnboardingStatus,
     MigrationResult,
     MigrationStats,
+    MigrationStatus,
+    OnboardingMigrationService,
     migrate_onboarding_status_batch,
     rollback_onboarding_status_batch,
 )

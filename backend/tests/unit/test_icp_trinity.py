@@ -1,14 +1,16 @@
-import pytest
 import json
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 # Set dummy env vars for Supabase to avoid initialization error
 os.environ["SUPABASE_URL"] = "https://example.supabase.co"
 os.environ["SUPABASE_ANON_KEY"] = "dummy-key"
 
+from schemas import RICP, BusinessContextState, RICPDemographics, RICPPsychographics
+
 from ..services.icp import ICPService
-from schemas import RICP, RICPDemographics, RICPPsychographics, BusinessContextState
 
 
 @pytest.mark.asyncio

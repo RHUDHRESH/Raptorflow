@@ -5,18 +5,19 @@ Multi-layer quality validation system for OCR results
 
 import asyncio
 import re
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any, Union
+import time
 from dataclasses import dataclass
 from enum import Enum
-import time
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import numpy as np
 
 from ..models import (
-    OCRModelResult,
-    EnsembleResult,
-    QualityMetrics,
     DocumentCharacteristics,
     DocumentType,
+    EnsembleResult,
+    OCRModelResult,
+    QualityMetrics,
 )
 
 

@@ -16,50 +16,52 @@ Features:
 - Error recovery testing
 """
 
-import pytest
 import asyncio
-import time
-import uuid
 import json
 import logging
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone, timedelta
-from unittest.mock import Mock, patch, MagicMock
+import time
+import uuid
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
+from .core.sentry_alerting import (
+    AlertRule,
+    AlertSeverity,
+    AlertType,
+    SentryAlertingManager,
+    get_alerting_manager,
+)
+from .core.sentry_dashboards import (
+    DashboardType,
+    SentryDashboardManager,
+    WidgetType,
+    get_dashboard_manager,
+)
+from .core.sentry_error_tracking import (
+    ErrorCategory,
+    ErrorContext,
+    ErrorSeverity,
+    SentryErrorTracker,
+    get_error_tracker,
+)
+
 # Import Sentry components
 from .core.sentry_integration import (
-    SentryIntegrationManager,
     SentryConfig,
     SentryEnvironment,
+    SentryIntegrationManager,
     get_sentry_manager,
     initialize_sentry,
     shutdown_sentry,
 )
-from .core.sentry_error_tracking import (
-    SentryErrorTracker,
-    ErrorContext,
-    ErrorCategory,
-    ErrorSeverity,
-    get_error_tracker,
-)
 from .core.sentry_performance import SentryPerformanceMonitor, get_performance_monitor
 from .core.sentry_sessions import SentrySessionManager, SessionType, get_session_manager
-from .core.sentry_alerting import (
-    SentryAlertingManager,
-    AlertRule,
-    AlertType,
-    AlertSeverity,
-    get_alerting_manager,
-)
-from .core.sentry_dashboards import (
-    SentryDashboardManager,
-    DashboardType,
-    WidgetType,
-    get_dashboard_manager,
-)
 from .middleware.sentry_middleware import SentryMiddleware, add_sentry_middleware
 
 
@@ -659,7 +661,7 @@ class TestSentryDashboards:
         )
 
         # Add widget
-        from core.sentry_dashboards import WidgetConfig, WidgetType, AggregationType
+        from core.sentry_dashboards import AggregationType, WidgetConfig, WidgetType
 
         widget = WidgetConfig(
             name="Test Widget",

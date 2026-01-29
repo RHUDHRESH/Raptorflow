@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from ..core.supabase_mgr import get_supabase_client
 from db.filters import Filter, build_query
 from db.pagination import PaginatedResult, Pagination
 
 from ..base import BaseModel, Repository
+from ..core.supabase_mgr import get_supabase_client
 
 
 @dataclass

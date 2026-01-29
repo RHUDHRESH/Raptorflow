@@ -5,17 +5,23 @@ Intelligently selects and manages multiple state-of-the-art OCR models
 
 import asyncio
 import time
-from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
-from ..models import (
-    DocumentCharacteristics, ModelCapabilities, OCRModelResult,
-    DocumentType, DocumentComplexity, LanguageCategory, ProcessingVolume
-)
+from model_implementations import ModelFactory
 from preprocessor import DocumentPreprocessor
 from quality_assurance import QualityAssurance
-from model_implementations import ModelFactory
+
+from ..models import (
+    DocumentCharacteristics,
+    DocumentComplexity,
+    DocumentType,
+    LanguageCategory,
+    ModelCapabilities,
+    OCRModelResult,
+    ProcessingVolume,
+)
 
 
 class ModelSelectionStrategy(str, Enum):

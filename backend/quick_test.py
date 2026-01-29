@@ -2,8 +2,8 @@
 """
 Quick test to bypass Python environment issues
 """
-import sys
 import os
+import sys
 
 # Add current directory to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))

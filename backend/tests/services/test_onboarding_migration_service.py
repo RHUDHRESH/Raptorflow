@@ -5,21 +5,22 @@ Comprehensive tests for migrating from legacy onboarding status to the new Redis
 with Business Context Manifest (BCM) integration.
 """
 
-import pytest
 import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
-from pydantic import ValidationError
 
+import pytest
+from pydantic import ValidationError
 from services.onboarding_migration_service import (
-    OnboardingMigrationService,
-    MigrationStatus,
     LegacyOnboardingStatus,
     MigrationResult,
     MigrationStats,
+    MigrationStatus,
+    OnboardingMigrationService,
     migrate_onboarding_status_batch,
-    rollback_onboarding_status_batch
+    rollback_onboarding_status_batch,
 )
+
 
 # Mock the dependencies
 @pytest.fixture

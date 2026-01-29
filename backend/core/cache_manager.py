@@ -5,45 +5,46 @@ Provides a single interface to access all cache components
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
-# Import all cache components
-from comprehensive_cache import (
-    get_comprehensive_cache,
-    ComprehensiveCacheManager,
-    CacheEntryPriority,
-    CacheLevel,
-)
-from cache_key_generator import (
-    get_cache_key_generator,
-    CacheKeyGenerator,
-    KeyScope,
-    KeyGenerationStrategy,
-)
-from cache_warming import get_cache_warmer, CacheWarmer, WarmingStrategy
-from cache_invalidation import (
-    get_invalidation_manager,
-    CacheInvalidationManager,
-    InvalidationType,
-    InvalidationScope,
-)
+from cache_analytics import CacheAnalytics, MetricType, TimeWindow, get_cache_analytics
+from cache_backup import BackupType, CacheBackupManager, get_backup_manager
 from cache_compression import (
-    get_compression_manager,
     CacheCompressionManager,
     CompressionAlgorithm,
     SerializationFormat,
+    get_compression_manager,
 )
-from cache_analytics import get_cache_analytics, CacheAnalytics, TimeWindow, MetricType
-from cache_health import get_health_monitor, CacheHealthMonitor, HealthStatus
 from cache_distributed import (
-    get_distributed_cache,
-    DistributedCacheManager,
     ConsistencyLevel,
+    DistributedCacheManager,
+    get_distributed_cache,
 )
-from cache_backup import get_backup_manager, CacheBackupManager, BackupType
-from cache_optimizer import get_cache_optimizer, CacheOptimizer, OptimizationType
-from cache_error_handler import get_error_handler, CacheErrorHandler
+from cache_error_handler import CacheErrorHandler, get_error_handler
+from cache_health import CacheHealthMonitor, HealthStatus, get_health_monitor
+from cache_invalidation import (
+    CacheInvalidationManager,
+    InvalidationScope,
+    InvalidationType,
+    get_invalidation_manager,
+)
+from cache_key_generator import (
+    CacheKeyGenerator,
+    KeyGenerationStrategy,
+    KeyScope,
+    get_cache_key_generator,
+)
+from cache_optimizer import CacheOptimizer, OptimizationType, get_cache_optimizer
+from cache_warming import CacheWarmer, WarmingStrategy, get_cache_warmer
+
+# Import all cache components
+from comprehensive_cache import (
+    CacheEntryPriority,
+    CacheLevel,
+    ComprehensiveCacheManager,
+    get_comprehensive_cache,
+)
 
 logger = logging.getLogger(__name__)
 

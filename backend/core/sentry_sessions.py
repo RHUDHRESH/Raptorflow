@@ -15,28 +15,28 @@ Features:
 - Session lifecycle management
 """
 
-import os
-import uuid
-import time
-import json
-import threading
-from typing import Dict, List, Optional, Any, Union, Callable
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime, timezone, timedelta
-from contextlib import contextmanager
-import logging
 import hashlib
+import json
+import logging
+import os
+import threading
+import time
+import uuid
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Union
 
 try:
     from sentry_sdk import (
-        configure_scope,
-        set_tag,
-        set_context,
         add_breadcrumb,
-        set_user,
+        configure_scope,
         continue_trace,
         get_current_span,
+        set_context,
+        set_tag,
+        set_user,
     )
 
     SENTRY_AVAILABLE = True

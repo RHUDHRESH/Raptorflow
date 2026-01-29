@@ -10,11 +10,12 @@ from auto_approve import AutoApprover
 from escalation import EscalationManager
 from feedback import FeedbackCollector
 from gate import ApprovalGate
-from ..models import ApprovalRequest, ApprovalResponse
 from notifications import ApprovalNotifier
 from override import HumanOverride
 from risk_rules import ApprovalRiskRules
 from timeout_handler import TimeoutHandler
+
+from ..models import ApprovalRequest, ApprovalResponse
 
 __all__ = [
     "ApprovalGate",

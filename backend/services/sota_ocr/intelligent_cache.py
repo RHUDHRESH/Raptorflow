@@ -7,17 +7,18 @@ import asyncio
 import hashlib
 import json
 import pickle
-import time
-from typing import Dict, List, Optional, Tuple, Any, Union
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
-import numpy as np
-from collections import defaultdict, deque
-import redis
 import sqlite3
+import time
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ..models import OCRModelResult, DocumentCharacteristics
+import numpy as np
+import redis
+
+from ..models import DocumentCharacteristics, OCRModelResult
 
 
 @dataclass

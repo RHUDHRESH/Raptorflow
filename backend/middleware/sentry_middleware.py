@@ -15,21 +15,22 @@ Features:
 - Custom breadcrumb generation
 """
 
-import uuid
-import time
+import asyncio
 import json
 import logging
-from typing import Dict, List, Optional, Any, Callable
+import time
+import uuid
+from typing import Any, Callable, Dict, List, Optional
+
 from fastapi import Request, Response
 from fastapi.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import StreamingResponse
-import asyncio
 
+from .core.sentry_error_tracking import ErrorContext, get_error_tracker
 from .core.sentry_integration import get_sentry_manager
-from .core.sentry_error_tracking import get_error_tracker, ErrorContext
 from .core.sentry_performance import get_performance_monitor
-from .core.sentry_sessions import get_session_manager, SessionType
+from .core.sentry_sessions import SessionType, get_session_manager
 
 
 class SentryMiddleware(BaseHTTPMiddleware):
@@ -380,7 +381,7 @@ class SentryMiddleware(BaseHTTPMiddleware):
     ) -> None:
         """Set up Sentry context for the request."""
         try:
-            from sentry_sdk import configure_scope, set_tag, set_context
+            from sentry_sdk import configure_scope, set_context, set_tag
 
             configure_scope(
                 lambda scope: set_tag(

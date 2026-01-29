@@ -8,13 +8,12 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-
 # Core system imports
 from core.session import get_session_manager
 from core.supabase_mgr import get_supabase_admin
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from services.search.orchestrator import SOTASearchOrchestrator
 from services.sota_ocr.service import DEFAULT_CONFIG as OCR_CONFIG
 from services.sota_ocr.service import create_sota_ocr_service

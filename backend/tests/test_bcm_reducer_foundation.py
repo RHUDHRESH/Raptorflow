@@ -3,13 +3,14 @@ Unit tests for BCMReducer foundation extraction.
 Tests cover all 23 onboarding steps and validation logic.
 """
 
-import pytest
-from unittest.mock import Mock, patch
-from datetime import datetime
 import logging
+from datetime import datetime
+from unittest.mock import Mock, patch
+
+import pytest
 
 from backend.integration.bcm_reducer import BCMReducer
-from backend.schemas.bcm_schema import IndustryType, CompanyStage
+from backend.schemas.bcm_schema import CompanyStage, IndustryType
 
 
 class TestBCMReducerFoundation:

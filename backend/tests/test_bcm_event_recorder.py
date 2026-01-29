@@ -1,8 +1,10 @@
-import pytest
 import uuid
-from unittest.mock import Mock, AsyncMock, patch
-from .services.bcm_recorder import BCMEventRecorder
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from schemas.bcm_evolution import EventType
+
+from .services.bcm_recorder import BCMEventRecorder
 
 
 @pytest.mark.asyncio

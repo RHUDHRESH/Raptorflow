@@ -5,7 +5,9 @@ Handles recording of discrete strategic and operational events to the ledger.
 
 import logging
 from typing import Any, Dict, Optional
+
 from schemas.bcm_evolution import EventType
+
 from .core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)

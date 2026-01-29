@@ -37,15 +37,15 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..core.batch_processor import (
-    get_batch_processor,
-    get_request_deduplicator,
     InferenceRequest,
     RequestStatus,
+    get_batch_processor,
+    get_request_deduplicator,
 )
 from ..core.inference_cache import get_inference_cache
-from ..core.inference_optimizer import get_cost_optimizer, OptimizationStrategy
-from ..core.inference_queue import get_queue_manager, QueuePriority
-from ..core.streaming_inference import get_streaming_manager, StreamingInferenceService
+from ..core.inference_optimizer import OptimizationStrategy, get_cost_optimizer
+from ..core.inference_queue import QueuePriority, get_queue_manager
+from ..core.streaming_inference import StreamingInferenceService, get_streaming_manager
 from ..llm import LLMManager, LLMRequest, LLMResponse
 
 logger = structlog.get_logger(__name__)

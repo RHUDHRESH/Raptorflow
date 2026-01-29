@@ -6,13 +6,14 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
+from tools.web_scraper import ContentType, ScrapingMethod, WebScraperTool
+
 from ..core.supabase_mgr import get_supabase_client
 from ..llm import LLMManager
 from ..services.search.orchestrator import SOTASearchOrchestrator
 from ..services.storage import get_enhanced_storage_service
 from ..services.titan.multiplexer import SearchMultiplexer, SemanticRanker
 from ..services.titan.scraper import IntelligentMarkdown, PlaywrightStealthPool
-from tools.web_scraper import ContentType, ScrapingMethod, WebScraperTool
 
 logger = logging.getLogger("raptorflow.services.titan.orchestrator")
 

@@ -6,7 +6,8 @@ Applies psychological triggers and neuroscience-backed patterns to marketing cop
 """
 
 import logging
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from ...base import Skill, SkillCategory, SkillLevel
 
 logger = logging.getLogger("raptorflow.skills.neuroscience_copywriting")

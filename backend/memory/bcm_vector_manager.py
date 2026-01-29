@@ -7,12 +7,13 @@ Handles vector operations specific to Business Context Manifest (BCM) system:
 - Embedding caching
 """
 
-from typing import Dict, List, Optional
-from datetime import datetime, timedelta
 import hashlib
 import json
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
 
 from memory.vector_store import VectorMemory
+
 from .services.upstash_client import get_upstash_client
 
 

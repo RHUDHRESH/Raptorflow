@@ -4,7 +4,8 @@ Acts as the final quality gate and 'Editor-in-Chief' for moves and campaigns.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 from ..base import BaseAgent
 from ..config import ModelTier
 from ..state import AgentState

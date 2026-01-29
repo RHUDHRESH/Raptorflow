@@ -4,11 +4,11 @@ Handle events that record metrics, track performance, and update analytics.
 """
 
 import logging
+from types import AgentExecutionEvent, ContentGeneratedEvent, Event, EventType
 from typing import Any, Dict, Optional
 
 from ...infrastructure.bigquery import BigQueryClient
 from ...redis.usage import UsageTracker
-from types import AgentExecutionEvent, ContentGeneratedEvent, Event, EventType
 
 logger = logging.getLogger(__name__)
 

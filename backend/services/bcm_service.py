@@ -6,11 +6,12 @@ Integrates reducer, Redis tiers, and Supabase persistence
 import json
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
+
 from ..integration.bcm_reducer import BCMReducer
 from ..redis.bcm_storage import BCMStorage
-from ..services.supabase_client import get_supabase_admin
 from ..schemas.bcm_schema import BusinessContextManifest
+from ..services.supabase_client import get_supabase_admin
 
 logger = logging.getLogger(__name__)
 

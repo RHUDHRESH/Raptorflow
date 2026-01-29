@@ -2,9 +2,9 @@
 
 import logging
 import os
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from dataclasses import dataclass
 
 import resend
 from jinja2 import Template

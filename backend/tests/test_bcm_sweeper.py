@@ -1,8 +1,10 @@
-import pytest
 import json
-from unittest.mock import Mock, AsyncMock, patch
-from .services.bcm_sweeper import BCMSweeper
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from schemas.bcm_evolution import EventType
+
+from .services.bcm_sweeper import BCMSweeper
 
 
 @pytest.mark.asyncio

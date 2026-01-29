@@ -6,10 +6,9 @@ Handles CRUD operations for marketing moves
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from .base import Repository
 from .core.models import ValidationError
 from .core.supabase_mgr import get_supabase_client
-
-from .base import Repository
 
 
 class MoveRepository(Repository):

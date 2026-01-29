@@ -10,10 +10,10 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
+from infrastructure.storage import FileCategory, get_cloud_storage
 from pydantic import BaseModel, Field
 
 from ..core.auth import get_current_user
-from infrastructure.storage import FileCategory, get_cloud_storage
 from ..services.storage import get_enhanced_storage_service
 
 logger = logging.getLogger(__name__)

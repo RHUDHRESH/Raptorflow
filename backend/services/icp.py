@@ -6,13 +6,14 @@ Handles ICP-related business logic and validation
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from .core.models import ValidationError
-from .core.supabase_mgr import get_supabase_client
 from db.foundations import FoundationRepository
 from db.icps import ICPRepository
 from db.moves import MoveRepository
-from .redis_core.cache import cached
 from schemas import RICP
+
+from .core.models import ValidationError
+from .core.supabase_mgr import get_supabase_client
+from .redis_core.cache import cached
 from .services.business_context_generator import get_business_context_generator
 from .services.business_context_graph import (
     create_initial_workflow_state,

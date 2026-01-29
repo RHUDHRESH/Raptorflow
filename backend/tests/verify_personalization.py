@@ -1,8 +1,8 @@
-import sys
-import os
 import asyncio
-from unittest.mock import MagicMock
+import os
+import sys
 from datetime import datetime
+from unittest.mock import MagicMock
 
 # 1. MOCK ENVIRONMENT & REDIS
 # Create mock module
@@ -25,12 +25,12 @@ os.environ["RAPTORFLOW_SKIP_INIT"] = "true"
 # If not, we'll patch the _call_llm method to return simulated unique responses based on prompt content.
 
 try:
+    from agents.skills.registry import SkillsRegistry
+    from agents.specialists.campaign_planner import CampaignPlanner
     from agents.specialists.social_media_agent import (
         SocialMediaAgent,
         SocialMediaRequest,
     )
-    from agents.specialists.campaign_planner import CampaignPlanner
-    from agents.skills.registry import SkillsRegistry
     from state import AgentState
 except ImportError as e:
     print(f"CRITICAL IMPORT ERROR: {e}")

@@ -7,12 +7,13 @@ Integrates SimpleMemoryController to provide a "Working Memory" for agents.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from typing import Any, Dict, List, Optional
 
 from memory.controller import SimpleMemoryController
-from .services.dcm import get_dcm
+
 from .core.supabase_mgr import get_supabase_client
+from .services.dcm import get_dcm
 
 logger = logging.getLogger("raptorflow.services.macm")
 

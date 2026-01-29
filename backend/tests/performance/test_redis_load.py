@@ -5,16 +5,16 @@ Tests Redis performance under various load conditions
 
 import asyncio
 import json
+import statistics
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
-import statistics
+from typing import Any, Dict, List
 
 from ..redis_core.client import get_redis
-from ..redis_core.session import SessionService
 from ..redis_core.rate_limit import RateLimitService
-from ..services.llm_cache import get_semantic_cache
+from ..redis_core.session import SessionService
 from ..services.coordination import get_lock_manager
+from ..services.llm_cache import get_semantic_cache
 
 
 class RedisLoadTester:

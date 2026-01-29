@@ -4,28 +4,29 @@ FastAPI endpoints for the State-of-the-Art OCR service
 """
 
 import asyncio
+import io
+import json
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
+
 from fastapi import (
     APIRouter,
-    HTTPException,
-    UploadFile,
-    File,
-    Form,
     BackgroundTasks,
     Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
 )
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-import io
-import json
+from service import DEFAULT_CONFIG, SOTAOCRService, create_sota_ocr_service
 
-from service import SOTAOCRService, create_sota_ocr_service, DEFAULT_CONFIG
 from ..models import (
-    OCRProcessingResponse,
     BatchProcessingResponse,
     DocumentAnalysisResponse,
     ModelPerformanceResponse,
+    OCRProcessingResponse,
 )
 
 

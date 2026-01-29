@@ -5,10 +5,11 @@ Analyses results and decides on Archive vs Extend.
 """
 
 import logging
-from typing import Dict, Any
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from typing import Any, Dict
 
 from synapse import brain
+
 from .core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger("post_mortem")
@@ -49,8 +50,8 @@ async def post_mortem_node(context: Dict) -> Dict:
 
     # --- PHASE 14: EXPERIENCE VAULT VECTORIZATION ---
     try:
-        from memory.vector_store import VectorMemory
         from memory.models import MemoryType
+        from memory.vector_store import VectorMemory
 
         memory = VectorMemory()
         lesson_text = f"Move: {move.get('name')}. Goal: {move.get('goal')}. Result: {success_rate:.2%}. Findings: High engagement on social."

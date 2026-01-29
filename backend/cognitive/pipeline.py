@@ -16,10 +16,11 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from critic import AdversarialCritic
 from hitl import ApprovalGate
-from .models import CognitiveResult, ExecutionPlan, PerceivedInput, ReflectionResult
 from perception import PerceptionModule
 from planning import PlanningModule
 from reflection import ReflectionModule
+
+from .models import CognitiveResult, ExecutionPlan, PerceivedInput, ReflectionResult
 
 
 class PipelineStage(Enum):

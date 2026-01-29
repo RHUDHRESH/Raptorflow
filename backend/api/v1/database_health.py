@@ -3,14 +3,15 @@ Database Health API Endpoints
 Production-ready endpoints for database monitoring and management
 """
 
-from fastapi import APIRouter, HTTPException, Depends
-from typing import Dict, Any, Optional
 import logging
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, Depends, HTTPException
 
 from ..core.database_integration import (
+    get_database_integration,
     get_database_status,
     run_database_migrations,
-    get_database_integration,
 )
 from ..core.database_monitoring import (
     get_database_monitoring_status,

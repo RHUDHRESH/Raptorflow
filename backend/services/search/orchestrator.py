@@ -2,12 +2,12 @@ import asyncio
 import hashlib
 import json
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from upstash_redis import Redis
-from services.search.searxng import SearXNGClient
-from services.search.reddit_native import RedditNativeScraper
 from config.settings import get_settings
+from services.search.reddit_native import RedditNativeScraper
+from services.search.searxng import SearXNGClient
+from upstash_redis import Redis
 
 logger = logging.getLogger("raptorflow.services.search.orchestrator")
 

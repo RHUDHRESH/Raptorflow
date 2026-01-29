@@ -5,24 +5,25 @@ Addresses compliance vulnerabilities identified in red team audit
 """
 
 import asyncio
+import base64
 import hashlib
 import json
 import logging
+import os
+import re
 import uuid
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, List, Union, Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Union
+
 import redis
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-import base64
-import os
-import re
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from .core.audit_logger import audit_logger, EventType, LogLevel
+from .core.audit_logger import EventType, LogLevel, audit_logger
 
 logger = logging.getLogger(__name__)
 

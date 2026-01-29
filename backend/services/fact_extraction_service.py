@@ -10,21 +10,21 @@ import asyncio
 import hashlib
 import json
 import re
-from datetime import datetime
-from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
+import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import spacy
 
-from .services.document_service import DocumentMetadata
-from .services.ocr_service import OCRResult
-from .services.llm_service import LLMService, ExtractionContext
 from .config import get_settings
 from .core.logging import get_logger
+from .services.document_service import DocumentMetadata
+from .services.llm_service import ExtractionContext, LLMService
+from .services.ocr_service import OCRResult
 
 logger = get_logger(__name__)
 settings = get_settings()

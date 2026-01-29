@@ -6,14 +6,14 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional, List
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 import httpx
 from core.supabase_mgr import get_supabase_admin
 from core.webhook_security import webhook_security
-from services.email_service import email_service, EmailRecipient
+from services.email_service import EmailRecipient, email_service
 
 logger = logging.getLogger(__name__)
 

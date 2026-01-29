@@ -27,8 +27,15 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import structlog
+from channel_recommender import ChannelRecommender
+from contradiction_detector import ContradictionDetector
 
-from ..config import ModelTier
+# Import new AI agents
+from evidence_classifier import EvidenceClassifier
+from extraction_orchestrator import ExtractionOrchestrator
+from neuroscience_copywriter import NeuroscienceCopywriter
+from perceptual_map_generator import PerceptualMapGenerator
+from reddit_researcher import RedditResearcher
 
 # Import state management
 from ...utils.onboarding_state_manager import (
@@ -40,16 +47,8 @@ from ...utils.onboarding_state_manager import (
 
 # Local imports
 from ..base import BaseAgent
+from ..config import ModelTier
 from ..state import AgentState
-from channel_recommender import ChannelRecommender
-from contradiction_detector import ContradictionDetector
-
-# Import new AI agents
-from evidence_classifier import EvidenceClassifier
-from extraction_orchestrator import ExtractionOrchestrator
-from neuroscience_copywriter import NeuroscienceCopywriter
-from perceptual_map_generator import PerceptualMapGenerator
-from reddit_researcher import RedditResearcher
 
 logger = structlog.get_logger(__name__)
 

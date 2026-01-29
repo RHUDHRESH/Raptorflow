@@ -43,10 +43,7 @@ from ..services.collaboration_service import ApprovalStatus, collaboration_servi
 
 # Import Services
 from ..services.crm_service import CRMProvider, crm_service
-from ..services.distribution_service import (
-    DistributionPlatform,
-    distribution_service,
-)
+from ..services.distribution_service import DistributionPlatform, distribution_service
 from ..services.marketplace_service import marketplace_service
 from ..services.onboarding_service import muse_onboarding_service
 from ..services.premium_service import premium_service

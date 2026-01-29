@@ -3,17 +3,17 @@ Authentication Tests for RaptorFlow Backend
 Tests JWT authentication, user management, and security features
 """
 
-import pytest
 import asyncio
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Any, Dict
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 from jose import jwt
+from main import app
 from passlib.context import CryptContext
 
-from main import app
 from .config.settings import get_settings
 
 

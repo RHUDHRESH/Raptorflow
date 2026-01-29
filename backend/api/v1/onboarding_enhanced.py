@@ -4,29 +4,29 @@ Handles 23-step onboarding process with Redis session management,
 AI agent timeout handling, field validation, and retry logic.
 """
 
+import asyncio
 import logging
 import os
-import asyncio
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_exponential,
-    retry_if_exception_type,
-)
 
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     File,
     Form,
     HTTPException,
     Query,
     UploadFile,
-    BackgroundTasks,
 )
 from pydantic import BaseModel, Field, validator
 from pydantic.json import pydantic_encoder
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 # AI Agent imports with timeout handling
 from ..agents.specialists.category_advisor import CategoryAdvisor
@@ -49,14 +49,14 @@ from ..agents.specialists.reddit_researcher import RedditResearcher
 from ..agents.specialists.soundbites_generator import SoundbitesGenerator
 from ..agents.specialists.truth_sheet_generator import TruthSheetGenerator
 
+# Redis session management
+from ..redis.session_manager import get_onboarding_session_manager
+
 # Core system imports
 from ..services.ocr_service import OCRService
 from ..services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
 from ..services.storage import get_enhanced_storage_service
 from ..services.vertex_ai_service import vertex_ai_service
-
-# Redis session management
-from ..redis.session_manager import get_onboarding_session_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

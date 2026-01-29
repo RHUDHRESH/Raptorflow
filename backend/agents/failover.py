@@ -18,14 +18,15 @@ import asyncio
 import json
 import logging
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
 from enum import Enum
-from collections import deque
+from typing import Any, Dict, List, Optional, Set
+
+from metrics import get_metrics_collector
 
 from .base import BaseAgent
-from metrics import get_metrics_collector
 from .exceptions import FailoverError
 
 logger = logging.getLogger(__name__)

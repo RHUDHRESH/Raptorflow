@@ -5,20 +5,21 @@ Combines multiple OCR models for maximum accuracy
 
 import asyncio
 import time
-from typing import Dict, List, Optional, Tuple, Any, Union
-from dataclasses import dataclass
-import numpy as np
 from collections import defaultdict
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ..models import (
-    OCRModelResult,
-    EnsembleResult,
-    QualityMetrics,
-    DocumentCharacteristics,
-    ModelCapabilities,
-)
+import numpy as np
 from model_implementations import ModelFactory
 from quality_assurance import QualityAssurance
+
+from ..models import (
+    DocumentCharacteristics,
+    EnsembleResult,
+    ModelCapabilities,
+    OCRModelResult,
+    QualityMetrics,
+)
 
 
 @dataclass

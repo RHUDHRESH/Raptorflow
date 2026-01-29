@@ -6,11 +6,14 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from memory.controller import MemoryController
 from pydantic import BaseModel, Field
+from workflows.blackbox import BlackboxWorkflow
+
+from cognitive import CognitiveEngine
 
 from ..agents.dispatcher import AgentDispatcher
 from ..agents.specialists.blackbox_strategist import BlackboxStrategist
-from cognitive import CognitiveEngine
 from ..core.auth import get_current_user
 from ..core.database import get_db
 from ..dependencies import (
@@ -18,8 +21,6 @@ from ..dependencies import (
     get_cognitive_engine,
     get_memory_controller,
 )
-from memory.controller import MemoryController
-from workflows.blackbox import BlackboxWorkflow
 
 router = APIRouter(prefix="/blackbox", tags=["blackbox"])
 

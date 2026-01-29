@@ -6,13 +6,13 @@ Validates all required environment variables are present and accessible.
 Fails fast with actionable error messages for missing or misconfigured services.
 """
 
+import asyncio
+import logging
 import os
 import sys
-import logging
-from typing import Dict, List, Optional
 from dataclasses import dataclass
-import asyncio
 from datetime import datetime
+from typing import Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(

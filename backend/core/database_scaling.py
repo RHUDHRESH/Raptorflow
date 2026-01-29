@@ -5,9 +5,9 @@ Intelligent auto-scaling for database resources based on load patterns
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional, Tuple
 import statistics
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
 from database_config import DB_CONFIG
 from database_integration import get_database_integration

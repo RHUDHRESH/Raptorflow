@@ -1,6 +1,6 @@
 import logging
-from typing import Any, Dict, List, Optional, Callable, Awaitable
 from abc import ABC, abstractmethod
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

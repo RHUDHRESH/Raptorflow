@@ -18,11 +18,12 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from load_balancing import LoadBalancer, get_load_balancer, LoadBalancingStrategy
+from load_balancing import LoadBalancer, LoadBalancingStrategy, get_load_balancer
 from metrics import get_metrics_collector
+
 from .exceptions import AutoScalingError
 
 logger = logging.getLogger(__name__)

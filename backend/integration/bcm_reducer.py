@@ -5,11 +5,11 @@ Transforms raw onboarding step data into versioned, compact JSON manifests
 with checksums for integrity verification using comprehensive JSON schema.
 """
 
-import json
 import hashlib
+import json
 import logging
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 try:
     import tiktoken
@@ -20,32 +20,32 @@ except ImportError:
     logging.warning("tiktoken not available, token counting will be disabled")
 
 from ..schemas.bcm_schema import (
+    KPI,
+    BCMVersion,
+    BrandPersonality,
+    BrandValues,
     BusinessContextManifest,
+    ChannelInfo,
+    ChannelType,
     CompanyInfo,
-    ICPProfile,
-    ICPPainPoint,
+    CompanyStage,
+    CompetitorInfo,
+    Contradiction,
+    Goal,
     ICPGoal,
     ICPObjection,
+    ICPPainPoint,
+    ICPProfile,
     ICPTriggerEvent,
-    CompetitorInfo,
-    PositioningDelta,
-    BrandValues,
-    BrandPersonality,
-    MessagingValueProp,
-    Tagline,
+    IndustryType,
     KeyMessage,
-    Soundbite,
     MarketSizing,
-    ChannelInfo,
-    Goal,
-    KPI,
-    Contradiction,
+    MessagingValueProp,
+    PositioningDelta,
     RecentWin,
     Risk,
-    IndustryType,
-    CompanyStage,
-    ChannelType,
-    BCMVersion,
+    Soundbite,
+    Tagline,
 )
 
 # Configure logging

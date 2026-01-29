@@ -4,24 +4,25 @@ Tests Redis-based sessions, performance tracking, and analytics.
 """
 
 import asyncio
-import pytest
 import time
 import uuid
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from .core.sessions import (
-    RedisSessionManager,
-    EnhancedSession,
-    SessionContext,
-    SessionMetadata,
-    SessionType,
-    SessionStatus,
-    SessionSecurityManager,
-)
-from .core.metrics import MetricsCollector, MetricType, AnalyticsManager
+import pytest
+
+from .core.metrics import AnalyticsManager, MetricsCollector, MetricType
 from .core.performance import PerformanceOptimizer, ResourcePool
 from .core.resource_pool import ConnectionPool, MemoryBufferPool
+from .core.sessions import (
+    EnhancedSession,
+    RedisSessionManager,
+    SessionContext,
+    SessionMetadata,
+    SessionSecurityManager,
+    SessionStatus,
+    SessionType,
+)
 
 
 class TestSessionSecurityManager:
@@ -660,8 +661,9 @@ class TestSessionPerformance:
     @pytest.mark.asyncio
     async def test_memory_usage_under_load(self):
         """Test memory usage under high load."""
-        import psutil
         import gc
+
+        import psutil
 
         # Get initial memory
         process = psutil.Process()

@@ -6,16 +6,17 @@ Concrete implementations for SOTA OCR models
 import asyncio
 import io
 import json
-import time
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass
-import numpy as np
-from PIL import Image
-import requests
-import tempfile
 import os
+import tempfile
+import time
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Union
 
-from ..models import OCRModelResult, ModelCapabilities
+import numpy as np
+import requests
+from PIL import Image
+
+from ..models import ModelCapabilities, OCRModelResult
 from ..services.vertex_ai_service import vertex_ai_service
 
 

@@ -5,12 +5,12 @@ Comprehensive tests for the onboarding finalization system including
 BCM generation, caching, persistence, and embedding workflows.
 """
 
-import pytest
 import asyncio
 import json
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 from main import app
 

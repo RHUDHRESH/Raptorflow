@@ -17,14 +17,13 @@ from typing import Any, Callable, Dict, List
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from .config.settings import get_settings
 from .redis.cache import CacheService
 from .redis.client import RedisClient
 from .redis.locks import DistributedLock
 from .redis.queue import QueueService
 from .redis.rate_limit import RateLimitService
 from .redis.session import SessionService
-
-from .config.settings import get_settings
 
 # Configure logging
 logging.basicConfig(

@@ -7,18 +7,18 @@ Coordinates Researcher, Strategist, and Creator nodes.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Literal, TypedDict
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from typing import Any, Dict, List, Literal, Optional, TypedDict
 
-from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, StateGraph
+from synapse import brain
 
-from ..agents.state import AgentState
+from ..agents.specialists.content_creator import ContentCreator
 from ..agents.specialists.market_research import MarketResearch
 from ..agents.specialists.move_strategist import MoveStrategist
-from ..agents.specialists.content_creator import ContentCreator
 from ..agents.specialists.strategic_director import StrategicDirector
-from synapse import brain
+from ..agents.state import AgentState
 
 logger = logging.getLogger("raptorflow.graphs.strategic_intelligence")
 

@@ -11,10 +11,10 @@ following the specification: MAJOR.MINOR.PATCH
 
 import logging
 import re
-from typing import Dict, Any, Optional, Tuple
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, Optional, Tuple
 
 from ..integration.bcm_reducer import BusinessContextManifest
 

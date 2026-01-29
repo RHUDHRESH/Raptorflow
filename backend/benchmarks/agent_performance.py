@@ -17,17 +17,18 @@ Features:
 import asyncio
 import json
 import logging
-import time
 import statistics
+import time
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
-from collections import defaultdict, deque
+from typing import Any, Dict, List, Optional, Tuple
+
+from metrics import get_metrics_collector
+from registry import get_agent_registry
 
 from .base import BaseAgent
-from registry import get_agent_registry
-from metrics import get_metrics_collector
 from .exceptions import BenchmarkError
 
 logger = logging.getLogger(__name__)

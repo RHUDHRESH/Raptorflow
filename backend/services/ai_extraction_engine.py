@@ -3,15 +3,15 @@ AI Extraction Engine
 Advanced fact extraction using multiple AI techniques
 """
 
+import asyncio
+import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-import json
-import re
-import asyncio
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 # Import AI agents
 from .agents.specialists.extraction_orchestrator import ExtractionOrchestrator

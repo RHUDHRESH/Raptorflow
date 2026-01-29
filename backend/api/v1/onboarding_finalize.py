@@ -5,17 +5,18 @@ Handles the finalization of onboarding sessions, including BCM generation,
 Redis caching, Supabase persistence, and vector embedding preparation.
 """
 
-import logging
 import asyncio
 import json
+import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..integration.bcm_reducer import BCMReducer
-from ..schemas.bcm_schema import BusinessContextManifest, BCMSchemaValidator
 from ..redis.session_manager import get_onboarding_session_manager
+from ..schemas.bcm_schema import BCMSchemaValidator, BusinessContextManifest
 from ..services.supabase_client import get_supabase_client
 from ..services.upstash_client import get_upstash_client
 from ..services.vertex_ai_client import get_vertex_ai_client

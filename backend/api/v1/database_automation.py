@@ -3,21 +3,22 @@ Database Automation API Endpoints
 Production-ready endpoints for database automation and scaling
 """
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from typing import Dict, Any, Optional, List
 import logging
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from ..core.database_automation import (
     get_database_automation,
     start_database_automation,
     stop_database_automation,
 )
+from ..core.database_integration import get_database_integration
 from ..core.database_scaling import (
     get_database_scaling_engine,
     start_database_scaling,
     stop_database_scaling,
 )
-from ..core.database_integration import get_database_integration
 
 logger = logging.getLogger(__name__)
 

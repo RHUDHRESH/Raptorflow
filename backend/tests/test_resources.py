@@ -4,21 +4,22 @@ Tests resource cleanup, leak detection, and quota enforcement.
 """
 
 import asyncio
-import pytest
 import time
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 from .core.resources import (
-    ResourceManager,
-    ResourceType,
-    ResourceStatus,
-    ResourceInfo,
-    ResourceQuota,
-    ResourceCleanupStrategy,
-    MemoryCleanupStrategy,
-    FileHandleCleanupStrategy,
     AsyncTaskCleanupStrategy,
+    FileHandleCleanupStrategy,
+    MemoryCleanupStrategy,
+    ResourceCleanupStrategy,
+    ResourceInfo,
+    ResourceManager,
+    ResourceQuota,
+    ResourceStatus,
+    ResourceType,
     get_resource_manager,
 )
 
@@ -586,8 +587,9 @@ class TestResourcePerformance:
     @pytest.mark.asyncio
     async def test_memory_usage_tracking(self):
         """Test memory usage tracking doesn't leak."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss

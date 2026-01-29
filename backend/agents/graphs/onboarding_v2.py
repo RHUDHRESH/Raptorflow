@@ -9,10 +9,6 @@ from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
-
-from ..services.titan.orchestrator import TitanOrchestrator
-
-from ...infrastructure.storage import delete_file
 from specialists.brand_audit_agent import BrandAuditEngine
 from specialists.buying_process_agent import BuyingProcessArchitect
 from specialists.capability_rating_agent import CapabilityRatingEngine
@@ -39,6 +35,9 @@ from specialists.soundbites_generator import SoundbitesGenerator
 from specialists.strategic_grid_agent import StrategicGridGenerator
 from specialists.truth_sheet_generator import TruthSheetGenerator
 from specialists.validation_tracker import ValidationTracker
+
+from ...infrastructure.storage import delete_file
+from ..services.titan.orchestrator import TitanOrchestrator
 
 logger = logging.getLogger(__name__)
 

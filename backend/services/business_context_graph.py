@@ -7,37 +7,35 @@ LangGraph workflow with Gemini 1.5 Pro and strict Pydantic validation.
 """
 
 import logging
-from datetime import datetime, UTC
-from typing import Any, Dict, List, Optional, Union, Annotated, TypedDict
+from datetime import UTC, datetime
+from typing import Annotated, Any, Dict, List, Optional, TypedDict, Union
 
-from langgraph.graph import StateGraph, END
+from langgraph.graph import END, StateGraph
 from pydantic import BaseModel, Field
-
-from .agents.state import AgentState
+from schemas import RICP, BrandArchetypes, BrandVoice
+from schemas import BusinessContextState as BusinessContextSchemasState
 from schemas import (
-    BusinessContextState as BusinessContextSchemasState,
-    CompanyProfile,
-    MarketAnalysis,
-    CompetitiveLandscape,
-    CustomerSegments,
-    ValueProposition,
     BusinessModel,
+    CompanyProfile,
+    CompetitiveLandscape,
+    CompetitorMatrix,
+    CoreMessagePillars,
+    CustomerSegments,
+    EnhancedICP,
     GrowthStrategy,
+    MarketAnalysis,
+    MessagingFramework,
+    MessagingStrategy,
+    PESTELAnalysis,
+    PsychographicInsights,
     RiskFactors,
     SWOTAnalysis,
-    PESTELAnalysis,
     ValueChainAnalysis,
-    BrandArchetypes,
-    CompetitorMatrix,
-    EnhancedICP,
-    MessagingStrategy,
-    PsychographicInsights,
-    BrandVoice,
-    CoreMessagePillars,
-    MessagingFramework,
-    RICP,
+    ValueProposition,
 )
 from vertex_ai_client import get_vertex_ai_client
+
+from .agents.state import AgentState
 
 logger = logging.getLogger(__name__)
 
@@ -80,12 +78,12 @@ def create_initial_workflow_state(
     }
 
 
-import logging
 import json
+import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union, Annotated, TypedDict, Type, TypeVar
+from typing import Annotated, Any, Dict, List, Optional, Type, TypedDict, TypeVar, Union
 
-from langgraph.graph import StateGraph, END
+from langgraph.graph import END, StateGraph
 from pydantic import BaseModel, Field, ValidationError
 
 T = TypeVar("T", bound=BaseModel)

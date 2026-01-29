@@ -3,7 +3,7 @@ Workspace management functions
 Handles workspace resolution and validation
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException
 

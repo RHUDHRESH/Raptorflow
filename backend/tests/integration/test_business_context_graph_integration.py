@@ -2,13 +2,15 @@
 Integration tests for Business Context LangGraph with real/semi-real AI calls.
 """
 
-import os
-import pytest
 import asyncio
-from typing import Dict, Any
+import os
+from typing import Any, Dict
+
+import pytest
+
 from ..services.business_context_graph import (
-    get_business_context_graph,
     create_initial_workflow_state,
+    get_business_context_graph,
 )
 from ..services.vertex_ai_client import get_vertex_ai_client
 

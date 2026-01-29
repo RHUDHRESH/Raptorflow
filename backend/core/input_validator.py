@@ -4,14 +4,15 @@ Implements strict validation for all payment-related inputs
 Addresses critical input validation vulnerabilities identified in red team audit
 """
 
-import re
 import logging
-from typing import Any, Dict, List, Optional, Union
+import re
 from dataclasses import dataclass
 from enum import Enum
-from pydantic import BaseModel, Field, validator, HttpUrl
-import bleach
+from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlparse
+
+import bleach
+from pydantic import BaseModel, Field, HttpUrl, validator
 
 
 class ValidationError(Exception):

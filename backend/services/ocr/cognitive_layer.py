@@ -3,12 +3,12 @@ Vertex AI Cognitive Layer for OCR cleanup and semantic mapping.
 Uses Gemini 2.0 Flash Vision to improve OCR results.
 """
 
-import logging
 import json
+import logging
 from typing import Any, Dict, List, Optional
 
-from ..services.vertex_ai_service import vertex_ai_service
 from ..base import OCRResponse
+from ..services.vertex_ai_service import vertex_ai_service
 
 logger = logging.getLogger(__name__)
 

@@ -2,16 +2,17 @@
 Expert Collaboration Graph: Researcher, Strategist, and Creator working in a unified flow.
 """
 
-from typing import Any, Dict, List, Literal, Optional, Annotated
 import operator
+from typing import Annotated, Any, Dict, List, Literal, Optional
+
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
-
-from ..state import AgentState
-from ..services.titan.tool import TitanIntelligenceTool
-from specialists.move_strategist import MoveStrategist
 from specialists.content_creator import ContentCreator
+from specialists.move_strategist import MoveStrategist
 from specialists.strategic_director import StrategicDirector
+
+from ..services.titan.tool import TitanIntelligenceTool
+from ..state import AgentState
 
 
 class ExpertState(AgentState):

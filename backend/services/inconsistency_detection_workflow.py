@@ -3,15 +3,15 @@ Inconsistency Detection Workflow
 Advanced contradiction detection and resolution system for Raptorflow
 """
 
+import asyncio
+import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+import re
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-import json
-import asyncio
-import re
-from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
 
 # Import AI agents
 from .agents.specialists.contradiction_detector import ContradictionDetector

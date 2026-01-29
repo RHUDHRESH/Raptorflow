@@ -1,11 +1,13 @@
 import json
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
+from memory.models import MemoryType
+from memory.vector_store import VectorMemory
+from schemas.bcm_evolution import EventType
+
 from .agents.universal.agent import UniversalAgent
 from .core.supabase_mgr import get_supabase_client
-from schemas.bcm_evolution import EventType
-from memory.vector_store import VectorMemory
-from memory.models import MemoryType
 
 logger = logging.getLogger(__name__)
 

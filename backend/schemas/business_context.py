@@ -1,9 +1,10 @@
-from typing import Any, Dict, List, Optional, Union
-from datetime import datetime
-from pydantic import BaseModel, Field, validator, ValidationError
-from enum import Enum
-import re
 import json
+import re
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, Field, ValidationError, validator
 
 
 class StrategyPath(str, Enum):

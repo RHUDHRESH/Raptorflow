@@ -8,6 +8,9 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+from cache.redis_client import RedisClient
+from database.connection import DatabaseManager
+
 from .agents.core.dispatcher import AgentDispatcher
 from .agents.core.executor import AgentExecutor
 from .agents.core.gateway import AgentGateway
@@ -17,9 +20,6 @@ from .agents.core.monitor import AgentMonitor
 from .agents.core.orchestrator import AgentOrchestrator
 from .agents.core.registry import AgentRegistry
 from .agents.core.state import AgentStateManager
-
-from cache.redis_client import RedisClient
-from database.connection import DatabaseManager
 from .llm.vertex_client import VertexAIClient
 
 logger = logging.getLogger(__name__)

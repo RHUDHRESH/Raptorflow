@@ -4,7 +4,9 @@ Handles database persistence for council sessions and reports.
 """
 
 from typing import Any, Dict, List, Optional
+
 from db.base import Repository
+
 from .core.supabase_mgr import get_supabase_client
 
 

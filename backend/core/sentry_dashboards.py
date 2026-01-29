@@ -16,29 +16,29 @@ Features:
 - Business intelligence dashboards
 """
 
-import os
 import json
-import uuid
-import time
-import threading
-from typing import Dict, List, Optional, Any, Union, Callable
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime, timezone, timedelta
 import logging
+import os
 import statistics
+import threading
+import time
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Union
 
 try:
-    from sentry_sdk import capture_message, add_breadcrumb
+    from sentry_sdk import add_breadcrumb, capture_message
 
     SENTRY_AVAILABLE = True
 except ImportError:
     SENTRY_AVAILABLE = False
 
+from sentry_alerting import get_alerting_manager
 from sentry_integration import get_sentry_manager
 from sentry_performance import get_performance_monitor
 from sentry_sessions import get_session_manager
-from sentry_alerting import get_alerting_manager
 
 
 class DashboardType(str, Enum):

@@ -1,19 +1,20 @@
 """Performance tests for payment system"""
 
-import pytest
-import time
 import asyncio
+import os
 import statistics
-from concurrent.futures import ThreadPoolExecutor
-from unittest.mock import Mock, patch
 
 # Import payment service components
 import sys
-import os
+import time
+from concurrent.futures import ThreadPoolExecutor
+from unittest.mock import Mock, patch
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from services.payment_service import PaymentService, PaymentRequest
+from services.payment_service import PaymentRequest, PaymentService
 
 
 class TestPaymentPerformance:
@@ -312,8 +313,9 @@ class TestPaymentPerformance:
     def test_memory_usage(self, payment_service_instance):
         """Test memory usage patterns"""
 
-        import psutil
         import gc
+
+        import psutil
 
         # Get initial memory usage
         process = psutil.Process()

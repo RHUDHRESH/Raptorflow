@@ -6,6 +6,7 @@ Handles text extraction using the Hybrid Cognitive OCR Machine.
 import logging
 from datetime import datetime
 from typing import Dict, List, Optional
+
 from fastapi import HTTPException
 from pydantic import BaseModel
 

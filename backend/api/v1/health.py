@@ -10,6 +10,9 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from pydantic import BaseModel
 
+from ...monitoring.health_checks import HealthAggregator
+from ...redis.client import RedisClient
+from ...redis.health import RedisHealthChecker
 from ..config.settings import get_settings
 from ..core.health_analytics import (
     AlertSeverity,
@@ -27,10 +30,6 @@ from ..core.health_monitor import (
     stop_advanced_health_monitoring,
 )
 from ..core.threat_intelligence import get_threat_summary
-
-from ...monitoring.health_checks import HealthAggregator
-from ...redis.client import RedisClient
-from ...redis.health import RedisHealthChecker
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

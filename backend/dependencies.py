@@ -6,15 +6,16 @@ Provides database, Redis, memory, and cognitive engine instances.
 from functools import lru_cache
 from typing import Generator, Optional
 
-from fastapi import Depends, HTTPException, status
-
-from ..agents.dispatcher import AgentDispatcher
-from cognitive import CognitiveEngine
 from core.auth import get_current_user, get_workspace_id
 from core.redis import get_redis_client
 from core.supabase_mgr import get_supabase_client
+from fastapi import Depends, HTTPException, status
 from memory.controller import MemoryController
+
+from cognitive import CognitiveEngine
 from supabase import Client
+
+from ..agents.dispatcher import AgentDispatcher
 
 
 @lru_cache()

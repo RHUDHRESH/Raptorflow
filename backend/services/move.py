@@ -6,10 +6,11 @@ Handles move-related business logic and validation
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from .core.models import ValidationError
-from .core.supabase_mgr import get_supabase_client
 from db.campaigns import CampaignRepository
 from db.moves import MoveRepository
+
+from .core.models import ValidationError
+from .core.supabase_mgr import get_supabase_client
 from .services.bcm_integration import bcm_evolution
 
 

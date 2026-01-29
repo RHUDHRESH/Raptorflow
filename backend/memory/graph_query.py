@@ -11,8 +11,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from memory.embeddings import get_embedding_model
-
 from graph_memory import GraphMemory
 from graph_models import (
     EntityType,
@@ -21,6 +19,7 @@ from graph_models import (
     RelationType,
     SubGraph,
 )
+from memory.embeddings import get_embedding_model
 from vector_store import VectorMemory
 
 logger = logging.getLogger(__name__)

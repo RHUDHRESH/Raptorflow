@@ -1,20 +1,21 @@
 """End-to-end tests for complete payment flow"""
 
-import pytest
 import asyncio
 import json
-import time
-from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime, timezone
+import os
 
 # Import payment service components
 import sys
-import os
+import time
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from services.payment_service import PaymentService, PaymentRequest
-from services.email_service import EmailService, EmailRecipient
+from services.email_service import EmailRecipient, EmailService
+from services.payment_service import PaymentRequest, PaymentService
 
 
 class TestPaymentE2E:

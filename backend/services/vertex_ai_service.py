@@ -6,9 +6,9 @@ Handles AI model interactions with rate limiting and cost tracking
 import asyncio
 import json
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 import vertexai
 

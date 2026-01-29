@@ -1,9 +1,11 @@
-import os
-import yaml
 import logging
+import os
 from typing import Any, Dict, List, Optional
-from ..llm import llm_manager, LLMRequest, LLMMessage, LLMRole
+
+import yaml
 from schemas import SkillDefinition, SkillMetadata
+
+from ..llm import LLMMessage, LLMRequest, LLMRole, llm_manager
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,7 @@ class SkillRegistry:
         return skills
 
 
-from tools import tool_registry, BaseTool
+from tools import BaseTool, tool_registry
 
 
 class UniversalAgent:

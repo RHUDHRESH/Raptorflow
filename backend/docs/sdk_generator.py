@@ -11,11 +11,11 @@ Comprehensive SDK generation for RaptorFlow backend API:
 
 import json
 import logging
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
-from enum import Enum
 
 import jinja2
 import yaml

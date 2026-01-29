@@ -8,11 +8,11 @@ Coordinates specialized agents and skills across the strategic graph.
 import asyncio
 import json
 import logging
-from typing import Dict, Any, List, Optional, Callable
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from typing import Any, Callable, Dict, List, Optional
 
-from core.supabase_mgr import get_supabase_client
 from core.auth import get_auth_context
+from core.supabase_mgr import get_supabase_client
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

@@ -12,8 +12,9 @@ from typing import Any, Dict, List, Optional
 
 from chunker import ContentChunker
 from embeddings import get_embedding_model
-from ..models import MemoryChunk, MemoryType
 from vector_store import VectorMemory
+
+from ..models import MemoryChunk, MemoryType
 
 logger = logging.getLogger(__name__)
 

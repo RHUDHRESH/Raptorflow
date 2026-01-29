@@ -1,11 +1,12 @@
 import asyncio
-import logging
 import hashlib
 import json
-from typing import List, Dict, Any, Optional
-from services.search.orchestrator import SOTASearchOrchestrator
-from llm import LLMManager, LLMRequest, LLMMessage, LLMRole
+import logging
+from typing import Any, Dict, List, Optional
+
+from llm import LLMManager, LLMMessage, LLMRequest, LLMRole
 from redis.cache import CacheService
+from services.search.orchestrator import SOTASearchOrchestrator
 
 logger = logging.getLogger("raptorflow.services.titan.multiplexer")
 

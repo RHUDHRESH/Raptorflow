@@ -13,12 +13,11 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from ..config import ModelTier
-
 from ..base import BaseAgent
+from ..config import ModelTier
+from ..dispatcher import AgentDispatcher, DispatchRequest, DispatchResult
 from ..exceptions import AuthenticationError, AuthorizationError, ValidationError
 from ..state import AgentState
-from ..dispatcher import AgentDispatcher, DispatchRequest, DispatchResult
 from .metrics import AgentMetricsCollector
 from .registry import AgentRegistry
 

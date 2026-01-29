@@ -6,6 +6,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from google.cloud import vision
+
 from ..base import BaseOCRProcessor, OCRResponse
 
 logger = logging.getLogger(__name__)

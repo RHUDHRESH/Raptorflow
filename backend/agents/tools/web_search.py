@@ -12,7 +12,6 @@ import time
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
-
 from services.search.orchestrator import SOTASearchOrchestrator
 
 from ..base import RaptorflowTool, ToolResult

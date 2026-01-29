@@ -16,9 +16,9 @@ import pytesseract
 from google import genai
 from pdf2image import convert_from_path
 from PIL import Image
+from preprocess import preprocess_for_ocr
 
 from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
-from preprocess import preprocess_for_ocr
 
 
 class TesseractProcessor(BaseProcessor):

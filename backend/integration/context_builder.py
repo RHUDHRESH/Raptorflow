@@ -9,10 +9,12 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from .agents.state import AgentState
 from memory.controller import MemoryController
-from .services.bcm_projector import BCMProjector
+
 from supabase import Client
+
+from .agents.state import AgentState
+from .services.bcm_projector import BCMProjector
 
 logger = logging.getLogger(__name__)
 

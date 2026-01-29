@@ -18,14 +18,15 @@ import asyncio
 import json
 import logging
 import time
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
-from enum import Enum
 from collections import defaultdict, deque
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
-from persistence import get_agent_persistence
 from metrics import get_metrics_collector
+from persistence import get_agent_persistence
+
 from .exceptions import AnalyticsError
 
 logger = logging.getLogger(__name__)

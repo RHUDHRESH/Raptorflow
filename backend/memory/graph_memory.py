@@ -19,6 +19,7 @@ from graph_models import (
     RelationType,
     SubGraph,
 )
+
 from .redis_client import get_redis_client
 
 logger = logging.getLogger(__name__)

@@ -18,8 +18,9 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from ...base_processor import ProcessingStatus
 from ocr_complex import OCRComplex, process_document
+
+from ...base_processor import ProcessingStatus
 
 
 class TestOCRComplex:

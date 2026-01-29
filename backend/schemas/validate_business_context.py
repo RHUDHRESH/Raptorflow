@@ -4,9 +4,10 @@ Validates business context data against JSON schema
 """
 
 import json
-import jsonschema
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
+import jsonschema
 
 SCHEMA_PATH = Path(__file__).parent / "business_context_schema.json"
 

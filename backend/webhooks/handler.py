@@ -17,6 +17,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from infrastructure.cloud_monitoring import get_cloud_monitoring
 from infrastructure.logging import get_cloud_logging
+from verification import WebhookVerifier, get_webhook_verifier
+
 from .models import (
     WebhookConfig,
     WebhookDelivery,
@@ -26,7 +28,6 @@ from .models import (
     WebhookRetry,
     WebhookSignature,
 )
-from verification import WebhookVerifier, get_webhook_verifier
 
 logger = logging.getLogger(__name__)
 

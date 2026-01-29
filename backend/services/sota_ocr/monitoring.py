@@ -4,21 +4,22 @@ Comprehensive monitoring and analytics for the SOTA OCR system
 """
 
 import asyncio
-import time
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
 import json
+import time
 from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 
 from ..models import (
-    OCRModelResult,
-    EnsembleResult,
-    QualityMetrics,
-    ProcessingStats,
-    ModelPerformanceResponse,
     DocumentCharacteristics,
+    EnsembleResult,
+    ModelPerformanceResponse,
+    OCRModelResult,
+    ProcessingStats,
+    QualityMetrics,
 )
 
 

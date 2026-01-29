@@ -6,7 +6,8 @@ Adapts a single strategic message into platform-specific content (LinkedIn, Twit
 """
 
 import logging
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from ...base import Skill, SkillCategory, SkillLevel
 
 logger = logging.getLogger("raptorflow.skills.multi_channel_adaptation")

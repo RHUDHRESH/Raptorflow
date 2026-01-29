@@ -9,20 +9,19 @@ and content generation. Supports OpenAI GPT-4 and Google Vertex AI.
 import asyncio
 import json
 import time
-from datetime import datetime
-from typing import Dict, List, Optional, Union, Any
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 import openai
-from openai import AsyncOpenAI
+import tiktoken
+from fastapi import HTTPException
 from google.cloud import aiplatform
 from google.cloud.aiplatform import Gapic
 from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value
-import tiktoken
-
-from fastapi import HTTPException
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from .config import get_settings

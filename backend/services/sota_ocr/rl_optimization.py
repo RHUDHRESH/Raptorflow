@@ -7,14 +7,15 @@ import asyncio
 import json
 import random
 import time
-from typing import Dict, List, Optional, Tuple, Any, Union
-from dataclasses import dataclass, asdict
-from datetime import datetime
-import numpy as np
 from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ..models import OCRModelResult, ModelCapabilities, DocumentCharacteristics
+import numpy as np
 from model_implementations import ModelFactory
+
+from ..models import DocumentCharacteristics, ModelCapabilities, OCRModelResult
 
 
 @dataclass

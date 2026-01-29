@@ -20,16 +20,15 @@ import json
 import logging
 import time
 import uuid
+import weakref
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
-import weakref
 
 import numpy as np
 import structlog
-
 from batch_processor import InferenceRequest, RequestStatus
 from inference_optimizer import get_cost_optimizer
 

@@ -9,7 +9,6 @@ from typing import Any, Dict
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-
 from integration.agents_cognitive import execute_with_cognition
 from integration.auth_all import inject_auth_context
 from integration.billing_usage import deduct_from_budget
@@ -20,10 +19,7 @@ from integration.output_pipeline import process_output
 from integration.redis_sessions import persist_agent_state, restore_agent_state
 from integration.routing_memory import route_with_memory_context
 from integration.test_harness import run_integration_tests
-from integration.validation import (
-    validate_agent_state,
-    validate_workspace_consistency,
-)
+from integration.validation import validate_agent_state, validate_workspace_consistency
 
 
 class TestIntegration:

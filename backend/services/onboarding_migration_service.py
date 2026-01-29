@@ -6,15 +6,15 @@ with Business Context Manifest (BCM) integration.
 """
 
 import logging
-from datetime import datetime
-from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
-from ..services.supabase_client import get_supabase_client
-from ..redis.session_manager import get_onboarding_session_manager
 from ..integration.bcm_reducer import BCMReducer
+from ..redis.session_manager import get_onboarding_session_manager
 from ..schemas.bcm_schema import BusinessContextManifest
+from ..services.supabase_client import get_supabase_client
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

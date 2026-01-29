@@ -7,6 +7,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from memory.controller import MemoryController
+
 from supabase import Client
 
 # Vectorizers are legacy or moved - commenting out to allow system to boot

@@ -8,9 +8,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
 
+from working_memory import get_working_memory
+
 from .exceptions import DatabaseError, ValidationError
 from .redis_client import get_redis_client
-from working_memory import get_working_memory
 
 logger = logging.getLogger(__name__)
 

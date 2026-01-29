@@ -4,34 +4,36 @@ Tests timeout management, recovery strategies, circuit breakers, and cache perfo
 """
 
 import asyncio
-import pytest
 import time
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 from unittest.mock import AsyncMock, patch
 
-# Import the modules we're testing
-from .core.timeouts import (
-    TimeoutManager,
-    TimeoutConfig,
-    TimeoutError,
-    OperationType,
-    RecoveryStrategy,
-    CircuitBreaker,
-    get_timeout_manager,
-    execute_with_timeout,
-)
+import pytest
+
+from .agents.base import BaseAgent
 from .core.cache import (
     AgentCache,
     CacheConfig,
     CacheEntry,
     CacheEntryPriority,
-    get_agent_cache,
     cache_agent_response,
+    get_agent_cache,
     get_cached_response,
 )
-from .core.metrics import TimeoutMetrics, CacheMetrics, get_metrics_collector
-from .agents.base import BaseAgent
+from .core.metrics import CacheMetrics, TimeoutMetrics, get_metrics_collector
+
+# Import the modules we're testing
+from .core.timeouts import (
+    CircuitBreaker,
+    OperationType,
+    RecoveryStrategy,
+    TimeoutConfig,
+    TimeoutError,
+    TimeoutManager,
+    execute_with_timeout,
+    get_timeout_manager,
+)
 
 
 class TestTimeouts:

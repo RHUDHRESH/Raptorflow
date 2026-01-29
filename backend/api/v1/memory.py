@@ -10,12 +10,12 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
+from memory.controller import MemoryController
+from memory.models import MemoryChunk, MemoryType
 from pydantic import BaseModel, Field
 
 from ..core.auth import get_current_user
 from ..core.models import User, Workspace
-from memory.controller import MemoryController
-from memory.models import MemoryChunk, MemoryType
 
 logger = logging.getLogger(__name__)
 

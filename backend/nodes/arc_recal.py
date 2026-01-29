@@ -5,10 +5,11 @@ Handles the 'push back' and 'Breathing Arc' logic.
 """
 
 import logging
-from datetime import datetime, timedelta, UTC
-from typing import Dict, Any
+from datetime import UTC, datetime, timedelta
+from typing import Any, Dict
 
 from synapse import brain
+
 from .core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger("arc_recal")

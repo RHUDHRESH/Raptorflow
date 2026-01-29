@@ -8,8 +8,8 @@ Ensures that fluid rescheduling and task roll-over are active.
 
 import asyncio
 import logging
-import sys
 import os
+import sys
 
 # Add root directory to path
 sys.path.append(os.getcwd())

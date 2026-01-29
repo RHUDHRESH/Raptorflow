@@ -3,11 +3,11 @@ API Tests for RaptorFlow Backend
 Tests API endpoints, responses, and error handling
 """
 
-import pytest
 import json
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 from main_minimal import app
 

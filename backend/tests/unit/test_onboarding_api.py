@@ -1,7 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, patch
 from main import app
+
 from ..llm import LLMResponse
 
 # Mock LLMCache and other dependencies to avoid external connections

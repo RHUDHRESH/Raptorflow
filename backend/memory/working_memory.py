@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
 from .agents.exceptions import DatabaseError, ValidationError, WorkspaceError
-
 from .redis_client import get_redis_client
 
 logger = logging.getLogger(__name__)

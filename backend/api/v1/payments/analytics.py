@@ -11,10 +11,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User, AuthContext
+from ..core.models import AuthContext, User
 from ..services.payment_analytics import (
-    payment_analytics_service,
     PaymentAnalyticsService,
+    payment_analytics_service,
 )
 
 logger = logging.getLogger(__name__)

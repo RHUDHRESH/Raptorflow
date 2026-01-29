@@ -3,13 +3,14 @@ Titan SOTA Intelligence API Endpoints
 Handles multi-modal research requests (LITE, RESEARCH, DEEP).
 """
 
-from typing import List, Optional, Any, Dict
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..core.auth import get_current_user, get_workspace_id
 from ..core.models import User
-from ..services.titan.orchestrator import TitanOrchestrator, TitanMode
+from ..services.titan.orchestrator import TitanMode, TitanOrchestrator
 
 router = APIRouter(prefix="/titan", tags=["titan"])
 

@@ -4,19 +4,20 @@ Provides secure, scalable session management with performance optimization.
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 import secrets
 import time
 import uuid
 import zlib
-import hashlib
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union, Tuple
 from enum import Enum
-import redis.asyncio as redis
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import jwt
+import redis.asyncio as redis
 from cryptography.fernet import Fernet
 
 logger = logging.getLogger(__name__)

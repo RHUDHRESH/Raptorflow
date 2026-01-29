@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any, Dict, Union
 
 import pytesseract
+from ocr_engine import GeminiProcessor, TesseractProcessor
 
 from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
-from ocr_engine import GeminiProcessor, TesseractProcessor
 
 
 class MultiLangOCREngine(BaseProcessor):

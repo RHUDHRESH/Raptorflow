@@ -5,29 +5,30 @@ Tests predictive analytics, alerting, and real-time monitoring capabilities.
 
 import asyncio
 import json
-import pytest
 import time
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
-from unittest.mock import Mock, patch, AsyncMock
+from typing import Any, Dict, List
+from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
+from .core.health_analytics import (
+    AlertRule,
+    AlertSeverity,
+    AlertType,
+    HealthAnalytics,
+    NotificationChannel,
+    NotificationConfig,
+    NotificationEngine,
+)
 from .core.health_monitor import (
-    HealthMonitorAdvanced,
-    HealthStatus,
-    HealthMetric,
     HealthAlert,
+    HealthMetric,
+    HealthMonitorAdvanced,
     HealthPrediction,
+    HealthStatus,
     PredictiveAnalytics,
     SystemHealthReport,
-)
-from .core.health_analytics import (
-    HealthAnalytics,
-    AlertRule,
-    AlertType,
-    AlertSeverity,
-    NotificationChannel,
-    NotificationEngine,
-    NotificationConfig,
 )
 from .core.threat_intelligence import get_threat_intelligence
 
@@ -451,7 +452,7 @@ class TestNotificationEngine:
     @pytest.fixture
     def sample_alert(self):
         """Sample alert for testing."""
-        from core.health_analytics import HealthAlert, AlertType, AlertSeverity
+        from core.health_analytics import AlertSeverity, AlertType, HealthAlert
 
         return HealthAlert(
             id="test_alert",

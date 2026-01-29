@@ -11,7 +11,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from ..core.auth import get_auth_context, get_current_user, get_workspace_id
 from ..core.models import AuthContext, User
 from ..core.supabase_mgr import get_supabase_client
-from ..services.profile_service import ProfileService, ProfileError
+from ..services.profile_service import ProfileError, ProfileService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["authentication"])

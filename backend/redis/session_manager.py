@@ -5,19 +5,20 @@ Provides specialized session management for the 23-step onboarding process
 with connection pooling, TTL management, and error handling with retries.
 """
 
+import asyncio
 import json
 import logging
-import asyncio
 import os
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, List, Union
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, Field, ValidationError
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
-from pydantic import BaseModel, ValidationError, Field
 
 from .client import get_redis
 

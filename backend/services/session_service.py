@@ -9,16 +9,16 @@ session recovery, and data versioning for the onboarding system.
 import asyncio
 import json
 import uuid
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass, asdict
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 import redis.asyncio as redis
-from supabase import create_client, Client
-
 from fastapi import HTTPException
 from pydantic import BaseModel
+
+from supabase import Client, create_client
 
 from .config import get_settings
 from .core.logging import get_logger

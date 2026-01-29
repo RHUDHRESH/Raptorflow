@@ -13,7 +13,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-
 from resources import ResourceStatus, ResourceType, get_resource_manager
 
 logger = logging.getLogger(__name__)

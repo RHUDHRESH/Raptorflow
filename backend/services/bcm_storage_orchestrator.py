@@ -5,11 +5,11 @@ Coordinates BCM generation, storage, and retrieval operations across
 Redis cache and Supabase database with intelligent fallback and error handling.
 """
 
+import asyncio
 import json
 import logging
-import asyncio
-from typing import Dict, Any, Optional, List
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from ..integration.bcm_reducer import BCMReducer

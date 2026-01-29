@@ -6,11 +6,12 @@ Handles database schema migrations with versioning and rollback capabilities.
 import asyncio
 import os
 import uuid
-from datetime import datetime
-from typing import List, Dict, Optional
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Dict, List, Optional
 
 import asyncpg
+
 from supabase import create_client
 
 from .config import get_settings

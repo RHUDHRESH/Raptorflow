@@ -5,22 +5,32 @@ Enhanced with evidence classification, extraction, contradiction detection
 Reddit research, perceptual mapping, neuroscience copywriting, and channel strategy
 """
 
+import asyncio
 import logging
 import os
 import sys
 import tempfile
-import asyncio
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+from db.repositories.onboarding import OnboardingRepository
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
+from integration.bcm_reducer import BCMReducer
+from pydantic import BaseModel
+from schemas.onboarding_schema import (
+    BusinessContext,
+    OnboardingFinalizationRequest,
+    OnboardingFinalizationResponse,
+    extract_business_context_from_steps,
+    validate_step_data,
+)
+from services.supabase_client import get_supabase_admin
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
-
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
-from pydantic import BaseModel
 
 from ..agents.specialists.category_advisor import CategoryAdvisor
 from ..agents.specialists.channel_recommender import ChannelRecommender
@@ -33,8 +43,6 @@ from ..agents.specialists.extraction_orchestrator import ExtractionOrchestrator
 from ..agents.specialists.focus_sacrifice_engine import FocusSacrificeEngine
 from ..agents.specialists.icp_deep_generator import ICPDeepGenerator
 from ..agents.specialists.market_size_calculator import MarketSizeCalculator
-from integration.bcm_reducer import BCMReducer
-from services.supabase_client import get_supabase_admin
 from ..agents.specialists.messaging_rules_engine import MessagingRulesEngine
 from ..agents.specialists.neuroscience_copywriter import NeuroscienceCopywriter
 from ..agents.specialists.perceptual_map_generator import PerceptualMapGenerator
@@ -45,27 +53,15 @@ from ..agents.specialists.proof_point_validator import ProofPointValidator
 from ..agents.specialists.reddit_researcher import RedditResearcher
 from ..agents.specialists.soundbites_generator import SoundbitesGenerator
 from ..agents.specialists.truth_sheet_generator import TruthSheetGenerator
-from ..agents.specialists.icp_deep_generator import ICPDeepGenerator
-from ..agents.specialists.positioning_statement_generator import (
-    PositioningStatementGenerator,
-)
-from db.repositories.onboarding import OnboardingRepository
-from schemas.onboarding_schema import (
-    BusinessContext,
-    OnboardingFinalizationRequest,
-    OnboardingFinalizationResponse,
-    validate_step_data,
-    extract_business_context_from_steps,
-)
+
+# Redis session management
+from ..redis.session_manager import get_onboarding_session_manager
 
 # Core system imports
 from ..services.ocr_service import OCRService
 from ..services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
 from ..services.storage import get_enhanced_storage_service
 from ..services.vertex_ai_service import vertex_ai_service
-
-# Redis session management
-from ..redis.session_manager import get_onboarding_session_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

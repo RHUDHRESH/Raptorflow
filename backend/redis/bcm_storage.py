@@ -9,18 +9,18 @@ Provides tiered caching for Business Context Manifests with three tiers:
 Includes connection pooling, retry logic, and comprehensive error handling.
 """
 
+import asyncio
 import json
 import logging
 import time
-from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
-import asyncio
 from threading import Lock
+from typing import Any, Dict, List, Optional
 
 try:
     import redis
     from redis.connection import ConnectionPool
-    from redis.exceptions import RedisError, ConnectionError, TimeoutError
+    from redis.exceptions import ConnectionError, RedisError, TimeoutError
 
     REDIS_AVAILABLE = True
 except ImportError:

@@ -1,6 +1,7 @@
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 # Add project root to Python path
 sys.path.append(
@@ -9,9 +10,11 @@ sys.path.append(
 
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock
-from .services.onboarding import process_uploaded_file
-from workflows.onboarding import finalize_onboarding
+
 from jobs.file_cleanup import delete_expired_originals
+from workflows.onboarding import finalize_onboarding
+
+from .services.onboarding import process_uploaded_file
 
 
 @pytest.mark.asyncio

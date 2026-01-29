@@ -9,27 +9,27 @@ PowerPoint, and interactive web reports with data visualization.
 import asyncio
 import io
 import json
-from datetime import datetime
-from typing import Dict, List, Optional, Set, Tuple, Any, Union
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
-import pandas as pd
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.lib import colors
 import matplotlib.pyplot as plt
-import seaborn as sns
-import plotly.graph_objects as go
+import pandas as pd
 import plotly.express as px
-from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 import plotly.io as pio
+import seaborn as sns
+from plotly.subplots import make_subplots
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from .services.llm_service import LLMService, ExtractionContext
 from .config import get_settings
 from .core.logging import get_logger
+from .services.llm_service import ExtractionContext, LLMService
 
 logger = get_logger(__name__)
 settings = get_settings()

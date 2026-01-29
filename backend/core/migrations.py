@@ -10,8 +10,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .core.supabase_mgr import get_supabase_client
 from supabase import Client
+
+from .core.supabase_mgr import get_supabase_client
 
 
 def get_migration_health() -> Dict[str, Any]:

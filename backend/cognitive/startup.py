@@ -8,13 +8,14 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from .config_manager import config_manager
 from di import container
 from engine import CognitiveEngine
 from health_monitor import health_monitor
 from metrics import metrics_collector
 from rate_limiter import rate_limiter
 from session_manager import SessionManager
+
+from .config_manager import config_manager
 
 logger = logging.getLogger(__name__)
 

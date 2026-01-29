@@ -9,9 +9,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-from PIL import Image, ImageDraw
-
 from ocr_complex import OCRComplex
+from PIL import Image, ImageDraw
 
 
 def make_text_file() -> Path:

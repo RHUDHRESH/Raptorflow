@@ -5,12 +5,13 @@ Comprehensive JSON schema definitions for the Business Context Manifest system
 including validation, serialization, and compatibility checks.
 """
 
-import json
 import hashlib
+import json
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Union
-from pydantic import BaseModel, Field, validator, root_validator
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, Field, root_validator, validator
 
 
 class BCMVersion(str, Enum):

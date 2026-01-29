@@ -16,17 +16,18 @@ Features:
 import asyncio
 import logging
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
 from enum import Enum
-from collections import deque
+from typing import Any, Dict, List, Optional, Set
 
-from .base import BaseAgent
 from dispatcher import AgentDispatcher
 from registry import AgentRegistry
-from .state import AgentState
+
+from .base import BaseAgent
 from .exceptions import LoadBalancerError
+from .state import AgentState
 
 logger = logging.getLogger(__name__)
 

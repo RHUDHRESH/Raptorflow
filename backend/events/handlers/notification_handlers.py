@@ -4,12 +4,11 @@ Handle events that trigger user notifications, emails, and alerts.
 """
 
 import logging
+from types import ApprovalRequestedEvent, Event, EventType, UsageLimitReachedEvent
 from typing import Any, Dict, Optional
 
 from ..services.email_service import EmailService
 from ..services.notification_service import NotificationService
-
-from types import ApprovalRequestedEvent, Event, EventType, UsageLimitReachedEvent
 
 logger = logging.getLogger(__name__)
 

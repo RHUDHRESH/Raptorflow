@@ -6,9 +6,10 @@ Supports multiple file formats and layers extraction with cognitive cleanup.
 import logging
 from typing import Any, Dict, List, Optional
 
-from ..base import BaseOCRProcessor, OCRResponse
-from gcp_vision import GCPVisionProcessor
 from cognitive_layer import VertexAICognitiveLayer
+from gcp_vision import GCPVisionProcessor
+
+from ..base import BaseOCRProcessor, OCRResponse
 
 logger = logging.getLogger(__name__)
 

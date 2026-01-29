@@ -1,10 +1,10 @@
-import httpx
-import logging
 import asyncio
+import logging
 import random
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 from urllib.parse import quote_plus
 
+import httpx
 from services.search.fingerprint import FingerprintGenerator
 
 logger = logging.getLogger("raptorflow.services.search.reddit")

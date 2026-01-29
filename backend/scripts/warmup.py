@@ -14,9 +14,10 @@ from pathlib import Path
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from .config.settings import get_settings
 from events.bus import get_event_bus
 from memory.services import MemoryService
+
+from .config.settings import get_settings
 from .redis.cache import CacheService
 from .redis.client import RedisClient
 from .redis.session import SessionService

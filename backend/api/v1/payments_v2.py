@@ -8,20 +8,19 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, Depends
+from api.dependencies import get_auth_context, get_current_user
+from core.models import AuthContext, User
+from core.supabase_mgr import get_supabase_admin
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel
-
+from services.email_service import EmailRecipient
 from services.payment_service import (
-    PaymentService,
+    PaymentError,
     PaymentRequest,
     PaymentResponse,
-    PaymentError,
+    PaymentService,
     payment_service,
 )
-from services.email_service import EmailRecipient
-from core.supabase_mgr import get_supabase_admin
-from core.models import User, AuthContext
-from api.dependencies import get_current_user, get_auth_context
 
 logger = logging.getLogger(__name__)
 

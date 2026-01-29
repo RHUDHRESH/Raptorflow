@@ -10,11 +10,10 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from ..agents.graphs.onboarding_v2 import OnboardingGraphV2, OnboardingStateV2
-
 # Local imports
 from ...infrastructure.storage import FileCategory, upload_file
 from ...utils.ucid import UCIDGenerator
+from ..agents.graphs.onboarding_v2 import OnboardingGraphV2, OnboardingStateV2
 
 router = APIRouter(prefix="/onboarding/v2", tags=["onboarding-v2"])
 logger = logging.getLogger(__name__)

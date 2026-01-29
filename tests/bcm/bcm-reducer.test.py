@@ -5,15 +5,17 @@ Comprehensive tests for Business Context Manifest (BCM) reducer functionality
 including extraction, compression, token management, and integration tests.
 """
 
-import pytest
-import json
 import asyncio
-from datetime import datetime
-from typing import Dict, Any, List
+import json
+import os
 
 # Import BCM reducer and dependencies
 import sys
-import os
+from datetime import datetime
+from typing import Any, Dict, List
+
+import pytest
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from backend.integration.bcm_reducer import BCMReducer

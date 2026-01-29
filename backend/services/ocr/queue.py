@@ -5,6 +5,7 @@ Integrates with the core Redis-based QueueService.
 
 import logging
 from typing import Any, Dict, Optional
+
 from ..redis_core.queue import QueueService
 from ..redis_core.queue_models import JobPriority
 

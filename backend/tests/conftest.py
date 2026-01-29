@@ -9,11 +9,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 import pytest_asyncio
-from fastapi import UploadFile
-
 from events.bus import EventBus
+from fastapi import UploadFile
 from infrastructure.storage import CloudStorage
 from jobs.scheduler import JobScheduler
+from webhooks.handler import WebhookHandler
+
 from .redis_core.cache import CacheService
 from .redis_core.client import RedisClient
 from .redis_core.queue import QueueService
@@ -21,7 +22,6 @@ from .redis_core.rate_limit import RateLimitService
 from .redis_core.session import SessionService
 from .redis_core.session_models import SessionData
 from .redis_core.usage import UsageTracker
-from webhooks.handler import WebhookHandler
 
 
 @pytest.fixture

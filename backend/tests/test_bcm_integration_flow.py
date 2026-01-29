@@ -1,10 +1,12 @@
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from .services.onboarding import OnboardingService
+from schemas.bcm_evolution import EventType
+
+from .services.bcm_projector import BCMProjector
 from .services.icp import ICPService
 from .services.move import MoveService
-from .services.bcm_projector import BCMProjector
-from schemas.bcm_evolution import EventType
+from .services.onboarding import OnboardingService
 
 
 @pytest.mark.asyncio

@@ -3,17 +3,18 @@ Database-as-Code Migration Manager
 Airtight, scalable, and foolproof migration system with versioning and rollback
 """
 
-import os
 import asyncio
 import hashlib
+import logging
+import os
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-import logging
+from typing import Any, Dict, List, Optional
 
-from supabase import Client
 from database_config import DB_CONFIG
 from supabase_mgr import get_supabase_admin
+
+from supabase import Client
 
 logger = logging.getLogger(__name__)
 

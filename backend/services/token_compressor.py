@@ -9,8 +9,8 @@ business information and semantic meaning.
 import json
 import logging
 import re
-from typing import Any, Dict, List, Union, Optional, Tuple
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 try:
     import tiktoken

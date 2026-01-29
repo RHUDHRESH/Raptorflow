@@ -3,15 +3,16 @@ Database Tests for RaptorFlow Backend
 Tests database connections, migrations, and data integrity
 """
 
-import pytest
 import asyncio
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 from unittest.mock import AsyncMock, patch
+
+import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from .config.settings import get_settings
-from .core.database import get_db, DatabaseManager
+from .core.database import DatabaseManager, get_db
 
 
 class TestDatabase:

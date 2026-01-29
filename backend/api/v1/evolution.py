@@ -6,14 +6,15 @@ Exposes the Evolutionary Intelligence Engine for RaptorFlow.
 Handles strategic refinement, ledger projection, and semantic compression.
 """
 
+from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import Dict, Any, Optional
 from pydantic import BaseModel
 
 from ..core.auth import get_auth_context
 from ..core.models import AuthContext
-from ..services.bcm_service import BCMService
 from ..services.bcm_projector import BCMProjector
+from ..services.bcm_service import BCMService
 from ..services.bcm_sweeper import BCMSweeper
 
 router = APIRouter(prefix="/evolution", tags=["evolution"])

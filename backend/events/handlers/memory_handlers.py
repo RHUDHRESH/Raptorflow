@@ -4,13 +4,12 @@ Handle events that trigger memory indexing, graph updates, and synchronization.
 """
 
 import logging
+from types import Event, EventType, FoundationUpdatedEvent, ICPCreatedEvent
 from typing import Any, Dict
 
 from memory.graph import MemoryGraph
 from memory.services import MemoryService
 from memory.vector_store import VectorStore
-
-from types import Event, EventType, FoundationUpdatedEvent, ICPCreatedEvent
 
 logger = logging.getLogger(__name__)
 

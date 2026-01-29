@@ -4,21 +4,22 @@ Tests metrics collection, aggregation, alerting, and analytics.
 """
 
 import asyncio
-import pytest
 import time
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 from .core.metrics_collector import (
-    MetricsCollector,
-    MetricDefinition,
-    MetricCategory,
-    MetricType,
     AggregationMethod,
-    MetricValue,
-    MetricAggregation,
     AlertRule,
+    MetricAggregation,
     MetricAlert,
+    MetricCategory,
+    MetricDefinition,
+    MetricsCollector,
+    MetricType,
+    MetricValue,
     get_metrics_collector,
 )
 

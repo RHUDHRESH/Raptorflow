@@ -4,16 +4,37 @@ Tests all payment flows with proper mocking and edge cases
 Addresses testing vulnerabilities identified in red team audit
 """
 
-import pytest
 import asyncio
 import json
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, List, Union
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from typing import Any, Dict, List, Optional, Union
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import pytest
+import redis as redis
+from db.models.payment import Payment, Refund
+
+# Test database setup
+from db.repositories.payment import PaymentRepository
 from fastapi.test import TestClient
 from httpx import AsyncClient
-import redis as redis
+from webhooks.secure_phonepe_webhook import (
+    SecurePhonePeWebhookHandler,
+    get_secure_webhook_handler,
+)
+
+from .core.audit_logger import AuditLogger, EventType, LogLevel
+from .core.circuit_breaker import CircuitBreakerManager, get_circuit_breaker_manager
+from .core.idempotency_manager import IdempotencyManager, get_idempotency_manager
+from .core.payment_compliance import PaymentComplianceManager, get_compliance_manager
+from .core.payment_fraud_detection import PaymentFraudDetector, get_fraud_detector
+from .core.payment_monitoring import PaymentMonitor, get_payment_monitor
+from .core.rate_limiting import RateLimitingManager, get_rate_limiting_manager
+from .core.transaction_consistency import (
+    TransactionConsistencyManager,
+    get_transaction_manager,
+)
 
 # Import payment system components
 from .services.phonepe_sdk_gateway import (
@@ -23,32 +44,10 @@ from .services.phonepe_sdk_gateway import (
     RefundResponseData,
     phonepe_sdk_gateway,
 )
-from .services.refund_system import (
-    RefundManager,
-    get_refund_manager,
-    RefundRequestData as RefundRequestData,
-    RefundResponseData as RefundResponseData,
-)
-from webhooks.secure_phonepe_webhook import (
-    SecurePhonePeWebhookHandler,
-    get_secure_webhook_handler,
-)
-from .core.transaction_consistency import (
-    TransactionConsistencyManager,
-    get_transaction_manager,
-)
-from .core.idempotency_manager import IdempotencyManager, get_idempotency_manager
-from .core.rate_limiting import RateLimitingManager, get_rate_limiting_manager
-from .core.circuit_breaker import CircuitBreakerManager, get_circuit_breaker_manager
-from .core.payment_fraud_detection import PaymentFraudDetector, get_fraud_detector
-from .core.payment_monitoring import PaymentMonitor, get_payment_monitor
-from .core.payment_compliance import PaymentComplianceManager, get_compliance_manager
-from .core.audit_logger import AuditLogger, EventType, LogLevel
-from db.repositories.payment import PaymentRepository
-
-# Test database setup
-from db.repositories.payment import PaymentRepository
-from db.models.payment import Payment, Refund
+from .services.refund_system import RefundManager
+from .services.refund_system import RefundRequestData as RefundRequestData
+from .services.refund_system import RefundResponseData as RefundResponseData
+from .services.refund_system import get_refund_manager
 
 logger = logging.getLogger(__name__)
 

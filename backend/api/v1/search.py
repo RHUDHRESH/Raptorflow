@@ -3,7 +3,8 @@ Search API endpoints
 Handles real-time and asynchronous native search aggregation.
 """
 
-from typing import List, Optional, Any, Dict
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 

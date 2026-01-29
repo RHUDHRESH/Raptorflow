@@ -1,11 +1,11 @@
 import logging
 from typing import Any, Dict, List, Optional
 
+from db.repositories.onboarding import OnboardingRepository
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from ..agents.universal.agent import UniversalAgent
-from db.repositories.onboarding import OnboardingRepository
 
 logger = logging.getLogger(__name__)
 

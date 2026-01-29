@@ -3,15 +3,17 @@ BCM State Projector Service
 Reconstructs the current 'Everything' BCM state from historical event logs.
 """
 
-import logging
 import json
-from typing import List, Dict, Any, Optional
+import logging
+from typing import Any, Dict, List, Optional
+
 from schemas.bcm_evolution import (
     BusinessContextEverything,
     EventType,
     InteractionRecord,
 )
-from schemas.business_context import BrandIdentity, StrategicAudience, MarketPosition
+from schemas.business_context import BrandIdentity, MarketPosition, StrategicAudience
+
 from .core.supabase_mgr import get_supabase_client
 from .services.upstash_client import get_upstash_client
 

@@ -15,9 +15,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User
-
 from ...memory.graph_memory import GraphMemory
 from ...memory.graph_models import (
     EntityType,
@@ -27,6 +24,8 @@ from ...memory.graph_models import (
 )
 from ...memory.graph_query import GraphPattern, GraphQueryEngine
 from ...memory.vector_store import VectorMemory
+from ..core.auth import get_current_user, get_workspace_id
+from ..core.models import User
 
 logger = logging.getLogger(__name__)
 

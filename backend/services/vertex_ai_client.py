@@ -3,14 +3,16 @@ Vertex AI Client Configuration (Upgraded to google-genai)
 Handles Gemini API connections via the latest unified SDK.
 """
 
-import os
+import hashlib
 import json
 import logging
-import hashlib
-from typing import Optional, Dict, Any, List
+import os
+from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
 from google import genai
 from pydantic import BaseModel
+
 from .redis_core.cache import CacheService
 
 # Load environment variables

@@ -6,6 +6,8 @@ for external integrations like Supabase, Stripe, and PhonePe.
 """
 
 from handler import WebhookHandler, get_webhook_handler
+from verification import WebhookVerifier, get_webhook_verifier
+
 from .models import (
     WebhookConfig,
     WebhookDelivery,
@@ -15,7 +17,6 @@ from .models import (
     WebhookRetry,
     WebhookSignature,
 )
-from verification import WebhookVerifier, get_webhook_verifier
 
 # Export main components
 __all__ = [

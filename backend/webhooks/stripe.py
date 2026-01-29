@@ -12,9 +12,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from handler import WebhookHandler, get_webhook_handler
 from infrastructure.cloud_monitoring import get_cloud_monitoring
 from infrastructure.logging import get_cloud_logging
-from handler import WebhookHandler, get_webhook_handler
+
 from .models import WebhookEvent, WebhookResponse
 
 logger = logging.getLogger(__name__)
@@ -894,9 +895,7 @@ class StripeWebhookHandler:
                 )
 
                 # Send failure notification
-                from notifications.notification_service import (
-                    get_notification_service,
-                )
+                from notifications.notification_service import get_notification_service
 
                 notification_service = get_notification_service()
 
@@ -915,9 +914,7 @@ class StripeWebhookHandler:
             workspace_id = payment_event.metadata.get("workspace_id")
 
             if workspace_id:
-                from notifications.notification_service import (
-                    get_notification_service,
-                )
+                from notifications.notification_service import get_notification_service
 
                 notification_service = get_notification_service()
 

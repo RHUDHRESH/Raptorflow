@@ -1,25 +1,25 @@
 "Expert Council Agentic Swarm System (Ultra-Premium)"
 "A LangGraph-powered multi-agent system with an Infinite Skill System."
 
-import logging
-import json
 import asyncio
-from typing import Dict, Any, List, Optional, Annotated, TypedDict, Type
-from datetime import datetime, UTC
+import json
+import logging
+from datetime import UTC, datetime
+from typing import Annotated, Any, Dict, List, Optional, Type, TypedDict
 
-from langgraph.graph import StateGraph, END
+from langgraph.graph import END, StateGraph
 from pydantic import BaseModel, Field
-
-from .services.vertex_ai_client import get_vertex_ai_client
-from .agents.skills.registry import get_skills_registry
-from .agents.skills.harness import get_skill_harness
 from schemas import (
+    AgentSkillSet,
     CouncilAgent,
     CouncilContribution,
     CouncilDiscussion,
     SkillDefinition,
-    AgentSkillSet,
 )
+
+from .agents.skills.harness import get_skill_harness
+from .agents.skills.registry import get_skills_registry
+from .services.vertex_ai_client import get_vertex_ai_client
 
 logger = logging.getLogger(__name__)
 

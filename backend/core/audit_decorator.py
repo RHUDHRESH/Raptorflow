@@ -7,9 +7,8 @@ import logging
 import time
 from typing import Any, Callable
 
-from fastapi import Request, Response
-
 from audit import get_audit_logger
+from fastapi import Request, Response
 
 logger = logging.getLogger(__name__)
 

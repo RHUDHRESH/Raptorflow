@@ -12,11 +12,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
-from .core.supabase import get_supabase_client
-
 from embeddings import get_embedding_model
-from .models import MemoryChunk, MemoryType
 from vector_store import VectorMemory
+
+from .core.supabase import get_supabase_client
+from .models import MemoryChunk, MemoryType
 
 logger = logging.getLogger(__name__)
 

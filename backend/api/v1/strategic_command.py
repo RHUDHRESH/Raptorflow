@@ -6,16 +6,17 @@ The immaculate API surface for Absolute Infinity.
 Handles blueprints, agenda aggregation, and fluid task status updates.
 """
 
-from typing import List, Optional, Dict, Any
+from datetime import UTC, datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from datetime import datetime, UTC, timedelta
+from synapse import brain
 
 from ..core.auth import get_auth_context
 from ..core.models import AuthContext
 from ..core.supabase_mgr import get_supabase_client
 from ..services.macm import get_context_assembler
-from synapse import brain
 
 router = APIRouter(prefix="/strategic", tags=["strategic"])
 

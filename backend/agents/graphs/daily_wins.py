@@ -4,10 +4,9 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional, TypedDict
 
+from core.supabase_mgr import get_supabase_client
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
-
-from core.supabase_mgr import get_supabase_client
 
 from ..state import AgentState
 

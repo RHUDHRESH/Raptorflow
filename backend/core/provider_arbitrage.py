@@ -4,16 +4,16 @@ Intelligent provider selection achieving 30%+ cost reduction through real-time a
 """
 
 import asyncio
-import logging
 import json
+import logging
+import statistics
 import time
-from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass, asdict
+import uuid
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from collections import defaultdict, deque
-import uuid
-import statistics
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import aiohttp

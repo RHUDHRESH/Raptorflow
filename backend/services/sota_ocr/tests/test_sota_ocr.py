@@ -3,28 +3,36 @@ Comprehensive Test Suite for SOTA OCR System
 Unit tests, integration tests, and performance tests
 """
 
-import pytest
 import asyncio
-import tempfile
-import os
-from unittest.mock import Mock, AsyncMock, patch
-from datetime import datetime
-import numpy as np
-from PIL import Image
 import io
+import os
+import tempfile
+from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
+
+import numpy as np
+import pytest
+from adaptive_learning import AdaptiveLearning
+from ensemble import OCREnsemble
+from intelligent_cache import IntelligentCache
+from monitoring import OCRMonitoring
 
 # Import SOTA OCR components
-from orchestrator import OCRModelOrchestrator, ModelSelectionStrategy
-from ...models import DocumentCharacteristics, DocumentType, DocumentComplexity
-from ...models import LanguageCategory, ProcessingVolume, ModelCapabilities
+from orchestrator import ModelSelectionStrategy, OCRModelOrchestrator
+from PIL import Image
 from preprocessor import DocumentPreprocessor
 from quality_assurance import QualityAssurance
-from ensemble import OCREnsemble
-from monitoring import OCRMonitoring
-from service import SOTAOCRService
 from rl_optimization import RLOCROptimizer
-from adaptive_learning import AdaptiveLearning
-from intelligent_cache import IntelligentCache
+from service import SOTAOCRService
+
+from ...models import (
+    DocumentCharacteristics,
+    DocumentComplexity,
+    DocumentType,
+    LanguageCategory,
+    ModelCapabilities,
+    ProcessingVolume,
+)
 
 
 class TestOCRModelOrchestrator:
@@ -753,7 +761,7 @@ class TestRLOCROptimizer:
         """Test reward calculation."""
         calculator = optimizer.reward_calculator
 
-        from rl_optimization import TestCase, OCRModelResult
+        from rl_optimization import OCRModelResult, TestCase
 
         test_case = TestCase(
             "test1", b"data", "test.pdf", "Expected text", "eng", "simple", "pdf", {}
@@ -907,8 +915,9 @@ class TestPerformance:
     @pytest.mark.performance
     def test_memory_usage(self):
         """Test memory usage of components."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss

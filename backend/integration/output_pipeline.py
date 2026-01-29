@@ -20,6 +20,7 @@ except ImportError:
 
 
 from memory.controller import MemoryController
+
 from supabase import Client
 
 logger = logging.getLogger(__name__)

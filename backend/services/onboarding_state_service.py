@@ -3,16 +3,17 @@ Onboarding State Service - Centralized state management for onboarding workflow
 Handles synchronization, locking, and persistence across all onboarding steps.
 """
 
-import json
-import time
 import asyncio
-from typing import Dict, Any, Optional, List, Set
-from dataclasses import dataclass, asdict
-from enum import Enum
 import hashlib
+import json
 import logging
+import time
+from dataclasses import asdict, dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 from supabase import Client
+
 from .services.upstash_client import UpstashClient
 
 logger = logging.getLogger(__name__)

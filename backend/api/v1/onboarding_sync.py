@@ -3,22 +3,24 @@ Onboarding Sync API - Frontend-Backend synchronization endpoints
 Provides real-time state synchronization and progress tracking.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
-from typing import Dict, Any, List, Optional
-from pydantic import BaseModel
+import asyncio
 import json
 import logging
-import asyncio
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from ..core.auth import get_current_user
+from db.supabase import get_supabase_client
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from memory.controller import MemoryController
+from pydantic import BaseModel
 from workflows.onboarding import OnboardingWorkflow
+
+from cognitive import CognitiveEngine
+
+from ..agents.dispatcher import AgentDispatcher
+from ..core.auth import get_current_user
 from ..services.onboarding_state_service import OnboardingStateService, StepStatus
 from ..services.upstash_client import UpstashClient
-from db.supabase import get_supabase_client
-from memory.controller import MemoryController
-from ..agents.dispatcher import AgentDispatcher
-from cognitive import CognitiveEngine
 
 logger = logging.getLogger(__name__)
 

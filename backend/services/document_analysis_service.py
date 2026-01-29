@@ -8,26 +8,26 @@ sentiment analysis, and language detection for processed documents.
 
 import asyncio
 import re
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Set
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Dict, List, Optional, Set, Tuple
 
-import spacy
 import nltk
-from nltk.sentiment import SentimentIntensityAnalyzer
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize, sent_tokenize
+import numpy as np
+import spacy
 from nltk.chunk import ne_chunk
+from nltk.corpus import stopwords
+from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.tag import pos_tag
+from nltk.tokenize import sent_tokenize, word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-import numpy as np
 
-from .services.ocr_service import OCRResult
 from .config import get_settings
 from .core.logging import get_logger
+from .services.ocr_service import OCRResult
 
 logger = get_logger(__name__)
 settings = get_settings()

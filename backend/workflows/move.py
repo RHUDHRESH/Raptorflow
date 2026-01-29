@@ -7,11 +7,13 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
+from memory.controller import MemoryController
+
+from cognitive import CognitiveEngine
+from supabase import Client
+
 from .agents.dispatcher import AgentDispatcher
 from .agents.state import AgentState
-from cognitive import CognitiveEngine
-from memory.controller import MemoryController
-from supabase import Client
 
 logger = logging.getLogger(__name__)
 

@@ -4,6 +4,7 @@ Document Stitcher for aggregating multi-page OCR results.
 
 import logging
 from typing import List
+
 from ..base import OCRResponse
 
 logger = logging.getLogger(__name__)

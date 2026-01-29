@@ -4,9 +4,10 @@ Direct Supabase Migration Application
 Uses REST API to apply SQL migrations
 """
 
-import requests
 import json
 from pathlib import Path
+
+import requests
 
 # Your Supabase access token
 ACCESS_TOKEN = "sbp_23be6405f8c238ea5e6218120f12262ac8d04a74"

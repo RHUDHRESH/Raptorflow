@@ -4,12 +4,13 @@ Prompt Assembler Middleware
 Assembles LLM prompts with BCM context, enforcing token budgets and caching.
 """
 
-from typing import Dict, Any, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, Optional
+
 import tiktoken
 
-from .services.upstash_client import get_upstash_client
 from .api.v1.context import get_manifest
+from .services.upstash_client import get_upstash_client
 
 
 @dataclass

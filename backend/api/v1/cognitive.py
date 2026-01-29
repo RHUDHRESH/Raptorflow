@@ -11,20 +11,17 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, Field, validator
-
 from caching import CacheKeyGenerator, CognitiveCache
 from context import CognitiveContextBuilder
 from critic import AdversarialCritic
 from engine import CognitiveEngine
 from execution import PlanExecutor
 from fallback import FallbackHandler
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from hitl import ApprovalGate
-from ..models import CognitiveResult, ExecutionPlan, PerceivedInput, ReflectionResult
 from monitoring import CognitiveMonitor
 from parallel import ParallelExecutor
 from perception import PerceptionModule
@@ -37,9 +34,12 @@ from protocols.messages import AgentMessage, MessageFormat, MessageType
 from protocols.routing_rules import RuleEngine
 from protocols.schemas import SchemaRegistry, SchemaValidator
 from protocols.versioning import VersionManager
+from pydantic import BaseModel, Field, validator
 from reflection import ReflectionModule
 from retry import RetryManager
 from traces import CognitiveTracer
+
+from ..models import CognitiveResult, ExecutionPlan, PerceivedInput, ReflectionResult
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

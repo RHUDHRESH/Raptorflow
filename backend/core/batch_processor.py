@@ -19,19 +19,18 @@ import hashlib
 import json
 import logging
 import time
+import uuid
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
-import uuid
 
 import numpy as np
 import structlog
+from inference_cache import get_inference_cache
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-
-from inference_cache import get_inference_cache
 
 logger = structlog.get_logger(__name__)
 

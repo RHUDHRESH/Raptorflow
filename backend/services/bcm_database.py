@@ -7,13 +7,14 @@ with versioning, conflict resolution, and data integrity checks.
 
 import json
 import logging
-from typing import Dict, Any, Optional, List
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 try:
-    from supabase import create_client, Client
     from postgrest import APIResponse
+
+    from supabase import Client, create_client
 
     SUPABASE_AVAILABLE = True
 except ImportError:

@@ -15,31 +15,31 @@ Features:
 - Performance trend analysis
 """
 
-import os
-import sys
-import time
-import json
-import threading
-from typing import Dict, List, Optional, Any, Union, Callable, Type
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime, timezone, timedelta
-from functools import wraps
-from contextlib import contextmanager
-import logging
 import inspect
+import json
+import logging
+import os
 import statistics
+import sys
+import threading
+import time
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 try:
     from sentry_sdk import (
-        configure_scope,
-        set_tag,
-        set_context,
         add_breadcrumb,
-        start_span,
+        configure_scope,
         continue_trace,
         get_current_span,
+        set_context,
         set_measurement,
+        set_tag,
+        start_span,
     )
     from sentry_sdk.tracing import Span, Transaction
 

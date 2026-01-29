@@ -3,13 +3,14 @@ Comprehensive tests for authentication endpoints
 Tests success paths, failure paths, and edge cases
 """
 
+import json
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch, AsyncMock
-import json
 
-from backend.main import app
 from backend.core.models import User
+from backend.main import app
 from backend.services.profile_service import ProfileError
 
 client = TestClient(app)

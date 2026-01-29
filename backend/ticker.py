@@ -6,11 +6,11 @@ Refactored for Supabase-backed job queuing and Fluid Rescheduling (Breathing Arc
 
 import asyncio
 import logging
-from datetime import datetime, timedelta, UTC
-from typing import Dict, List, Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from synapse import brain
 from core.supabase_mgr import get_supabase_client
+from synapse import brain
 
 logger = logging.getLogger("ticker")
 

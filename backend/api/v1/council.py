@@ -3,15 +3,16 @@ Expert Council API Endpoints
 """
 
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
+from db.council import CouncilRepository
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from ..core.auth import get_current_user, get_workspace_id
 from ..core.models import User
-from ..services.expert_council import get_expert_council_swarm, create_swarm_session
+from ..services.expert_council import create_swarm_session, get_expert_council_swarm
 from ..services.foundation import FoundationService
-from db.council import CouncilRepository
 
 logger = logging.getLogger(__name__)
 

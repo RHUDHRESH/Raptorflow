@@ -8,10 +8,12 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from .agents.dispatcher import AgentDispatcher
-from cognitive import CognitiveEngine
 from memory.controller import MemoryController
+
+from cognitive import CognitiveEngine
 from supabase import Client
+
+from .agents.dispatcher import AgentDispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -403,7 +405,6 @@ async def _test_cross_module_integration(
         # Test agent with cognitive engine
         try:
             from agents.state import AgentState
-
             from agents_cognitive import execute_with_cognition
 
             test_state = AgentState()
@@ -493,7 +494,6 @@ async def _test_redis_integration(redis_client) -> Dict[str, Any]:
         # Test session management
         try:
             from agents.state import AgentState
-
             from redis_sessions import persist_agent_state, restore_agent_state
 
             test_state = AgentState()

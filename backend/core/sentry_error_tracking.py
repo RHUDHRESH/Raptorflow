@@ -14,36 +14,36 @@ Features:
 - Performance impact analysis
 """
 
+import hashlib
+import inspect
+import json
+import logging
 import os
 import sys
-import json
-import time
-import uuid
-import hashlib
-import traceback
 import threading
-from typing import Dict, List, Optional, Any, Union, Callable, Type
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime, timezone
-from functools import wraps
+import time
+import traceback
+import uuid
 from contextlib import contextmanager
-import logging
-import inspect
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 try:
     from sentry_sdk import (
-        configure_scope,
-        set_tag,
-        set_context,
         add_breadcrumb,
         capture_exception,
         capture_message,
-        set_level,
-        set_user,
-        get_current_span,
-        start_span,
+        configure_scope,
         continue_trace,
+        get_current_span,
+        set_context,
+        set_level,
+        set_tag,
+        set_user,
+        start_span,
     )
     from sentry_sdk.utils import Dsn
 

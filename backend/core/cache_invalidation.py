@@ -6,15 +6,15 @@ Provides intelligent cache invalidation strategies
 import asyncio
 import json
 import logging
+import threading
 import time
-from typing import Any, Dict, List, Optional, Set, Callable, Union
-from dataclasses import dataclass, asdict
+import weakref
+from collections import defaultdict, deque
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from collections import defaultdict, deque
-import threading
-import weakref
-from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 logger = logging.getLogger(__name__)
 

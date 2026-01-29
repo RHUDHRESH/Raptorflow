@@ -6,6 +6,7 @@ import asyncio
 import os
 import sys
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -33,7 +34,7 @@ if not os.getenv("VERTEX_AI_API_KEY"):
                     f"🚀 Surgically injected API Key from env (Length: {len(os.environ['VERTEX_AI_API_KEY'])})"
                 )
 
-from .services.expert_council import get_expert_council_swarm, create_swarm_session
+from .services.expert_council import create_swarm_session, get_expert_council_swarm
 
 
 async def test_council_session():

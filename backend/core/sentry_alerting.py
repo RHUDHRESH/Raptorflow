@@ -15,23 +15,24 @@ Features:
 - Alert correlation and grouping
 """
 
-import os
 import json
-import time
-import threading
-import smtplib
-from typing import Dict, List, Optional, Any, Union, Callable
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime, timezone, timedelta
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
 import logging
+import os
+import smtplib
 import statistics
+import threading
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from email.mime.multipart import MimeMultipart
+from email.mime.text import MimeText
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Union
+
 import requests
 
 try:
-    from sentry_sdk import capture_message, add_breadcrumb
+    from sentry_sdk import add_breadcrumb, capture_message
 
     SENTRY_AVAILABLE = True
 except ImportError:
@@ -394,8 +395,8 @@ class SentryAlertingManager:
         try:
             # We use a simplified bridge here, in production we would
             # ideally have a centralized metrics collector
-            from core.api_monitoring import APIMonitoring, APIMonitoringConfig
             from config.settings import get_settings
+            from core.api_monitoring import APIMonitoring, APIMonitoringConfig
 
             settings = get_settings()
             config = APIMonitoringConfig(base_url=f"http://localhost:{settings.PORT}")

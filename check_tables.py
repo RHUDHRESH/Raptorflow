@@ -3,8 +3,9 @@
 Check what tables exist in Supabase
 """
 
-import requests
 import json
+
+import requests
 
 # Your Supabase access token
 ACCESS_TOKEN = "sbp_23be6405f8c238ea5e6218120f12262ac8d04a74"

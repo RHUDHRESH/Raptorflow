@@ -28,14 +28,13 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import structlog
 
-from ..config import ModelTier
-from ..core.session import get_session_manager
-
 # Import Vertex AI service
 from llm import llm_manager
 
 # Local imports
 from ..base import BaseAgent
+from ..config import ModelTier
+from ..core.session import get_session_manager
 from ..state import AgentState
 
 logger = structlog.get_logger(__name__)

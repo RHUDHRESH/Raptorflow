@@ -4,15 +4,16 @@ Comprehensive tests for Redis services and functionality
 """
 
 import asyncio
-import pytest
 import time
 from datetime import datetime
 
-from ..redis_core.session import SessionService
-from ..redis_core.rate_limit import RateLimitService
+import pytest
+
 from ..redis_core.client import get_redis
-from ..services.llm_cache import get_semantic_cache
+from ..redis_core.rate_limit import RateLimitService
+from ..redis_core.session import SessionService
 from ..services.coordination import get_lock_manager
+from ..services.llm_cache import get_semantic_cache
 
 
 class TestRedisIntegration:

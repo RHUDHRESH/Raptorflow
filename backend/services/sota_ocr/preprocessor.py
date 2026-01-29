@@ -4,20 +4,21 @@ Implements state-of-the-art image enhancement and document analysis
 """
 
 import asyncio
+import io
+import os
+import tempfile
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import cv2
+import fitz  # PyMuPDF
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
-import fitz  # PyMuPDF
-from typing import Dict, List, Optional, Tuple, Any, Union
-from dataclasses import dataclass
-import io
-import tempfile
-import os
 
 from ..models import (
     DocumentCharacteristics,
-    DocumentType,
     DocumentComplexity,
+    DocumentType,
     LanguageCategory,
     ProcessingVolume,
 )

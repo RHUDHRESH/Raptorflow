@@ -6,11 +6,11 @@ Uses Redis to cache semantically similar queries and responses
 import hashlib
 import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
-from client import get_redis
 from cache import CacheService
+from client import get_redis
 
 logger = logging.getLogger(__name__)
 

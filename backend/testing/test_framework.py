@@ -3,23 +3,24 @@ Comprehensive Testing Framework
 Advanced testing infrastructure for Raptorflow onboarding system
 """
 
+import asyncio
+import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+import os
+import tempfile
+import unittest
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-import json
-import asyncio
-import pytest
-import unittest
-from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
-import tempfile
-import os
+from typing import Any, Dict, List, Optional, Tuple, Union
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+from test_fixtures import AgentFixtures, OnboardingFixtures, ServiceFixtures
 
 # Import test utilities
-from test_utils import TestDataGenerator, MockServices, TestAssertions
-from test_fixtures import OnboardingFixtures, AgentFixtures, ServiceFixtures
+from test_utils import MockServices, TestAssertions, TestDataGenerator
 
 logger = logging.getLogger(__name__)
 

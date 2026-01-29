@@ -11,7 +11,6 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 from .config.settings import get_settings
-
 from .redis_core.client import RedisClient
 from .redis_core.health import RedisHealthChecker
 

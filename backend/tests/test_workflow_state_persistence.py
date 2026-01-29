@@ -22,11 +22,7 @@ from .agents.specialists.move_strategist import MoveStrategist
 from .agents.specialists.onboarding_orchestrator import OnboardingOrchestrator
 
 # Import workflow classes
-from .agents.workflows.base_workflow import (
-    BaseWorkflow,
-    WorkflowState,
-    WorkflowStatus,
-)
+from .agents.workflows.base_workflow import BaseWorkflow, WorkflowState, WorkflowStatus
 from .agents.workflows.content_workflow import ContentWorkflow
 from .agents.workflows.onboarding_workflow import OnboardingWorkflow
 from .agents.workflows.strategy_workflow import StrategyWorkflow

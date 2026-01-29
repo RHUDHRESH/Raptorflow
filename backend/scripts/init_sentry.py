@@ -16,28 +16,28 @@ Options:
     --test-mode         Enable test mode with higher sampling rates
 """
 
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 
 # Add backend to path
 backend_path = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_path))
 
+from .core.sentry_alerting import get_alerting_manager
+from .core.sentry_dashboards import get_dashboard_manager
+from .core.sentry_error_tracking import get_error_tracker
 from .core.sentry_integration import (
-    initialize_sentry,
     SentryConfig,
     SentryEnvironment,
     get_sentry_manager,
+    initialize_sentry,
     shutdown_sentry,
 )
-from .core.sentry_error_tracking import get_error_tracker
 from .core.sentry_performance import get_performance_monitor
 from .core.sentry_sessions import get_session_manager
-from .core.sentry_alerting import get_alerting_manager
-from .core.sentry_dashboards import get_dashboard_manager
 
 
 def setup_logging():

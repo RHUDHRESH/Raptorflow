@@ -6,7 +6,8 @@ Ensures all generated content adheres to the 'Expensive, Calm, and Decisive' bra
 """
 
 import logging
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from ...base import Skill, SkillCategory, SkillLevel
 
 logger = logging.getLogger("raptorflow.skills.brand_voice_guard")

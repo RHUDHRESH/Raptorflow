@@ -5,11 +5,11 @@ Great Migration Script: SQLite to Supabase
 Performs the final cutover from fragmented SQLite files to the consolidated Supabase schema.
 """
 
-import sqlite3
 import json
 import logging
 import os
-from datetime import datetime, UTC
+import sqlite3
+from datetime import UTC, datetime
 
 from .core.supabase_mgr import get_supabase_client
 

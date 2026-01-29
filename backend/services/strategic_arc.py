@@ -3,10 +3,12 @@ Strategic Arc Logic Service: Handles move dependencies, synchronization, and exp
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta
-from .core.supabase_mgr import get_supabase_client
+from typing import Any, Dict, List, Optional
+
 from db.moves import MoveRepository
+
+from .core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

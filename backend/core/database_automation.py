@@ -4,10 +4,10 @@ Automated maintenance, optimization, and scaling operations
 """
 
 import asyncio
+import json
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
-import json
+from typing import Any, Dict, List, Optional
 
 from database_config import DB_CONFIG
 from database_integration import get_database_integration

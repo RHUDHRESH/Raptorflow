@@ -4,8 +4,8 @@ Measures performance improvements over the old complex system.
 """
 
 import asyncio
-import time
 import sys
+import time
 
 sys.path.append(".")
 from memory.controller import SimpleMemoryController

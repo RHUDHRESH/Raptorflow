@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Test script to verify payment service imports work correctly"""
 
-import sys
 import os
+import sys
 
 # Add current directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -21,7 +21,7 @@ try:
     print("✅ Payment service import: OK")
 
     # Test core auth
-    from core.auth import get_current_user, get_auth_context
+    from core.auth import get_auth_context, get_current_user
 
     print("✅ Core auth import: OK")
 
@@ -31,7 +31,7 @@ try:
     print("✅ Supabase manager import: OK")
 
     # Test models
-    from core.models import User, AuthContext
+    from core.models import AuthContext, User
 
     print("✅ Core models import: OK")
 

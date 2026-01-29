@@ -3,14 +3,14 @@ Simple rate limiting middleware for FastAPI endpoints.
 """
 
 import asyncio
-import logging
-from typing import Callable, Optional
-from fastapi import Request, Response, HTTPException
-from fastapi.responses import JSONResponse
-import time
 import hashlib
+import logging
+import time
+from typing import Callable, Optional
 
-from rate_limiter import get_rate_limiter, RateLimitConfig
+from fastapi import HTTPException, Request, Response
+from fastapi.responses import JSONResponse
+from rate_limiter import RateLimitConfig, get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +156,7 @@ def rate_limit(requests_per_minute: int = 60):
             client_id = f"endpoint:{client_ip}"
 
             # Create temporary rate limiter for this endpoint
-            from rate_limiter import RateLimiter, RateLimitConfig
+            from rate_limiter import RateLimitConfig, RateLimiter
 
             config = RateLimitConfig(requests_per_minute=requests_per_minute)
             limiter = RateLimiter(config)

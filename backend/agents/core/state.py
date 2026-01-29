@@ -17,11 +17,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from ..agents.config import ModelTier
+from memory.controller import SimpleMemoryController
 
+from ..agents.config import ModelTier
 from ..base import BaseAgent
 from ..exceptions import StateError, ValidationError
-from memory.controller import SimpleMemoryController
 
 logger = logging.getLogger(__name__)
 

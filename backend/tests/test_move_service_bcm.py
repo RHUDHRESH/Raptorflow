@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from .services.move import MoveService
 from schemas.bcm_evolution import EventType
+
+from .services.move import MoveService
 
 
 @pytest.mark.asyncio

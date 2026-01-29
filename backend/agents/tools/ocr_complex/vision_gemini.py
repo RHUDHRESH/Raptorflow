@@ -10,9 +10,9 @@ from typing import Any, Dict, List, Union
 
 from google import genai
 from PIL import Image
+from preprocess import preprocess_for_ocr
 
 from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
-from preprocess import preprocess_for_ocr
 
 
 class GeminiVisionProcessor(BaseProcessor):

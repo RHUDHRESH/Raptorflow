@@ -5,13 +5,13 @@ Campaigns API endpoints with AI processing
 import logging
 from typing import Any, Dict, List, Optional
 
+from db.campaigns import CampaignRepository
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from ..core.auth import get_auth_context, get_current_user, get_workspace_id
 from ..core.models import AuthContext, User
 from ..core.supabase_mgr import get_supabase_client
-from db.campaigns import CampaignRepository
 
 # Import Vertex AI client for AI processing
 try:

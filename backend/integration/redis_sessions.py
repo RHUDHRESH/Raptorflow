@@ -8,9 +8,8 @@ import logging
 import time
 from typing import Any, Dict, Optional
 
-from .redis.client import Redis
-
 from .agents.state import AgentState
+from .redis.client import Redis
 
 logger = logging.getLogger(__name__)
 

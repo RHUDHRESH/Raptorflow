@@ -29,7 +29,6 @@ from engine import CognitiveEngine
 from execution import PlanExecutor
 from fallback import FallbackHandler
 from hitl import ApprovalGate
-from .models import CognitiveResult, ExecutionPlan, PerceivedInput, ReflectionResult
 from monitoring import CognitiveMonitor
 from parallel import ParallelExecutor
 from perception import PerceptionModule
@@ -38,6 +37,8 @@ from planning import PlanningModule
 from reflection import ReflectionModule
 from retry import RetryManager
 from traces import CognitiveTracer
+
+from .models import CognitiveResult, ExecutionPlan, PerceivedInput, ReflectionResult
 
 # Test configuration
 TEST_TIMEOUT = 30

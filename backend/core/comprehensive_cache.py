@@ -4,22 +4,23 @@ Provides multi-level caching (L1/L2/L3) with intelligent optimization
 """
 
 import asyncio
+import gzip
 import hashlib
 import json
 import logging
 import pickle
+import threading
 import time
+import weakref
 import zlib
-import gzip
-import lz4.frame
-from typing import Any, Dict, Optional, List, Set, Union, Tuple
-from dataclasses import dataclass, asdict
+from collections import OrderedDict, defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from collections import defaultdict, OrderedDict
-import threading
-import weakref
-from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+
+import lz4.frame
 
 try:
     import redis.asyncio as redis

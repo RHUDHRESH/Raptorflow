@@ -7,17 +7,13 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from agents.exceptions import AuthenticationError, ValidationError, WorkspaceError
+from core.validation import validate_agent_request
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
-from agents.exceptions import (
-    AuthenticationError,
-    ValidationError,
-    WorkspaceError,
-)
 from config import validate_config
-from core.validation import validate_agent_request
 
 logger = logging.getLogger(__name__)
 

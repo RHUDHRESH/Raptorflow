@@ -5,16 +5,17 @@ Continuous learning from user feedback and corrections
 
 import asyncio
 import json
-import time
-from typing import Dict, List, Optional, Tuple, Any, Union
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
-import numpy as np
-from collections import defaultdict, deque
 import pickle
+import time
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ..models import OCRModelResult, DocumentCharacteristics, ModelCapabilities
+import numpy as np
 from model_implementations import ModelFactory
+
+from ..models import DocumentCharacteristics, ModelCapabilities, OCRModelResult
 
 
 @dataclass

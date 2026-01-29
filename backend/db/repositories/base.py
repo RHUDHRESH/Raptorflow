@@ -2,8 +2,10 @@
 Base Repository - Placeholder to fix import errors
 """
 
-from typing import Any, Dict, List, Optional, Generic, TypeVar, Type
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
+
 from pydantic import BaseModel as PydanticBaseModel
+
 from ..core.supabase_mgr import get_supabase_client
 
 T = TypeVar("T")

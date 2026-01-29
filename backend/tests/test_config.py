@@ -3,18 +3,19 @@ Tests for the simplified configuration system.
 """
 
 import os
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock
 
 from .config import (
+    Environment,
     EssentialConfig,
+    LLMProvider,
     RedisRateLimiter,
     get_config,
     get_rate_limiter,
     reload_config,
     validate_config,
-    Environment,
-    LLMProvider,
 )
 
 

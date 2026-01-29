@@ -7,16 +7,17 @@ industry benchmarks, and real-time data enrichment.
 """
 
 import asyncio
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 import aiohttp
 import pandas as pd
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Set, Tuple, Any
-from dataclasses import dataclass
-from enum import Enum
 
-from .services.llm_service import LLMService, ExtractionContext
 from .config import get_settings
 from .core.logging import get_logger
+from .services.llm_service import ExtractionContext, LLMService
 
 logger = get_logger(__name__)
 settings = get_settings()

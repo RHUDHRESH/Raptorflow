@@ -6,10 +6,11 @@ Wraps agent execution with full cognitive pipeline.
 import logging
 from typing import Any, Dict, Optional
 
-from .agents.base import BaseAgent
-from .agents.state import AgentState
 from cognitive import CognitiveEngine
 from cognitive.models import ExecutionPlan, PerceivedInput, ReflectionResult
+
+from .agents.base import BaseAgent
+from .agents.state import AgentState
 
 logger = logging.getLogger(__name__)
 

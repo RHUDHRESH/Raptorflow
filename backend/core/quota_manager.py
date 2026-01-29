@@ -10,10 +10,10 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Callable, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 
-from resources import get_resource_manager, ResourceType, ResourceQuota
 from metrics_collector import get_metrics_collector
+from resources import ResourceQuota, ResourceType, get_resource_manager
 
 logger = logging.getLogger(__name__)
 

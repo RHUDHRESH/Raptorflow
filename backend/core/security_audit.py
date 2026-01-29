@@ -4,18 +4,18 @@ Provides comprehensive audit trails, compliance reporting, and regulatory adhere
 """
 
 import asyncio
+import base64
+import csv
 import hashlib
+import io
 import json
 import logging
 import time
-from dataclasses import dataclass, asdict
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
-from collections import defaultdict, deque
-import csv
-import io
-import base64
 
 logger = logging.getLogger(__name__)
 
@@ -569,6 +569,7 @@ class SecurityAudit:
     def _generate_digital_signature(self, event: AuditEvent) -> str:
         """Generate real HMAC-SHA256 digital signature for event integrity."""
         import hmac
+
         from config.settings import get_settings
 
         settings = get_settings()

@@ -6,18 +6,19 @@ Addresses critical idempotency vulnerabilities identified in red team audit
 
 import asyncio
 import hashlib
+import inspect
 import json
 import logging
 import uuid
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, List, Union, Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
-import redis
 from functools import wraps
-import inspect
+from typing import Any, Callable, Dict, List, Optional, Union
 
-from .core.audit_logger import audit_logger, EventType, LogLevel
+import redis
+
+from .core.audit_logger import EventType, LogLevel, audit_logger
 
 logger = logging.getLogger(__name__)
 

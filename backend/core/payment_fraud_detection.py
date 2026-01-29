@@ -8,15 +8,16 @@ import asyncio
 import json
 import logging
 import uuid
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, List, Union, Callable, Tuple
-from dataclasses import dataclass, field
-from enum import Enum
-import redis
-import numpy as np
 from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from .core.audit_logger import audit_logger, EventType, LogLevel
+import numpy as np
+import redis
+
+from .core.audit_logger import EventType, LogLevel, audit_logger
 
 logger = logging.getLogger(__name__)
 

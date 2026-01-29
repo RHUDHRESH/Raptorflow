@@ -9,10 +9,10 @@ Checks for database locks, latency, and Ticker reliability.
 import asyncio
 import logging
 import time
-from datetime import datetime, UTC, timedelta
+from datetime import UTC, datetime, timedelta
 
-from ticker import ticker
 from synapse import brain
+from ticker import ticker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("stress_test")

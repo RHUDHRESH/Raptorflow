@@ -6,9 +6,11 @@ Uses Titan Sorter multiplexer to find and scrape high-leverage verbatims.
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
-from .base import BaseTool
-from services.titan.multiplexer import SearchMultiplexer
+
 from services.search.reddit_native import RedditNativeScraper
+from services.titan.multiplexer import SearchMultiplexer
+
+from .base import BaseTool
 
 logger = logging.getLogger("raptorflow.tools.reddit_scraper")
 
