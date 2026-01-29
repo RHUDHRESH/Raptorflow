@@ -30,6 +30,7 @@ from api.v1 import (  # episodes,
     approvals,
     auth,
     blackbox,
+    business_contexts,
     campaigns,
     config,
     context,
@@ -405,6 +406,11 @@ app.include_router(titan.router, prefix="/api/v1/titan", tags=["titan"])
 app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["campaigns"])
 app.include_router(daily_wins.router, prefix="/api/v1/daily_wins", tags=["daily_wins"])
 app.include_router(blackbox.router, prefix="/api/v1/blackbox", tags=["blackbox"])
+app.include_router(
+    business_contexts.router,
+    prefix="/api/v1",
+    tags=["business-contexts"],
+)
 
 
 # Root health endpoint
