@@ -9,8 +9,8 @@ import sys
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from backend.agents.tools.registry import get_tool_registry
-from backend.agents.tools.web_search import WebSearchTool
+from .agents.tools.registry import get_tool_registry
+from .agents.tools.web_search import WebSearchTool
 
 
 async def test_web_search_tool():

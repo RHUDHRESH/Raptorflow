@@ -3,7 +3,7 @@ Skills system for Raptorflow agents.
 Defines available skills and skill management.
 """
 
-from .base import Skill, SkillCategory, SkillLevel
+from ..base import Skill, SkillCategory, SkillLevel
 from .registry import get_skill, get_skills_registry, list_skills
 
 # Core skills available to agents

@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Literal, Optional, TypedDict
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
-from backend.core.supabase_mgr import get_supabase_client
+from core.supabase_mgr import get_supabase_client
 
 from ..state import AgentState
 
@@ -49,8 +49,8 @@ async def context_miner_node(state: DailyWinState) -> DailyWinState:
         workspace_id = state.get("workspace_id")
         supabase = get_supabase_client()
 
-        from backend.integration.context_builder import build_business_context_manifest
-        from backend.memory.controller import MemoryController
+        from integration.context_builder import build_business_context_manifest
+        from memory.controller import MemoryController
 
         # Build full BCM manifest
         memory_controller = MemoryController()
@@ -90,7 +90,7 @@ async def context_miner_node(state: DailyWinState) -> DailyWinState:
 async def trend_mapper_node(state: DailyWinState) -> DailyWinState:
     """Node: Fetches external trends via the Titan Intelligence Engine."""
     try:
-        from backend.services.titan.tool import TitanIntelligenceTool
+        from services.titan.tool import TitanIntelligenceTool
 
         # Determine search queries based on BCM foundation/industry
         bcm = state.get("bcm_manifest") or {}
@@ -121,7 +121,7 @@ async def trend_mapper_node(state: DailyWinState) -> DailyWinState:
 async def synthesizer_node(state: DailyWinState) -> DailyWinState:
     """Node: Bridges internal activity with external trends."""
     try:
-        from ..specialists.daily_wins import DailyWinsGenerator
+        from specialists.daily_wins import DailyWinsGenerator
 
         agent = DailyWinsGenerator()
 
@@ -154,7 +154,7 @@ async def synthesizer_node(state: DailyWinState) -> DailyWinState:
 async def voice_architect_node(state: DailyWinState) -> DailyWinState:
     """Node: Enforces tone and editorial restraint."""
     try:
-        from ..specialists.daily_wins import DailyWinsGenerator
+        from specialists.daily_wins import DailyWinsGenerator
 
         agent = DailyWinsGenerator()
 
@@ -187,7 +187,7 @@ async def voice_architect_node(state: DailyWinState) -> DailyWinState:
 async def hook_specialist_node(state: DailyWinState) -> DailyWinState:
     """Node: Generates viral hooks/headlines for the post."""
     try:
-        from ..specialists.daily_wins import DailyWinsGenerator
+        from specialists.daily_wins import DailyWinsGenerator
 
         agent = DailyWinsGenerator()
 
@@ -224,7 +224,7 @@ async def hook_specialist_node(state: DailyWinState) -> DailyWinState:
 async def visualist_node(state: DailyWinState) -> DailyWinState:
     """Node: Generates an editorial image prompt."""
     try:
-        from ..specialists.daily_wins import DailyWinsGenerator
+        from specialists.daily_wins import DailyWinsGenerator
 
         agent = DailyWinsGenerator()
 
@@ -251,7 +251,7 @@ async def visualist_node(state: DailyWinState) -> DailyWinState:
 async def skeptic_node(state: DailyWinState) -> DailyWinState:
     """Node: Evaluates the draft for 'Surprise' and 'Editorial Restraint'."""
     try:
-        from ..specialists.daily_wins import DailyWinsGenerator
+        from specialists.daily_wins import DailyWinsGenerator
 
         agent = DailyWinsGenerator()
 

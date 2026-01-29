@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from .graph_models import (
+from graph_models import (
     EntityType,
     GraphEntity,
     GraphRelationship,

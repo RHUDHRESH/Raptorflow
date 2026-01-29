@@ -16,10 +16,10 @@ import httpx
 from fastapi.testclient import TestClient
 from main import app
 
-from backend.core.circuit_breaker import get_resilient_client
-from backend.core.redis_production import get_redis_production_manager
-from backend.core.sentry import get_health_status
-from backend.core.supabase_production import get_supabase_production_manager
+from .core.circuit_breaker import get_resilient_client
+from .core.redis_production import get_redis_production_manager
+from .core.sentry import get_health_status
+from .core.supabase_production import get_supabase_production_manager
 
 logger = logging.getLogger(__name__)
 

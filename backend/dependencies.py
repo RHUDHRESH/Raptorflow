@@ -8,12 +8,12 @@ from typing import Generator, Optional
 
 from fastapi import Depends, HTTPException, status
 
-from backend.agents.dispatcher import AgentDispatcher
-from backend.cognitive import CognitiveEngine
-from backend.core.auth import get_current_user, get_workspace_id
-from backend.core.redis import get_redis_client
-from backend.core.supabase_mgr import get_supabase_client
-from backend.memory.controller import MemoryController
+from ..agents.dispatcher import AgentDispatcher
+from cognitive import CognitiveEngine
+from core.auth import get_current_user, get_workspace_id
+from core.redis import get_redis_client
+from core.supabase_mgr import get_supabase_client
+from memory.controller import MemoryController
 from supabase import Client
 
 

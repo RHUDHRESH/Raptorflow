@@ -8,7 +8,7 @@ import { RaptorLogo } from "@/components/ui/CompassLogo";
 
 // Interactive Installations
 import ParticleFlowCanvas from "@/components/landing/installations/ParticleFlowCanvas";
-import ModuleConstellation from "@/components/landing/installations/ModuleConstellation";
+import TheTriptych from "@/components/landing/installations/TheTriptych";
 import LiquidTestimonials from "@/components/landing/installations/LiquidTestimonials";
 import InteractivePricing from "@/components/landing/installations/InteractivePricing";
 import AnimatedTimeline from "@/components/landing/installations/AnimatedTimeline";
@@ -80,7 +80,7 @@ export default function LandingPage() {
                         <Link href="#system" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">System</Link>
                         <Link href="#how" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">How it works</Link>
                         <Link href="#pricing" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Pricing</Link>
-                        <Link href="/login" className="text-sm text-[var(--ink)] micro-nav-link">Log in</Link>
+                        <Link href="/signin" className="text-sm text-[var(--ink)] micro-nav-link">Log in</Link>
                         <Link href="/signup" className="text-sm px-5 py-2.5 bg-[var(--ink)] text-[var(--canvas)] rounded-lg font-medium micro-button-press">
                             Start Now
                         </Link>
@@ -230,20 +230,9 @@ export default function LandingPage() {
             </section>
 
             {/* ═══════════════════════════════════════════════════════════════
-                THE SYSTEM - Visual grid with hover
+                THE SYSTEM - THE TRIPTYCH (Art Installation)
             ═══════════════════════════════════════════════════════════════ */}
-            <section id="system" className="py-32 bg-[var(--surface)] border-y border-[var(--border)]">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="max-w-3xl mb-20">
-                        <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)] mb-4">The Technical Spine</p>
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-editorial mb-6">Six modules.<br /><span className="text-[var(--muted)]">One unified engine.</span></h2>
-                        <p className="text-xl text-[var(--secondary)]">Everything you need to go from business context to market domination. No more tool-switching. Marketing, finally under control.</p>
-                    </div>
-
-                    {/* Interactive Module Constellation */}
-                    <ModuleConstellation />
-                </div>
-            </section>
+            <TheTriptych />
 
             {/* ═══════════════════════════════════════════════════════════════
                 HOW IT WORKS - 3 Steps
@@ -422,7 +411,7 @@ export default function LandingPage() {
                                 <ul className="space-y-2 text-sm">
                                     <li><Link href="#system" className="text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Features</Link></li>
                                     <li><Link href="#pricing" className="text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Pricing</Link></li>
-                                    <li><Link href="/login" className="text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Log in</Link></li>
+                                    <li><Link href="/signin" className="text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Log in</Link></li>
                                 </ul>
                             </div>
                             <div>

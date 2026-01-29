@@ -21,13 +21,13 @@ from infrastructure.secrets import SecretsManager
 from infrastructure.storage import CloudStorage
 from jobs.scheduler import JobScheduler
 from monitoring.health import HealthAggregator
-from redis.cache import CacheService
-from redis.client import RedisClient
-from redis.config import RedisConfig
-from redis.pubsub import PubSubService
-from redis.queue import QueueService
-from redis.rate_limit import RateLimitService
-from redis.session import SessionService
+from .redis.cache import CacheService
+from .redis.client import RedisClient
+from .redis.config import RedisConfig
+from .redis.pubsub import PubSubService
+from .redis.queue import QueueService
+from .redis.rate_limit import RateLimitService
+from .redis.session import SessionService
 from webhooks.handler import WebhookHandler
 
 logging.basicConfig(level=logging.INFO)

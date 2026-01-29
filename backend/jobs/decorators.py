@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from .models import JobConfig, JobResult, JobStatus
-from .scheduler import get_job_scheduler
+from scheduler import get_job_scheduler
 
 logger = logging.getLogger(__name__)
 

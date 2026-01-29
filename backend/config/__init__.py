@@ -30,6 +30,39 @@ def get_rate_limiter():
     return get_core_rate_limiter()
 
 
+# SimplifiedConfig for backward compatibility
+class SimplifiedConfig:
+    """Simplified configuration for backward compatibility."""
+
+    def __init__(self):
+        self.settings = get_settings()
+
+    @property
+    def model(self):
+        return self.settings.VERTEX_AI_MODEL
+
+    @property
+    def temperature(self):
+        return 0.7
+
+    @property
+    def max_tokens(self):
+        return 2048
+
+
+def estimate_cost(model: str, tokens: int) -> float:
+    """Estimate cost for model usage (backward compatibility)."""
+    # Simple cost estimation
+    costs = {
+        "gemini-1.5-pro": 0.00025,  # per 1K tokens
+        "gemini-2.0-flash": 0.000075,
+        "gemini-2.0-flash-lite": 0.0000375,
+    }
+
+    cost_per_1k = costs.get(model, 0.0001)
+    return (tokens / 1000) * cost_per_1k
+
+
 def validate_config() -> bool:
     """Validate that essential configuration is properly set."""
     try:

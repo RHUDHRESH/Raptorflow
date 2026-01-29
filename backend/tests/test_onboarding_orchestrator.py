@@ -9,8 +9,8 @@ import sys
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from backend.agents.specialists.onboarding_orchestrator import OnboardingOrchestrator
-from backend.agents.state import add_message, create_initial_state
+from .agents.specialists.onboarding_orchestrator import OnboardingOrchestrator
+from .agents.state import add_message, create_initial_state
 
 
 async def test_onboarding_step_detection():

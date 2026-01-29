@@ -13,8 +13,8 @@ from datetime import datetime
 import numpy as np
 from collections import defaultdict, deque
 
-from .models import OCRModelResult, ModelCapabilities, DocumentCharacteristics
-from .model_implementations import ModelFactory
+from ..models import OCRModelResult, ModelCapabilities, DocumentCharacteristics
+from model_implementations import ModelFactory
 
 
 @dataclass
@@ -115,18 +115,18 @@ class UnitTestGenerator:
     async def generate_test_cases(self, domain_documents: List[Dict[str, Any]], count: int = 100) -> List[TestCase]:
         """Generate synthetic test cases based on domain documents."""
         test_cases = []
-        
+
         for i in range(count):
             # Select template
             template_name = random.choice(list(self.test_templates.keys()))
             template = self.test_templates[template_name]
-            
+
             # Generate content
             content = self._generate_content(template)
-            
+
             # Select language
             language = self._select_language()
-            
+
             # Create test case
             test_case = TestCase(
                 id=f"test_{i}_{int(time.time())}",
@@ -142,34 +142,34 @@ class UnitTestGenerator:
                     "content_length": len(content)
                 }
             )
-            
+
             test_cases.append(test_case)
-        
+
         return test_cases
 
     def _generate_content(self, template: Dict[str, Any]) -> str:
         """Generate synthetic content based on template."""
         patterns = template["patterns"]
         min_length, max_length = template["length_range"]
-        
+
         content_parts = []
         current_length = 0
-        
+
         while current_length < min_length:
             pattern = random.choice(patterns)
             content_parts.append(pattern)
             current_length += len(pattern)
-            
+
             # Add some variation
             if random.random() < 0.3:
                 content_parts.append(f" {random.randint(1, 1000)}")
                 current_length += 8
-        
+
         # Trim to max length if needed
         content = " ".join(content_parts)
         if len(content) > max_length:
             content = content[:max_length].rsplit(" ", 1)[0]
-        
+
         return content
 
     def _select_language(self) -> str:
@@ -200,20 +200,20 @@ class BinaryRewardCalculator:
         """Calculate binary reward for OCR result."""
         # Calculate accuracy
         accuracy = self._calculate_accuracy(test_case.expected_text, result.extracted_text)
-        
+
         # Calculate speed score
         speed_score = self._calculate_speed_score(result.processing_time)
-        
+
         # Calculate confidence score
         confidence_score = result.confidence_score
-        
+
         # Combine scores
         reward = (
             accuracy * self.accuracy_weight +
             speed_score * self.speed_weight +
             confidence_score * self.confidence_weight
         )
-        
+
         return reward
 
     def _calculate_accuracy(self, expected: str, actual: str) -> float:
@@ -222,14 +222,14 @@ class BinaryRewardCalculator:
             return 1.0
         if not expected or not actual:
             return 0.0
-        
+
         # Simple character-level accuracy
         expected_chars = set(expected.lower())
         actual_chars = set(actual.lower())
-        
+
         intersection = expected_chars.intersection(actual_chars)
         union = expected_chars.union(actual_chars)
-        
+
         return len(intersection) / len(union) if union else 0.0
 
     def _calculate_speed_score(self, processing_time: float) -> float:
@@ -267,28 +267,28 @@ class GroupRelativePolicyOptimization:
             convergence_threshold=self.convergence_threshold,
             max_generations=self.max_generations
         )
-        
+
         # Initialize population
         population = self._initialize_population(base_model)
-        
+
         # Evolution loop
         for generation in range(self.max_generations):
             optimization_state.generation = generation
-            
+
             # Evaluate population
             fitness_scores = await self._evaluate_population(population, test_cases)
-            
+
             # Update statistics
             optimization_state.best_fitness = max(fitness_scores)
             optimization_state.average_fitness = np.mean(fitness_scores)
-            
+
             # Check convergence
             if self._check_convergence(fitness_scores, optimization_state):
                 break
-            
+
             # Selection and reproduction
             population = self._evolve_population(population, fitness_scores)
-        
+
         return {
             "optimized_model": population[0],  # Best individual
             "final_fitness": optimization_state.best_fitness,
@@ -299,12 +299,12 @@ class GroupRelativePolicyOptimization:
     def _initialize_population(self, base_model: str) -> List[Dict[str, Any]]:
         """Initialize population of model configurations."""
         population = []
-        
+
         for i in range(self.population_size):
             # Create individual with mutations
             individual = self._create_individual(base_model, i)
             population.append(individual)
-        
+
         return population
 
     def _create_individual(self, base_model: str, index: int) -> Dict[str, Any]:
@@ -318,29 +318,29 @@ class GroupRelativePolicyOptimization:
             "timeout_seconds": 30,
             "retry_attempts": 3
         }
-        
+
         # Apply mutations
         if index > 0:  # Keep first individual as baseline
             mutations = self._apply_mutations(base_config)
             base_config.update(mutations)
-        
+
         return base_config
 
     def _apply_mutations(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Apply random mutations to configuration."""
         mutations = {}
-        
+
         # Mutate confidence threshold
         if random.random() < self.mutation_rate:
             mutations["confidence_threshold"] = np.clip(
                 config["confidence_threshold"] + np.random.normal(0, 0.1),
                 0.5, 1.0
             )
-        
+
         # Mutate preprocessing
         if random.random() < self.mutation_rate:
             mutations["preprocessing_enabled"] = not config["preprocessing_enabled"]
-        
+
         # Mutate enhancement level
         if random.random() < self.mutation_rate:
             levels = ["low", "medium", "high"]
@@ -348,53 +348,53 @@ class GroupRelativePolicyOptimization:
             mutations["enhancement_level"] = random.choice(
                 [l for l in levels if l != current_level]
             )
-        
+
         # Mutate timeout
         if random.random() < self.mutation_rate:
             mutations["timeout_seconds"] = np.clip(
                 config["timeout_seconds"] + np.random.normal(0, 5),
                 10, 60
             )
-        
+
         return mutations
 
     async def _evaluate_population(self, population: List[Dict[str, Any]], test_cases: List[TestCase]) -> List[float]:
         """Evaluate fitness of entire population."""
         fitness_scores = []
-        
+
         for individual in population:
             # Evaluate individual on test cases
             individual_fitness = await self._evaluate_individual(individual, test_cases)
             fitness_scores.append(individual_fitness)
-        
+
         return fitness_scores
 
     async def _evaluate_individual(self, individual: Dict[str, Any], test_cases: List[TestCase]) -> float:
         """Evaluate fitness of individual configuration."""
         total_reward = 0.0
         evaluated_cases = 0
-        
+
         # Sample test cases for efficiency
         sample_size = min(len(test_cases), 20)
         sampled_cases = random.sample(test_cases, sample_size)
-        
+
         for test_case in sampled_cases:
             try:
                 # Simulate OCR processing with individual configuration
                 result = await self._simulate_ocr_processing(test_case, individual)
-                
+
                 # Calculate reward
                 reward_calculator = BinaryRewardCalculator(self.config)
                 reward = reward_calculator.calculate_reward(test_case, result)
-                
+
                 total_reward += reward
                 evaluated_cases += 1
-                
+
             except Exception as e:
                 # Penalize configurations that cause errors
                 total_reward -= 0.5
                 evaluated_cases += 1
-        
+
         return total_reward / evaluated_cases if evaluated_cases > 0 else 0.0
 
     async def _simulate_ocr_processing(self, test_case: TestCase, config: Dict[str, Any]) -> OCRModelResult:
@@ -403,29 +403,29 @@ class GroupRelativePolicyOptimization:
         base_time = 2.0
         if config.get("preprocessing_enabled", True):
             base_time += 0.5
-        
+
         enhancement_level = config.get("enhancement_level", "medium")
         if enhancement_level == "high":
             base_time += 1.0
         elif enhancement_level == "low":
             base_time -= 0.3
-        
+
         # Simulate confidence based on threshold
         base_confidence = 0.8
         confidence_threshold = config.get("confidence_threshold", 0.8)
-        
+
         # Add some noise
         confidence = np.clip(
             base_confidence + np.random.normal(0, 0.1),
             confidence_threshold - 0.1, 1.0
         )
-        
+
         # Simulate text extraction
         extracted_text = test_case.expected_text
         if confidence < 0.7:
             # Add errors for low confidence
             extracted_text = self._introduce_errors(extracted_text, confidence)
-        
+
         return OCRModelResult(
             model_name=config["model_name"],
             extracted_text=extracted_text,
@@ -440,7 +440,7 @@ class GroupRelativePolicyOptimization:
     def _introduce_errors(self, text: str, confidence: float) -> str:
         """Introduce OCR errors based on confidence."""
         error_rate = (1.0 - confidence) * 0.2  # Max 20% error rate
-        
+
         words = text.split()
         for i in range(len(words)):
             if random.random() < error_rate:
@@ -452,7 +452,7 @@ class GroupRelativePolicyOptimization:
                     # Word omission
                     if i < len(words) - 1:
                         words[i] = ""
-        
+
         return " ".join(words).strip()
 
     def _substitute_characters(self, word: str) -> str:
@@ -461,58 +461,58 @@ class GroupRelativePolicyOptimization:
             'o': '0', 'l': '1', 'i': '1', 's': '5', 'e': '3',
             'b': '8', 'g': '9', 'z': '2', 'a': '4'
         }
-        
+
         result = []
         for char in word.lower():
             if char in substitutions and random.random() < 0.3:
                 result.append(substitutions[char])
             else:
                 result.append(char)
-        
+
         return "".join(result)
 
     def _check_convergence(self, fitness_scores: List[float], state: OptimizationState) -> bool:
         """Check if optimization has converged."""
         if len(fitness_scores) < 2:
             return False
-        
+
         # Check if improvement is minimal
         max_fitness = max(fitness_scores)
         if max_fitness - state.best_fitness < state.convergence_threshold:
             return True
-        
+
         # Check if variance is low
         variance = np.var(fitness_scores)
         if variance < state.convergence_threshold:
             return True
-        
+
         return False
 
     def _evolve_population(self, population: List[Dict[str, Any]], fitness_scores: List[float]) -> List[Dict[str, Any]]:
         """Evolve population using selection, crossover, and mutation."""
         # Sort by fitness
         sorted_indices = np.argsort(fitness_scores)[::-1]
-        
+
         # Select elite
         elite_indices = sorted_indices[:self.elite_size]
         new_population = [population[i] for i in elite_indices]
-        
+
         # Generate offspring
         while len(new_population) < self.population_size:
             # Tournament selection
             parent1 = self._tournament_selection(population, fitness_scores)
             parent2 = self._tournament_selection(population, fitness_scores)
-            
+
             # Crossover
             if random.random() < self.crossover_rate:
                 offspring = self._crossover(parent1, parent2)
             else:
                 offspring = parent1.copy()
-            
+
             # Mutation
             offspring = self._apply_mutations(offspring)
             new_population.append(offspring)
-        
+
         return new_population[:self.population_size]
 
     def _tournament_selection(self, population: List[Dict[str, Any]], fitness_scores: List[float], tournament_size: int = 3) -> Dict[str, Any]:
@@ -525,7 +525,7 @@ class GroupRelativePolicyOptimization:
     def _crossover(self, parent1: Dict[str, Any], parent2: Dict[str, Any]) -> Dict[str, Any]:
         """Crossover two parent configurations."""
         offspring = {}
-        
+
         # Uniform crossover for each parameter
         for key in parent1.keys():
             if key == "model_name":
@@ -534,7 +534,7 @@ class GroupRelativePolicyOptimization:
                 offspring[key] = parent1[key]
             else:
                 offspring[key] = parent2[key]
-        
+
         return offspring
 
 
@@ -546,7 +546,7 @@ class RLOCROptimizer:
         self.test_generator = UnitTestGenerator(config.get("test_generator", {}))
         self.reward_calculator = BinaryRewardCalculator(config.get("reward_calculator", {}))
         self.optimizer = GroupRelativePolicyOptimization(config.get("optimizer", {}))
-        
+
         # Optimization history
         self.optimization_history = []
         self.best_configurations = {}
@@ -554,14 +554,14 @@ class RLOCROptimizer:
     async def optimize_model(self, base_model: str, domain_documents: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Optimize OCR model for specific domain using RL."""
         start_time = time.time()
-        
+
         try:
             # Generate test cases
             test_cases = await self.test_generator.generate_test_cases(domain_documents)
-            
+
             # Run optimization
             optimization_result = await self.optimizer.optimize_model(base_model, test_cases)
-            
+
             # Record optimization
             optimization_record = {
                 "model_name": base_model,
@@ -574,12 +574,12 @@ class RLOCROptimizer:
                 "optimization_time": time.time() - start_time,
                 "timestamp": datetime.utcnow().isoformat()
             }
-            
+
             self.optimization_history.append(optimization_record)
             self.best_configurations[f"{base_model}_{optimization_record['domain']}"] = optimization_result["optimized_model"]
-            
+
             return optimization_record
-            
+
         except Exception as e:
             raise Exception(f"Optimization failed for model {base_model}: {str(e)}")
 
@@ -588,10 +588,10 @@ class RLOCROptimizer:
         # Simple heuristic based on document content
         if not domain_documents:
             return "general"
-        
+
         # Check for domain-specific keywords
         content = str(domain_documents).lower()
-        
+
         if any(keyword in content for keyword in ["invoice", "bill", "payment", "total"]):
             return "financial"
         elif any(keyword in content for keyword in ["medical", "patient", "diagnosis", "treatment"]):
@@ -616,14 +616,14 @@ class RLOCROptimizer:
         """Calculate optimization metrics."""
         if not self.optimization_history:
             return {}
-        
+
         total_optimizations = len(self.optimization_history)
         successful_optimizations = sum(1 for record in self.optimization_history if record["converged"])
-        
+
         average_fitness = np.mean([record["best_fitness"] for record in self.optimization_history])
         average_generations = np.mean([record["generations"] for record in self.optimization_history])
         average_time = np.mean([record["optimization_time"] for record in self.optimization_history])
-        
+
         return {
             "total_optimizations": total_optimizations,
             "success_rate": successful_optimizations / total_optimizations,

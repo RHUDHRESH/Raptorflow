@@ -6,8 +6,8 @@ Retrieves relevant memory before routing and injects context into routing decisi
 import logging
 from typing import Any, Dict, Optional
 
-from backend.agents.routing.pipeline import RoutingDecision, RoutingPipeline
-from backend.memory.controller import MemoryController
+from .agents.routing.pipeline import RoutingDecision, RoutingPipeline
+from memory.controller import MemoryController
 
 logger = logging.getLogger(__name__)
 

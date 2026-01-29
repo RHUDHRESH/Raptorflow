@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { notify } from "@/lib/notifications";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { BCMIndicator } from "@/components/bcm/BCMIndicator";
+import { BCMRebuildDialog } from "@/components/bcm/BCMRebuildDialog";
+import { BCMExportButton } from "@/components/bcm/BCMExportButton";
 
 // Settings components
 import { SettingsNav } from "@/components/settings/SettingsNav";
@@ -44,18 +47,18 @@ interface SettingsState {
 }
 
 export default function SettingsPage() {
-    const { user, profile } = useAuth();
+    const { user, profileStatus } = useAuth();
     const [hasChanges, setHasChanges] = useState(false);
     const [saving, setSaving] = useState(false);
 
     // Initialize settings with user data
-    // Use UseEffect to update if profile loads later? 
-    // Or just Init state fn? Init state fn runs once. 
+    // Use UseEffect to update if profile loads later?
+    // Or just Init state fn? Init state fn runs once.
     // Better to use useEffect to sync state when profile updates.
 
     const [settings, setSettings] = useState<SettingsState>(() => ({
         profile: {
-            displayName: profile?.full_name || (user
+            displayName: user?.fullName || (user?.email
                 ? user.email.split("@")[0].charAt(0).toUpperCase() +
                 user.email.split("@")[0].slice(1)
                 : "User"),
@@ -63,7 +66,7 @@ export default function SettingsPage() {
             bio: "Building the future of marketing.",
         },
         workspace: {
-            name: `${profile?.full_name?.split(' ')[0] || (user
+            name: `${user?.fullName?.split(' ')[0] || (user?.email
                 ? user.email.split("@")[0].charAt(0).toUpperCase() +
                 user.email.split("@")[0].slice(1)
                 : "User")
@@ -82,23 +85,23 @@ export default function SettingsPage() {
         },
     }));
 
-    // Update state when profile loads
+    // Update state when user data loads
     useEffect(() => {
-        if (profile) {
+        if (user) {
             setSettings(prev => ({
                 ...prev,
                 profile: {
                     ...prev.profile,
-                    displayName: profile.full_name || prev.profile.displayName,
-                    email: user?.email || prev.profile.email,
+                    displayName: user.fullName || prev.profile.displayName,
+                    email: user.email || prev.profile.email,
                 },
                 workspace: {
                     ...prev.workspace,
-                    name: `${profile.full_name?.split(' ')[0] || "My"}'s Marketing HQ`
+                    name: `${user.fullName?.split(' ')[0] || "My"}'s Marketing HQ`
                 }
             }));
         }
-    }, [profile, user?.email]);
+    }, [user]);
 
     // Load settings from localStorage on mount
     useEffect(() => {
@@ -161,7 +164,7 @@ export default function SettingsPage() {
                     <SettingsNav />
 
                     {/* Main Content */}
-                    <main className="flex-1 max-w-2xl">
+                    <main className="flex-1 max-w-2xl space-y-8">
                         <ProfileSection
                             data={settings.profile}
                             onChange={(field, value) => updateSetting("profile", field, value)}
@@ -169,6 +172,37 @@ export default function SettingsPage() {
                             hasChanges={hasChanges}
                             saving={saving}
                         />
+
+                        {/* BCM Management Section */}
+                        {profileStatus?.workspaceId && (
+                            <div className="bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-lg)] p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-lg font-serif text-[var(--ink)]">Business Context</h3>
+                                    <div className="flex items-center gap-3">
+                                        <BCMIndicator workspaceId={profileStatus.workspaceId} />
+                                        <BCMRebuildDialog workspaceId={profileStatus.workspaceId} />
+                                        <BCMExportButton workspaceId={profileStatus.workspaceId} />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <p className="text-sm text-[var(--muted)]">
+                                        Manage your Business Context Manifest (BCM) which contains your ICP profiles, messaging framework, and strategic positioning data.
+                                    </p>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div className="p-3 bg-[var(--surface)] rounded-[var(--radius)]">
+                                            <div className="font-medium text-[var(--ink)] mb-1">ICP Profiles</div>
+                                            <div className="text-[var(--muted)]">Target customer segments and personas</div>
+                                        </div>
+                                        <div className="p-3 bg-[var(--surface)] rounded-[var(--radius)]">
+                                            <div className="font-medium text-[var(--ink)] mb-1">Messaging Framework</div>
+                                            <div className="text-[var(--muted)]">Value propositions and communication strategy</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>

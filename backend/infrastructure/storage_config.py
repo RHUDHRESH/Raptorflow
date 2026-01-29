@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from .gcp import StorageClass
+from gcp import StorageClass
 
 
 class BucketType(Enum):

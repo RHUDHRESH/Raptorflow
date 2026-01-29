@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from .resources import ResourceStatus, ResourceType, get_resource_manager
+from resources import ResourceStatus, ResourceType, get_resource_manager
 
 logger = logging.getLogger(__name__)
 
@@ -210,7 +210,7 @@ class ResourceAnalyzer:
         """Perform comprehensive resource analysis."""
         try:
             # Get current resource data (lazy import to avoid circular import)
-            from backend.core.metrics_collector import get_metrics_collector
+            from core.metrics_collector import get_metrics_collector
 
             resource_manager = get_resource_manager()
             metrics_collector = get_metrics_collector()

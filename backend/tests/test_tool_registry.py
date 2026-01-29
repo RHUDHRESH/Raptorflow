@@ -8,16 +8,16 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 # Import base classes for testing
-from backend.agents.base import BaseTool
+from .agents.base import BaseTool
 
 # Import all tools
-from backend.agents.tools.content_generator import ContentGenerator
-from backend.agents.tools.export_tool import ExportTool
-from backend.agents.tools.feedback_tool import FeedbackTool
+from .agents.tools.content_generator import ContentGenerator
+from .agents.tools.export_tool import ExportTool
+from .agents.tools.feedback_tool import FeedbackTool
 
 # Import tool registry
-from backend.agents.tools.registry import ToolRegistry
-from backend.agents.tools.template_tool import TemplateTool
+from .agents.tools.registry import ToolRegistry
+from .agents.tools.template_tool import TemplateTool
 
 logger = logging.getLogger(__name__)
 

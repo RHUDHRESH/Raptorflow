@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 # Import metrics for logging metrics
-from .cognitive_metrics import MetricCategory, MetricType, get_metrics_collector
+from cognitive_metrics import MetricCategory, MetricType, get_metrics_collector
 
 
 class LogLevel(Enum):

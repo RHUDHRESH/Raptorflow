@@ -16,19 +16,19 @@ from enum import Enum
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from ..fallback import FallbackHandler
-from ..monitoring import CognitiveMonitor
+from fallback import FallbackHandler
+from monitoring import CognitiveMonitor
 
 # Import cognitive components
-from ..protocols.errors import (
+from protocols.errors import (
     CognitiveError,
     ErrorCategory,
     ErrorHandler,
     ErrorSeverity,
     RecoveryStrategy,
 )
-from ..protocols.messages import AgentMessage, MessageFormat, MessageType
-from ..retry import RetryManager
+from protocols.messages import AgentMessage, MessageFormat, MessageType
+from retry import RetryManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

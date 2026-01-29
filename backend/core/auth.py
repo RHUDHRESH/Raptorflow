@@ -3,10 +3,10 @@ from typing import Optional
 
 from fastapi import Depends, Header, HTTPException, Request, status
 
-from backend.core.jwt import get_jwt_validator
-from backend.core.models import AuthContext, User
-from backend.core.supabase_mgr import get_supabase_client
-from backend.core.workspace import (
+from .jwt import get_jwt_validator
+from .models import AuthContext, User
+from .supabase_mgr import get_supabase_client
+from .workspace import (
     get_user_workspaces,
     get_workspace_for_user,
     validate_workspace_access,

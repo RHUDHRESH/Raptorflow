@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from ...redis.client import RedisClient
-from .models import ApprovalResponse
+from ..models import ApprovalResponse
 
 logger = logging.getLogger(__name__)
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, Crimson_Pro, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { ProfileGate } from "@/components/auth/ProfileGate";
 import "./globals.css";
 
 const inter = Inter({
@@ -45,7 +46,9 @@ export default function RootLayout({
         <html lang="en" className={`${inter.variable} ${playfair.variable} ${crimson.variable} ${jetbrains.variable}`} suppressHydrationWarning>
             <body className={inter.className} suppressHydrationWarning>
                 <AuthProvider>
-                    {children}
+                    <ProfileGate>
+                        {children}
+                    </ProfileGate>
                 </AuthProvider>
                 <Toaster position="bottom-right" />
             </body>

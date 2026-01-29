@@ -677,13 +677,13 @@ export async function getCurrentUserFromDB() {
 }
 
 /**
- * Require authentication - redirects to login if not authenticated
+ * Require authentication - redirects to sign in if not authenticated
  */
 export async function requireAuth(): Promise<Session> {
   const session = await getServerSession()
 
   if (!session) {
-    redirect('/login')
+    redirect('/signin')
   }
 
   return session
@@ -699,7 +699,7 @@ export async function requireOnboarding(step?: string) {
   const { profile: user } = await getProfileByAuthUserId(supabase, session.user.id)
 
   if (!user) {
-    redirect('/login')
+    redirect('/signin')
   }
 
   // If user is fully onboarded, redirect to dashboard
@@ -726,7 +726,7 @@ export async function requireActiveUser() {
   const { profile: user } = await getProfileByAuthUserId(supabase, session.user.id)
 
   if (!user) {
-    redirect('/login')
+    redirect('/signin')
   }
 
   if (user.is_banned) {

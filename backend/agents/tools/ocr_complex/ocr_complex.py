@@ -12,12 +12,12 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from .base_processor import ProcessingResult, ProcessingStatus, processor_registry
-from .document_router import document_router
-from .logging_utils import ProgressLogger
-from .nlp_engine import nlp_engine
-from .ocr_engine import HybridOCREngine, register_default_processors
-from .translator import translation_engine
+from ...base_processor import ProcessingResult, ProcessingStatus, processor_registry
+from document_router import document_router
+from logging_utils import ProgressLogger
+from nlp_engine import nlp_engine
+from ocr_engine import HybridOCREngine, register_default_processors
+from translator import translation_engine
 
 
 class OCRComplex:

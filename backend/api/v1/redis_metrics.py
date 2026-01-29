@@ -9,8 +9,8 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException
 
-from backend.redis_core.client import get_redis
-from backend.redis_services_activation import (
+from ..redis_core.client import get_redis
+from ..redis_services_activation import (
     get_cache_service,
     get_queue_service,
     get_rate_limit_service,

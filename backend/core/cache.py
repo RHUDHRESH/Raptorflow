@@ -776,7 +776,7 @@ async def get_agent_cache() -> AgentCache:
         # Try to get Redis client
         redis_client = None
         try:
-            from .connections import get_redis_pool
+            from connections import get_redis_pool
 
             redis_pool = await get_redis_pool()
             if redis_pool._initialized:

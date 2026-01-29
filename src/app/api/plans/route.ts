@@ -40,93 +40,93 @@ export async function GET() {
 
     if (error) {
       console.error('Plans fetch error:', error)
-      // Fallback to original industrial pricing for 2026
-      const fallbackPlans = [
-        {
-          id: 'ascent',
-          name: 'Ascent',
-          slug: 'ascent',
-          description: 'For founders just getting started with systematic marketing.',
-          price_monthly_paise: 500000,  // ₹5,000/month
-          price_yearly_paise: 5000000, // ₹50,000/year
-          features: ["Foundation setup", "3 weekly Moves", "Basic Muse AI", "Matrix analytics", "Email support"],
-          sort_order: 1,
-          is_active: true
-        },
-        {
-          id: 'glide',
-          name: 'Glide',
-          slug: 'glide',
-          description: 'For founders scaling their marketing engine.',
-          price_monthly_paise: 700000,  // ₹7,000/month
-          price_yearly_paise: 7000000, // ₹70,000/year
-          features: ["Everything in Ascent", "Unlimited Moves", "Advanced Muse", "Cohort segmentation", "Priority support"],
-          sort_order: 2,
-          popular: true,
-          is_active: true
-        },
-        {
-          id: 'soar',
-          name: 'Soar',
-          slug: 'soar',
-          description: 'For teams running multi-channel campaigns.',
-          price_monthly_paise: 1000000, // ₹10,000/month
-          price_yearly_paise: 10000000, // ₹100,000/year
-          features: ["Everything in Glide", "Unlimited team seats", "Custom AI training", "API access", "Dedicated support"],
-          sort_order: 3,
-          is_active: true
-        }
-      ]
-      return NextResponse.json({ plans: fallbackPlans })
     }
 
-    // Even if we got data from DB, use the original pricing if IDs match
-    const updatedPlans = (plans || []).map(p => {
-      // Convert database field names to frontend field names
-      const planData = {
-        id: p.slug, // Use slug as ID for frontend
-        name: p.name,
-        slug: p.slug,
-        description: p.description,
-        price_monthly_paise: p.price_monthly, // Convert to paise field name
-        price_yearly_paise: p.price_annual, // Convert to paise field name
-        features: p.features,
-        is_active: p.is_active,
-        sort_order: p.sort_order
-      };
-
-      if (p.slug === 'ascent') return {
-        ...planData,
+    // Define hardcoded plans with all required fields
+    const hardcodedPlans = [
+      {
         id: 'ascent',
         name: 'Ascent',
         slug: 'ascent',
+        description: 'For founders just getting started with systematic marketing.',
         price_monthly_paise: 500000,  // ₹5,000/month
         price_yearly_paise: 5000000, // ₹50,000/year
-        features: ["Foundation setup", "3 weekly Moves", "Basic Muse AI", "Matrix analytics", "Email support"]
-      };
-      if (p.slug === 'glide') return {
-        ...planData,
+        storage_limit_bytes: 5 * 1024 * 1024 * 1024, // 5 GB
+        features: {
+          projects: 3,
+          team_members: 1,
+          support: 'email'
+        },
+        sort_order: 1,
+        is_active: true,
+        popular: false
+      },
+      {
         id: 'glide',
         name: 'Glide',
         slug: 'glide',
+        description: 'For founders scaling their marketing engine.',
         price_monthly_paise: 700000,  // ₹7,000/month
         price_yearly_paise: 7000000, // ₹70,000/year
-        features: ["Everything in Ascent", "Unlimited Moves", "Advanced Muse", "Cohort segmentation", "Priority support"],
-        popular: true
-      };
-      if (p.slug === 'soar') return {
-        ...planData,
+        storage_limit_bytes: 25 * 1024 * 1024 * 1024, // 25 GB
+        features: {
+          projects: -1, // Unlimited
+          team_members: 5,
+          support: 'priority'
+        },
+        sort_order: 2,
+        popular: true,
+        is_active: true
+      },
+      {
         id: 'soar',
         name: 'Soar',
         slug: 'soar',
+        description: 'For teams running multi-channel campaigns.',
         price_monthly_paise: 1000000, // ₹10,000/month
         price_yearly_paise: 10000000, // ₹100,000/year
-        features: ["Everything in Glide", "Unlimited team seats", "Custom AI training", "API access", "Dedicated support"]
+        storage_limit_bytes: 100 * 1024 * 1024 * 1024, // 100 GB
+        features: {
+          projects: -1, // Unlimited
+          team_members: -1, // Unlimited
+          support: 'dedicated'
+        },
+        sort_order: 3,
+        is_active: true,
+        popular: false
+      }
+    ];
+
+    // If no plans from DB, return hardcoded
+    if (!plans || plans.length === 0) {
+      return NextResponse.json({ plans: hardcodedPlans })
+    }
+
+    // Map database plans to frontend format with hardcoded values for known slugs
+    const mappedPlans = (plans || []).map(p => {
+      const hardcoded = hardcodedPlans.find(hp => hp.slug === p.slug);
+
+      if (hardcoded) {
+        return hardcoded;
+      }
+
+      // For unknown plans, map database fields
+      return {
+        id: p.slug || p.id,
+        name: p.name,
+        slug: p.slug,
+        description: p.description,
+        price_monthly_paise: p.price_monthly || 0,
+        price_yearly_paise: p.price_annual || 0,
+        storage_limit_bytes: p.storage_limit_bytes || 5 * 1024 * 1024 * 1024,
+        features: p.features || {},
+        is_active: p.is_active,
+        sort_order: p.sort_order,
+        popular: p.popular || false
       };
-      return planData;
     });
 
-    return NextResponse.json({ plans: updatedPlans })
+    return NextResponse.json({ plans: mappedPlans })
 
   } catch (err) {
     console.error('Plans API error:', err)

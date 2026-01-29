@@ -16,10 +16,10 @@ from unittest.mock import AsyncMock, Mock, patch
 import psutil
 import pytest
 
-from backend.core.metrics import MetricsCollector, MetricType
-from backend.core.performance import PerformanceOptimizer, ResourceMonitor
-from backend.core.resource_pool import ConnectionPool, MemoryBufferPool
-from backend.core.sessions import RedisSessionManager, SessionType
+from .core.metrics import MetricsCollector, MetricType
+from .core.performance import PerformanceOptimizer, ResourceMonitor
+from .core.resource_pool import ConnectionPool, MemoryBufferPool
+from .core.sessions import RedisSessionManager, SessionType
 
 # Performance test configuration
 PERFORMANCE_CONFIG = {

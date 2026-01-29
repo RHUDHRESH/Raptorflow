@@ -9,7 +9,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
-from ..state import AgentState
+from .state import AgentState
 
 
 class StreamEventType(Enum):

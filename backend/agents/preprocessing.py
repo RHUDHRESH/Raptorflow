@@ -9,8 +9,8 @@ from typing import Any, Dict, List, Optional
 
 from .exceptions import DatabaseError, ValidationError
 from .state import AgentState, update_state
-from .tools.database import DatabaseTool
-from .tools.registry import get_tool_registry
+from tools.database import DatabaseTool
+from tools.registry import get_tool_registry
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class ContextLoader:
     def __init__(self):
         self.database_tool = DatabaseTool()
         self.tool_registry = get_tool_registry()
-        from backend.services.bcm_projector import BCMProjector
+        from services.bcm_projector import BCMProjector
 
         self.bcm_projector = BCMProjector()
 

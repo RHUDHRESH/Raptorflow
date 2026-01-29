@@ -6,6 +6,9 @@ import { Activity, Target, TrendingUp, Zap, Download, RefreshCw } from "lucide-r
 import { BlueprintButton } from "@/components/ui/BlueprintButton";
 import { cn } from "@/lib/utils";
 import { useMovesStore } from "@/stores/movesStore";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { BCMIndicator } from "@/components/bcm/BCMIndicator";
+import { useBcmStore } from "@/stores/bcmStore";
 import { format, subDays, isAfter, parseISO } from "date-fns";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -17,6 +20,8 @@ export default function AnalyticsPage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d">("30d");
   const { moves } = useMovesStore();
+  const { profileStatus } = useAuth();
+  const { manifest } = useBcmStore();
 
   // Calculate analytics data
   const analytics = useMemo(() => {
@@ -52,6 +57,9 @@ export default function AnalyticsPage() {
       velocity,
       categoryCount,
       recentCompletions: completedMoves.slice(0, 5),
+      // Add BCM-driven insights
+      icpData: manifest?.icps || [],
+      messagingData: manifest?.messaging || {},
     };
   }, [moves, dateRange]);
 
@@ -81,9 +89,19 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <h1 className="font-serif text-4xl text-[var(--ink)]">
-              Performance Overview
-            </h1>
+            <div className="flex-1">
+              <h1 className="font-serif text-4xl text-[var(--ink)]">
+                Performance Overview
+              </h1>
+              <div className="flex items-center gap-4 mt-2">
+                <span className="text-sm text-[var(--ink-muted)]">
+                  Strategic performance metrics
+                </span>
+                {profileStatus?.workspaceId && (
+                  <BCMIndicator workspaceId={profileStatus.workspaceId} compact={true} />
+                )}
+              </div>
+            </div>
 
             {/* Date range selector */}
             <div className="flex items-center gap-2">

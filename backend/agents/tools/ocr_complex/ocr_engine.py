@@ -17,8 +17,8 @@ from google import genai
 from pdf2image import convert_from_path
 from PIL import Image
 
-from .base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
-from .preprocess import preprocess_for_ocr
+from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
+from preprocess import preprocess_for_ocr
 
 
 class TesseractProcessor(BaseProcessor):
@@ -334,7 +334,7 @@ def register_default_processors(config: Dict[str, Any]):
     Register default OCR processors using provided config.
     Avoids instantiating Gemini without API key at import time.
     """
-    from .base_processor import processor_registry
+    from base_processor import processor_registry
 
     # Only register if Gemini key provided to avoid init failure
     has_gemini = bool(config.get("gemini_api_key"))

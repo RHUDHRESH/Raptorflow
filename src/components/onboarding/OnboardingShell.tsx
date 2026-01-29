@@ -238,11 +238,12 @@ export function OnboardingShell({ children, stepId }: OnboardingShellProps) {
     }, [stepId]);
 
     const handleNext = () => {
-        if (stepId === 23) {
-            router.push('/dashboard');
+        const TOTAL_STEPS = 24;
+        if (stepId === TOTAL_STEPS) {
+            router.push('/dashboard?welcome=true');
             return;
         }
-        if (stepId < 23 && canProceedToStep(stepId + 1)) {
+        if (stepId < TOTAL_STEPS && canProceedToStep(stepId + 1)) {
             setCurrentStep(stepId + 1);
             router.push(`/onboarding/session/step/${stepId + 1}`);
         }
@@ -304,10 +305,10 @@ export function OnboardingShell({ children, stepId }: OnboardingShellProps) {
                             <BlueprintButton
                                 size="lg"
                                 onClick={handleNext}
-                                disabled={stepId !== 25 && !canProceedToStep(stepId + 1)}
-                                title={stepId !== 25 && !canProceedToStep(stepId + 1) ? "Complete this step first" : undefined}
+                                disabled={stepId !== 24 && !canProceedToStep(stepId + 1)}
+                                title={stepId !== 24 && !canProceedToStep(stepId + 1) ? "Complete this step first" : undefined}
                             >
-                                {stepId === 25 ? "Finish Setup" : "Continue"} <ChevronRight size={16} />
+                                {stepId === 24 ? "Finish Setup" : "Continue"} <ChevronRight size={16} />
                             </BlueprintButton>
                         </div>
                     </div>

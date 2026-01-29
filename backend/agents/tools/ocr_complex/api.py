@@ -14,7 +14,7 @@ from typing import Any, Dict, List
 from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
-from .ocr_complex import OCRComplex
+from ocr_complex import OCRComplex
 
 app = FastAPI(title="OCR Complex API", version="0.1.0")
 

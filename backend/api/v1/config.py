@@ -9,12 +9,7 @@ from typing import Dict, Any, List
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel
 
-from backend.config import (
-    get_settings, 
-    get_rate_limiter, 
-    reload_settings, 
-    validate_config
-)
+from ..config import get_settings, get_rate_limiter, reload_settings, validate_config
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +18,7 @@ router = APIRouter(prefix="/config", tags=["configuration"])
 
 class ConfigStatusResponse(BaseModel):
     """Configuration status response."""
+
     status: str
     environment: str
     config_hash: str
@@ -33,6 +29,7 @@ class ConfigStatusResponse(BaseModel):
 
 class ConfigHealthResponse(BaseModel):
     """Configuration health check response."""
+
     healthy: bool
     config_loaded: bool
     rate_limiter_connected: bool
@@ -44,6 +41,7 @@ class ConfigHealthResponse(BaseModel):
 
 class RateLimitStatsResponse(BaseModel):
     """Rate limiting statistics response."""
+
     user_id: str
     endpoint: str
     current_minute: int
@@ -58,6 +56,7 @@ class RateLimitStatsResponse(BaseModel):
 
 class ConfigReloadResponse(BaseModel):
     """Configuration reload response."""
+
     success: bool
     message: str
     previous_hash: str
@@ -71,20 +70,20 @@ async def get_config_status():
     try:
         settings = get_settings()
         is_valid = validate_config()
-        
+
         return ConfigStatusResponse(
             status="loaded",
             environment=settings.ENVIRONMENT,
-            config_hash="unknown", # settings doesn't have config_hash
+            config_hash="unknown",  # settings doesn't have config_hash
             has_changes=False,
             validation_errors=[] if is_valid else ["Configuration validation failed"],
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
     except Exception as e:
         logger.error(f"Error getting config status: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get configuration status: {str(e)}"
+            detail=f"Failed to get configuration status: {str(e)}",
         )
 
 
@@ -94,7 +93,7 @@ async def get_config_health():
     try:
         settings = get_settings()
         is_valid = validate_config()
-        
+
         # Check rate limiter connection
         rate_limiter_connected = False
         try:
@@ -104,13 +103,9 @@ async def get_config_health():
                 rate_limiter_connected = True
         except Exception as e:
             logger.warning(f"Rate limiter connection failed: {e}")
-        
-        healthy = (
-            settings is not None and
-            is_valid and
-            rate_limiter_connected
-        )
-        
+
+        healthy = settings is not None and is_valid and rate_limiter_connected
+
         return ConfigHealthResponse(
             healthy=healthy,
             config_loaded=settings is not None,
@@ -120,17 +115,23 @@ async def get_config_health():
             timestamp=datetime.now(),
             details={
                 "validation_errors": [] if is_valid else ["Failed"],
-                "rate_limit_enabled": settings.RATE_LIMIT_ENABLED if settings else False,
-                "llm_provider": "google", # Default in settings.py
-                "database_configured": bool(settings.DATABASE_URL) if settings else False,
-                "redis_configured": bool(settings.UPSTASH_REDIS_URL) if settings else False,
-            }
+                "rate_limit_enabled": (
+                    settings.RATE_LIMIT_ENABLED if settings else False
+                ),
+                "llm_provider": "google",  # Default in settings.py
+                "database_configured": (
+                    bool(settings.DATABASE_URL) if settings else False
+                ),
+                "redis_configured": (
+                    bool(settings.UPSTASH_REDIS_URL) if settings else False
+                ),
+            },
         )
     except Exception as e:
         logger.error(f"Error getting config health: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get configuration health: {str(e)}"
+            detail=f"Failed to get configuration health: {str(e)}",
         )
 
 
@@ -140,19 +141,19 @@ async def reload_configuration():
     try:
         # Reload configuration
         new_settings = reload_settings()
-        
+
         return ConfigReloadResponse(
             success=True,
             message="Configuration reloaded successfully",
             previous_hash="unknown",
             new_hash="unknown",
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
     except Exception as e:
         logger.error(f"Error reloading config: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to reload configuration: {str(e)}"
+            detail=f"Failed to reload configuration: {str(e)}",
         )
 
 
@@ -161,17 +162,17 @@ async def validate_configuration():
     """Validate current configuration."""
     try:
         is_valid = validate_config()
-        
+
         return {
             "valid": is_valid,
             "errors": [] if is_valid else ["Configuration validation failed"],
-            "timestamp": datetime.now()
+            "timestamp": datetime.now(),
         }
     except Exception as e:
         logger.error(f"Error validating config: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to validate configuration: {str(e)}"
+            detail=f"Failed to validate configuration: {str(e)}",
         )
 
 
@@ -191,13 +192,13 @@ async def get_rate_limit_stats(user_id: str, endpoint: str = "api"):
             remaining_minute=60,
             remaining_hour=1000,
             minute_window_reset=0,
-            hour_window_reset=0
+            hour_window_reset=0,
         )
     except Exception as e:
         logger.error(f"Error getting rate limit stats: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get rate limit statistics: {str(e)}"
+            detail=f"Failed to get rate limit statistics: {str(e)}",
         )
 
 
@@ -207,13 +208,13 @@ async def get_configuration_docs():
     try:
         return {
             "documentation": "Raptorflow Backend Configuration Documentation",
-            "timestamp": datetime.now()
+            "timestamp": datetime.now(),
         }
     except Exception as e:
         logger.error(f"Error getting config docs: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get configuration documentation: {str(e)}"
+            detail=f"Failed to get configuration documentation: {str(e)}",
         )
 
 
@@ -222,7 +223,7 @@ async def get_current_config():
     """Get current configuration (safe values only)."""
     try:
         settings = get_settings()
-        
+
         # Return only safe, non-sensitive configuration values
         safe_config = {
             "app_name": settings.APP_NAME,
@@ -242,14 +243,11 @@ async def get_current_config():
             "database_configured": bool(settings.DATABASE_URL),
             "sentry_configured": bool(settings.SENTRY_DSN),
         }
-        
-        return {
-            "config": safe_config,
-            "timestamp": datetime.now()
-        }
+
+        return {"config": safe_config, "timestamp": datetime.now()}
     except Exception as e:
         logger.error(f"Error getting current config: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get current configuration: {str(e)}"
+            detail=f"Failed to get current configuration: {str(e)}",
         )

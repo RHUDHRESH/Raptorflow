@@ -1,4 +1,4 @@
-﻿"""
+"""
 Reasoning Telemetry Service: Persists AI reasoning traces for audit and API visibility.
 """
 
@@ -6,8 +6,8 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.core.supabase_mgr import get_supabase_client
-from backend.services.bcm_integration import bcm_evolution
+from .core.supabase_mgr import get_supabase_client
+from .services.bcm_integration import bcm_evolution
 
 logger = logging.getLogger(__name__)
 

@@ -3,8 +3,9 @@ Messaging Strategy repository for database operations
 """
 
 from typing import Any, Dict, Optional
-from backend.db.base import Repository
-from backend.core.supabase_mgr import get_supabase_client
+from db.base import Repository
+from .core.supabase_mgr import get_supabase_client
+
 
 class MessagingRepository(Repository):
     """Repository for messaging strategy operations"""
@@ -34,7 +35,7 @@ class MessagingRepository(Repository):
     async def upsert(self, workspace_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create or update strategy"""
         existing = await self.get_by_workspace(workspace_id)
-        
+
         if existing:
             result = (
                 self._get_supabase_client()
@@ -51,5 +52,5 @@ class MessagingRepository(Repository):
                 .insert(data)
                 .execute()
             )
-        
+
         return result.data[0] if result.data else data

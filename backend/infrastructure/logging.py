@@ -23,7 +23,7 @@ from google.cloud.logging import Client as LoggingClient
 from google.cloud.logging import LogEntry
 from google.cloud.logging import handlers as cloud_handlers
 
-from .gcp import get_gcp_client
+from gcp import get_gcp_client
 
 logger = logging.getLogger(__name__)
 

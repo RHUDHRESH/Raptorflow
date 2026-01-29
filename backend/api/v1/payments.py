@@ -11,15 +11,15 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 
-from backend.db.repositories.payment import PaymentRepository
-from backend.services.email import email_service
+from db.repositories.payment import PaymentRepository
+from ..services.email import email_service
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 # Import official SDK gateway
-from backend.services.phonepe_sdk_gateway import PaymentRequest as SDKPaymentRequest
-from backend.services.phonepe_sdk_gateway import phonepe_sdk_gateway
+from ..services.phonepe_sdk_gateway import PaymentRequest as SDKPaymentRequest
+from ..services.phonepe_sdk_gateway import phonepe_sdk_gateway
 
 # Create router
 router = APIRouter(prefix="/api/payments", tags=["payments"])
@@ -288,7 +288,7 @@ async def refund_payment(request: RefundRequest, background_tasks: BackgroundTas
         # In v2 SDK, refund might need a different request builder,
         # but the gateway already encapsulates it.
         # We need a proper RefundRequestData object for the gateway
-        from backend.services.phonepe_sdk_gateway import RefundRequestData
+        from services.phonepe_sdk_gateway import RefundRequestData
 
         response = await phonepe_sdk_gateway.process_refund(
             RefundRequestData(

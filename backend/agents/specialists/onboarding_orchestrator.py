@@ -28,11 +28,11 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import structlog
 
-from backend.agents.config import ModelTier
-from backend.core.session import get_session_manager
+from ..config import ModelTier
+from ..core.session import get_session_manager
 
 # Import Vertex AI service
-from backend.services.vertex_ai_service import vertex_ai_service
+from llm import llm_manager
 
 # Local imports
 from ..base import BaseAgent

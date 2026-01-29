@@ -1,4 +1,4 @@
-﻿"""
+"""
 Billing service for business logic operations
 Handles billing-related business logic and validation
 """
@@ -8,10 +8,10 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 try:
-    from backend.core.models import ValidationError
-    from backend.core.supabase_mgr import get_supabase_client
-    from backend.db.billing import BillingRepository
-    from backend.db.usage_records import UsageRecordRepository
+    from core.models import ValidationError
+    from core.supabase_mgr import get_supabase_client
+    from db.billing import BillingRepository
+    from db.usage_records import UsageRecordRepository
 except ImportError:
     # Fallback for testing without full dependencies
     ValidationError = Exception

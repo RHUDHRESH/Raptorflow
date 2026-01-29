@@ -7,7 +7,7 @@ import json
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
-from redis.client import Redis
+from .redis.client import Redis
 
 logger = logging.getLogger(__name__)
 
@@ -187,7 +187,7 @@ async def _wire_foundation_events(event_bus: EventBus, memory_controller):
 
         if workspace_id:
             # Re-index foundation in memory
-            from backend.memory.vectorizers.foundation import FoundationVectorizer
+            from memory.vectorizers.foundation import FoundationVectorizer
 
             vectorizer = FoundationVectorizer(memory_controller)
             await vectorizer.update_foundation_vectors(workspace_id)
@@ -208,7 +208,7 @@ async def _wire_icp_events(event_bus: EventBus, memory_controller):
 
         if workspace_id:
             # Add ICP to graph memory
-            from backend.memory.graph_builders.icp import ICPEntityBuilder
+            from memory.graph_builders.icp import ICPEntityBuilder
 
             builder = ICPEntityBuilder()
             await builder.build_icp_entity(workspace_id, data)

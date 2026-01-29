@@ -9,7 +9,7 @@ import logging
 from typing import Dict, List, Optional
 
 from ...llm import LLMClient, ModelConfig
-from .models import OriginalityResult
+from ..models import OriginalityResult
 
 logger = logging.getLogger(__name__)
 

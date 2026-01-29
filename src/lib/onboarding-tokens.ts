@@ -77,7 +77,7 @@ export const ONBOARDING_PHASES: { id: number; name: string; steps: number[] }[] 
     { id: 3, name: "Intelligence", steps: [6, 7, 8] },
     { id: 4, name: "Strategy", steps: [9, 10, 11, 12, 13] },
     { id: 5, name: "Messaging", steps: [14, 15, 16, 17, 18, 19] },
-    { id: 6, name: "Tactics", steps: [20, 21, 22, 23] },
+    { id: 6, name: "Tactics", steps: [20, 21, 22, 23, 24] },
 ];
 
 export const ONBOARDING_STEPS: { id: number; phase: number; name: string; required: boolean }[] = [
@@ -103,7 +103,8 @@ export const ONBOARDING_STEPS: { id: number; phase: number; name: string; requir
     { id: 20, phase: 6, name: "Channel Mapping", required: true },
     { id: 21, phase: 6, name: "Market Sizing", required: false },
     { id: 22, phase: 6, name: "Validation Tasks", required: false },
-    { id: 23, phase: 6, name: "Onboarding Finish", required: true },
+    { id: 23, phase: 6, name: "Final Synthesis", required: true },
+    { id: 24, phase: 6, name: "Export & Launch", required: true },
 ];
 
 export type StepStatus = "pending" | "in-progress" | "complete" | "blocked" | "error";

@@ -1,24 +1,56 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { Check, Zap, Star, Shield, Loader2, Sparkles, ArrowRight, Crown } from 'lucide-react'
-import { getSupabaseClient } from '@/lib/supabase-auth'
+import { clientAuth } from '@/lib/auth-service'
 
 // =============================================================================
 // TYPES
 // =============================================================================
 
 interface Plan {
-  id: string
   name: string
-  description: string
-  price_monthly_paise: number
-  price_yearly_paise: number
-  features: Record<string, any>
+  amount: number
+  currency: string
+  interval: string
+  trial_days: number
+  display_amount: string
+  description?: string
+  features?: string[]
   popular?: boolean
-  storage_limit_bytes: number
+}
+
+// Plan configurations with features
+const PLAN_CONFIGS = {
+  starter: {
+    description: "Perfect for individuals getting started",
+    features: [
+      "100 GB storage",
+      "10 projects",
+      "Email support"
+    ]
+  },
+  growth: {
+    description: "Ideal for growing teams and businesses",
+    features: [
+      "500 GB storage",
+      "Unlimited projects",
+      "5 team members",
+      "Priority support"
+    ],
+    popular: true
+  },
+  enterprise: {
+    description: "For large organizations with advanced needs",
+    features: [
+      "Unlimited storage",
+      "Unlimited projects",
+      "Unlimited team members",
+      "Dedicated support"
+    ]
+  }
 }
 
 // =============================================================================
@@ -69,7 +101,6 @@ const shimmerVariants: Variants = {
 export default function ChoosePlan() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
   const [error, setError] = useState('')
@@ -87,14 +118,11 @@ export default function ChoosePlan() {
     setName: (name: string) => void
   ) {
     try {
-      const supabase = getSupabaseClient()
-      const { data: { session } } = await supabase.auth.getSession()
+      const user = await clientAuth.getCurrentUser();
 
-      const email = session?.user?.email
-      if (email) {
-        setEmail(email)
-        const nameFromEmail = email.split('@')[0]
-        setName(nameFromEmail || 'there')
+      if (user) {
+        setEmail(user.email)
+        setName(user.fullName || user.email.split('@')[0] || 'there')
       }
     } catch (err) {
       console.warn('Failed to load user for greeting', err)
@@ -103,9 +131,19 @@ export default function ChoosePlan() {
 
   async function fetchPlans() {
     try {
-      const response = await fetch('/api/plans')
+      const response = await fetch('/api/proxy/payments/v2/plans')
       const data = await response.json()
-      setPlans(data.plans || [])
+
+      if (data.success && data.plans) {
+        // Merge API plans with configuration
+        const mergedPlans = data.plans.map((plan: Plan) => ({
+          ...plan,
+          ...PLAN_CONFIGS[plan.name as keyof typeof PLAN_CONFIGS]
+        }))
+        setPlans(mergedPlans)
+      } else {
+        setError('Failed to load plans')
+      }
     } catch (err) {
       setError('Failed to load plans')
     } finally {
@@ -120,23 +158,28 @@ export default function ChoosePlan() {
     setError('')
 
     try {
-      const response = await fetch('/api/onboarding/select-plan', {
+      const response = await fetch('/api/proxy/payments/v2/initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          planId: selectedPlan,
-          billingCycle,
+          plan: selectedPlan,
+          redirect_url: `${window.location.origin}/onboarding/plans/callback`,
+          webhook_url: `${window.location.origin}/api/webhooks/phonepe`
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to select plan')
+        throw new Error(data.error || 'Failed to initiate payment')
       }
 
-      router.push('/onboarding/payment')
-      router.refresh()
+      if (data.success && data.payment_url) {
+        // Redirect to PhonePe payment page
+        window.location.href = data.payment_url
+      } else {
+        throw new Error(data.error || 'Payment initiation failed')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -172,14 +215,14 @@ export default function ChoosePlan() {
     }
   }
 
-  function getPlanIcon(planId: string) {
+  function getPlanIcon(planName: string) {
     const iconClass = "w-7 h-7"
-    switch (planId) {
-      case 'ascent':
+    switch (planName) {
+      case 'starter':
         return <Zap className={iconClass} />
-      case 'glide':
+      case 'growth':
         return <Star className={iconClass} />
-      case 'soar':
+      case 'enterprise':
         return <Crown className={iconClass} />
       default:
         return <Zap className={iconClass} />
@@ -237,54 +280,6 @@ export default function ChoosePlan() {
           </p>
         </motion.div>
 
-        {/* Billing Toggle */}
-        <motion.div
-          className="flex justify-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <div className="bg-slate-800/50 backdrop-blur-sm p-1.5 rounded-2xl border border-slate-700/50 inline-flex gap-1">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`relative px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${billingCycle === 'monthly'
-                  ? 'text-white'
-                  : 'text-slate-400 hover:text-slate-200'
-                }`}
-            >
-              {billingCycle === 'monthly' && (
-                <motion.div
-                  layoutId="billingBg"
-                  className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/25"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10">Monthly</span>
-            </button>
-            <button
-              onClick={() => setBillingCycle('yearly')}
-              className={`relative px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${billingCycle === 'yearly'
-                  ? 'text-white'
-                  : 'text-slate-400 hover:text-slate-200'
-                }`}
-            >
-              {billingCycle === 'yearly' && (
-                <motion.div
-                  layoutId="billingBg"
-                  className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/25"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-2">
-                Yearly
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs">
-                  Save 17%
-                </span>
-              </span>
-            </button>
-          </div>
-        </motion.div>
-
         {/* Plans Grid */}
         <motion.div
           className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12"
@@ -293,23 +288,15 @@ export default function ChoosePlan() {
           animate="visible"
         >
           {plans.map((plan, index) => {
-            const price = billingCycle === 'monthly'
-              ? plan.price_monthly_paise
-              : Math.round(plan.price_monthly_paise * 10 / 12)
-
-            const yearlyPrice = billingCycle === 'yearly'
-              ? plan.price_yearly_paise
-              : plan.price_monthly_paise * 12
-
-            const isSelected = selectedPlan === plan.id
+            const isSelected = selectedPlan === plan.name
             const isPopular = plan.popular
 
             return (
               <motion.div
-                key={plan.id}
+                key={plan.name}
                 variants={cardVariants}
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                onClick={() => setSelectedPlan(plan.id)}
+                onClick={() => setSelectedPlan(plan.name)}
                 className={`relative group cursor-pointer ${isPopular ? 'md:-mt-4 md:mb-4' : ''}`}
               >
                 {/* Popular badge */}
@@ -355,65 +342,35 @@ export default function ChoosePlan() {
                         ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
                         : 'bg-slate-800 text-slate-400 group-hover:text-indigo-400 group-hover:bg-indigo-500/10'
                       }`}>
-                      {getPlanIcon(plan.id)}
+                      {getPlanIcon(plan.name)}
                     </div>
 
                     {/* Plan name and description */}
-                    <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                    <h3 className="text-2xl font-bold text-white mb-2">{plan.name.charAt(0).toUpperCase() + plan.name.slice(1)}</h3>
                     <p className="text-slate-400 text-sm mb-6">{plan.description}</p>
 
                     {/* Price */}
                     <div className="mb-8">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold text-white">{formatPrice(price)}</span>
+                        <span className="text-4xl font-bold text-white">{plan.display_amount}</span>
                         <span className="text-slate-500">/month</span>
                       </div>
-                      {billingCycle === 'yearly' && (
-                        <p className="text-sm text-slate-500 mt-1">
-                          Billed as {formatPrice(yearlyPrice)} per year
-                        </p>
-                      )}
+                      <p className="text-sm text-slate-500 mt-1">
+                        {plan.trial_days}-day free trial included
+                      </p>
                     </div>
 
                     {/* Features */}
                     <ul className="space-y-4 mb-8">
-                      <li className="flex items-center gap-3 text-slate-300">
-                        <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${isSelected ? 'bg-indigo-500/20' : 'bg-slate-800'
-                          }`}>
-                          <Check className={`w-3 h-3 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`} />
-                        </div>
-                        <span><strong className="text-white">{formatStorage(plan.storage_limit_bytes)}</strong> storage</span>
-                      </li>
-
-                      {plan.features.projects !== undefined && (
-                        <li className="flex items-center gap-3 text-slate-300">
+                      {plan.features?.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-center gap-3 text-slate-300">
                           <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${isSelected ? 'bg-indigo-500/20' : 'bg-slate-800'
                             }`}>
                             <Check className={`w-3 h-3 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`} />
                           </div>
-                          <span><strong className="text-white">{plan.features.projects === -1 ? 'Unlimited' : plan.features.projects}</strong> projects</span>
+                          <span>{feature}</span>
                         </li>
-                      )}
-
-                      {plan.features.team_members !== undefined && (
-                        <li className="flex items-center gap-3 text-slate-300">
-                          <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${isSelected ? 'bg-indigo-500/20' : 'bg-slate-800'
-                            }`}>
-                            <Check className={`w-3 h-3 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`} />
-                          </div>
-                          <span><strong className="text-white">{plan.features.team_members === -1 ? 'Unlimited' : plan.features.team_members}</strong> team members</span>
-                        </li>
-                      )}
-
-                      {plan.features.support && (
-                        <li className="flex items-center gap-3 text-slate-300">
-                          <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${isSelected ? 'bg-indigo-500/20' : 'bg-slate-800'
-                            }`}>
-                            <Check className={`w-3 h-3 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`} />
-                          </div>
-                          <span className="capitalize"><strong className="text-white">{plan.features.support}</strong> support</span>
-                        </li>
-                      )}
+                      ))}
                     </ul>
 
                     {/* Select button */}

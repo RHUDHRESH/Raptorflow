@@ -6,7 +6,7 @@ Validates workspace consistency and agent state integrity.
 import logging
 from typing import Any, Dict, List, Optional
 
-from backend.agents.state import AgentState
+from .agents.state import AgentState
 
 logger = logging.getLogger(__name__)
 

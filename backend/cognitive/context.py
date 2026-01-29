@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
-from ..models import Entity, EntityType
+from .models import Entity, EntityType
 
 
 @dataclass

@@ -10,10 +10,10 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from backend.config.settings import get_settings
+from .config.settings import get_settings
 
-from ..redis_core.client import RedisClient
-from ..redis_core.health import RedisHealthChecker
+from .redis_core.client import RedisClient
+from .redis_core.health import RedisHealthChecker
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +169,7 @@ class DatabaseHealthChecker(HealthChecker):
         try:
             # Try new database service first
             try:
-                from backend.core.database import get_database_service
+                from core.database import get_database_service
 
                 database_service = await get_database_service()
                 if database_service:
@@ -479,7 +479,7 @@ class EventBusHealthChecker(HealthChecker):
         start_time = datetime.utcnow()
 
         try:
-            from ..events.bus import get_event_bus
+            from events.bus import get_event_bus
 
             event_bus = get_event_bus()
 
@@ -489,7 +489,7 @@ class EventBusHealthChecker(HealthChecker):
 
             # Test event emission
             try:
-                from ..events.types import Event, EventType
+                from events.types import Event, EventType
 
                 test_event = Event(
                     event_id="health_check_test",

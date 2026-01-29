@@ -9,10 +9,10 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from backend.core.auth import get_current_user
-from backend.core.database import get_database_service, get_supabase_client
+from ..core.auth import get_current_user
+from ..core.database import get_database_service, get_supabase_client
 
-from ..memory import (
+from memory import (
     EpisodicMemory,
     GraphMemory,
     MemoryChunk,
@@ -21,8 +21,8 @@ from ..memory import (
     VectorMemory,
     WorkingMemory,
 )
-from ..memory.chunker import ContentChunker
-from ..memory.embeddings import get_embedding_model
+from memory.chunker import ContentChunker
+from memory.embeddings import get_embedding_model
 
 router = APIRouter(prefix="/memory", tags=["memory"])
 

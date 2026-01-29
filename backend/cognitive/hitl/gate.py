@@ -11,10 +11,10 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from backend.config import CognitiveConfig
+from ..config import CognitiveConfig
 
 from ...redis.client import RedisClient
-from .models import (
+from ..models import (
     ApprovalRequest,
     ApprovalResponse,
     ApprovalStatus,

@@ -1,14 +1,11 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerSupabaseClient } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import crypto from 'crypto'
 
 export async function POST(request: Request) {
   try {
     const { format = 'json' } = await request.json()
 
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createServerSupabaseClient()
 
     // Get current user
     const { data: { session } } = await supabase.auth.getSession()

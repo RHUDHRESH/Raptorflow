@@ -10,7 +10,7 @@ from langdetect import LangDetectException, detect, detect_langs
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
-from .base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
+from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
 
 
 class KeywordExtractor(BaseProcessor):

@@ -1,9 +1,9 @@
 /**
  * 🔐 PROTECTED ROUTE COMPONENT - Textbook Implementation
- * 
+ *
  * This is the most straightforward protected route component possible.
  * No magic, no complexity, just pure textbook authentication.
- * 
+ *
  * 📚 TEXTBOOK EXAMPLE:
  * 1. Component renders → Checks if authenticated
  * 2. Not authenticated → Show login prompt
@@ -47,13 +47,13 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
             Authentication Required
           </h1>
           <p className="text-gray-600 mb-4">
-            Please log in to access this page.
+            Please sign in to access this page.
           </p>
           <button
-            onClick={() => window.location.href = '/login'}
+            onClick={() => window.location.href = '/signin'}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            Go to Login
+            Go to Sign In
           </button>
         </div>
       </div>

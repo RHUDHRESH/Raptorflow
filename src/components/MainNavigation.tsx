@@ -111,7 +111,7 @@ export default function MainNavigation() {
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
-      window.location.href = '/login'
+      window.location.href = '/signin'
     } catch (error) {
       console.error('Logout failed:', error)
     }
@@ -227,7 +227,7 @@ export default function MainNavigation() {
             ) : (
               <div className="text-center">
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/login">
+                  <Link href="/signin">
                     <User className="w-4 h-4 mr-2" />
                     Login
                   </Link>

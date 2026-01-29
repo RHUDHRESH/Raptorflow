@@ -7,16 +7,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 # Import Vertex AI client
 try:
-    from backend.services.vertex_ai_client import get_vertex_ai_client
+    from services.vertex_ai_client import get_vertex_ai_client
 
     vertex_ai_client = get_vertex_ai_client()
 except ImportError:
     vertex_ai_client = None
-from backend.core.auth import get_current_user
+from ..core.auth import get_current_user
 
 router = APIRouter(prefix="/api/v1/usage", tags=["usage"])
 
-from backend.core.supabase_mgr import get_supabase_client
+from ..core.supabase_mgr import get_supabase_client
 
 
 @router.get("/ai-costs")

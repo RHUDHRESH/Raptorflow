@@ -12,10 +12,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.agents.dispatcher import AgentDispatcher
-from backend.agents.routing.pipeline import RoutingPipeline
-from backend.core.auth import get_current_user
-from backend.core.database import get_db
+from ..agents.dispatcher import AgentDispatcher
+from ..agents.routing.pipeline import RoutingPipeline
+from ..core.auth import get_current_user
+from ..core.database import get_db
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 

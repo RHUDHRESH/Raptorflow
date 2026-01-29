@@ -12,9 +12,9 @@ import cv2
 import numpy as np
 from pyzbar.pyzbar import decode as zbar_decode
 
-from .base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
-from .ocr_engine import GeminiProcessor, TesseractProcessor
-from .preprocess import preprocess_for_ocr
+from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
+from ocr_engine import GeminiProcessor, TesseractProcessor
+from preprocess import preprocess_for_ocr
 
 
 class HandwritingOCR(BaseProcessor):

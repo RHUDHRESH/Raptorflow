@@ -1,9 +1,9 @@
 /**
  * 🔐 USER MENU - Textbook Implementation
- * 
+ *
  * This is the most straightforward user menu possible.
  * No magic, no complexity, just pure textbook authentication.
- * 
+ *
  * 📚 TEXTBOOK EXAMPLE:
  * 1. Menu shows user info from context
  * 2. Logout button calls logout function
@@ -31,8 +31,8 @@ export function UserMenu() {
     try {
       await logout();
       setIsOpen(false);
-      // Redirect to login page
-      window.location.href = '/login';
+      // Redirect to sign in page
+      window.location.href = '/signin';
     } catch (error) {
       console.error('🔐 [Auth] Logout error:', error);
     }

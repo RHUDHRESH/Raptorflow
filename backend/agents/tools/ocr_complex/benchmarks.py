@@ -7,7 +7,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from .ocr_complex import OCRComplex
+from ocr_complex import OCRComplex
 
 
 def benchmark_text():

@@ -26,7 +26,7 @@ export function InteractiveHero() {
   };
 
   const handleSignIn = () => {
-    router.push('/login');
+    router.push('/signin');
   };
 
   return (

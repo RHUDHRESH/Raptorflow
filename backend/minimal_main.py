@@ -18,7 +18,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import only payment-related components
-from backend.api.v1.payments_v2 import router as payments_router
+from api.v1.payments_v2 import router as payments_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -81,10 +81,10 @@ async def payments_health():
     """Payment API health check"""
     try:
         # Test PhonePe SDK import
-        from services.phonepe_sdk_gateway_fixed import phonepe_sdk_gateway_fixed
+        from services.phonepe_sdk_gateway import phonepe_sdk_gateway
 
         # Test gateway health
-        health = await phonepe_sdk_gateway_fixed.health_check()
+        health = await phonepe_sdk_gateway.health_check()
 
         return {
             "status": "healthy",

@@ -78,7 +78,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_complete_onboarding_journey(self, mock_e2e_dependencies):
         """Test complete onboarding journey from start to finish."""
-        from backend.workflows.onboarding import OnboardingWorkflow
+        from workflows.onboarding import OnboardingWorkflow
 
         workflow = OnboardingWorkflow(**mock_e2e_dependencies)
         workspace_id = "test_workspace"
@@ -216,7 +216,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_move_execution_lifecycle(self, mock_e2e_dependencies):
         """Test complete move execution lifecycle."""
-        from backend.workflows.move import MoveWorkflow
+        from workflows.move import MoveWorkflow
 
         workflow = MoveWorkflow(**mock_e2e_dependencies)
         workspace_id = "test_workspace"
@@ -252,7 +252,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_content_generation_pipeline(self, mock_e2e_dependencies):
         """Test complete content generation pipeline."""
-        from backend.workflows.content import ContentWorkflow
+        from workflows.content import ContentWorkflow
 
         workflow = ContentWorkflow(**mock_e2e_dependencies)
         workspace_id = "test_workspace"
@@ -301,7 +301,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_research_to_insights_workflow(self, mock_e2e_dependencies):
         """Test complete research to insights workflow."""
-        from backend.workflows.research import ResearchWorkflow
+        from workflows.research import ResearchWorkflow
 
         workflow = ResearchWorkflow(**mock_e2e_dependencies)
         workspace_id = "test_workspace"
@@ -337,7 +337,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_blackbox_strategy_workflow(self, mock_e2e_dependencies):
         """Test complete blackbox strategy workflow."""
-        from backend.workflows.blackbox import BlackboxWorkflow
+        from workflows.blackbox import BlackboxWorkflow
 
         workflow = BlackboxWorkflow(**mock_e2e_dependencies)
         workspace_id = "test_workspace"
@@ -369,7 +369,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_daily_wins_workflow(self, mock_e2e_dependencies):
         """Test complete daily wins workflow."""
-        from backend.workflows.daily_wins import DailyWinsWorkflow
+        from workflows.daily_wins import DailyWinsWorkflow
 
         workflow = DailyWinsWorkflow(**mock_e2e_dependencies)
         workspace_id = "test_workspace"
@@ -404,7 +404,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_campaign_lifecycle(self, mock_e2e_dependencies):
         """Test complete campaign lifecycle."""
-        from backend.workflows.campaign import CampaignWorkflow
+        from workflows.campaign import CampaignWorkflow
 
         workflow = CampaignWorkflow(**mock_e2e_dependencies)
         workspace_id = "test_workspace"
@@ -443,7 +443,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_approval_workflow(self, mock_e2e_dependencies):
         """Test complete approval workflow."""
-        from backend.workflows.approval import ApprovalWorkflow
+        from workflows.approval import ApprovalWorkflow
 
         workflow = ApprovalWorkflow(**mock_e2e_dependencies)
 
@@ -481,7 +481,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_feedback_integration(self, mock_e2e_dependencies):
         """Test complete feedback integration workflow."""
-        from backend.workflows.feedback import FeedbackWorkflow
+        from workflows.feedback import FeedbackWorkflow
 
         workflow = FeedbackWorkflow(**mock_e2e_dependencies)
         workspace_id = "test_workspace"
@@ -525,9 +525,9 @@ class TestSystemIntegration:
     async def test_full_user_journey(self, mock_e2e_dependencies):
         """Test complete user journey from onboarding to campaign execution."""
         # Initialize all workflows
-        from backend.workflows.campaign import CampaignWorkflow
-        from backend.workflows.move import MoveWorkflow
-        from backend.workflows.onboarding import OnboardingWorkflow
+        from workflows.campaign import CampaignWorkflow
+        from workflows.move import MoveWorkflow
+        from workflows.onboarding import OnboardingWorkflow
 
         onboarding = OnboardingWorkflow(**mock_e2e_dependencies)
         moves = MoveWorkflow(**mock_e2e_dependencies)
@@ -568,7 +568,7 @@ class TestSystemIntegration:
     @pytest.mark.asyncio
     async def test_error_recovery_flow(self, mock_e2e_dependencies):
         """Test error recovery and system resilience."""
-        from backend.workflows.move import MoveWorkflow
+        from workflows.move import MoveWorkflow
 
         workflow = MoveWorkflow(**mock_e2e_dependencies)
 
@@ -596,8 +596,8 @@ class TestSystemIntegration:
     @pytest.mark.asyncio
     async def test_concurrent_workflows(self, mock_e2e_dependencies):
         """Test concurrent workflow execution."""
-        from backend.workflows.content import ContentWorkflow
-        from backend.workflows.research import ResearchWorkflow
+        from workflows.content import ContentWorkflow
+        from workflows.research import ResearchWorkflow
 
         content_workflow = ContentWorkflow(**mock_e2e_dependencies)
         research_workflow = ResearchWorkflow(**mock_e2e_dependencies)
@@ -633,7 +633,7 @@ class TestSystemIntegration:
     @pytest.mark.asyncio
     async def test_data_consistency(self, mock_e2e_dependencies):
         """Test data consistency across workflows."""
-        from backend.integration.validation import ValidationService
+        from integration.validation import ValidationService
 
         validation_service = ValidationService(
             db_client=mock_e2e_dependencies["db_client"],

@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server'
-import { createServerAuth } from './lib/auth-server'
+import { createServerAuth } from './lib/auth-service'
 import { getBaseUrl } from './lib/env-utils'
 
 // Type definitions for middleware
@@ -259,10 +259,107 @@ export async function middleware(request: NextRequest) {
 
     // Route protection
     const protectedRoutes = ['/dashboard', '/onboarding', '/admin', '/api/protected']
-    const authRoutes = ['/login', '/signup', '/auth/reset-password']
+    const authRoutes = ['/signin', '/signup', '/auth/reset-password']
     // Explicitly exclude callback route from all redirect logic - it must process OAuth codes
     const callbackRoute = '/auth/callback'
     const adminRoutes = ['/admin', '/api/admin']
+    const requiresProfile = protectedRoutes.some(route => path.startsWith(route))
+
+    // Profile/payment readiness check (skip for auth routes and public assets)
+    let profileStatus: {
+      profile_exists: boolean
+      workspace_exists: boolean
+      needs_payment: boolean
+      workspace_id?: string
+    } | null = null
+
+    const isPublicPath = (path: string) => {
+      if (path === '/' || path === '') return true
+      const publicPrefixes = ['/signin', '/signup', '/auth/callback', '/auth/reset-password', '/test-auth.html']
+      return publicPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
+    }
+
+    if (isAuth && !isPublicPath(path)) {
+      try {
+        // Use environment-specific backend URL for reliability
+        const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        const profileUrl = `${backendUrl}/api/v1/auth/verify-profile`
+
+        console.log('Middleware profile verification:', {
+          userId: user?.id,
+          path,
+          profileUrl,
+          backendUrl: process.env.BACKEND_URL,
+          apiUrl: process.env.NEXT_PUBLIC_API_URL
+        })
+
+        const verifyResponse = await fetch(profileUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': request.headers.get('cookie') || '',
+            'Authorization': request.headers.get('authorization') || '',
+            'X-Forwarded-For': ip,
+            'X-User-Agent': userAgent || '',
+          },
+          cache: 'no-store',
+          signal: AbortSignal.timeout(5000), // 5 second timeout
+        })
+
+        if (verifyResponse.ok) {
+          profileStatus = await verifyResponse.json()
+          console.log('Profile verification successful:', {
+            userId: user?.id,
+            profileExists: profileStatus?.profile_exists,
+            workspaceExists: profileStatus?.workspace_exists,
+            needsPayment: profileStatus?.needs_payment
+          })
+        } else {
+          const errorText = await verifyResponse.text()
+          console.error('Profile verification failed:', {
+            status: verifyResponse.status,
+            statusText: verifyResponse.statusText,
+            errorText,
+            userId: user?.id,
+            path
+          })
+
+          // Log security event for failed verification
+          await logSecurityEvent('PROFILE_VERIFICATION_FAILED', 'medium', {
+            status: verifyResponse.status,
+            errorText: errorText.substring(0, 200), // Truncate for logging
+            userId: user?.id,
+            path
+          }, request)
+        }
+      } catch (error) {
+        console.error('Middleware profile verification error:', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId: user?.id,
+          path,
+          stack: error instanceof Error ? error.stack : undefined
+        })
+
+        // Log security event for verification errors
+        await logSecurityEvent('PROFILE_VERIFICATION_ERROR', 'medium', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId: user?.id,
+          path
+        }, request)
+
+        // Fail closed - block access if we can't verify profile
+        if (requiresProfile) {
+          console.log('Failing closed due to profile verification error')
+          return new NextResponse('Profile verification failed', {
+            status: 503,
+            headers: {
+              'Retry-After': '30',
+              'Content-Type': 'text/plain'
+            }
+          })
+        }
+      }
+    }
 
     // Skip all auth route logic for callback route - it must process OAuth codes
     if (path.startsWith(callbackRoute)) {
@@ -270,10 +367,20 @@ export async function middleware(request: NextRequest) {
     }
 
     // Redirect unauthenticated users from protected routes
-    if (protectedRoutes.some(route => path.startsWith(route)) && !isAuth) {
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirect', path)
-      return NextResponse.redirect(loginUrl)
+    if (requiresProfile && !isAuth) {
+      const signinUrl = new URL('/signin', request.url)
+      signinUrl.searchParams.set('redirect', path)
+      return NextResponse.redirect(signinUrl)
+    }
+
+    if (isAuth && profileStatus && requiresProfile) {
+      if (!profileStatus.profile_exists || !profileStatus.workspace_exists) {
+        return NextResponse.redirect(new URL('/onboarding/start', request.url))
+      }
+
+      if (profileStatus.needs_payment) {
+        return NextResponse.redirect(new URL('/onboarding/plans', request.url))
+      }
     }
 
     // Redirect authenticated users from auth routes (but not /auth/callback which needs to process OAuth)

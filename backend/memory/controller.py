@@ -145,7 +145,7 @@ class SimpleMemoryController:
             try:
                 import asyncio
 
-                from backend.core.connections import get_redis_pool
+                from core.connections import get_redis_pool
 
                 async def init_pool():
                     redis_pool = await get_redis_pool()

@@ -16,7 +16,7 @@ export function useAuthenticatedApi() {
   const authenticatedFetch = async (url: string, options?: RequestInit) => {
     // Check authentication before making request
     if (!isAuthenticated || !user) {
-      router.push('/login');
+      router.push('/signin');
       throw new Error('User not authenticated');
     }
 
@@ -31,7 +31,7 @@ export function useAuthenticatedApi() {
 
       // Handle 401 responses
       if (response.status === 401) {
-        router.push('/login');
+        router.push('/signin');
         throw new Error('Session expired');
       }
 

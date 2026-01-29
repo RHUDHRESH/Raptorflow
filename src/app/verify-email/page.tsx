@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { clientAuth } from '@/lib/auth-service'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -17,7 +17,7 @@ export default function VerifyEmailPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'expired'>('loading')
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClientComponentClient()
+  const supabase = clientAuth.getSupabaseClient()
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -71,7 +71,7 @@ export default function VerifyEmailPage() {
 
           // Redirect to login after 2 seconds
           setTimeout(() => {
-            router.push('/login?message=email_verified')
+            router.push('/signin?message=email_verified')
           }, 2000)
         }
       } catch (err: any) {
@@ -214,7 +214,7 @@ export default function VerifyEmailPage() {
             {(status === 'error' || status === 'expired') && (
               <div className="text-center">
                 <Link
-                  href="/login"
+                  href="/signin"
                   className="text-sm text-blue-600 hover:text-blue-500"
                 >
                   Back to login

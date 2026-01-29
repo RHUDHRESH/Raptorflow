@@ -12,7 +12,7 @@ from langchain_core.callbacks.base import BaseCallbackHandler
 from langchain_core.tracers.base import BaseTracer
 from langchain_core.tracers.schemas import Run
 
-from ..state import AgentState
+from .state import AgentState
 
 
 @dataclass

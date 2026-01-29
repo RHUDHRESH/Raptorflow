@@ -7,10 +7,10 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 
-from backend.core.auth import get_auth_context, get_current_user, get_workspace_id
-from backend.core.models import AuthContext, User
-from backend.core.supabase_mgr import get_supabase_client
-from backend.core.workspace import get_workspace_for_user
+from ..core.auth import get_auth_context, get_current_user, get_workspace_id
+from ..core.models import AuthContext, User
+from ..core.supabase_mgr import get_supabase_client
+from ..core.workspace import get_workspace_for_user
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 

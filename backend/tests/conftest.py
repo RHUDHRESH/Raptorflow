@@ -11,17 +11,17 @@ import pytest
 import pytest_asyncio
 from fastapi import UploadFile
 
-from ..events.bus import EventBus
-from ..infrastructure.storage import CloudStorage
-from ..jobs.scheduler import JobScheduler
-from ..redis_core.cache import CacheService
-from ..redis_core.client import RedisClient
-from ..redis_core.queue import QueueService
-from ..redis_core.rate_limit import RateLimitService
-from ..redis_core.session import SessionService
-from ..redis_core.session_models import SessionData
-from ..redis_core.usage import UsageTracker
-from ..webhooks.handler import WebhookHandler
+from events.bus import EventBus
+from infrastructure.storage import CloudStorage
+from jobs.scheduler import JobScheduler
+from .redis_core.cache import CacheService
+from .redis_core.client import RedisClient
+from .redis_core.queue import QueueService
+from .redis_core.rate_limit import RateLimitService
+from .redis_core.session import SessionService
+from .redis_core.session_models import SessionData
+from .redis_core.usage import UsageTracker
+from webhooks.handler import WebhookHandler
 
 
 @pytest.fixture
@@ -285,7 +285,7 @@ async def test_db():
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     # Create tables
-    from ..db.base import Base
+    from db.base import Base
 
     Base.metadata.create_all(bind=engine)
 

@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel
 
 from ..llm import ModelTier, get_llm
-from .base import BaseRouter
+from ..base import BaseRouter
 
 logger = logging.getLogger(__name__)
 

@@ -53,7 +53,7 @@ export function FooterV2() {
                                 </li>
                                 <li>
                                     <Link
-                                        href="/login"
+                                        href="/signin"
                                         className="text-[var(--secondary)] hover:text-[var(--ink)] transition-colors"
                                     >
                                         Log in

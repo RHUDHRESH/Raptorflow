@@ -4,175 +4,354 @@ BCM Context API Endpoints
 Provides endpoints for Business Context Manifest (BCM) operations:
 - Rebuild manifest from onboarding data
 - Retrieve latest manifest
+- Get version history
+- Export manifest
 """
-from fastapi import APIRouter, Depends, HTTPException
-from typing import Dict, Any
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
+from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 import hashlib
 import json
+import logging
 
-from backend.core.auth import get_current_user
-from backend.integration.context_builder import build_business_context_manifest
-from backend.memory.controller import MemoryController
-from backend.core.supabase_mgr import get_supabase_client
+from ..core.auth import get_current_user
+from ..services.bcm_service import BCMService
+from ..services.supabase_client import get_supabase_admin
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/context",
-    tags=["context"],
-    dependencies=[Depends(get_current_user)]
+    prefix="/api/v1/context", tags=["context"], dependencies=[Depends(get_current_user)]
 )
+
 
 class RebuildRequest(BaseModel):
     workspace_id: str
     force: bool = False
 
-class ManifestResponse(BaseModel):
-    manifest: Dict[str, Any]
-    version_major: int
-    version_minor: int 
-    version_patch: int
-    checksum: str
-    created_at: datetime
-    source: str
 
-@router.post("/rebuild")
+class ManifestResponse(BaseModel):
+    success: bool
+    manifest: Optional[Dict[str, Any]] = None
+    version: Optional[str] = None
+    checksum: Optional[str] = None
+    generated_at: Optional[datetime] = None
+    source: str
+    error: Optional[str] = None
+
+
+class VersionHistoryResponse(BaseModel):
+    success: bool
+    versions: List[Dict[str, Any]]
+    total_count: int
+
+
+@router.post("/rebuild", response_model=ManifestResponse)
 async def rebuild_bcm(request: RebuildRequest):
     """
     Trigger BCM recomputation from onboarding data
-    
+
     Args:
         workspace_id: Workspace UUID
         force: If True, forces rebuild even if data unchanged
-    
+
     Returns:
         ManifestResponse with new BCM
     """
     try:
-        # Get dependencies
-        supabase = get_supabase_client()
-        memory_controller = MemoryController()
-        
-        # Get current version if exists
-        current_version = await _get_current_bcm_version(supabase, request.workspace_id)
-        
-        # Only rebuild if forced or data changed
-        if not request.force and not await _has_data_changed(supabase, request.workspace_id, current_version):
-            raise HTTPException(status_code=304, detail="BCM unchanged")
-        
-        # Build new BCM
-        bcm = await build_business_context_manifest(
-            workspace_id=request.workspace_id,
-            db_client=supabase,
-            memory_controller=memory_controller,
-            version_major=current_version.get("version_major", 1),
-            version_minor=current_version.get("version_minor", 0),
-            version_patch=current_version.get("version_patch", 0) + 1
+        # Initialize BCM service
+        bcm_service = BCMService()
+
+        # Validate workspace access
+        supabase = get_supabase_admin()
+        workspace = (
+            supabase.table("workspaces")
+            .select("owner_id")
+            .eq("id", request.workspace_id)
+            .single()
+            .execute()
         )
-        
-        # Store in memory tiers
-        await memory_controller.store_bcm(request.workspace_id, bcm["content"], "tier0")
-        await memory_controller.store_bcm(request.workspace_id, bcm["content"], "tier1")
-        await memory_controller.store_bcm(request.workspace_id, bcm["content"], "tier2")
-        
-        # Store in Supabase
-        await supabase.table("business_context_manifests").insert({
-            "workspace_id": request.workspace_id,
-            "version_major": bcm["version_major"],
-            "version_minor": bcm["version_minor"],
-            "version_patch": bcm["version_patch"],
-            "checksum": bcm["checksum"],
-            "content": bcm["content"],
-            "created_at": datetime.now().isoformat()
-        }).execute()
-        
-        return ManifestResponse(
-            manifest=bcm["content"],
-            version_major=bcm["version_major"],
-            version_minor=bcm["version_minor"],
-            version_patch=bcm["version_patch"],
-            checksum=bcm["checksum"],
-            created_at=datetime.now(),
-            source="api_rebuild"
-        )
-        
+        if not workspace.data:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+
+        # Rebuild BCM
+        result = await bcm_service.rebuild_manifest(request.workspace_id, request.force)
+
+        if result.get("success"):
+            return ManifestResponse(
+                success=True,
+                manifest=result.get("bcm"),
+                version="1.0.0",  # Would be calculated from actual version
+                checksum=result.get("checksum"),
+                generated_at=(
+                    datetime.fromisoformat(result.get("generated_at"))
+                    if result.get("generated_at")
+                    else None
+                ),
+                source="api_rebuild",
+            )
+        else:
+            return ManifestResponse(
+                success=False,
+                source="api_rebuild",
+                error=result.get("reason", "Unknown error"),
+            )
+
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"BCM rebuild failed: {e}")
         raise HTTPException(status_code=500, detail=f"BCM rebuild failed: {str(e)}")
 
-@router.get("/manifest")
-async def get_manifest(workspace_id: str, tier: str = "tier0") -> ManifestResponse:
+
+@router.get("/manifest", response_model=ManifestResponse)
+async def get_manifest(
+    workspace_id: str = Query(...),
+    tier: str = Query("tier0", regex="^(tier0|tier1|tier2)$"),
+    use_fallback: bool = Query(True),
+):
     """
     Retrieve latest BCM for a workspace
-    
+
     Args:
         workspace_id: Workspace UUID
         tier: Retrieval tier (tier0, tier1, tier2)
-    
+        use_fallback: Whether to fallback to database on cache miss
+
     Returns:
         ManifestResponse with latest BCM
     """
     try:
-        memory_controller = MemoryController()
-        supabase = get_supabase_client()
-        
-        # Try memory first
-        bcm = await memory_controller.retrieve_bcm(workspace_id, tier)
-        
-        if not bcm:
-            # Fallback to Supabase
-            result = await supabase.table("business_context_manifests") \
-                .select("*") \
-                .eq("workspace_id", workspace_id) \
-                .order("created_at", desc=True) \
-                .limit(1) \
-                .execute()
-                
-            if not result.data:
-                raise HTTPException(status_code=404, detail="BCM not found")
-                
-            bcm = result.data[0]
-            
-            # Cache in memory
-            await memory_controller.store_bcm(workspace_id, bcm["content"], tier)
-        
-        # Verify checksum
-        current_checksum = hashlib.sha256(
-            json.dumps(bcm["content"], sort_keys=True).encode()
-        ).hexdigest()
-        
-        if current_checksum != bcm["checksum"]:
-            raise HTTPException(status_code=422, detail="BCM checksum validation failed")
-            
-        return ManifestResponse(
-            manifest=bcm["content"],
-            version_major=bcm["version_major"],
-            version_minor=bcm["version_minor"],
-            version_patch=bcm["version_patch"],
-            checksum=bcm["checksum"],
-            created_at=bcm["created_at"],
-            source="memory" if "source" not in bcm else bcm["source"]
+        # Initialize BCM service
+        bcm_service = BCMService()
+
+        # Validate workspace access
+        supabase = get_supabase_admin()
+        workspace = (
+            supabase.table("workspaces")
+            .select("owner_id")
+            .eq("id", workspace_id)
+            .single()
+            .execute()
         )
-        
+        if not workspace.data:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+
+        # Get manifest
+        manifest = await bcm_service.get_latest_manifest(workspace_id, use_fallback)
+
+        if manifest:
+            # Verify checksum
+            current_checksum = hashlib.sha256(
+                json.dumps(manifest, sort_keys=True).encode()
+            ).hexdigest()
+
+            stored_checksum = manifest.get("checksum")
+            if stored_checksum and current_checksum != stored_checksum:
+                logger.warning(f"BCM checksum mismatch for workspace {workspace_id}")
+
+            return ManifestResponse(
+                success=True,
+                manifest=manifest,
+                version=manifest.get("version", "1.0.0"),
+                checksum=manifest.get("checksum"),
+                generated_at=(
+                    datetime.fromisoformat(manifest.get("generated_at"))
+                    if manifest.get("generated_at")
+                    else None
+                ),
+                source=f"cache_{tier}" if use_fallback else "cache_only",
+            )
+        else:
+            return ManifestResponse(
+                success=False, source="cache", error="BCM not found"
+            )
+
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Failed to retrieve BCM: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve BCM: {str(e)}")
 
-async def _get_current_bcm_version(supabase, workspace_id: str) -> Dict[str, int]:
-    """Get current BCM version if exists"""
-    result = await supabase.table("business_context_manifests") \
-        .select("version_major,version_minor,version_patch") \
-        .eq("workspace_id", workspace_id) \
-        .order("created_at", desc=True) \
-        .limit(1) \
-        .execute()
-        
-    return result.data[0] if result.data else {}
 
-async def _has_data_changed(supabase, workspace_id: str, current_version: Dict[str, int]) -> bool:
-    """Check if underlying data has changed since last BCM build"""
-    # Implementation depends on your change detection strategy
-    # Could check timestamps, hashes, or specific tables
-    return True  # Placeholder - implement based on your needs
+@router.get("/history", response_model=VersionHistoryResponse)
+async def get_version_history(
+    workspace_id: str = Query(...), limit: int = Query(10, ge=1, le=100)
+):
+    """
+    Get version history for BCM
+
+    Args:
+        workspace_id: Workspace UUID
+        limit: Maximum number of versions to return
+
+    Returns:
+        VersionHistoryResponse with version list
+    """
+    try:
+        # Initialize BCM service
+        bcm_service = BCMService()
+
+        # Validate workspace access
+        supabase = get_supabase_admin()
+        workspace = (
+            supabase.table("workspaces")
+            .select("owner_id")
+            .eq("id", workspace_id)
+            .single()
+            .execute()
+        )
+        if not workspace.data:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+
+        # Get version history
+        versions = await bcm_service.get_version_history(workspace_id, limit)
+
+        return VersionHistoryResponse(
+            success=True, versions=versions, total_count=len(versions)
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get version history: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get version history: {str(e)}"
+        )
+
+
+@router.get("/export")
+async def export_manifest(
+    workspace_id: str = Query(...),
+    format: str = Query("json", regex="^(json|markdown)$"),
+):
+    """
+    Export BCM in specified format
+
+    Args:
+        workspace_id: Workspace UUID
+        format: Export format (json or markdown)
+
+    Returns:
+        StreamingResponse with exported data
+    """
+    try:
+        # Initialize BCM service
+        bcm_service = BCMService()
+
+        # Validate workspace access
+        supabase = get_supabase_admin()
+        workspace = (
+            supabase.table("workspaces")
+            .select("owner_id")
+            .eq("id", workspace_id)
+            .single()
+            .execute()
+        )
+        if not workspace.data:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+
+        # Export manifest
+        export_data = await bcm_service.export_manifest(workspace_id, format)
+
+        # Set appropriate content type
+        content_type = "application/json" if format == "json" else "text/markdown"
+        filename = (
+            f"bcm_{workspace_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}"
+        )
+
+        return StreamingResponse(
+            iter([export_data]),
+            media_type=content_type,
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to export BCM: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to export BCM: {str(e)}")
+
+
+@router.get("/stats")
+async def get_cache_stats(workspace_id: str = Query(None)):
+    """
+    Get cache statistics
+
+    Args:
+        workspace_id: Optional workspace ID for specific stats
+
+    Returns:
+        Cache statistics
+    """
+    try:
+        # Initialize BCM service
+        bcm_service = BCMService()
+
+        # Get cache stats
+        stats = bcm_service.get_cache_stats()
+
+        # If workspace specified, add workspace-specific info
+        if workspace_id:
+            # Validate workspace access
+            supabase = get_supabase_admin()
+            workspace = (
+                supabase.table("workspaces")
+                .select("owner_id")
+                .eq("id", workspace_id)
+                .single()
+                .execute()
+            )
+            if workspace.data:
+                # Add workspace-specific stats
+                manifest = await bcm_service.get_latest_manifest(
+                    workspace_id, use_fallback=False
+                )
+                stats["workspace_cached"] = manifest is not None
+            else:
+                stats["workspace_cached"] = False
+
+        return {
+            "success": True,
+            "stats": stats,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get cache stats: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get cache stats: {str(e)}"
+        )
+
+
+@router.get("/health")
+async def health_check():
+    """
+    Perform health check on BCM components
+
+    Returns:
+        Health status of all components
+    """
+    try:
+        # Initialize BCM service
+        bcm_service = BCMService()
+
+        # Get health status
+        health = bcm_service.health_check()
+
+        return {
+            "success": True,
+            "health": health,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat(),
+        }

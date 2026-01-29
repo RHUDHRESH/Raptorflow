@@ -1,5 +1,5 @@
-import LandingPage from "@/components/landing/LandingPage"
+import GodLandingPage from "@/components/landing/godtier/GodLandingPage";
 
 export default function HomePage() {
-  return <LandingPage />
+  return <GodLandingPage />;
 }

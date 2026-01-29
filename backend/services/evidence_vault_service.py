@@ -12,15 +12,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.agents.specialists.contradiction_detector import ContradictionDetector
+from .agents.specialists.contradiction_detector import ContradictionDetector
 
 # Import AI agents
-from backend.agents.specialists.evidence_classifier import EvidenceClassifier
-from backend.agents.specialists.extraction_orchestrator import ExtractionOrchestrator
+from .agents.specialists.evidence_classifier import EvidenceClassifier
+from .agents.specialists.extraction_orchestrator import ExtractionOrchestrator
 
 # Import OCR and search services
-from backend.services.ocr_service import OCRService
-from backend.services.storage import get_enhanced_storage_service
+from .services.ocr_service import OCRService
+from .services.storage import get_enhanced_storage_service
 
 logger = logging.getLogger(__name__)
 

@@ -320,7 +320,7 @@ export class ErrorHandler {
   public getRedirectUrl(error: AppError): string {
     switch (error.type) {
       case ErrorType.AUTHENTICATION:
-        return '/login';
+        return '/signin';
       case ErrorType.AUTHORIZATION:
         return '/unauthorized';
       default:

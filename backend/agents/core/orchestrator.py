@@ -12,16 +12,16 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
-from backend.agents.config import ModelTier
+from ..config import ModelTier
 
 from ..base import BaseAgent
 from ..exceptions import OrchestrationError, ValidationError
 from ..state import AgentState
-from .dispatcher import AgentDispatcher, DispatchRequest, DispatchResult
+from ..dispatcher import AgentDispatcher, DispatchRequest, DispatchResult
 from .memory import AgentMemoryManager
 from .metrics import AgentMetricsCollector
 from .registry import AgentRegistry
-from .state import AgentStateManager
+from ..state import AgentStateManager
 
 logger = logging.getLogger(__name__)
 

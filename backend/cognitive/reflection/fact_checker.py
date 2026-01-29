@@ -9,7 +9,7 @@ import logging
 from typing import Dict, List, Optional
 
 from ...llm import LLMClient, ModelConfig
-from .models import FactCheckResult
+from ..models import FactCheckResult
 
 logger = logging.getLogger(__name__)
 

@@ -10,8 +10,8 @@ from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.core.auth import get_current_user
-from backend.core.rate_limiter import get_rate_limiter
+from .core.auth import get_current_user
+from .core.rate_limiter import get_rate_limiter
 
 logger = logging.getLogger(__name__)
 

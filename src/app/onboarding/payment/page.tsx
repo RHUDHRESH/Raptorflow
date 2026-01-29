@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CreditCard, Shield, CheckCircle, AlertCircle, Smartphone, Loader2, ArrowLeft, Sparkles, Lock, Zap } from 'lucide-react'
+import PaymentProgress from '@/components/payment/PaymentProgress'
+import { PaymentPoller, pollPaymentStatus } from '@/lib/payment-polling'
 
 // =============================================================================
 // TYPES
@@ -29,6 +31,12 @@ export default function Payment() {
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState('')
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | 'timeout'>('pending')
+  const [paymentProgress, setPaymentProgress] = useState(0)
+  const [timeRemaining, setTimeRemaining] = useState(0)
+  const [paymentError, setPaymentError] = useState('')
+  const [paymentPoller, setPaymentPoller] = useState<PaymentPoller | null>(null)
+
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -61,26 +69,92 @@ export default function Payment() {
   }
 
   async function verifyPayment(transactionId: string) {
-    try {
-      const response = await fetch('/api/payments/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transactionId }),
-      })
+    setIsProcessing(true)
+    setPaymentStatus('pending')
+    setPaymentError('')
 
-      const data = await response.json()
+    // Start payment polling with enhanced progress tracking
+    const poller = pollPaymentStatus({
+      merchantOrderId: transactionId,
+      onSuccess: (status) => {
+        setPaymentStatus('completed')
+        setPaymentProgress(100)
+        setIsProcessing(false)
 
-      if (data.success) {
-        router.push('/onboarding/session/step/1?welcome=true')
-      } else {
-        setError(data.error || 'Payment verification failed')
-        setIsLoading(false)
-      }
-    } catch (err) {
-      setError('Payment verification failed')
-      setIsLoading(false)
+        // Redirect to onboarding session after a short delay
+        setTimeout(() => {
+          router.push('/onboarding/session/step/1?welcome=true')
+        }, 2000)
+      },
+      onFailure: (status) => {
+        setPaymentStatus('failed')
+        setPaymentError(status.error || 'Payment failed. Please try again.')
+        setIsProcessing(false)
+      },
+      onError: (error) => {
+        setPaymentStatus('failed')
+        setPaymentError(error.message || 'Payment verification failed. Please try again.')
+        setIsProcessing(false)
+      },
+      onProgress: (progress, timeRemaining) => {
+        setPaymentProgress(progress)
+        setTimeRemaining(timeRemaining)
+
+        // Update status based on progress
+        if (progress < 25) {
+          setPaymentStatus('pending')
+        } else if (progress < 75) {
+          setPaymentStatus('processing')
+        }
+      },
+      onTimeout: () => {
+        setPaymentStatus('timeout')
+        setPaymentError('Payment verification timed out. Please check your payment status or try again.')
+        setIsProcessing(false)
+      },
+      timeout: 5 * 60 * 1000, // 5 minutes
+      maxRetries: 30,
+      initialDelay: 2000,
+      maxDelay: 10000,
+    })
+
+    setPaymentPoller(poller)
+  }
+
+  function retryPayment() {
+    if (paymentPoller) {
+      paymentPoller.stop()
+    }
+
+    // Reset state and retry
+    setPaymentStatus('pending')
+    setPaymentProgress(0)
+    setTimeRemaining(0)
+    setPaymentError('')
+
+    const transactionId = searchParams.get('transactionId')
+    if (transactionId) {
+      verifyPayment(transactionId)
     }
   }
+
+  function cancelPayment() {
+    if (paymentPoller) {
+      paymentPoller.stop()
+    }
+    setIsProcessing(false)
+    setPaymentStatus('pending')
+    router.push('/onboarding/plans')
+  }
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (paymentPoller) {
+        paymentPoller.stop()
+      }
+    }
+  }, [paymentPoller])
 
   async function initiatePayment() {
     setIsProcessing(true)
@@ -266,6 +340,28 @@ export default function Payment() {
                   )}
                 </div>
               </div>
+
+              {/* Enhanced Payment Progress */}
+              <AnimatePresence>
+                {isProcessing && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="mb-6"
+                  >
+                    <PaymentProgress
+                      status={paymentStatus}
+                      progress={paymentProgress}
+                      timeRemaining={timeRemaining}
+                      onRetry={retryPayment}
+                      onCancel={cancelPayment}
+                      errorType={paymentError}
+                      planName={selectedPlan?.plan.name}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Payment button */}
               <motion.button

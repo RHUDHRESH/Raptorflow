@@ -11,15 +11,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from backend.core.metrics import get_analytics_manager
-from backend.core.performance import get_performance_optimizer
-from backend.core.session_manager import (
+from ..core.metrics import get_analytics_manager
+from ..core.performance import get_performance_optimizer
+from ..core.session_manager import (
     Session,
     SessionStatus,
     SessionType,
     get_session_manager,
 )
-from backend.core.sessions import get_session_manager as get_redis_session_manager
+from ..core.sessions import get_session_manager as get_redis_session_manager
 
 logger = logging.getLogger(__name__)
 

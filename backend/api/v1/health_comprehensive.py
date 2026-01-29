@@ -11,14 +11,14 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, status
 
-from backend.core.celery_manager import get_celery_health
-from backend.core.circuit_breaker import get_resilient_client
-from backend.core.migrations import get_migration_health
-from backend.core.posthog import get_health_status as get_posthog_health
-from backend.core.redis import get_redis_client
-from backend.core.sentry import get_health_status
-from backend.dependencies import get_db, get_redis
-from backend.infrastructure.secrets import get_secrets_manager
+from ..core.celery_manager import get_celery_health
+from ..core.circuit_breaker import get_resilient_client
+from ..core.migrations import get_migration_health
+from ..core.posthog import get_health_status as get_posthog_health
+from ..core.redis import get_redis_client
+from ..core.sentry import get_health_status
+from ..dependencies import get_db, get_redis
+from infrastructure.secrets import get_secrets_manager
 
 logger = logging.getLogger(__name__)
 
@@ -259,8 +259,8 @@ async def check_memory_system_health() -> HealthCheck:
     start_time = datetime.now()
 
     try:
-        from backend.memory.controller import MemoryController
-        from backend.memory.embeddings import get_embedding_model
+        from memory.controller import MemoryController
+        from memory.embeddings import get_embedding_model
 
         # Test memory controller
         controller = MemoryController()
@@ -307,7 +307,7 @@ async def check_cognitive_engine_health() -> HealthCheck:
     start_time = datetime.now()
 
     try:
-        from backend.cognitive import CognitiveEngine
+        from cognitive import CognitiveEngine
 
         engine = CognitiveEngine()
 

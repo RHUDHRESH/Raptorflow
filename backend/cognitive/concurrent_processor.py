@@ -14,17 +14,17 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from .error_handling import ErrorHandler, with_error_handling
-from .interfaces import (
+from error_handling import ErrorHandler, with_error_handling
+from interfaces import (
     IHumanLoopModule,
     IPerceptionModule,
     IPlanningModule,
     IReflectionModule,
 )
-from .metrics import LLMProvider, ProcessingPhase, metrics_collector
-from .rate_limiter import RateLimitExceeded, rate_limiter
-from .resource_manager import resource_manager
-from .validation import ProcessingRequest, ValidationResult, validator
+from metrics import LLMProvider, ProcessingPhase, metrics_collector
+from rate_limiter import RateLimitExceeded, rate_limiter
+from resource_manager import resource_manager
+from validation import ProcessingRequest, ValidationResult, validator
 
 logger = logging.getLogger(__name__)
 

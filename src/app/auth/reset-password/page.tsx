@@ -86,7 +86,7 @@ export default function ResetPasswordPage() {
 
       setMessage('Password has been reset successfully!')
       setTimeout(() => {
-        router.push('/login')
+        router.push('/signin')
       }, 2000)
     } catch (err: any) {
       setError(err.message || 'Failed to reset password')
@@ -166,7 +166,7 @@ export default function ResetPasswordPage() {
 
           <div className="text-center">
             <Link
-              href="/login"
+              href="/signin"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
               Back to sign in

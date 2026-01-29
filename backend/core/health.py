@@ -139,7 +139,7 @@ class HealthMonitor:
         overall_status = self._determine_overall_status(results)
 
         # Get system info
-        from backend.config import get_config
+        from config import get_config
 
         config = get_config()
 
@@ -216,7 +216,7 @@ class HealthMonitor:
     async def _check_database_health(self) -> Dict[str, Any]:
         """Check database health."""
         try:
-            from backend.core.connections import check_database_health
+            from core.connections import check_database_health
 
             result = await check_database_health()
             return {
@@ -234,7 +234,7 @@ class HealthMonitor:
     async def _check_redis_health(self) -> Dict[str, Any]:
         """Check Redis health."""
         try:
-            from backend.core.connections import check_redis_health
+            from core.connections import check_redis_health
 
             result = await check_redis_health()
             return {
@@ -252,7 +252,7 @@ class HealthMonitor:
     async def _check_llm_health(self) -> Dict[str, Any]:
         """Check LLM health."""
         try:
-            from backend.agents.llm import validate_llm_setup
+            from agents.llm import validate_llm_setup
 
             result = validate_llm_setup()
             return {
@@ -273,7 +273,7 @@ class HealthMonitor:
     async def _check_dispatcher_health(self) -> Dict[str, Any]:
         """Check agent dispatcher health."""
         try:
-            from backend.agents.dispatcher import AgentDispatcher
+            from agents.dispatcher import AgentDispatcher
 
             dispatcher = AgentDispatcher()
             stats = dispatcher.get_health_status()
@@ -313,7 +313,7 @@ class HealthMonitor:
     async def _check_cache_health(self) -> Dict[str, Any]:
         """Check cache system health."""
         try:
-            from backend.core.cache import get_cache_stats
+            from core.cache import get_cache_stats
 
             stats = get_cache_stats()
 
@@ -337,7 +337,7 @@ class HealthMonitor:
     async def _check_connection_health(self) -> Dict[str, Any]:
         """Check connection pool health."""
         try:
-            from backend.core.connections import check_all_connections
+            from core.connections import check_all_connections
 
             result = await check_all_connections()
 

@@ -10,10 +10,10 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..chunker import ContentChunker
-from ..embeddings import get_embedding_model
+from chunker import ContentChunker
+from embeddings import get_embedding_model
 from ..models import MemoryChunk, MemoryType
-from ..vector_store import VectorMemory
+from vector_store import VectorMemory
 
 logger = logging.getLogger(__name__)
 

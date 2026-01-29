@@ -2,7 +2,7 @@
 Event handlers for the Raptorflow event system.
 """
 
-from .analytics_handlers import (
+from analytics_handlers import (
     on_agent_execution_completed,
     on_agent_execution_failed,
     on_agent_execution_started,
@@ -11,13 +11,13 @@ from .analytics_handlers import (
     on_move_failed,
     on_move_started,
 )
-from .memory_handlers import (
+from memory_handlers import (
     on_foundation_updated,
     on_icp_created,
     on_icp_deleted,
     on_icp_updated,
 )
-from .notification_handlers import (
+from notification_handlers import (
     on_approval_denied,
     on_approval_granted,
     on_approval_requested,

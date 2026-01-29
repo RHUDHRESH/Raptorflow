@@ -13,7 +13,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
-from .messages import AgentMessage, MessageFormat, MessageType
+from messages import AgentMessage, MessageFormat, MessageType
 
 
 class HandoffType(Enum):

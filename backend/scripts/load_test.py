@@ -16,9 +16,9 @@ from typing import Any, Dict, List
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from redis.client import RedisClient
+from .redis.client import RedisClient
 
-from backend.config.settings import get_settings
+from .config.settings import get_settings
 
 # Configure logging
 logging.basicConfig(

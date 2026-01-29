@@ -1,251 +1,235 @@
 """
 Rate limiting service using Redis.
 
-Implements sliding window rate limiting with user-tier support,
-endpoint-specific limits, and graceful degradation.
+Implements token bucket and sliding window rate limiting
+with workspace isolation and security features.
 """
 
-import json
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 from .client import get_redis
+from .critical_fixes import RateLimitValidator
 
 
 @dataclass
-class RateLimitResult:
-    """Result of rate limit check."""
+class RateLimitConfig:
+    """Rate limit configuration."""
 
-    allowed: bool
-    remaining: int
-    reset_at: datetime
-    limit: int
-    window_seconds: int
-    retry_after: Optional[int] = None
+    requests_per_minute: int = 60
+    requests_per_hour: int = 1000
+    burst_size: int = 10
+    window_size: int = 60  # seconds
 
 
 class RateLimitService:
-    """Redis-based rate limiting with sliding window algorithm."""
+    """Redis-based rate limiting service."""
 
-    KEY_PREFIX = "rl:"
+    KEY_PREFIX = "rate_limit:"
+    BLOCK_PREFIX = "blocked:"
 
     def __init__(self):
         self.redis = get_redis()
+        self.validator = RateLimitValidator()
 
-        # Default limits per endpoint (requests, window_seconds)
-        self.default_limits = {
-            "api": (100, 60),  # 100 requests per minute
-            "agent": (20, 60),  # 20 agent calls per minute
-            "upload": (10, 60),  # 10 uploads per minute
-            "export": (5, 60),  # 5 exports per minute
-            "webhook": (1000, 60),  # 1000 webhooks per minute
-        }
+    def _get_key(self, identifier: str, window: str) -> str:
+        """Get Redis key for rate limiting."""
+        return f"{self.KEY_PREFIX}{identifier}:{window}"
 
-        # User tier multipliers
-        self.tier_multipliers = {
-            "free": 1.0,
-            "starter": 2.0,
-            "growth": 5.0,
-            "enterprise": 10.0,
-        }
+    def _get_block_key(self, identifier: str) -> str:
+        """Get Redis key for blocked users."""
+        return f"{self.BLOCK_PREFIX}{identifier}"
 
-    def _get_key(self, user_id: str, endpoint: str) -> str:
-        """Get Redis key for rate limit."""
-        return f"{self.KEY_PREFIX}{user_id}:{endpoint}"
+    async def check_rate_limit(
+        self,
+        identifier: str,
+        config: Optional[RateLimitConfig] = None,
+        workspace_id: Optional[str] = None,
+    ) -> Dict[str, any]:
+        """Check if request is allowed under rate limit."""
+        if config is None:
+            config = RateLimitConfig()
 
-    def _get_limit_for_endpoint(
-        self, endpoint: str, user_tier: str = "free"
-    ) -> Tuple[int, int]:
-        """Get rate limit for endpoint based on user tier."""
-        # Get base limit
-        base_limit, window = self.default_limits.get(
-            endpoint, self.default_limits["api"]
+        # Validate configuration
+        config_dict = self.validator.validate_rate_limit_config(
+            {
+                "requests_per_minute": config.requests_per_minute,
+                "requests_per_hour": config.requests_per_hour,
+                "burst_size": config.burst_size,
+            }
         )
 
-        # Apply tier multiplier
-        multiplier = self.tier_multipliers.get(user_tier, 1.0)
-        adjusted_limit = int(base_limit * multiplier)
+        # Check if blocked
+        if await self._is_blocked(identifier):
+            return {
+                "allowed": False,
+                "remaining": 0,
+                "reset_time": 0,
+                "blocked": True,
+                "reason": "User is temporarily blocked",
+            }
 
-        return adjusted_limit, window
+        # Check minute limit
+        minute_result = await self._check_window_limit(
+            identifier, "minute", config_dict["requests_per_minute"], 60
+        )
 
-    async def check_limit(
-        self, user_id: str, endpoint: str, user_tier: str = "free"
-    ) -> RateLimitResult:
-        """Check if request is within rate limit using sliding window."""
-        limit, window = self._get_limit_for_endpoint(endpoint, user_tier)
-        key = self._get_key(user_id, endpoint)
+        # Check hour limit
+        hour_result = await self._check_window_limit(
+            identifier, "hour", config_dict["requests_per_hour"], 3600
+        )
 
-        now = datetime.now()
-        window_start = now - timedelta(seconds=window)
+        # Check burst limit
+        burst_result = await self._check_burst_limit(
+            identifier, config_dict["burst_size"]
+        )
 
-        # Get existing requests in window
-        existing_data = await self.redis.get(key)
-        requests_in_window = []
+        # Combine results
+        allowed = all(
+            [minute_result["allowed"], hour_result["allowed"], burst_result["allowed"]]
+        )
 
-        if existing_data:
-            try:
-                requests_in_window = json.loads(existing_data)
-                # Filter out old requests
-                requests_in_window = [
-                    req_time
-                    for req_time in requests_in_window
-                    if datetime.fromisoformat(req_time) > window_start
-                ]
-            except (json.JSONDecodeError, ValueError):
-                requests_in_window = []
+        remaining = min(
+            minute_result["remaining"],
+            hour_result["remaining"],
+            burst_result["remaining"],
+        )
 
-        # Check if under limit
-        current_count = len(requests_in_window)
-        allowed = current_count < limit
+        reset_time = max(
+            minute_result["reset_time"],
+            hour_result["reset_time"],
+            burst_result["reset_time"],
+        )
 
+        # Block if exceeded
+        if not allowed:
+            await self._block_user(identifier, duration=300)  # 5 minutes
+
+        return {
+            "allowed": allowed,
+            "remaining": remaining,
+            "reset_time": reset_time,
+            "blocked": False,
+            "reason": "Rate limit exceeded" if not allowed else None,
+        }
+
+    async def _check_window_limit(
+        self, identifier: str, window: str, limit: int, window_seconds: int
+    ) -> Dict[str, any]:
+        """Check limit for a specific time window."""
+        key = self._get_key(identifier, window)
+        current_time = int(time.time())
+        window_start = current_time - window_seconds
+
+        # Remove old entries
+        await self.redis.async_client.zremrangebyscore(key, 0, window_start)
+
+        # Count current requests
+        request_count = await self.redis.async_client.zcard(key)
+
+        # Check if allowed
+        allowed = request_count < limit
+
+        # Add current request
         if allowed:
-            # Add current request
-            requests_in_window.append(now.isoformat())
-            await self.redis.set(key, json.dumps(requests_in_window), ex=window)
+            await self.redis.async_client.zadd(key, {str(current_time): current_time})
+            await self.redis.async_client.expire(key, window_seconds)
 
-        # Calculate reset time
-        if requests_in_window:
-            oldest_request = min(
-                datetime.fromisoformat(req_time) for req_time in requests_in_window
-            )
-            reset_at = oldest_request + timedelta(seconds=window)
+        remaining = max(0, limit - request_count - (1 if allowed else 0))
+        reset_time = window_start + window_seconds
+
+        return {"allowed": allowed, "remaining": remaining, "reset_time": reset_time}
+
+    async def _check_burst_limit(
+        self, identifier: str, burst_size: int
+    ) -> Dict[str, any]:
+        """Check burst limit using token bucket."""
+        key = f"{self.KEY_PREFIX}burst:{identifier}"
+        current_time = time.time()
+
+        # Get current tokens
+        tokens = await self.redis.async_client.get(key)
+        if tokens is None:
+            tokens = burst_size
+            await self.redis.async_client.set(key, tokens, ex=60)
         else:
-            reset_at = now + timedelta(seconds=window)
+            tokens = float(tokens)
 
-        return RateLimitResult(
-            allowed=allowed,
-            remaining=max(0, limit - current_count),
-            reset_at=reset_at,
-            limit=limit,
-            window_seconds=window,
-            retry_after=None if allowed else int((reset_at - now).total_seconds()),
-        )
+        # Check if allowed
+        allowed = tokens >= 1
 
-    async def record_request(
-        self, user_id: str, endpoint: str, user_tier: str = "free"
-    ) -> RateLimitResult:
-        """Record a request and check limit (alias for check_limit)."""
-        return await self.check_limit(user_id, endpoint, user_tier)
+        # Consume token if allowed
+        if allowed:
+            tokens -= 1
+            await self.redis.async_client.set(key, tokens, ex=60)
 
-    async def enforce_limit(
-        self, user_id: str, endpoint: str, user_tier: str = "free"
-    ) -> RateLimitResult:
-        """Enforce rate limit, raises exception if exceeded."""
-        result = await self.check_limit(user_id, endpoint, user_tier)
+        # Refill tokens (1 token per second)
+        tokens = min(burst_size, tokens + 1)
+        await self.redis.async_client.set(key, tokens, ex=60)
 
-        if not result.allowed:
-            from fastapi import HTTPException
+        return {
+            "allowed": allowed,
+            "remaining": int(tokens),
+            "reset_time": current_time + 60,
+        }
 
-            raise HTTPException(
-                status_code=429,
-                detail={
-                    "error": "Rate limit exceeded",
-                    "limit": result.limit,
-                    "window_seconds": result.window_seconds,
-                    "retry_after": result.retry_after,
-                },
-                headers={
-                    "X-RateLimit-Limit": str(result.limit),
-                    "X-RateLimit-Remaining": str(result.remaining),
-                    "X-RateLimit-Reset": str(int(result.reset_at.timestamp())),
-                    "Retry-After": (
-                        str(result.retry_after) if result.retry_after else "60"
-                    ),
-                },
-            )
+    async def _is_blocked(self, identifier: str) -> bool:
+        """Check if user is currently blocked."""
+        block_key = self._get_block_key(identifier)
+        return await self.redis.exists(block_key) > 0
 
-        return result
+    async def _block_user(self, identifier: str, duration: int = 300):
+        """Block a user for specified duration."""
+        block_key = self._get_block_key(identifier)
+        await self.redis.async_client.set(block_key, "1", ex=duration)
 
-    async def get_remaining(
-        self, user_id: str, endpoint: str, user_tier: str = "free"
-    ) -> RateLimitResult:
-        """Get remaining requests without incrementing."""
-        limit, window = self._get_limit_for_endpoint(endpoint, user_tier)
-        key = self._get_key(user_id, endpoint)
+    async def unblock_user(self, identifier: str):
+        """Unblock a user."""
+        block_key = self._get_block_key(identifier)
+        await self.redis.async_client.delete(block_key)
 
-        now = datetime.now()
-        window_start = now - timedelta(seconds=window)
+    async def get_usage_stats(self, identifier: str, hours: int = 24) -> Dict[str, any]:
+        """Get usage statistics for identifier."""
+        stats = {
+            "requests_per_minute": [],
+            "requests_per_hour": [],
+            "total_requests": 0,
+            "blocked": await self._is_blocked(identifier),
+        }
 
-        # Get existing requests
-        existing_data = await self.redis.get(key)
-        requests_in_window = []
+        # Get hourly stats
+        for hour in range(hours):
+            hour_key = f"{self.KEY_PREFIX}hour:{identifier}:{hour}"
+            count = await self.redis.async_client.zcard(hour_key)
+            stats["requests_per_hour"].append(count)
+            stats["total_requests"] += count
 
-        if existing_data:
-            try:
-                requests_in_window = json.loads(existing_data)
-                # Filter out old requests
-                requests_in_window = [
-                    req_time
-                    for req_time in requests_in_window
-                    if datetime.fromisoformat(req_time) > window_start
-                ]
-            except (json.JSONDecodeError, ValueError):
-                requests_in_window = []
-
-        current_count = len(requests_in_window)
-
-        # Calculate reset time
-        if requests_in_window:
-            oldest_request = min(
-                datetime.fromisoformat(req_time) for req_time in requests_in_window
-            )
-            reset_at = oldest_request + timedelta(seconds=window)
-        else:
-            reset_at = now + timedelta(seconds=window)
-
-        return RateLimitResult(
-            allowed=current_count < limit,
-            remaining=max(0, limit - current_count),
-            reset_at=reset_at,
-            limit=limit,
-            window_seconds=window,
-        )
-
-    async def reset_limit(self, user_id: str, endpoint: str) -> bool:
-        """Reset rate limit for user/endpoint."""
-        key = self._get_key(user_id, endpoint)
-        result = await self.redis.delete(key)
-        return result > 0
-
-    async def get_user_stats(
-        self, user_id: str, user_tier: str = "free"
-    ) -> Dict[str, RateLimitResult]:
-        """Get rate limit stats for all endpoints."""
-        stats = {}
-
-        for endpoint in self.default_limits.keys():
-            stats[endpoint] = await self.get_remaining(user_id, endpoint, user_tier)
+        # Get minute stats for last hour
+        for minute in range(60):
+            minute_key = f"{self.KEY_PREFIX}minute:{identifier}:{minute}"
+            count = await self.redis.async_client.zcard(minute_key)
+            stats["requests_per_minute"].append(count)
 
         return stats
 
-    async def cleanup_expired_keys(self) -> int:
+    async def reset_rate_limit(self, identifier: str):
+        """Reset rate limit for identifier."""
+        # Delete all rate limit keys
+        patterns = [
+            f"{self.KEY_PREFIX}*:{identifier}:*",
+            f"{self.KEY_PREFIX}burst:{identifier}",
+            self._get_block_key(identifier),
+        ]
+
+        for pattern in patterns:
+            # Note: Upstash Redis doesn't support KEYS command
+            # In production, maintain an index of keys
+            pass
+
+    async def cleanup_expired_keys(self):
         """Clean up expired rate limit keys."""
-        # Redis TTL handles this automatically
-        # This is for manual cleanup if needed
-        return 0
-
-    async def set_custom_limit(self, endpoint: str, limit: int, window_seconds: int):
-        """Set custom limit for endpoint."""
-        self.default_limits[endpoint] = (limit, window_seconds)
-
-    async def block_user(self, user_id: str, duration_seconds: int = 3600) -> bool:
-        """Temporarily block user from all endpoints."""
-        for endpoint in self.default_limits.keys():
-            key = self._get_key(user_id, endpoint)
-            # Set to max limit to block
-            block_data = json.dumps([datetime.now().isoformat()] * 1000)
-            await self.redis.set(key, block_data, ex=duration_seconds)
-        return True
-
-    async def unblock_user(self, user_id: str) -> bool:
-        """Remove user block."""
-        for endpoint in self.default_limits.keys():
-            await self.reset_limit(user_id, endpoint)
-        return True
-
-    async def is_user_blocked(self, user_id: str) -> bool:
-        """Check if user is currently blocked."""
-        # Check one endpoint as indicator
-        result = await self.get_remaining(user_id, "api")
-        return result.remaining == 0 and result.limit == 0
+        # This would be run as a maintenance job
+        # In production, implement proper key expiration management
+        pass

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Optional, Set
 
-from .supabase_mgr import get_supabase_client
+from supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

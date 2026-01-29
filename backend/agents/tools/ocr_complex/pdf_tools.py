@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Union
 import pandas as pd
 import pdfplumber
 
-from .base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
+from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
 
 
 class PDFTableExtractor(BaseProcessor):

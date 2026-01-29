@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, List, Optional
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import StateGraph
 
-from ..checkpointing import create_redis_checkpointer
+from checkpointing import create_redis_checkpointer
 
 
 class GraphCompiler:

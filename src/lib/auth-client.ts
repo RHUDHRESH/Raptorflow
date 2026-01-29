@@ -73,8 +73,8 @@ export async function signOut() {
     throw error
   }
 
-  // Redirect to login page
-  window.location.href = '/login'
+  // Redirect to sign in page
+  window.location.href = '/signin'
 }
 
 /**

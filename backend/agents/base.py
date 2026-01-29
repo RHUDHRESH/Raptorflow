@@ -664,7 +664,7 @@ class BaseAgent(ABC):
 
         # Get LLM instance lazily
         if self.llm is None:
-            from .llm import get_llm
+            from llm import get_llm
 
             self.llm = get_llm(self.model_tier)
 
@@ -754,7 +754,7 @@ class BaseAgent(ABC):
 
         # Get LLM instance lazily
         if self.llm is None:
-            from .llm import get_llm
+            from llm import get_llm
 
             self.llm = get_llm(self.model_tier)
 
@@ -1214,7 +1214,7 @@ class BaseAgent(ABC):
 
             # Check memory availability
             try:
-                from ..memory.services import get_memory_manager
+                from memory.services import get_memory_manager
 
                 memory_manager = get_memory_manager()
                 if not memory_manager:
@@ -2076,3 +2076,108 @@ Context: {error_result.get('context', {})}
             logger.error(f"Context manager cleanup failed for agent '{self.name}': {e}")
 
         return False  # Don't suppress exceptions
+
+
+# BaseRouter for backward compatibility
+class BaseRouter:
+    """Base class for routing components."""
+
+    def __init__(self):
+        self.routes = []
+
+    def add_route(self, pattern: str, handler: callable, priority: int = 1):
+        """Add a route to the router."""
+        self.routes.append(
+            {"pattern": pattern, "handler": handler, "priority": priority}
+        )
+
+    async def route(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Route a request to the appropriate handler."""
+        # Simple routing logic - can be extended
+        for route in sorted(self.routes, key=lambda x: x["priority"], reverse=True):
+            if self._matches_pattern(request_data, route["pattern"]):
+                return await route["handler"](request_data)
+
+        raise ValueError("No matching route found")
+
+    def _matches_pattern(self, data: Dict[str, Any], pattern: str) -> bool:
+        """Check if data matches the pattern."""
+        # Simple pattern matching - can be extended
+        return pattern in data.get("type", "").lower()
+
+
+# RaptorflowTool for backward compatibility
+class RaptorflowTool:
+    """Base class for Raptorflow tools (backward compatibility)."""
+
+    def __init__(self, name: str):
+        self.name = name
+
+    async def execute(self, **kwargs):
+        """Execute the tool."""
+        raise NotImplementedError("Tool execution not implemented")
+
+
+# ToolError and ToolResult for backward compatibility
+class ToolError(Exception):
+    """Tool execution error."""
+
+    pass
+
+
+class ToolResult:
+    """Tool execution result."""
+
+    def __init__(self, success: bool, data: Any = None, error: str = None):
+        self.success = success
+        self.data = data
+        self.error = error
+
+
+# Skill, SkillCategory, and SkillLevel for backward compatibility
+class Skill:
+    """Skill definition for agents."""
+
+    def __init__(self, name: str, category: str = "general", level: str = "basic"):
+        self.name = name
+        self.category = category
+        self.level = level
+
+
+class SkillCategory:
+    """Skill categories."""
+
+    CONTENT = "content"
+    MARKETING = "marketing"
+    OPERATIONS = "operations"
+    RESEARCH = "research"
+    STRATEGY = "strategy"
+    ANALYTICS = "analytics"
+    TECHNICAL = "technical"
+    COMMUNICATION = "communication"
+    GENERAL = "general"
+
+
+class SkillLevel:
+    """Skill levels."""
+
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
+    EXPERT = "expert"
+
+
+class SkillAssessment:
+    """Skill assessment for agents."""
+
+    def __init__(self, skill: Skill, score: float = 0.0):
+        self.skill = skill
+        self.score = score
+
+
+class SkillPath:
+    """Skill path for agents."""
+
+    def __init__(self, name: str, skills: List[Skill] = None):
+        self.name = name
+        self.skills = skills or []

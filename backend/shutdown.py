@@ -9,8 +9,8 @@ import time
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from backend.core.redis import get_redis_client
-from backend.core.supabase_mgr import get_supabase_client
+from core.redis import get_redis_client
+from core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ async def save_checkpoints() -> bool:
     """Save any pending checkpoints or state."""
     try:
         # Save agent execution checkpoints
-        from agents.dispatcher import AgentDispatcher
+        from ..agents.dispatcher import AgentDispatcher
 
         dispatcher = AgentDispatcher()
         # Save any active sessions
@@ -164,7 +164,7 @@ async def cleanup_temporary_files() -> bool:
 async def close_llm_connections() -> bool:
     """Close LLM connections and clean up resources."""
     try:
-        from agents.llm import get_llm
+        from ..agents.llm import get_llm
 
         llm = get_llm()
         if llm:
@@ -187,7 +187,7 @@ async def log_shutdown_summary() -> bool:
         logger.info(f"Shutdown initiated at: {datetime.now().isoformat()}")
 
         # Log any final statistics
-        from agents.dispatcher import AgentDispatcher
+        from ..agents.dispatcher import AgentDispatcher
 
         dispatcher = AgentDispatcher()
         # Log dispatcher stats if available

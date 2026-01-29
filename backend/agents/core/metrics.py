@@ -14,12 +14,22 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-from config import ModelTier
+from ..config import ModelTier
 
 from ..base import BaseAgent
 from ..exceptions import MetricsError
 
 logger = logging.getLogger(__name__)
+
+
+class RequestStatus(Enum):
+    """Request status for tracking."""
+
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
 
 
 class MetricType(Enum):
@@ -788,9 +798,32 @@ class AgentMetricsCollector:
         for task in self._background_tasks:
             task.cancel()
 
-        # Wait for tasks to complete
-        await asyncio.gather(*self._background_tasks, return_exceptions=True)
 
-        self._background_tasks.clear()
+# Request tracking functions for backward compatibility
+def start_request_tracking(request_id: str, agent_id: str, request_type: str):
+    """Start tracking a request."""
+    # Simple implementation - can be extended
+    return {
+        "request_id": request_id,
+        "agent_id": agent_id,
+        "request_type": request_type,
+        "status": RequestStatus.PENDING,
+        "start_time": datetime.now(),
+    }
 
-        logger.info("Metrics collector stopped")
+
+def end_request_tracking(
+    request_data: dict, status: RequestStatus, result: Any = None, error: str = None
+):
+    """End tracking a request."""
+    # Simple implementation - can be extended
+    request_data["status"] = status
+    request_data["end_time"] = datetime.now()
+    request_data["duration"] = (
+        request_data["end_time"] - request_data["start_time"]
+    ).total_seconds()
+    if result is not None:
+        request_data["result"] = result
+    if error:
+        request_data["error"] = error
+    return request_data

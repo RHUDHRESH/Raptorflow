@@ -12,7 +12,7 @@ import httpx
 from bs4 import BeautifulSoup
 from pydantic import BaseModel
 
-from .base import RaptorflowTool, ToolError, ToolResult
+from ..base import RaptorflowTool, ToolError, ToolResult
 
 logger = logging.getLogger(__name__)
 

@@ -15,7 +15,7 @@ sys.path.insert(0, str(backend_path))
 
 # Import exceptions with fallback
 try:
-    from backend.agents.exceptions import DatabaseError, ValidationError, WorkspaceError
+    from ..exceptions import DatabaseError, ValidationError, WorkspaceError
 except ImportError:
     # Fallback definitions
     class DatabaseError(Exception):
@@ -39,10 +39,10 @@ class MemoryController:
         """Initialize memory systems with error handling"""
         try:
             # Try to import and initialize memory components
-            from backend.memory.episodic_memory import EpisodicMemory
-            from backend.memory.graph_memory import GraphMemory
-            from backend.memory.vector_store import VectorMemory
-            from backend.memory.working_memory import WorkingMemory
+            from memory.episodic_memory import EpisodicMemory
+            from memory.graph_memory import GraphMemory
+            from memory.vector_store import VectorMemory
+            from memory.working_memory import WorkingMemory
 
             self.vector_memory = VectorMemory()
             self.graph_memory = GraphMemory()

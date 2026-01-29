@@ -13,9 +13,9 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
-from backend.services.search.orchestrator import SOTASearchOrchestrator
+from services.search.orchestrator import SOTASearchOrchestrator
 
-from .base import RaptorflowTool, ToolResult
+from ..base import RaptorflowTool, ToolResult
 
 logger = logging.getLogger(__name__)
 

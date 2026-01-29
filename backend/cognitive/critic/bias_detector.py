@@ -11,7 +11,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 from ...llm import LLMClient, ModelConfig
-from .models import BiasReport, BiasType, Severity
+from ..models import BiasReport, BiasType, Severity
 
 logger = logging.getLogger(__name__)
 

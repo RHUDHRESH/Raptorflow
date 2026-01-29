@@ -9,13 +9,13 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
-from backend.agents.graphs.daily_wins import DailyWinsGraph
-from backend.core.auth import get_current_user
-from backend.core.database import get_db
-from backend.core.supabase_mgr import get_supabase_client
+from agents.graphs.daily_wins import DailyWinsGraph
+from core.auth import get_current_user
+from core.database import get_db
+from core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/daily_wins", tags=["daily_wins"])

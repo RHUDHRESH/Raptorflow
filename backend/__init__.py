@@ -35,7 +35,7 @@ __license__ = "MIT"
 
 # NOTE: AgentDispatcher and AgentRegistry are NOT imported at module level
 # to prevent blocking during heavy SDK initialization (VertexAI, LangChain).
-# Import them directly where needed: from backend.agents.dispatcher import AgentDispatcher
+# Import them directly where needed: from agents.dispatcher import AgentDispatcher
 
 # Core imports (lightweight)
 from .config import get_settings
@@ -111,9 +111,9 @@ def initialize_system():
     setup_logging()
 
     # Initialize core components
-    from .agents import AgentRegistry
-    from .monitoring import AlertManager, HealthChecker, MetricsCollector
-    from .workflows import WorkflowManager
+    from agents import AgentRegistry
+    from monitoring import AlertManager, HealthChecker, MetricsCollector
+    from workflows import WorkflowManager
 
     # Create singleton instances
     agent_registry = AgentRegistry()
@@ -172,8 +172,6 @@ PACKAGE_INFO = {
         ],
         "cloud": [
             "google-cloud-storage>=2.10.0",
-            "boto3>=1.34.0",
-            "azure-storage-blob>=12.19.0",
         ],
     },
     "classifiers": [

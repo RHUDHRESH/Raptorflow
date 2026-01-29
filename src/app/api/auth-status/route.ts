@@ -43,10 +43,11 @@ export async function GET() {
       isAuthenticated: !!session,
       cookies: cookieStore.getAll().map(c => ({ name: c.name, value: c.value }))
     })
-  } catch (err) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error('Unknown error')
     return NextResponse.json({
-      error: err.message,
-      stack: err.stack,
+      error: error.message,
+      stack: error.stack,
       isAuthenticated: false
     })
   }

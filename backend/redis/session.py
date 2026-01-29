@@ -1,312 +1,268 @@
 """
 Session management service using Redis.
 
-Handles user sessions with workspace isolation, context persistence,
-and approval system integration.
+Provides secure user session management with workspace isolation,
+automatic cleanup, and security features.
 """
 
-import hashlib
-import hmac
-import os
+import json
 import secrets
-import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from .client import get_redis
-from .session_models import SessionData
+from .critical_fixes import SessionValidator
 
 
 class SessionService:
     """Redis-based session management service."""
 
     KEY_PREFIX = "session:"
-    DEFAULT_TTL = 1800  # 30 minutes
+    USER_SESSIONS_PREFIX = "user_sessions:"
+    WORKSPACE_SESSIONS_PREFIX = "workspace_sessions:"
 
     def __init__(self):
         self.redis = get_redis()
-        self.session_ttl = self.DEFAULT_TTL
-        self.secret_key = os.getenv("WORKSPACE_KEY_SECRET", secrets.token_hex(32))
+        self.validator = SessionValidator()
+        self.session_timeout = 3600  # 1 hour
+        self.max_sessions_per_user = 10
 
-    def _generate_secure_session_id(self) -> str:
-        """Generate cryptographically secure session ID."""
-        try:
-            import uuid7
-
-            return str(uuid7.uuid7())
-        except ImportError:
-            # Fallback to UUID4 with additional entropy
-            base_uuid = str(uuid.uuid4())
-            entropy = secrets.token_hex(8)
-            return f"{base_uuid}-{entropy}"
-
-    def _sign_workspace_id(self, workspace_id: str) -> str:
-        """Create HMAC signature for workspace_id."""
-        return hmac.new(
-            self.secret_key.encode(), workspace_id.encode(), hashlib.sha256
-        ).hexdigest()
-
-    def _verify_workspace_id(self, workspace_id: str, signature: str) -> bool:
-        """Verify workspace_id signature."""
-        expected = self._sign_workspace_id(workspace_id)
-        return hmac.compare_digest(expected, signature)
-
-    def _get_key(self, session_id: str) -> str:
+    def _get_session_key(self, session_id: str) -> str:
         """Get Redis key for session."""
         return f"{self.KEY_PREFIX}{session_id}"
+
+    def _get_user_sessions_key(self, user_id: str) -> str:
+        """Get Redis key for user's sessions."""
+        return f"{self.USER_SESSIONS_PREFIX}{user_id}"
+
+    def _get_workspace_sessions_key(self, workspace_id: str) -> str:
+        """Get Redis key for workspace's sessions."""
+        return f"{self.WORKSPACE_SESSIONS_PREFIX}{workspace_id}"
 
     async def create_session(
         self,
         user_id: str,
         workspace_id: str,
         metadata: Optional[Dict[str, Any]] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
+        custom_timeout: Optional[int] = None,
     ) -> str:
-        """Create a new session with enhanced security."""
-        session_id = self._generate_secure_session_id()
-        workspace_signature = self._sign_workspace_id(workspace_id)
+        """Create a new session."""
+        # Generate secure session ID
+        session_id = secrets.token_urlsafe(32)
 
-        session_data = SessionData(
-            session_id=session_id,
-            user_id=user_id,
-            workspace_id=workspace_id,
-            expires_at=datetime.now() + timedelta(seconds=self.session_ttl),
-            settings=metadata or {},
+        # Check session limit for user
+        await self._enforce_session_limit(user_id)
+
+        # Create session data
+        session_data = {
+            "session_id": session_id,
+            "user_id": user_id,
+            "workspace_id": workspace_id,
+            "created_at": datetime.now().isoformat(),
+            "last_accessed": datetime.now().isoformat(),
+            "metadata": metadata or {},
+            "ip_address": None,  # Will be set on first access
+            "user_agent": None,  # Will be set on first access
+        }
+
+        # Validate session data
+        validated_data = self.validator.validate_session(session_data)
+
+        # Store session
+        session_key = self._get_session_key(session_id)
+        timeout = custom_timeout or self.session_timeout
+
+        await self.redis.set_json(session_key, validated_data, ex=timeout)
+
+        # Add to user sessions index
+        user_sessions_key = self._get_user_sessions_key(user_id)
+        await self.redis.async_client.zadd(
+            user_sessions_key, {session_id: datetime.now().timestamp()}
         )
+        await self.redis.async_client.expire(user_sessions_key, timeout)
 
-        # Add session binding for security
-        if ip_address and user_agent:
-            binding_data = f"{session_id}:{ip_address}:{user_agent}"
-            session_binding = hashlib.sha256(binding_data.encode()).hexdigest()
-            session_data.settings["session_binding"] = session_binding
-            session_data.settings["bound_ip"] = ip_address
-            session_data.settings["bound_user_agent"] = user_agent
-
-        # Store with workspace signature for validation
-        key = self._get_key(session_id)
-        session_dict = session_data.to_dict()
-        session_dict["workspace_signature"] = workspace_signature
-
-        await self.redis.set_json(key, session_dict, ex=self.session_ttl)
+        # Add to workspace sessions index
+        workspace_sessions_key = self._get_workspace_sessions_key(workspace_id)
+        await self.redis.async_client.zadd(
+            workspace_sessions_key, {session_id: datetime.now().timestamp()}
+        )
+        await self.redis.async_client.expire(workspace_sessions_key, timeout)
 
         return session_id
 
-    async def get_session(self, session_id: str) -> Optional[SessionData]:
-        """Get session data with security validation."""
-        key = self._get_key(session_id)
-        data = await self.redis.get_json(key)
+    async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Get session by ID."""
+        session_key = self._get_session_key(session_id)
+        session_data = await self.redis.get_json(session_key)
 
-        if not data:
+        if not session_data:
             return None
 
-        # Validate workspace signature
-        if "workspace_signature" in data and "workspace_id" in data:
-            if not self._verify_workspace_id(
-                data["workspace_id"], data["workspace_signature"]
-            ):
-                return None  # Signature validation failed
+        # Validate session
+        try:
+            validated_data = self.validator.validate_session(session_data)
 
-        session = SessionData.from_dict(data)
+            # Update last accessed time
+            validated_data["last_accessed"] = datetime.now().isoformat()
+            await self.redis.set_json(session_key, validated_data)
 
-        # Check if expired
-        if session.is_expired():
+            return validated_data
+        except ValueError:
+            # Invalid session, delete it
             await self.delete_session(session_id)
             return None
 
-        return session
+    async def update_session(self, session_id: str, updates: Dict[str, Any]) -> bool:
+        """Update session data."""
+        session_data = await self.get_session(session_id)
+        if not session_data:
+            return False
 
-    async def save_session(self, session: SessionData):
-        """Save session data."""
-        key = self._get_key(session.session_id)
+        # Apply updates
+        session_data.update(updates)
+        session_data["last_accessed"] = datetime.now().isoformat()
 
-        # Update last active time
-        session.last_active_at = datetime.now()
-
-        # Calculate TTL from expiry
-        if session.expires_at:
-            ttl_seconds = max(
-                0, int((session.expires_at - datetime.now()).total_seconds())
-            )
-        else:
-            ttl_seconds = self.session_ttl
-
-        await self.redis.set_json(key, session.to_dict(), ex=ttl_seconds)
-
-    async def update_session(
-        self, session_id: str, updates: Dict[str, Any]
-    ) -> Optional[SessionData]:
-        """Update session fields."""
-        session = await self.get_session(session_id)
-        if not session:
-            return None
-
-        # Update allowed fields
-        for key, value in updates.items():
-            if hasattr(session, key):
-                setattr(session, key, value)
-
-        await self.save_session(session)
-        return session
-
-    async def add_message(
-        self,
-        session_id: str,
-        role: str,
-        content: str,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Optional[SessionData]:
-        """Add a message to the session."""
-        session = await self.get_session(session_id)
-        if not session:
-            return None
-
-        session.add_message(role, content, metadata)
-        await self.save_session(session)
-        return session
-
-    async def set_current_agent(
-        self, session_id: str, agent_name: str
-    ) -> Optional[SessionData]:
-        """Set the currently active agent."""
-        session = await self.get_session(session_id)
-        if not session:
-            return None
-
-        session.set_current_agent(agent_name)
-        await self.save_session(session)
-        return session
-
-    async def update_context(
-        self, session_id: str, context_updates: Dict[str, Any]
-    ) -> Optional[SessionData]:
-        """Update session context."""
-        session = await self.get_session(session_id)
-        if not session:
-            return None
-
-        for key, value in context_updates.items():
-            session.update_context(key, value)
-
-        await self.save_session(session)
-        return session
-
-    async def add_pending_approval(
-        self, session_id: str, approval_data: Dict[str, Any]
-    ) -> Optional[SessionData]:
-        """Add a pending approval request."""
-        session = await self.get_session(session_id)
-        if not session:
-            return None
-
-        session.add_pending_approval(approval_data)
-        await self.save_session(session)
-        return session
-
-    async def remove_pending_approval(
-        self, session_id: str, approval_id: str
-    ) -> Optional[SessionData]:
-        """Remove a pending approval request."""
-        session = await self.get_session(session_id)
-        if not session:
-            return None
-
-        session.remove_pending_approval(approval_id)
-        await self.save_session(session)
-        return session
-
-    async def set_last_output(
-        self, session_id: str, output: Dict[str, Any]
-    ) -> Optional[SessionData]:
-        """Set the last output from agent."""
-        session = await self.get_session(session_id)
-        if not session:
-            return None
-
-        session.last_output = output
-        session.last_active_at = datetime.now()
-        await self.save_session(session)
-        return session
-
-    async def extend_session(
-        self, session_id: str, seconds: int = 1800
-    ) -> Optional[SessionData]:
-        """Extend session expiry."""
-        session = await self.get_session(session_id)
-        if not session:
-            return None
-
-        session.extend_expiry(seconds)
-        await self.save_session(session)
-        return session
+        # Validate and save
+        try:
+            validated_data = self.validator.validate_session(session_data)
+            session_key = self._get_session_key(session_id)
+            await self.redis.set_json(session_key, validated_data)
+            return True
+        except ValueError:
+            return False
 
     async def delete_session(self, session_id: str) -> bool:
         """Delete a session."""
-        key = self._get_key(session_id)
-        result = await self.redis.delete(key)
-        return result > 0
+        session_data = await self.get_session(session_id)
+        if not session_data:
+            return False
 
-    async def get_user_sessions(
-        self, user_id: str, workspace_id: Optional[str] = None
-    ) -> List[SessionData]:
+        # Remove session
+        session_key = self._get_session_key(session_id)
+        await self.redis.delete(session_key)
+
+        # Remove from user sessions index
+        user_sessions_key = self._get_user_sessions_key(session_data["user_id"])
+        await self.redis.async_client.zrem(user_sessions_key, session_id)
+
+        # Remove from workspace sessions index
+        workspace_sessions_key = self._get_workspace_sessions_key(
+            session_data["workspace_id"]
+        )
+        await self.redis.async_client.zrem(workspace_sessions_key, session_id)
+
+        return True
+
+    async def delete_user_sessions(self, user_id: str) -> int:
+        """Delete all sessions for a user."""
+        user_sessions_key = self._get_user_sessions_key(user_id)
+
+        # Get all session IDs
+        session_ids = await self.redis.async_client.zrange(user_sessions_key, 0, -1)
+
+        # Delete each session
+        deleted_count = 0
+        for session_id in session_ids:
+            if await self.delete_session(session_id):
+                deleted_count += 1
+
+        return deleted_count
+
+    async def delete_workspace_sessions(self, workspace_id: str) -> int:
+        """Delete all sessions for a workspace."""
+        workspace_sessions_key = self._get_workspace_sessions_key(workspace_id)
+
+        # Get all session IDs
+        session_ids = await self.redis.async_client.zrange(
+            workspace_sessions_key, 0, -1
+        )
+
+        # Delete each session
+        deleted_count = 0
+        for session_id in session_ids:
+            if await self.delete_session(session_id):
+                deleted_count += 1
+
+        return deleted_count
+
+    async def get_user_sessions(self, user_id: str) -> List[Dict[str, Any]]:
         """Get all sessions for a user."""
-        # This is inefficient - in production, maintain a user->sessions index
-        # For now, we'll implement a simple pattern search
-        pattern = f"{self.KEY_PREFIX}*"
-        sessions = []
+        user_sessions_key = self._get_user_sessions_key(user_id)
 
-        # Note: Upstash Redis doesn't support SCAN, so this is a limitation
-        # In production, maintain a separate index: user_sessions:{user_id}
+        # Get session IDs sorted by last access
+        session_ids = await self.redis.async_client.zrange(
+            user_sessions_key, 0, -1, withscores=True
+        )
+
+        sessions = []
+        for session_id, _ in session_ids:
+            session_data = await self.get_session(session_id)
+            if session_data:
+                sessions.append(session_data)
+
+        return sessions
+
+    async def get_workspace_sessions(self, workspace_id: str) -> List[Dict[str, Any]]:
+        """Get all sessions for a workspace."""
+        workspace_sessions_key = self._get_workspace_sessions_key(workspace_id)
+
+        # Get session IDs sorted by last access
+        session_ids = await self.redis.async_client.zrange(
+            workspace_sessions_key, 0, -1, withscores=True
+        )
+
+        sessions = []
+        for session_id, _ in session_ids:
+            session_data = await self.get_session(session_id)
+            if session_data:
+                sessions.append(session_data)
+
         return sessions
 
     async def cleanup_expired_sessions(self) -> int:
         """Clean up expired sessions."""
-        # In production, this would use SCAN to find expired sessions
-        # For now, rely on Redis TTL to automatically clean up
+        # This would typically be run as a background job
+        # For now, sessions expire automatically via Redis TTL
         return 0
 
-    async def get_session_summary(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Get session summary for debugging."""
-        session = await self.get_session(session_id)
-        if not session:
-            return None
+    async def _enforce_session_limit(self, user_id: str):
+        """Enforce maximum sessions per user."""
+        user_sessions = await self.get_user_sessions(user_id)
 
-        return session.get_summary()
+        if len(user_sessions) >= self.max_sessions_per_user:
+            # Remove oldest session
+            oldest_session = min(user_sessions, key=lambda x: x["last_accessed"])
+            await self.delete_session(oldest_session["session_id"])
 
-    async def validate_session_access(
-        self,
-        session_id: str,
-        user_id: str,
-        workspace_id: str,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
+    async def extend_session(
+        self, session_id: str, additional_time: int = 3600
     ) -> bool:
-        """Enhanced session validation with multiple security checks."""
-        session = await self.get_session(session_id)
-        if not session:
+        """Extend session timeout."""
+        session_data = await self.get_session(session_id)
+        if not session_data:
             return False
 
-        # Basic validation
-        if session.user_id != user_id or session.workspace_id != workspace_id:
-            return False
+        session_key = self._get_session_key(session_id)
+        current_ttl = await self.redis.ttl(session_key)
 
-        # Session binding validation (if available)
-        if "session_binding" in session.settings:
-            if ip_address and user_agent:
-                binding_data = f"{session_id}:{ip_address}:{user_agent}"
-                expected_binding = hashlib.sha256(binding_data.encode()).hexdigest()
-                if not hmac.compare_digest(
-                    expected_binding, session.settings["session_binding"]
-                ):
-                    return False
-            else:
-                # Missing IP or User-Agent - reject for security
-                return False
+        if current_ttl > 0:
+            new_ttl = current_ttl + additional_time
+            await self.redis.async_client.expire(session_key, new_ttl)
+            return True
 
-        return True
+        return False
 
-    async def get_active_sessions_count(self, workspace_id: str) -> int:
-        """Get count of active sessions for workspace."""
-        # In production, maintain a workspace_sessions:{workspace_id} counter
-        # For now, return 0 as placeholder
-        return 0
+    async def is_session_valid(self, session_id: str) -> bool:
+        """Check if session is valid."""
+        return await self.get_session(session_id) is not None
+
+    async def get_session_stats(self) -> Dict[str, Any]:
+        """Get session statistics."""
+        # This would require maintaining additional stats keys
+        # For now, return placeholder data
+        return {
+            "total_sessions": 0,
+            "active_sessions": 0,
+            "sessions_per_workspace": {},
+            "sessions_per_user": {},
+        }

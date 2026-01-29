@@ -8,13 +8,13 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.core.metrics import (
+from .core.metrics import (
     RequestStatus,
     end_request_tracking,
     start_request_tracking,
 )
-from backend.core.security import get_security_validator
-from backend.core.validation import get_validator
+from .core.security import get_security_validator
+from .core.validation import get_validator
 
 from .base import BaseAgent
 from .config import ModelTier

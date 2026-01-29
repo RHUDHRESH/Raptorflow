@@ -10,10 +10,11 @@ import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from backend.agents.tools.base import RaptorflowTool, ToolResult
-from backend.services.titan.orchestrator import TitanOrchestrator, TitanMode
+from ..agents.tools.base import RaptorflowTool, ToolResult
+from ..services.titan.orchestrator import TitanOrchestrator, TitanMode
 
 logger = logging.getLogger("raptorflow.tools.titan")
+
 
 class TitanIntelligenceTool(RaptorflowTool):
     """
@@ -24,7 +25,7 @@ class TitanIntelligenceTool(RaptorflowTool):
     def __init__(self):
         super().__init__(
             name="titan_intelligence_engine",
-            description="Execute multi-modal research. Modes: LITE, RESEARCH, DEEP."
+            description="Execute multi-modal research. Modes: LITE, RESEARCH, DEEP.",
         )
         self._orchestrator = None
 
@@ -34,9 +35,13 @@ class TitanIntelligenceTool(RaptorflowTool):
             self._orchestrator = TitanOrchestrator()
         return self._orchestrator
 
-    async def _arun(self, query: str, mode: str = "LITE", focus_areas: List[str] = None, **kwargs) -> ToolResult:
+    async def _arun(
+        self, query: str, mode: str = "LITE", focus_areas: List[str] = None, **kwargs
+    ) -> ToolResult:
         """Execute tiered research via Titan Orchestrator."""
-        max_results = kwargs.get("max_results", 10 if mode == "RESEARCH" else 50 if mode == "DEEP" else 10)
+        max_results = kwargs.get(
+            "max_results", 10 if mode == "RESEARCH" else 50 if mode == "DEEP" else 10
+        )
         use_stealth = kwargs.get("use_stealth", True)
 
         try:
@@ -46,7 +51,7 @@ class TitanIntelligenceTool(RaptorflowTool):
                 mode=mode,
                 focus_areas=focus_areas or [],
                 max_results=max_results,
-                use_stealth=use_stealth
+                use_stealth=use_stealth,
             )
             return ToolResult(success=True, data=result)
         except Exception as e:
@@ -56,6 +61,7 @@ class TitanIntelligenceTool(RaptorflowTool):
         """Cleanup orchestrator resources."""
         if self._orchestrator:
             await self._orchestrator.close()
+
 
 # Export for dynamic loading
 __all__ = ["TitanIntelligenceTool"]

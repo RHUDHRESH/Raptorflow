@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 from ..exceptions import WorkflowError
 from ..state import AgentState
-from .base_workflow import (
+from ..base_workflow import (
     BaseWorkflow,
     NodeType,
     WorkflowConfig,

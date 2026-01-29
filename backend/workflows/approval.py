@@ -7,10 +7,10 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from backend.agents.dispatcher import AgentDispatcher
-from backend.agents.state import AgentState
-from backend.cognitive import CognitiveEngine
-from backend.memory.controller import MemoryController
+from .agents.dispatcher import AgentDispatcher
+from .agents.state import AgentState
+from cognitive import CognitiveEngine
+from memory.controller import MemoryController
 from supabase import Client
 
 logger = logging.getLogger(__name__)
@@ -238,7 +238,7 @@ class ApprovalWorkflow:
         """Create approval gate using cognitive engine."""
         try:
             # Use HITL approval gate
-            from backend.cognitive.hitl.gate import ApprovalGate
+            from cognitive.hitl.gate import ApprovalGate
 
             gate = ApprovalGate()
 

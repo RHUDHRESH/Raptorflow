@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from ...redis.client import RedisClient
-from .models import AuditEntry
+from ..models import AuditEntry
 
 logger = logging.getLogger(__name__)
 

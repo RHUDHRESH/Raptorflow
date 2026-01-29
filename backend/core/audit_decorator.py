@@ -9,7 +9,7 @@ from typing import Any, Callable
 
 from fastapi import Request, Response
 
-from .audit import get_audit_logger
+from audit import get_audit_logger
 
 logger = logging.getLogger(__name__)
 

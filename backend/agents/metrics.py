@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
 
-from backend.agents.state import AgentState
+from .agents.state import AgentState
 
 
 @dataclass

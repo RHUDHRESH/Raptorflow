@@ -239,7 +239,7 @@ class TestMiddleware:
     @pytest.mark.asyncio
     async def test_logging_middleware(self, mock_request, mock_response):
         """Test logging middleware."""
-        from backend.middleware.logging import LoggingMiddleware
+        from middleware.logging import LoggingMiddleware
 
         app = Mock()
         middleware = LoggingMiddleware(app)
@@ -256,7 +256,7 @@ class TestMiddleware:
     @pytest.mark.asyncio
     async def test_error_middleware(self, mock_request):
         """Test error middleware."""
-        from backend.middleware.errors import ErrorMiddleware
+        from middleware.errors import ErrorMiddleware
 
         app = Mock()
         middleware = ErrorMiddleware(app)
@@ -273,7 +273,7 @@ class TestMiddleware:
     @pytest.mark.asyncio
     async def test_metrics_middleware(self, mock_request, mock_response):
         """Test metrics middleware."""
-        from backend.middleware.metrics import MetricsMiddleware
+        from middleware.metrics import MetricsMiddleware
 
         app = Mock()
         middleware = MetricsMiddleware(app)
@@ -310,7 +310,7 @@ class TestDependencies:
 
     def test_get_db_dependency(self, mock_dependencies):
         """Test database dependency injection."""
-        from backend.dependencies import get_db
+        from dependencies import get_db
 
         # Mock successful database connection
         mock_dependencies[
@@ -323,7 +323,7 @@ class TestDependencies:
 
     def test_get_redis_dependency(self, mock_dependencies):
         """Test Redis dependency injection."""
-        from backend.dependencies import get_redis
+        from dependencies import get_redis
 
         mock_dependencies["redis_client"].ping.return_value = True
 
@@ -333,7 +333,7 @@ class TestDependencies:
 
     def test_get_memory_controller_dependency(self, mock_dependencies):
         """Test memory controller dependency injection."""
-        from backend.dependencies import get_memory_controller
+        from dependencies import get_memory_controller
 
         mock_dependencies["memory_controller"].search.return_value = []
 
@@ -343,7 +343,7 @@ class TestDependencies:
 
     def test_get_cognitive_engine_dependency(self, mock_dependencies):
         """Test cognitive engine dependency injection."""
-        from backend.dependencies import get_cognitive_engine
+        from dependencies import get_cognitive_engine
 
         mock_dependencies["cognitive_engine"].perception = AsyncMock()
 
@@ -353,7 +353,7 @@ class TestDependencies:
 
     def test_get_agent_dispatcher_dependency(self, mock_dependencies):
         """Test agent dispatcher dependency injection."""
-        from backend.dependencies import get_agent_dispatcher
+        from dependencies import get_agent_dispatcher
 
         mock_dependencies["agent_dispatcher"].get_agent.return_value = Mock()
 
@@ -492,7 +492,7 @@ class TestErrorHandling:
 
     def test_custom_exceptions(self):
         """Test custom exception classes."""
-        from backend.middleware.errors import AuthenticationError, ValidationError
+        from middleware.errors import AuthenticationError, ValidationError
 
         # Test validation error
         validation_error = ValidationError("Invalid input", field="email")

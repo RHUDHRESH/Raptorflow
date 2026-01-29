@@ -9,7 +9,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from .models import Issue, Severity
+from ..models import Issue, Severity
 
 logger = logging.getLogger(__name__)
 

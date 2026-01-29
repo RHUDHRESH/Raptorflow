@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
-from .base import BaseRouter
+from ..base import BaseRouter
 
 logger = logging.getLogger(__name__)
 

@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional
 
 import structlog
 
-from backend.agents.config import ModelTier
+from ..config import ModelTier
 
 # Import state management
 from ...utils.onboarding_state_manager import (
@@ -41,15 +41,15 @@ from ...utils.onboarding_state_manager import (
 # Local imports
 from ..base import BaseAgent
 from ..state import AgentState
-from .channel_recommender import ChannelRecommender
-from .contradiction_detector import ContradictionDetector
+from channel_recommender import ChannelRecommender
+from contradiction_detector import ContradictionDetector
 
 # Import new AI agents
-from .evidence_classifier import EvidenceClassifier
-from .extraction_orchestrator import ExtractionOrchestrator
-from .neuroscience_copywriter import NeuroscienceCopywriter
-from .perceptual_map_generator import PerceptualMapGenerator
-from .reddit_researcher import RedditResearcher
+from evidence_classifier import EvidenceClassifier
+from extraction_orchestrator import ExtractionOrchestrator
+from neuroscience_copywriter import NeuroscienceCopywriter
+from perceptual_map_generator import PerceptualMapGenerator
+from reddit_researcher import RedditResearcher
 
 logger = structlog.get_logger(__name__)
 
@@ -148,7 +148,7 @@ class OnboardingOrchestratorV2(BaseAgent):
 
         # Recalculate BCM in real-time
         try:
-            from backend.services.bcm_service import BCMService
+            from services.bcm_service import BCMService
 
             bcm = BCMService.sync_context_to_bcm(state["business_context"])
             state["bcm_state"] = bcm

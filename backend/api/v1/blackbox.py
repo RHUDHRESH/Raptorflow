@@ -8,18 +8,18 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from backend.agents.dispatcher import AgentDispatcher
-from backend.agents.specialists.blackbox_strategist import BlackboxStrategist
-from backend.cognitive import CognitiveEngine
-from backend.core.auth import get_current_user
-from backend.core.database import get_db
-from backend.dependencies import (
+from ..agents.dispatcher import AgentDispatcher
+from ..agents.specialists.blackbox_strategist import BlackboxStrategist
+from cognitive import CognitiveEngine
+from ..core.auth import get_current_user
+from ..core.database import get_db
+from ..dependencies import (
     get_agent_dispatcher,
     get_cognitive_engine,
     get_memory_controller,
 )
-from backend.memory.controller import MemoryController
-from backend.workflows.blackbox import BlackboxWorkflow
+from memory.controller import MemoryController
+from workflows.blackbox import BlackboxWorkflow
 
 router = APIRouter(prefix="/blackbox", tags=["blackbox"])
 

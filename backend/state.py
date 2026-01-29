@@ -40,7 +40,7 @@ import structlog
 from pydantic import BaseModel, ValidationError
 
 # Local imports
-from .config import settings
+from config import settings
 
 logger = structlog.get_logger(__name__)
 
@@ -897,3 +897,38 @@ __all__ = [
     "MemoryStateStorage",
     "state_manager",
 ]
+
+
+# AgentState for backward compatibility
+class AgentState:
+    """Agent state management (backward compatibility)."""
+
+    def __init__(self, agent_id: str):
+        self.agent_id = agent_id
+        self.state_manager = StateManager()
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Get state value."""
+        state_data = await self.state_manager.get_state(StateType.AGENT, self.agent_id)
+        return state_data.get(key) if state_data else None
+
+    async def set(self, key: str, value: Any):
+        """Set state value."""
+        state_data = (
+            await self.state_manager.get_state(StateType.AGENT, self.agent_id) or {}
+        )
+        state_data[key] = value
+        await self.state_manager.set_state(StateType.AGENT, self.agent_id, state_data)
+
+    async def delete(self, key: str):
+        """Delete state value."""
+        state_data = await self.state_manager.get_state(StateType.AGENT, self.agent_id)
+        if state_data and key in state_data:
+            del state_data[key]
+            await self.state_manager.set_state(
+                StateType.AGENT, self.agent_id, state_data
+            )
+
+    async def clear(self):
+        """Clear all state."""
+        await self.state_manager.delete_state(StateType.AGENT, self.agent_id)

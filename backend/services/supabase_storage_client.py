@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 
 import httpx
 
-from ..utils.storage_paths import (
+from .utils.storage_paths import (
     generate_intelligence_path,
     generate_user_path,
     generate_workspace_path,

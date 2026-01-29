@@ -11,9 +11,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..infrastructure.cloud_monitoring import get_cloud_monitoring
-from ..infrastructure.logging import get_cloud_logging
-from .decorators import background_job, daily_job, hourly_job, job, weekly_job
+from infrastructure.cloud_monitoring import get_cloud_monitoring
+from infrastructure.logging import get_cloud_logging
+from decorators import background_job, daily_job, hourly_job, job, weekly_job
 from .models import JobResult, JobStatus
 
 logger = logging.getLogger(__name__)
@@ -114,7 +114,7 @@ class ContentJobs:
             )
 
             # Get content service
-            from ..content.content_service import get_content_service
+            from content.content_service import get_content_service
 
             content_service = get_content_service()
 
@@ -227,7 +227,7 @@ class ContentJobs:
             )
 
             # Get content service
-            from ..content.content_service import get_content_service
+            from content.content_service import get_content_service
 
             content_service = get_content_service()
 
@@ -341,7 +341,7 @@ class ContentJobs:
             )
 
             # Get content service
-            from ..content.content_service import get_content_service
+            from content.content_service import get_content_service
 
             content_service = get_content_service()
 
@@ -468,7 +468,7 @@ class ContentJobs:
             )
 
             # Get content service
-            from ..content.content_service import get_content_service
+            from content.content_service import get_content_service
 
             content_service = get_content_service()
 
@@ -582,7 +582,7 @@ class ContentJobs:
             )
 
             # Get content service
-            from ..content.content_service import get_content_service
+            from content.content_service import get_content_service
 
             content_service = get_content_service()
 

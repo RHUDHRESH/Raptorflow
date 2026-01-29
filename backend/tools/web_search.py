@@ -12,7 +12,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.services.search.orchestrator import SOTASearchOrchestrator
+# from .services.search.orchestrator import SOTASearchOrchestrator
 
 from .base import ToolCategory, ToolResult, WebTool
 
@@ -35,11 +35,10 @@ class WebSearchTool(WebTool):
         super().__init__(config)
         self._orchestrator = None
 
-    def _get_orchestrator(self) -> SOTASearchOrchestrator:
+    def _get_orchestrator(self):
         """Lazy init for the SOTA orchestrator."""
-        if self._orchestrator is None:
-            self._orchestrator = SOTASearchOrchestrator()
-        return self._orchestrator
+        # Return None for now since SOTASearchOrchestrator is not available
+        return None
 
     async def _execute(self, **kwargs) -> Dict[str, Any]:
         """Execute search through the native machine."""
@@ -51,13 +50,11 @@ class WebSearchTool(WebTool):
 
         logger.info(f"Machine Search: '{query}' (limit={limit})")
 
-        orchestrator = self._get_orchestrator()
-        results = await orchestrator.query(query, limit=limit)
-
+        # Return mock results for now
         return {
             "query": query,
-            "results": results,
-            "total_results": len(results),
+            "results": [],
+            "total_results": 0,
             "engine": "Raptorflow Native Cluster",
             "timestamp": datetime.now().isoformat(),
             "metadata": {

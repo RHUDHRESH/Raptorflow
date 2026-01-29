@@ -13,10 +13,10 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.services.search.reddit_native import RedditNativeScraper
+from .services.search.reddit_native import RedditNativeScraper
 
 # Import AI services
-from backend.services.vertex_ai_service import vertex_ai_service
+from .services.vertex_ai_service import vertex_ai_service
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { clientAuth } from '@/lib/auth-service'
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Users, 
-  UserCheck, 
-  CreditCard, 
-  AlertCircle, 
+import {
+  Users,
+  UserCheck,
+  CreditCard,
+  AlertCircle,
   TrendingUp,
   Search,
   Filter,
@@ -48,7 +48,7 @@ interface User {
 }
 
 export default function AdminDashboard() {
-  const supabase = createClientComponentClient()
+  const supabase = clientAuth.getSupabaseClient()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -94,7 +94,7 @@ export default function AdminDashboard() {
                          (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchesRole = filterRole === 'all' || user.role === filterRole
     const matchesStatus = filterStatus === 'all' || user.onboarding_status === filterStatus
-    
+
     return matchesSearch && matchesRole && matchesStatus
   })
 
@@ -103,13 +103,13 @@ export default function AdminDashboard() {
       const { data, error } = await supabase.functions.invoke('admin-impersonate', {
         body: { targetUserId: userId }
       })
-      
+
       if (error) throw error
-      
+
       // Store impersonation token
       localStorage.setItem('impersonationToken', data.token)
       localStorage.setItem('originalUserId', data.originalUserId)
-      
+
       // Redirect to user's view
       window.location.href = '/dashboard'
     } catch (error) {
@@ -123,9 +123,9 @@ export default function AdminDashboard() {
         .from('users')
         .update({ is_banned: !isBanned })
         .eq('id', userId)
-      
+
       if (error) throw error
-      
+
       // Log admin action
       await supabase
         .from('admin_actions')
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
           target_user_id: userId,
           details: { previous_state: isBanned }
         })
-      
+
       fetchDashboardData()
     } catch (error) {
       console.error('Error updating user:', error)
@@ -318,7 +318,7 @@ export default function AdminDashboard() {
                   )}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {user.last_login_at 
+                  {user.last_login_at
                     ? new Date(user.last_login_at).toLocaleDateString()
                     : 'Never'
                   }

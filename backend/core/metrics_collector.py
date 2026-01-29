@@ -17,7 +17,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 import psutil
 
-from backend.core.resource_analytics import OptimizationRecommendation
+from .core.resource_analytics import OptimizationRecommendation
 
 logger = logging.getLogger(__name__)
 

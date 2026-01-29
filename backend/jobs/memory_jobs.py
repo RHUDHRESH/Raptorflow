@@ -11,9 +11,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..infrastructure.cloud_monitoring import get_cloud_monitoring
-from ..infrastructure.logging import get_cloud_logging
-from .decorators import background_job, daily_job, hourly_job, job
+from infrastructure.cloud_monitoring import get_cloud_monitoring
+from infrastructure.logging import get_cloud_logging
+from decorators import background_job, daily_job, hourly_job, job
 from .models import JobResult, JobStatus
 
 logger = logging.getLogger(__name__)
@@ -84,7 +84,7 @@ class MemoryJobs:
             )
 
             # Get memory service
-            from ..memory.memory_service import get_memory_service
+            from memory.memory_service import get_memory_service
 
             memory_service = get_memory_service()
 
@@ -213,7 +213,7 @@ class MemoryJobs:
             )
 
             # Get memory service
-            from ..memory.memory_service import get_memory_service
+            from memory.memory_service import get_memory_service
 
             memory_service = get_memory_service()
 
@@ -346,7 +346,7 @@ class MemoryJobs:
             )
 
             # Get memory service
-            from ..memory.memory_service import get_memory_service
+            from memory.memory_service import get_memory_service
 
             memory_service = get_memory_service()
 
@@ -461,7 +461,7 @@ class MemoryJobs:
             )
 
             # Get memory service
-            from ..memory.memory_service import get_memory_service
+            from memory.memory_service import get_memory_service
 
             memory_service = get_memory_service()
 
@@ -553,7 +553,7 @@ class MemoryJobs:
             )
 
             # Get memory service
-            from ..memory.memory_service import get_memory_service
+            from memory.memory_service import get_memory_service
 
             memory_service = get_memory_service()
 

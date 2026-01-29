@@ -25,7 +25,12 @@ export interface CoreMessaging {
         tone: string[];
         style: string;
     };
+    positioningStatement?: {
+        target: string;
+        keyBenefit: string;
+    };
     confidence: number;
+    updatedAt?: number;
 }
 
 export interface Channel {
@@ -33,6 +38,13 @@ export interface Channel {
     name: string;
     priority: 'primary' | 'secondary' | 'experimental';
     status: 'active' | 'planned' | 'paused';
+}
+
+export interface FoundationState {
+    ricps: RICP[];
+    messaging: CoreMessaging | null;
+    channels: Channel[];
+    positioningConfidence: number;
 }
 
 export const MARKET_SOPHISTICATION_LABELS: Record<number, { name: string; desc: string }> = {

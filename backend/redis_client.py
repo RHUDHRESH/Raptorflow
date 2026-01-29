@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Optional, Union
 
 import redis.asyncio as redis
-from config_clean import get_settings
+from ..config_clean import get_settings
 from redis.asyncio import ConnectionPool, Redis
 from redis.exceptions import ConnectionError, RedisError
 

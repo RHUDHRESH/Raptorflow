@@ -8,14 +8,14 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from backend.core.auth import get_auth_context, get_current_user, get_workspace_id
-from backend.core.models import AuthContext, User
-from backend.core.supabase_mgr import get_supabase_client
-from backend.db.campaigns import CampaignRepository
+from ..core.auth import get_auth_context, get_current_user, get_workspace_id
+from ..core.models import AuthContext, User
+from ..core.supabase_mgr import get_supabase_client
+from db.campaigns import CampaignRepository
 
 # Import Vertex AI client for AI processing
 try:
-    from backend.services.vertex_ai_client import get_vertex_ai_client
+    from services.vertex_ai_client import get_vertex_ai_client
 
     vertex_ai_client = get_vertex_ai_client()
 except ImportError:
@@ -61,7 +61,7 @@ async def list_campaigns(
 
     if status:
         # Filter by status
-        from backend.db.pagination import Pagination
+        from db.pagination import Pagination
 
         pagination = Pagination(page=page, page_size=page_size)
         result = await campaign_repo.list_by_status(
@@ -69,7 +69,7 @@ async def list_campaigns(
         )
     else:
         # Get all campaigns
-        from backend.db.pagination import Pagination
+        from db.pagination import Pagination
 
         pagination = Pagination(page=page, page_size=page_size)
         result = await campaign_repo.get_by_workspace(

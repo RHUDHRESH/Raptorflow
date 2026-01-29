@@ -23,7 +23,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from .base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
+from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
 
 # Download required NLTK data
 try:

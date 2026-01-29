@@ -9,6 +9,7 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+
 class PremiumFeaturesService:
     """Service for managing premium content capabilities."""
 
@@ -19,7 +20,7 @@ class PremiumFeaturesService:
             "aggregate_score": 94.5,
             "team_efficiency": "+22% vs last month",
             "content_velocity_rank": "Top 5% in sector",
-            "brand_consistency_index": 0.98
+            "brand_consistency_index": 0.98,
         }
 
     async def check_premium_eligibility(self, user_id: str) -> bool:
@@ -33,7 +34,8 @@ class PremiumFeaturesService:
             "Real-time video script generation",
             "Auto-publishing to 50+ platforms",
             "Biometric engagement analysis",
-            "Custom LLM fine-tuning on your brand"
+            "Custom LLM fine-tuning on your brand",
         ]
+
 
 premium_service = PremiumFeaturesService()

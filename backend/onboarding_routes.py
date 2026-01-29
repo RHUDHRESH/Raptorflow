@@ -13,12 +13,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 # Core system imports
-from backend.core.session import get_session_manager
-from backend.core.supabase_mgr import get_supabase_admin
-from backend.services.search.orchestrator import SOTASearchOrchestrator
-from backend.services.sota_ocr.service import DEFAULT_CONFIG as OCR_CONFIG
-from backend.services.sota_ocr.service import create_sota_ocr_service
-from backend.services.titan.orchestrator import TitanOrchestrator
+from core.session import get_session_manager
+from core.supabase_mgr import get_supabase_admin
+from services.search.orchestrator import SOTASearchOrchestrator
+from services.sota_ocr.service import DEFAULT_CONFIG as OCR_CONFIG
+from services.sota_ocr.service import create_sota_ocr_service
+from services.titan.orchestrator import TitanOrchestrator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

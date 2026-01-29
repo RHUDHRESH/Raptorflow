@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/auth-client';
+import { clientAuth } from '@/lib/auth-service';
 import { BlueprintLoader } from '@/components/ui/BlueprintLoader';
 
 interface AuthGuardProps {
@@ -10,22 +10,15 @@ interface AuthGuardProps {
   redirectTo?: string;
 }
 
-export function AuthGuard({ children, redirectTo = '/login' }: AuthGuardProps) {
+export function AuthGuard({ children, redirectTo = '/signin' }: AuthGuardProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = createClient()
-      if (!supabase) {
-        setIsLoading(false)
-        return
-      }
-
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        const authenticated = !!session
+        const authenticated = await clientAuth.isAuthenticated()
         setIsUserAuthenticated(authenticated)
 
         if (!authenticated) {
@@ -41,31 +34,6 @@ export function AuthGuard({ children, redirectTo = '/login' }: AuthGuardProps) {
     };
 
     checkAuth();
-  }, [router, redirectTo]);
-
-  useEffect(() => {
-    const handleStorageChange = async () => {
-      const supabase = createClient()
-      if (!supabase) return
-
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        const authenticated = !!session
-        setIsUserAuthenticated(authenticated)
-
-        if (!authenticated) {
-          router.push(redirectTo);
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error)
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, [router, redirectTo]);
 
   if (isLoading) {
@@ -106,12 +74,12 @@ export function AuthenticatedContent({ children }: { children: React.ReactNode }
         setIsUserAuthenticated(authenticated);
 
         if (!authenticated) {
-          router.push('/login');
+          router.push('/signin');
         }
       } catch (error) {
         console.error('Error checking auth:', error)
         setIsUserAuthenticated(false)
-        router.push('/login')
+        router.push('/signin')
       }
       setIsLoading(false);
     };

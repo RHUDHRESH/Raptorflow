@@ -18,7 +18,7 @@ from google.api_core import exceptions
 from google.cloud import tasks_v2
 from google.protobuf import timestamp_pb2
 
-from .gcp import get_gcp_client
+from gcp import get_gcp_client
 
 logger = logging.getLogger(__name__)
 

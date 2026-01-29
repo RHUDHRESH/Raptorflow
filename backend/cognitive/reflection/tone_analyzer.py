@@ -9,7 +9,7 @@ import logging
 from typing import Dict, List, Optional
 
 from ...llm import LLMClient, ModelConfig
-from .models import ToneAnalysisResult
+from ..models import ToneAnalysisResult
 
 logger = logging.getLogger(__name__)
 

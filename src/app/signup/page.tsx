@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Compass, Loader2, Shield, Zap, CheckCircle } from 'lucide-react';
 import { BlueprintCard } from '@/components/ui/BlueprintCard';
-import { getSupabaseClient } from '@/lib/supabase-auth';
+import { clientAuth } from '@/lib/auth-service';
 import { getAuthCallbackUrl } from '@/lib/env-utils';
 import { notify } from "@/lib/notifications";
 import { BlueprintButton } from '@/components/ui/BlueprintButton';
@@ -20,7 +20,7 @@ const containerVariants = {
             delayChildren: 0.2
         }
     }
-};
+} as const;
 
 const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -28,7 +28,7 @@ const itemVariants = {
         opacity: 1,
         y: 0,
         transition: {
-            type: "spring",
+            type: "spring" as const,
             stiffness: 300,
             damping: 24
         }
@@ -42,7 +42,7 @@ const cardVariants = {
         scale: 1,
         y: 0,
         transition: {
-            type: "spring",
+            type: "spring" as const,
             stiffness: 200,
             damping: 20,
             duration: 0.6
@@ -66,26 +66,11 @@ export default function SignupPage() {
         setClickedButton('google');
         setError(null);
         try {
-            const supabase = getSupabaseClient();
-            if (!supabase) {
-                throw new Error('Authentication service not available');
+            const result = await clientAuth.signInWithOAuth('google');
+
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to connect with Google');
             }
-
-            const callbackUrl = getAuthCallbackUrl();
-            console.log('🔗 Google OAuth redirect URL:', callbackUrl);
-
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: callbackUrl,
-                    queryParams: {
-                        access_type: 'offline',
-                        prompt: 'consent',
-                    },
-                },
-            });
-
-            if (error) throw error;
         } catch (err: any) {
             setError(err.message);
             notify.error("Failed to connect with Google");
@@ -99,22 +84,11 @@ export default function SignupPage() {
         setClickedButton('github');
         setError(null);
         try {
-            const supabase = getSupabaseClient();
-            if (!supabase) {
-                throw new Error('Authentication service not available');
+            const result = await clientAuth.signInWithOAuth('github');
+
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to connect with GitHub');
             }
-
-            const callbackUrl = getAuthCallbackUrl();
-            console.log('🔗 GitHub OAuth redirect URL:', callbackUrl);
-
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'github',
-                options: {
-                    redirectTo: callbackUrl,
-                },
-            });
-
-            if (error) throw error;
         } catch (err: any) {
             setError(err.message);
             notify.error("Failed to connect with GitHub");
@@ -315,7 +289,7 @@ export default function SignupPage() {
                         <p className="text-sm text-[var(--ink-secondary)]">
                             Already have an account?{' '}
                             <Link
-                                href="/login"
+                                href="/signin"
                                 className="text-[var(--blueprint)] hover:text-[var(--blueprint-600)] font-medium transition-colors duration-200"
                             >
                                 Sign In

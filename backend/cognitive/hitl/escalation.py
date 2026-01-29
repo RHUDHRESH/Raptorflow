@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from ...redis.client import RedisClient
-from .models import ApprovalRequest, EscalationInfo
+from ..models import ApprovalRequest, EscalationInfo
 
 logger = logging.getLogger(__name__)
 
@@ -258,7 +258,7 @@ class EscalationManager:
     ) -> None:
         """Notify user of escalation."""
         try:
-            from .notifications import ApprovalNotifier
+            from notifications import ApprovalNotifier
 
             notifier = ApprovalNotifier(self.redis)
 
@@ -272,7 +272,7 @@ class EscalationManager:
     async def _notify_reviewer_assigned(self, reviewer_id: str, gate_id: str) -> None:
         """Notify reviewer of assignment."""
         try:
-            from .notifications import ApprovalNotifier
+            from notifications import ApprovalNotifier
 
             notifier = ApprovalNotifier(self.redis)
 

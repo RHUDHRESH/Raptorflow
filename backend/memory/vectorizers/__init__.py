@@ -5,11 +5,11 @@ This package provides specialized vectorizers for different types of content
 in the Raptorflow system, each optimized for their specific data structures.
 """
 
-from .conversation import ConversationVectorizer
-from .foundation import FoundationVectorizer
-from .icp import ICPVectorizer
-from .move import MoveVectorizer
-from .research import ResearchVectorizer
+from conversation import ConversationVectorizer
+from foundation import FoundationVectorizer
+from icp import ICPVectorizer
+from move import MoveVectorizer
+from research import ResearchVectorizer
 
 __all__ = [
     "FoundationVectorizer",

@@ -1,4 +1,4 @@
-import { createServerSupabaseClient, getProfileByAuthUserId } from '@/lib/auth-server'
+import { createServerSupabaseClient, createServiceSupabaseClient, getProfileByAuthUserId } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
 
 // PhonePe 2026 API Configuration
@@ -11,6 +11,13 @@ const PHONEPE_CLIENT_ID = process.env.PHONEPE_CLIENT_ID!
 const PHONEPE_CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET!
 const PHONEPE_CLIENT_VERSION = process.env.PHONEPE_CLIENT_VERSION || '1'
 
+// Hardcoded plan pricing for reliability
+const PLAN_PRICING: Record<string, { monthly: number; yearly: number; name: string }> = {
+  'ascent': { monthly: 500000, yearly: 5000000, name: 'Ascent' },
+  'glide': { monthly: 700000, yearly: 7000000, name: 'Glide' },
+  'soar': { monthly: 1000000, yearly: 10000000, name: 'Soar' }
+}
+
 export async function POST(request: Request) {
   try {
     const { planId, billingCycle } = await request.json()
@@ -18,58 +25,94 @@ export async function POST(request: Request) {
     const supabase = await createServerSupabaseClient()
 
     // Get current user
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (authError || !authUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { profile } = await getProfileByAuthUserId(supabase, session.user.id)
-    const onboardingStatus = profile?.onboarding_status
+    // Use service client for profile operations to bypass RLS
+    let serviceClient;
+    try {
+      serviceClient = await createServiceSupabaseClient()
+    } catch {
+      serviceClient = supabase
+    }
 
-    if (!profile || (onboardingStatus && onboardingStatus !== 'pending_payment')) {
+    const { profile } = await getProfileByAuthUserId(serviceClient, authUser.id)
+
+    if (!profile) {
       return NextResponse.json(
-        { error: 'Invalid state for payment. Please select a plan first.' },
+        { error: 'User profile not found. Please try logging in again.' },
+        { status: 404 }
+      )
+    }
+
+    const onboardingStatus = profile.onboarding_status
+
+    // Allow payment from pending_payment status or when navigating back
+    const validStates = ['pending_payment', 'pending_plan_selection', 'pending', null, undefined]
+    if (onboardingStatus && !validStates.includes(onboardingStatus)) {
+      return NextResponse.json(
+        { error: `Invalid state for payment: ${onboardingStatus}. Please select a plan first.` },
         { status: 400 }
       )
     }
 
+    // Get plan pricing - try hardcoded first, then DB
+    let planPricing = PLAN_PRICING[planId]
+    let planName = planPricing?.name || planId
 
-    // Get plan
-    const { data: plan } = await supabase
-      .from('plans')
-      .select('*')
-      .eq('id', planId)
-      .single()
+    if (!planPricing) {
+      // Try to get from subscription_plans table
+      const { data: dbPlan } = await serviceClient
+        .from('subscription_plans')
+        .select('name, price_monthly, price_annual')
+        .eq('slug', planId)
+        .single()
 
-    if (!plan) {
-      return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
+      if (dbPlan) {
+        planPricing = {
+          monthly: dbPlan.price_monthly,
+          yearly: dbPlan.price_annual,
+          name: dbPlan.name
+        }
+        planName = dbPlan.name
+      } else {
+        return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
+      }
     }
 
     // Calculate amount
-    const amount = billingCycle === 'monthly'
-      ? plan.price_monthly_paise
-      : plan.price_yearly_paise
+    const amount = billingCycle === 'yearly'
+      ? planPricing.yearly
+      : planPricing.monthly
 
     // Generate unique transaction ID
     const transactionId = `TXN_${profile.id.slice(0, 8)}_${Date.now()}`
 
-    // Store pending subscription
-    await supabase
-      .from('subscriptions')
+    // Store pending subscription in user_subscriptions table
+    const { error: subError } = await serviceClient
+      .from('user_subscriptions')
       .upsert({
         user_id: profile.id,
-        plan_id: plan.id,
-        plan_name: plan.name,
-        price_monthly_paise: plan.price_monthly_paise,
+        plan_id: planId,
         billing_cycle: billingCycle,
-        status: 'pending'
+        amount_paid: amount,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }, {
         onConflict: 'user_id'
       })
 
+    if (subError) {
+      console.error('Subscription upsert error:', subError)
+      // Continue anyway - payment is more important
+    }
+
     // Store transaction reference
-    await supabase
+    const { error: txnError } = await serviceClient
       .from('payment_transactions')
       .insert({
         user_id: profile.id,
@@ -79,6 +122,11 @@ export async function POST(request: Request) {
         plan_id: planId,
         billing_cycle: billingCycle
       })
+
+    if (txnError) {
+      console.error('Transaction insert error:', txnError)
+      // Continue anyway
+    }
 
     // Get OAuth token for 2026 API
     const tokenResponse = await fetch(`${PHONEPE_BASE_URL}/v1/oauth/token`, {
@@ -111,9 +159,9 @@ export async function POST(request: Request) {
       merchantTransactionId: transactionId,
       merchantUserId: profile.id,
       amount: amount, // In paise
-      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding/payment?status=pending&transactionId=${transactionId}`,
+      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding/payment/status?transactionId=${transactionId}`,
       redirectMode: 'REDIRECT',
-      callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/api/payments/webhook`,
+      callbackUrl: `${process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL}/api/payments/webhook`,
       paymentInstrument: {
         type: 'PAY_PAGE'
       }

@@ -392,6 +392,18 @@ class UpstashClient:
         """Delete a cached value"""
         return await self.delete(f"cache:{key}")
 
+    async def clear_pattern(self, pattern: str) -> int:
+        """Clear values matching a general pattern (no prefix)"""
+        try:
+            client = self.get_client()
+            keys = client.keys(pattern)
+            if keys:
+                return client.delete(*keys)
+            return 0
+        except Exception as e:
+            logger.error(f"Failed to clear pattern {pattern}: {e}")
+            return 0
+
     async def cache_clear(self, pattern: str = "*") -> int:
         """Clear cached values matching pattern"""
         try:

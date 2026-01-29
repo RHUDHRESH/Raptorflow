@@ -11,9 +11,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..infrastructure.cloud_monitoring import get_cloud_monitoring
-from ..infrastructure.logging import get_cloud_logging
-from .decorators import background_job, daily_job, hourly_job, job, weekly_job
+from infrastructure.cloud_monitoring import get_cloud_monitoring
+from infrastructure.logging import get_cloud_logging
+from decorators import background_job, daily_job, hourly_job, job, weekly_job
 from .models import JobResult, JobStatus
 
 logger = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ class MaintenanceJobs:
             )
 
             # Get session service
-            from ..redis_core.session import get_session_service
+            from redis_core.session import get_session_service
 
             session_service = get_session_service()
 
@@ -204,7 +204,7 @@ class MaintenanceJobs:
             )
 
             # Get execution service
-            from backend.agents.core.execution import get_execution_service
+            from agents.core.execution import get_execution_service
 
             execution_service = get_execution_service()
 
@@ -314,7 +314,7 @@ class MaintenanceJobs:
 
             # Get database service
             try:
-                from backend.core.database import get_database_service
+                from core.database import get_database_service
 
                 database_service = await get_database_service()
                 if database_service:
@@ -455,7 +455,7 @@ class MaintenanceJobs:
 
             # Clear caches
             try:
-                from ..redis_core.cache import get_cache_service
+                from redis_core.cache import get_cache_service
 
                 cache_service = get_cache_service()
                 await cache_service.clear_all_caches()
@@ -465,7 +465,7 @@ class MaintenanceJobs:
 
             # Rotate logs
             try:
-                from ..infrastructure.logging import get_cloud_logging
+                from infrastructure.logging import get_cloud_logging
 
                 logging_service = get_cloud_logging()
                 await logging_service.rotate_logs()
@@ -475,7 +475,7 @@ class MaintenanceJobs:
 
             # Clean temporary files
             try:
-                from backend.core.file_service import get_file_service
+                from core.file_service import get_file_service
 
                 file_service = get_file_service()
                 cleanup_result = await file_service.cleanup_temp_files()
@@ -572,7 +572,7 @@ class MaintenanceJobs:
 
             # Backup database
             try:
-                from backend.core.database import get_database_service
+                from core.database import get_database_service
 
                 database_service = await get_database_service()
                 if database_service:
@@ -583,7 +583,7 @@ class MaintenanceJobs:
 
             # Backup Redis data
             try:
-                from ..redis_core.client import get_redis_client
+                from redis_core.client import get_redis_client
 
                 redis_client = get_redis_client()
                 redis_backup = await redis_client.create_backup()
@@ -593,7 +593,7 @@ class MaintenanceJobs:
 
             # Backup file storage
             try:
-                from ..infrastructure.storage import get_cloud_storage
+                from infrastructure.storage import get_cloud_storage
 
                 storage_service = get_cloud_storage()
                 storage_backup = await storage_service.create_backup()
@@ -658,7 +658,7 @@ class MaintenanceJobs:
 
             # Check database health
             try:
-                from backend.core.database import get_database_service
+                from core.database import get_database_service
 
                 database_service = await get_database_service()
                 if database_service:
@@ -670,7 +670,7 @@ class MaintenanceJobs:
 
             # Check Redis health
             try:
-                from ..redis_core.client import get_redis_client
+                from redis_core.client import get_redis_client
 
                 redis_client = get_redis_client()
                 redis_health = await redis_client.health_check()
@@ -681,7 +681,7 @@ class MaintenanceJobs:
 
             # Check storage health
             try:
-                from ..infrastructure.storage import get_cloud_storage
+                from infrastructure.storage import get_cloud_storage
 
                 storage_service = get_cloud_storage()
                 storage_health = await storage_service.health_check()
@@ -692,7 +692,7 @@ class MaintenanceJobs:
 
             # Check agent system health
             try:
-                from backend.agents.core.registry import get_agent_registry
+                from agents.core.registry import get_agent_registry
 
                 agent_registry = get_agent_registry()
                 agent_health = await agent_registry.health_check()

@@ -6,9 +6,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from backend.core.supabase_mgr import get_supabase_client
+from ..core.supabase_mgr import get_supabase_client
 
-from .base import BaseModel, Repository
+from ..base import BaseModel, Repository
 
 
 @dataclass

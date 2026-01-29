@@ -7,7 +7,7 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from redis.client import Redis
+from .redis.client import Redis
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +119,7 @@ async def deduct_from_budget(
         )
 
         # Emit usage event
-        from .events_all import emit_usage_recorded
+        from events_all import emit_usage_recorded
 
         await emit_usage_recorded(workspace_id, tokens, cost, user_id)
 

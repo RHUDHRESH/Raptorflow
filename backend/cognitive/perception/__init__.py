@@ -4,7 +4,7 @@ Perception Module
 Handles input understanding and context extraction for the cognitive engine.
 """
 
-from .perception import (
+from perception import (
     EntityType,
     ExtractedEntity,
     FormalityType,

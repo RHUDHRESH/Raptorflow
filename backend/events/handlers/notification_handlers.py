@@ -6,10 +6,10 @@ Handle events that trigger user notifications, emails, and alerts.
 import logging
 from typing import Any, Dict, Optional
 
-from backend.services.email_service import EmailService
-from backend.services.notification_service import NotificationService
+from ..services.email_service import EmailService
+from ..services.notification_service import NotificationService
 
-from ..types import ApprovalRequestedEvent, Event, EventType, UsageLimitReachedEvent
+from types import ApprovalRequestedEvent, Event, EventType, UsageLimitReachedEvent
 
 logger = logging.getLogger(__name__)
 
@@ -236,7 +236,7 @@ async def on_usage_limit_exceeded(event: Event) -> None:
 # Register all handlers
 def register_notification_handlers():
     """Register all notification event handlers."""
-    from ..bus import subscribe_event
+    from bus import subscribe_event
 
     handlers = [
         (EventType.APPROVAL_REQUESTED, on_approval_requested),

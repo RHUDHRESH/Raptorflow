@@ -22,7 +22,7 @@ import base64
 import os
 import re
 
-from backend.core.audit_logger import audit_logger, EventType, LogLevel
+from .core.audit_logger import audit_logger, EventType, LogLevel
 
 logger = logging.getLogger(__name__)
 
@@ -122,40 +122,40 @@ class PaymentComplianceManager:
     Production-Ready Payment Compliance Manager
     Implements PCI DSS, GDPR, and other compliance standards
     """
-    
+
     def __init__(self, redis_client: redis.Redis):
         self.redis = redis_client
-        
+
         # Configuration
         self.default_encryption_level = EncryptionLevel.AES_256
         self.default_retention_period = RetentionPeriod.DAYS_2555
-        
+
         # Encryption keys
         self._encryption_keys: Dict[str, EncryptionKey] = {}
         self._key_storage_prefix = "compliance_keys:"
-        
+
         # Compliance rules
         self._compliance_rules: Dict[str, ComplianceRule] = {}
         self._load_default_rules()
-        
+
         # Data subject requests
         self._data_subject_requests: Dict[str, DataSubjectRequest] = {}
         self._dsr_prefix = "data_subject_requests:"
-        
+
         # Audit logs
         self._audit_logs: List[ComplianceAuditLog] = []
         self._audit_prefix = "compliance_audit:"
-        
+
         # Redis keys
         self.rules_prefix = "compliance_rules:"
         self.audit_prefix = "compliance_audit:"
         self.keys_prefix = "compliance_keys:"
-        
+
         # Initialize
         asyncio.create_task(self._initialize())
-        
+
         logger.info("Payment Compliance Manager initialized")
-    
+
     def _load_default_rules(self):
         """Load default compliance rules"""
         default_rules = [
@@ -193,7 +193,7 @@ class PaymentComplianceManager:
                 audit_logging_required=True,
                 access_controls=["access_logged", "tamper_protected"]
             ),
-            
+
             # GDPR Rules
             ComplianceRule(
                 rule_id="gdpr_001",
@@ -228,7 +228,7 @@ class PaymentComplianceManager:
                 audit_logging_required=True,
                 access_controls=["breach_monitoring", "automated_alerts"]
             ),
-            
+
             # General Financial Rules
             ComplianceRule(
                 rule_id="financial_001",
@@ -253,33 +253,33 @@ class PaymentComplianceManager:
                 access_controls=["integrity_checks", "audit_trail"]
             )
         ]
-        
+
         for rule in default_rules:
             self._compliance_rules[rule.rule_id] = rule
-    
+
     async def _initialize(self):
         """Initialize compliance manager"""
         try:
             # Load existing encryption keys
             await self._load_encryption_keys()
-            
+
             # Generate master encryption key if not exists
             await self._ensure_master_key()
-            
+
             # Store compliance rules in Redis
             await self._store_compliance_rules()
-            
+
             logger.info("Compliance manager initialized successfully")
-            
+
         except Exception as e:
             logger.error(f"Error initializing compliance manager: {e}")
-    
+
     async def _load_encryption_keys(self):
         """Load existing encryption keys from Redis"""
         try:
             pattern = f"{self._key_storage_prefix}*"
             keys = self.redis.keys(pattern)
-            
+
             for key_data in keys:
                 try:
                     key_info = json.loads(self.redis.get(key_data))
@@ -296,19 +296,19 @@ class PaymentComplianceManager:
                     self._encryption_keys[encryption_key.key_id] = encryption_key
                 except Exception as e:
                     logger.error(f"Error loading encryption key {key_data}: {e}")
-            
+
         except Exception as e:
             logger.error(f"Error loading encryption keys: {e}")
-    
+
     async def _ensure_master_key(self):
         """Ensure master encryption key exists"""
         try:
             master_key_id = "master_key"
-            
+
             if master_key_id not in self._encryption_keys:
                 # Generate new master key
                 master_key = Fernet.generate_key()
-                
+
                 # Store encrypted master key
                 encrypted_key = base64.b64encode(master_key).decode()
                 key_data = {
@@ -319,9 +319,9 @@ class PaymentComplianceManager:
                     "status": "ACTIVE",
                     "usage_count": 0
                 }
-                
+
                 self.redis.set(f"{self._key_storage_prefix}{master_key_id}", json.dumps(key_data))
-                
+
                 # Create encryption key object
                 encryption_key = EncryptionKey(
                     key_id=master_key_id,
@@ -330,14 +330,14 @@ class PaymentComplianceManager:
                     created_at=datetime.now(),
                     status="ACTIVE"
                 )
-                
+
                 self._encryption_keys[master_key_id] = encryption_key
-                
+
                 logger.info("Generated new master encryption key")
-            
+
         except Exception as e:
             logger.error(f"Error ensuring master key: {e}")
-    
+
     async def _store_compliance_rules(self):
         """Store compliance rules in Redis"""
         try:
@@ -355,12 +355,12 @@ class PaymentComplianceManager:
                     "enabled": rule.enabled,
                     "created_at": rule.created_at.isoformat()
                 }
-                
+
                 self.redis.set(f"{self.rules_prefix}{rule.rule_id}", json.dumps(rule_data))
-            
+
         except Exception as e:
             logger.error(f"Error storing compliance rules: {e}")
-    
+
     async def encrypt_data(
         self,
         data: Union[str, Dict[str, Any]],
@@ -375,7 +375,7 @@ class PaymentComplianceManager:
             rule = self._get_applicable_rule(classification)
             if not rule or not rule.encryption_required:
                 return data, {"encrypted": False, "reason": "Encryption not required"}
-            
+
             # Get encryption key
             if key_id:
                 if key_id not in self._encryption_keys:
@@ -383,13 +383,13 @@ class PaymentComplianceManager:
                 encryption_key = self._encryption_keys[key_id]
             else:
                 encryption_key = self._encryption_keys["master_key"]
-            
+
             # Serialize data
             if isinstance(data, dict):
                 data_str = json.dumps(data, default=str, separators=(',', ':'))
             else:
                 data_str = str(data)
-            
+
             # Encrypt data
             if encryption_key.algorithm == "Fernet":
                 cipher = Fernet(base64.b64decode(encryption_key.key_id.encode()))
@@ -398,12 +398,12 @@ class PaymentComplianceManager:
             else:
                 # For other algorithms, implement accordingly
                 encrypted_str = data_str  # Placeholder
-            
+
             # Update usage count
             encryption_key.usage_count += 1
             encryption_key.last_used = datetime.now()
             await self._update_key_usage(encryption_key)
-            
+
             # Log encryption event
             await self._log_compliance_event(
                 standard=rule.standard,
@@ -416,18 +416,18 @@ class PaymentComplianceManager:
                     "data_size": len(data_str)
                 }
             )
-            
+
             return encrypted_str, {
                 "encrypted": True,
                 "key_id": encryption_key.key_id,
                 "algorithm": encryption_key.algorithm,
                 "classification": classification.value
             }
-            
+
         except Exception as e:
             logger.error(f"Error encrypting data: {e}")
             return data, {"encrypted": False, "error": str(e)}
-    
+
     async def decrypt_data(
         self,
         encrypted_data: str,
@@ -444,13 +444,13 @@ class PaymentComplianceManager:
                 encryption_key = self._encryption_keys[key_id]
             else:
                 encryption_key = self._encryption_keys["master_key"]
-            
+
             # Decrypt data
             if encryption_key.algorithm == "Fernet":
                 cipher = Fernet(base64.b64decode(encryption_key.key_id.encode()))
                 decoded_data = base64.b64decode(encrypted_data.encode())
                 decrypted_data = cipher.decrypt(decoded_data).decode()
-                
+
                 # Try to parse as JSON first
                 try:
                     return json.loads(decrypted_data)
@@ -459,11 +459,11 @@ class PaymentComplianceManager:
             else:
                 # For other algorithms, implement accordingly
                 return encrypted_data  # Placeholder
-            
+
         except Exception as e:
             logger.error(f"Error decrypting data: {e}")
             raise
-    
+
     async def check_compliance(
         self,
         data: Union[str, Dict[str, Any]],
@@ -476,13 +476,13 @@ class PaymentComplianceManager:
         """
         try:
             rule = self._get_applicable_rule(classification)
-            
+
             if not rule:
                 return {
                     "compliant": True,
                     "reason": "No applicable compliance rule"
                 }
-            
+
             compliance_result = {
                 "compliant": True,
                 "standard": rule.standard.value,
@@ -493,7 +493,7 @@ class PaymentComplianceManager:
                 "access_controls": rule.access_controls,
                 "retention_period": rule.retention_period.value
             }
-            
+
             # Check encryption requirement
             if rule.encryption_required:
                 is_encrypted = isinstance(data, str) and len(data) > 50  # Simple check for encrypted data
@@ -501,7 +501,7 @@ class PaymentComplianceManager:
                     compliance_result["compliant"] = False
                     compliance_result["violation"] = "ENCRYPTION_REQUIRED"
                     compliance_result["required_level"] = self.default_encryption_level.value
-            
+
             # Check access controls
             for control in rule.access_controls:
                 if control == "authenticated" and not user_id:
@@ -510,7 +510,7 @@ class PaymentComplianceManager:
                 elif control == "authorized" and not self._check_authorization(user_id, action):
                     compliance_result["compliant"] = False
                     compliance_result["violations"] = "AUTHORIZATION_REQUIRED"
-            
+
             # Log compliance check
             await self._log_compliance_event(
                 standard=rule.standard,
@@ -524,20 +524,20 @@ class PaymentComplianceManager:
                     "violations": compliance_result.get("violations", [])
                 }
             )
-            
+
             return compliance_result
-            
+
         except Exception as e:
             logger.error(f"Error checking compliance: {e}")
             return {"compliant": False, "error": str(e)}
-    
+
     def _get_applicable_rule(self, classification: DataClassification) -> Optional[ComplianceRule]:
         """Get most applicable compliance rule for data classification"""
         applicable_rules = [
             rule for rule in self._compliance_rules.values()
             if rule.enabled and rule.data_classification == classification
         ]
-        
+
         # Return most restrictive rule (highest security requirements)
         if applicable_rules:
             # Prioritize by standard (PCI DSS > GDPR > others)
@@ -548,17 +548,17 @@ class PaymentComplianceManager:
                 ComplianceStandard.HIPAA: 1,
                 ComplianceStandard.ISO_27001: 1
             }
-            
+
             return max(applicable_rules, key=lambda r: standard_priority.get(r.standard, 0))
-        
+
         return None
-    
+
     def _check_authorization(self, user_id: str, action: str) -> bool:
         """Check if user is authorized for action"""
         # This would integrate with your authorization system
         # For now, return True as placeholder
         return True
-    
+
     async def log_data_access(
         self,
         user_id: str,
@@ -571,7 +571,7 @@ class PaymentComplianceManager:
         """Log data access for audit trail"""
         try:
             rule = self._get_applicable_rule(classification)
-            
+
             if rule and rule.audit_logging_required:
                 audit_log = ComplianceAuditLog(
                     log_id=str(uuid.uuid4()),
@@ -588,15 +588,15 @@ class PaymentComplianceManager:
                         "access_controls": rule.access_controls
                     }
                 )
-                
+
                 self._audit_logs.append(audit_log)
-                
+
                 # Store in Redis
                 await self._store_audit_log(audit_log)
-            
+
         except Exception as e:
             logger.error(f"Error logging data access: {e}")
-    
+
     async def _store_audit_log(self, audit_log: ComplianceAuditLog):
         """Store audit log in Redis"""
         try:
@@ -614,18 +614,18 @@ class PaymentComplianceManager:
                 "result": audit_log.result,
                 "details": audit_log.details
             }
-            
+
             log_key = f"{self._audit_prefix}{audit_log.log_id}"
-            
+
             # Set expiration based on retention period
             rule = self._compliance_rules.get(audit_log.rule_id)
             if rule:
                 retention_days = rule.retention_period.value
                 self.redis.setex(log_key, retention_days * 86400, json.dumps(log_data))
-            
+
         except Exception as e:
             logger.error(f"Error storing audit log: {e}")
-    
+
     async def _log_compliance_event(
         self,
         standard: ComplianceStandard,
@@ -649,13 +649,13 @@ class PaymentComplianceManager:
                 result="SUCCESS" if result else "FAILURE",
                 details=details or {}
             )
-            
+
             self._audit_logs.append(audit_log)
             await self._store_audit_log(audit_log)
-            
+
         except Exception as e:
             logger.error(f"Error logging compliance event: {e}")
-    
+
     async def _update_key_usage(self, encryption_key: EncryptionKey):
         """Update encryption key usage information"""
         try:
@@ -668,12 +668,12 @@ class PaymentComplianceManager:
                 "usage_count": encryption_key.usage_count,
                 "last_used": encryption_key.last_used.isoformat() if encryption_key.last_used else None
             }
-            
+
             self.redis.set(f"{self._key_storage_prefix}{encryption_key.key_id}", json.dumps(key_data))
-            
+
         except Exception as e:
             logger.error(f"Error updating key usage: {e}")
-    
+
     async def create_data_subject_request(
         self,
         subject_id: str,
@@ -691,9 +691,9 @@ class PaymentComplianceManager:
                 reason=reason,
                 status="PENDING"
             )
-            
+
             self._data_subject_requests[dsr.request_id] = dsr
-            
+
             # Store in Redis
             dsr_data = {
                 "request_id": dsr.request_id,
@@ -704,9 +704,9 @@ class PaymentComplianceManager:
                 "status": dsr.status,
                 "created_at": dsr.created_at.isoformat()
             }
-            
+
             self.redis.set(f"{self._dsr_prefix}{dsr.request_id}", json.dumps(dsr_data))
-            
+
             # Log request creation
             await self._log_compliance_event(
                 standard=ComplianceStandard.GDPR,
@@ -719,13 +719,13 @@ class PaymentComplianceManager:
                     "subject_id": dsr.subject_id
                 }
             )
-            
+
             return dsr.request_id
-            
+
         except Exception as e:
             logger.error(f"Error creating data subject request: {e}")
             raise
-    
+
     async def process_data_subject_request(
         self,
         request_id: str,
@@ -737,13 +737,13 @@ class PaymentComplianceManager:
         try:
             if request_id not in self._data_subject_requests:
                 raise ValueError(f"Data subject request {request_id} not found")
-            
+
             dsr = self._data_subject_requests[request_id]
             dsr.status = result
             dsr.processed_at = datetime.now()
             dsr.processor_id = processor_id
             dsr.notes = notes
-            
+
             # Update in Redis
             dsr_data = {
                 "status": dsr.status,
@@ -751,9 +751,9 @@ class PaymentComplianceManager:
                 "processor_id": dsr.processor_id,
                 "notes": dsr.notes
             }
-            
+
             self.redis.set(f"{self._dsr_prefix}{request_id}", json.dumps(dsr_data))
-            
+
             # Log processing
             await self._log_compliance_event(
                 standard=ComplianceStandard.GDPR,
@@ -767,18 +767,18 @@ class PaymentComplianceManager:
                     "result": result
                 }
             )
-            
+
         except Exception as e:
             logger.error(f"Error processing data subject request: {e}")
             raise
-    
+
     async def get_data_subject_request(self, request_id: str) -> Optional[DataSubjectRequest]:
         """Get data subject request details"""
         try:
             if request_id in self._data_subject_requests:
                 dsr = self._data_subject_requests[request_id]
                 return dsr
-            
+
             # Try to get from Redis
             dsr_data = self.redis.get(f"{self._dsr_prefix}{request_id}")
             if dsr_data:
@@ -795,12 +795,12 @@ class PaymentComplianceManager:
                     processor_id=data.get("processor_id"),
                     notes=data.get("notes")
                 )
-            
+
         except Exception as e:
             logger.error(f"Error getting data subject request: {e}")
-        
+
         return None
-    
+
     async def right_to_be_forgotten(
         self,
         user_id: str,
@@ -817,54 +817,54 @@ class PaymentComplianceManager:
                 data_categories=data_categories,
                 reason=reason
             )
-            
+
             await self.process_data_subject_request(
                 request_id=request_id,
                 processor_id="system",
                 result="COMPLETED",
                 notes="Data deletion request processed"
             )
-            
+
             return request_id
-            
+
         except Exception as e:
             logger.error(f"Error processing right to be forgotten request: {e}")
             raise
-    
+
     async def cleanup_expired_data(self) -> int:
         """Clean up expired data based on retention policies"""
         try:
             cleaned_count = 0
-            
+
             # Clean up old audit logs
             cutoff_time = datetime.now() - timedelta(days=self.default_retention_period.value)
-            
+
             expired_logs = [
                 log for log in self._audit_logs
                 if log.timestamp < cutoff_time
             ]
-            
+
             for log in expired_logs:
                 self._audit_logs.remove(log)
                 cleaned_count += 1
-            
+
             # Clean up old data subject requests
             dsr_cutoff_time = datetime.now() - timedelta(days=365)  # 1 year for GDPR
-            
+
             expired_dsrs = [
                 dsr_id for dsr_id, dsr in self._data_subject_requests.items()
                 if dsr.created_at < dsr_cutoff_time and dsr.status == "COMPLETED"
             ]
-            
+
             for dsr_id in expired_dsrs:
                 del self._data_subject_requests[dsr_id]
                 self.redis.delete(f"{self._dsr_prefix}{dsr_id}")
                 cleaned_count += 1
-            
+
             # Clean up Redis data with expired TTL
             # This would require scanning all compliance-related keys
             # For now, return count of cleaned items
-            
+
             await self._log_compliance_event(
                 standard=ComplianceStandard.PCI_DSS,
                 rule_id="data_cleanup",
@@ -874,13 +874,13 @@ class PaymentComplianceManager:
                     "cleaned_items": cleaned_count
                 }
             )
-            
+
             return cleaned_count
-            
+
         except Exception as e:
             logger.error(f"Error cleaning up expired data: {e}")
             return 0
-    
+
     async def generate_compliance_report(self, standard: Optional[ComplianceStandard] = None) -> Dict[str, Any]:
         """Generate comprehensive compliance report"""
         try:
@@ -888,7 +888,7 @@ class PaymentComplianceManager:
                 "timestamp": datetime.now().isoformat(),
                 "standards": {}
             }
-            
+
             if standard:
                 # Generate report for specific standard
                 report["standards"][standard.value] = await self._generate_standard_report(standard)
@@ -896,7 +896,7 @@ class PaymentComplianceManager:
                 # Generate report for all standards
                 for std in ComplianceStandard:
                     report["standards"][std.value] = await self._generate_standard_report(std)
-            
+
             # Add summary statistics
             report["summary"] = {
                 "total_rules": len(self._compliance_rules),
@@ -906,13 +906,13 @@ class PaymentComplianceManager:
                 "encryption_keys": len(self._encryption_keys),
                 "data_retention_days": self.default_retention_period.value
             }
-            
+
             return report
-            
+
         except Exception as e:
             logger.error(f"Error generating compliance report: {e}")
             return {"error": str(e)}
-    
+
     async def _generate_standard_report(self, standard: ComplianceStandard) -> Dict[str, Any]:
         """Generate compliance report for specific standard"""
         try:
@@ -920,27 +920,27 @@ class PaymentComplianceManager:
                 rule for rule in self._compliance_rules.values()
                 if rule.standard == standard
             ]
-            
+
             # Get recent audit logs for this standard
             recent_logs = [
                 log for log in self._audit_logs
                 if log.standard == standard
             ][-100:]  # Last 100 logs
-            
+
             # Calculate compliance metrics
             total_checks = 0
             passed_checks = 0
             failed_checks = 0
-            
+
             for log in recent_logs:
                 total_checks += 1
                 if log.result == "SUCCESS":
                     passed_checks += 1
                 else:
                     failed_checks += 1
-            
+
             compliance_rate = (passed_checks / total_checks * 100) if total_checks > 0 else 0
-            
+
             return {
                 "standard": standard.value,
                 "total_rules": len(standard_rules),
@@ -952,11 +952,11 @@ class PaymentComplianceManager:
                 "failed_checks": failed_checks,
                 "last_updated": datetime.now().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Error generating standard report: {e}")
             return {"error": str(e)}
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Health check for compliance manager"""
         try:
@@ -967,15 +967,15 @@ class PaymentComplianceManager:
             except Exception as e:
                 redis_healthy = False
                 redis_error = str(e)
-            
+
             # Check encryption keys
             active_keys = sum(1 for key in self._encryption_keys if key.status == "ACTIVE")
-            
+
             # Check data subject requests
             pending_dsrs = sum(1 for dsr in self._data_subject_requests.values() if dsr.status == "PENDING")
-            
+
             overall_healthy = redis_healthy
-            
+
             return {
                 "status": "healthy" if overall_healthy else "unhealthy",
                 "message": "Compliance manager is operational" if overall_healthy else "Compliance manager has issues",
@@ -1004,7 +1004,7 @@ class PaymentComplianceManager:
                     "redis": "healthy" if redis_healthy else f"unhealthy: {redis_error}"
                 }
             }
-            
+
         except Exception as e:
             return {
                 "status": "unhealthy",

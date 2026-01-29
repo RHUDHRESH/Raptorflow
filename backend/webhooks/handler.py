@@ -15,8 +15,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from ..infrastructure.cloud_monitoring import get_cloud_monitoring
-from ..infrastructure.logging import get_cloud_logging
+from infrastructure.cloud_monitoring import get_cloud_monitoring
+from infrastructure.logging import get_cloud_logging
 from .models import (
     WebhookConfig,
     WebhookDelivery,
@@ -26,7 +26,7 @@ from .models import (
     WebhookRetry,
     WebhookSignature,
 )
-from .verification import WebhookVerifier, get_webhook_verifier
+from verification import WebhookVerifier, get_webhook_verifier
 
 logger = logging.getLogger(__name__)
 
@@ -403,7 +403,7 @@ class WebhookHandler:
             user_data = event.data.get("record", {})
 
             # Process user creation
-            from backend.core.user import get_user_service
+            from core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -423,7 +423,7 @@ class WebhookHandler:
             user_data = event.data.get("record", {})
 
             # Process user update
-            from backend.core.user import get_user_service
+            from core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -443,7 +443,7 @@ class WebhookHandler:
             user_data = event.data.get("record", {})
 
             # Process user deletion
-            from backend.core.user import get_user_service
+            from core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -461,7 +461,7 @@ class WebhookHandler:
             auth_data = event.data.get("user", {})
 
             # Process login
-            from backend.core.auth import get_auth_service
+            from core.auth import get_auth_service
 
             auth_service = get_auth_service()
 
@@ -479,7 +479,7 @@ class WebhookHandler:
             auth_data = event.data.get("user", {})
 
             # Process logout
-            from backend.core.auth import get_auth_service
+            from core.auth import get_auth_service
 
             auth_service = get_auth_service()
 
@@ -500,7 +500,7 @@ class WebhookHandler:
             payment_data = event.data.get("object", {})
 
             # Process payment success
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -520,7 +520,7 @@ class WebhookHandler:
             payment_data = event.data.get("object", {})
 
             # Process payment failure
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -540,7 +540,7 @@ class WebhookHandler:
             invoice_data = event.data.get("object", {})
 
             # Process invoice creation
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -560,7 +560,7 @@ class WebhookHandler:
             invoice_data = event.data.get("object", {})
 
             # Process invoice payment success
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -580,7 +580,7 @@ class WebhookHandler:
             subscription_data = event.data.get("object", {})
 
             # Process subscription creation
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -600,7 +600,7 @@ class WebhookHandler:
             subscription_data = event.data.get("object", {})
 
             # Process subscription update
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -620,7 +620,7 @@ class WebhookHandler:
             subscription_data = event.data.get("object", {})
 
             # Process subscription deletion
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -641,7 +641,7 @@ class WebhookHandler:
             payment_data = event.data.get("payment", {})
 
             # Process payment initiation
-            from ..billing.phonepe_service import get_phonepe_service
+            from billing.phonepe_service import get_phonepe_service
 
             phonepe_service = get_phonepe_service()
 
@@ -661,7 +661,7 @@ class WebhookHandler:
             payment_data = event.data.get("payment", {})
 
             # Process payment success
-            from ..billing.phonepe_service import get_phonepe_service
+            from billing.phonepe_service import get_phonepe_service
 
             phonepe_service = get_phonepe_service()
 
@@ -681,7 +681,7 @@ class WebhookHandler:
             payment_data = event.data.get("payment", {})
 
             # Process payment failure
-            from ..billing.phonepe_service import get_phonepe_service
+            from billing.phonepe_service import get_phonepe_service
 
             phonepe_service = get_phonepe_service()
 
@@ -701,7 +701,7 @@ class WebhookHandler:
             refund_data = event.data.get("refund", {})
 
             # Process refund
-            from ..billing.phonepe_service import get_phonepe_service
+            from billing.phonepe_service import get_phonepe_service
 
             phonepe_service = get_phonepe_service()
 

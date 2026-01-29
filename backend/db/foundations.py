@@ -6,9 +6,9 @@ Handles CRUD operations for foundation data
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.core.models import ValidationError
-from backend.core.supabase_mgr import get_supabase_client
-from backend.db.base import Repository
+from .core.models import ValidationError
+from .core.supabase_mgr import get_supabase_client
+from db.base import Repository
 
 
 class FoundationRepository(Repository):

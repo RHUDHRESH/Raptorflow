@@ -29,6 +29,8 @@ import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { useCampaignStore, CampaignMove, MoveStatus } from "@/stores/campaignStore";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { BCMIndicator } from "@/components/bcm/BCMIndicator";
+import { BCMExportButton } from "@/components/bcm/BCMExportButton";
 import { CampaignWizard } from "@/components/campaigns/CampaignWizard";
 import { CampaignTimeline } from "@/components/campaigns/CampaignTimeline";
 
@@ -57,7 +59,7 @@ export default function CampaignsPage() {
     getActiveCampaign
   } = useCampaignStore();
 
-  const { profile } = useAuth();
+  const { profileStatus } = useAuth();
 
   const [activeTab, setActiveTab] = useState<ViewTab>("active");
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,10 +73,10 @@ export default function CampaignsPage() {
   }, []);
 
   useEffect(() => {
-    if (profile?.workspace_id) {
-      fetchCampaigns(profile.workspace_id);
+    if (profileStatus?.workspaceId) {
+      fetchCampaigns(profileStatus.workspaceId);
     }
-  }, [profile?.workspace_id, fetchCampaigns]);
+  }, [profileStatus?.workspaceId, fetchCampaigns]);
 
   useEffect(() => {
     if (!pageRef.current || !mounted) return;
@@ -131,8 +133,8 @@ export default function CampaignsPage() {
     icp: string;
     channels: string[];
   }) => {
-    if (profile?.workspace_id) {
-      const created = await createCampaign(data, profile.workspace_id);
+    if (profileStatus?.workspaceId) {
+      const created = await createCampaign(data, profileStatus.workspaceId);
       if (created) {
         setActiveCampaign(created.id);
         setView("DETAIL");
@@ -193,17 +195,23 @@ export default function CampaignsPage() {
           <div className="border-b border-[var(--border)] bg-[var(--paper)]">
             <div className="max-w-6xl mx-auto px-6 py-6">
               <div className="flex items-start justify-between">
-                <div>
+                <div className="flex-1">
                   <h1 className="font-serif text-3xl text-[var(--ink)]">Campaigns</h1>
                   <p className="text-sm text-[var(--muted)] mt-1">Strategic initiatives & 90-day war rooms</p>
                 </div>
-                <button
-                  onClick={() => setView("WIZARD")}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium text-sm"
-                >
-                  <Plus size={16} />
-                  New Campaign
-                </button>
+
+                {/* BCM Controls */}
+                <div className="flex items-center gap-3 ml-6">
+                  <BCMIndicator workspaceId={profileStatus?.workspaceId || ""} compact={true} />
+                  <BCMExportButton workspaceId={profileStatus?.workspaceId || ""} />
+                  <button
+                    onClick={() => setView("WIZARD")}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium text-sm"
+                  >
+                    <Plus size={16} />
+                    New Campaign
+                  </button>
+                </div>
               </div>
 
               {/* Tabs */}

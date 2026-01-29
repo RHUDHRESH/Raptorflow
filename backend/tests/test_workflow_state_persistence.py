@@ -9,27 +9,27 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
 # Import base classes
-from backend.agents.base import BaseAgent
-from backend.agents.specialists.analytics_agent import AnalyticsAgent
-from backend.agents.specialists.blackbox_strategist import BlackboxStrategist
-from backend.agents.specialists.campaign_planner import CampaignPlanner
-from backend.agents.specialists.content_creator import ContentCreator
-from backend.agents.specialists.icp_architect import ICPArchitect
-from backend.agents.specialists.market_research import MarketResearch
-from backend.agents.specialists.move_strategist import MoveStrategist
+from .agents.base import BaseAgent
+from .agents.specialists.analytics_agent import AnalyticsAgent
+from .agents.specialists.blackbox_strategist import BlackboxStrategist
+from .agents.specialists.campaign_planner import CampaignPlanner
+from .agents.specialists.content_creator import ContentCreator
+from .agents.specialists.icp_architect import ICPArchitect
+from .agents.specialists.market_research import MarketResearch
+from .agents.specialists.move_strategist import MoveStrategist
 
 # Import agent classes
-from backend.agents.specialists.onboarding_orchestrator import OnboardingOrchestrator
+from .agents.specialists.onboarding_orchestrator import OnboardingOrchestrator
 
 # Import workflow classes
-from backend.agents.workflows.base_workflow import (
+from .agents.workflows.base_workflow import (
     BaseWorkflow,
     WorkflowState,
     WorkflowStatus,
 )
-from backend.agents.workflows.content_workflow import ContentWorkflow
-from backend.agents.workflows.onboarding_workflow import OnboardingWorkflow
-from backend.agents.workflows.strategy_workflow import StrategyWorkflow
+from .agents.workflows.content_workflow import ContentWorkflow
+from .agents.workflows.onboarding_workflow import OnboardingWorkflow
+from .agents.workflows.strategy_workflow import StrategyWorkflow
 
 logger = logging.getLogger(__name__)
 

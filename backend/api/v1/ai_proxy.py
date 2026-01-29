@@ -10,8 +10,8 @@ from typing import Any, Dict, Optional
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.core.auth import get_current_user
-from backend.core.models import User
+from core.auth import get_current_user
+from core.models import User
 
 router = APIRouter(prefix="/ai", tags=["ai-proxy"])
 logger = logging.getLogger(__name__)
@@ -26,8 +26,7 @@ if not VERTEX_AI_API_KEY:
 
 @router.post("/generate")
 async def generate_content(
-    request: Dict[str, Any],
-    current_user: User = Depends(get_current_user)
+    request: Dict[str, Any], current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Proxy for Vertex AI generateContent API
@@ -37,8 +36,7 @@ async def generate_content(
         prompt = request.get("prompt")
         if not prompt:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="prompt is required"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="prompt is required"
             )
 
         model = request.get("model", "gemini-2.0-flash-exp")
@@ -50,24 +48,24 @@ async def generate_content(
             response = await client.post(
                 f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={VERTEX_AI_API_KEY}",
                 json={
-                    "contents": [{
-                        "parts": [{"text": prompt}]
-                    }],
+                    "contents": [{"parts": [{"text": prompt}]}],
                     "generationConfig": {
                         "temperature": temperature,
                         "maxOutputTokens": max_tokens,
-                    }
+                    },
                 },
                 headers={
                     "Content-Type": "application/json",
-                }
+                },
             )
 
             if response.status_code != 200:
-                logger.error(f"Vertex AI API error: {response.status_code} - {response.text}")
+                logger.error(
+                    f"Vertex AI API error: {response.status_code} - {response.text}"
+                )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="AI service temporarily unavailable"
+                    detail="AI service temporarily unavailable",
                 )
 
             result = response.json()
@@ -75,7 +73,7 @@ async def generate_content(
             if not result.get("candidates"):
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="AI service returned no content"
+                    detail="AI service returned no content",
                 )
 
             content = result["candidates"][0]["content"]["parts"][0]["text"]
@@ -83,7 +81,9 @@ async def generate_content(
 
             # Log usage for cost tracking
             tokens_used = usage_metadata.get("totalTokenCount", 0)
-            logger.info(f"AI usage: user={current_user.id}, tokens={tokens_used}, model={model}")
+            logger.info(
+                f"AI usage: user={current_user.id}, tokens={tokens_used}, model={model}"
+            )
 
             return {
                 "content": content,
@@ -100,14 +100,14 @@ async def generate_content(
         logger.error(f"AI service request error: {e}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="AI service unavailable"
+            detail="AI service unavailable",
         )
 
     except Exception as e:
         logger.error(f"AI proxy error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error"
+            detail="Internal server error",
         )
 
 
@@ -125,13 +125,13 @@ async def list_models(current_user: User = Depends(get_current_user)) -> Dict[st
                 "context_length": 1048576,
             }
         ],
-        "default": "gemini-2.0-flash-exp"
+        "default": "gemini-2.0-flash-exp",
     }
 
 
 @router.get("/usage")
 async def get_usage_stats(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """
     Get AI usage statistics for current user
@@ -144,9 +144,5 @@ async def get_usage_stats(
         "tokens_used": 0,
         "requests_made": 0,
         "cost_usd": 0.0,
-        "limit": {
-            "tokens": 100000,
-            "requests": 1000,
-            "cost": 10.0
-        }
+        "limit": {"tokens": 100000, "requests": 1000, "cost": 10.0},
     }

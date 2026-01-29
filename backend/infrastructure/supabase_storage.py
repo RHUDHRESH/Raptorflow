@@ -15,8 +15,8 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, BinaryIO, Dict, List, Optional, Union
 
-from ..services.supabase_storage_client import get_supabase_storage_client
-from ..utils.storage_paths import (
+from .services.supabase_storage_client import get_supabase_storage_client
+from .utils.storage_paths import (
     generate_intelligence_path,
     generate_user_path,
     generate_workspace_path,

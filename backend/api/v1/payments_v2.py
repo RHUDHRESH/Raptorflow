@@ -1,24 +1,27 @@
 """
-PhonePe Payment API - Using Official SDK v2.1.7
-Clean, simple API endpoints for real payments
+Enhanced PhonePe Payment API v2
+Complete payment integration with email notifications and subscription management
 """
 
 import logging
 import os
-import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
-from pydantic import BaseModel, EmailStr
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, Depends
+from pydantic import BaseModel
 
-from backend.services.phonepe_sdk_gateway_fixed import (
-    PaymentRequest as SDKPaymentRequest,
+from services.payment_service import (
+    PaymentService,
+    PaymentRequest,
+    PaymentResponse,
+    PaymentError,
+    payment_service,
 )
-from backend.services.phonepe_sdk_gateway_fixed import (
-    RefundRequestData,
-    phonepe_sdk_gateway_fixed,
-)
+from services.email_service import EmailRecipient
+from core.supabase_mgr import get_supabase_admin
+from core.models import User, AuthContext
+from api.dependencies import get_current_user, get_auth_context
 
 logger = logging.getLogger(__name__)
 
@@ -27,22 +30,20 @@ router = APIRouter(prefix="/api/payments/v2", tags=["payments-v2"])
 
 # Request/Response Models
 class InitiatePaymentRequest(BaseModel):
-    amount: int  # Amount in paise
-    merchant_order_id: Optional[str] = None
-    redirect_url: str
-    customer_email: Optional[str] = None
-    customer_name: Optional[str] = None
+    plan: str  # starter, growth, enterprise
+    redirect_url: Optional[str] = None
+    webhook_url: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-    user_id: Optional[str] = None
 
 
 class InitiatePaymentResponse(BaseModel):
     success: bool
-    checkout_url: Optional[str] = None
-    transaction_id: Optional[str] = None
     merchant_order_id: Optional[str] = None
+    payment_url: Optional[str] = None
+    transaction_id: Optional[str] = None
     status: Optional[str] = None
     error: Optional[str] = None
+    expires_at: Optional[datetime] = None
 
 
 class StatusResponse(BaseModel):
@@ -51,116 +52,151 @@ class StatusResponse(BaseModel):
     transaction_id: Optional[str] = None
     amount: Optional[int] = None
     phonepe_transaction_id: Optional[str] = None
+    subscription: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
 
 
-class RefundRequest(BaseModel):
-    original_merchant_order_id: str
-    refund_amount: int
-    merchant_refund_id: Optional[str] = None
-    refund_reason: Optional[str] = None
-
-
-class RefundResponse(BaseModel):
+class PlansResponse(BaseModel):
     success: bool
-    refund_id: Optional[str] = None
-    state: Optional[str] = None
-    amount: Optional[int] = None
+    plans: Optional[list[Dict[str, Any]]] = None
     error: Optional[str] = None
+
+
+class WebhookResponse(BaseModel):
+    success: bool
+    message: str
 
 
 @router.post("/initiate", response_model=InitiatePaymentResponse)
-async def initiate_payment(request: InitiatePaymentRequest):
+async def initiate_payment(
+    request: InitiatePaymentRequest,
+    auth_context: AuthContext = Depends(get_auth_context),
+):
     """
-    Initiate a payment using PhonePe Standard Checkout (REAL SDK)
-
-    Returns a checkout_url to redirect the user to PhonePe payment page
+    Initiate a payment for subscription plan
     """
     try:
-        # Generate merchant order ID if not provided
-        if not request.merchant_order_id:
-            merchant_order_id = f"ORD{datetime.now().strftime('%Y%m%d%H%M%S')}{uuid.uuid4().hex[:6].upper()}"
-        else:
-            merchant_order_id = request.merchant_order_id
-
-        # Validate amount
-        if request.amount < 100:
+        # Validate plan
+        if request.plan not in payment_service.PLANS:
             raise HTTPException(
-                status_code=400, detail="Minimum amount is 100 paise (₹1)"
+                status_code=400,
+                detail=f"Invalid plan: {request.plan}. Valid plans: {list(payment_service.PLANS.keys())}",
             )
 
-        logger.info(
-            f"Initiating payment via SDK: {merchant_order_id}, Amount: ₹{request.amount/100}"
+        # Get plan configuration
+        plan_config = payment_service.PLANS[request.plan]
+
+        # Create payment request
+        payment_request = PaymentRequest(
+            workspace_id=auth_context.workspace_id,
+            plan=request.plan,
+            amount=plan_config.amount,
+            customer_email=auth_context.user.email,
+            customer_name=auth_context.user.full_name,
+            redirect_url=request.redirect_url,
+            webhook_url=request.webhook_url,
+            metadata=request.metadata,
         )
 
-        # Call the SDK gateway (REAL PhonePe API)
-        result = await phonepe_sdk_gateway_fixed.initiate_payment(
-            SDKPaymentRequest(
-                amount=request.amount,
-                merchant_order_id=merchant_order_id,
-                redirect_url=request.redirect_url,
-                callback_url=f"{os.getenv('NEXT_PUBLIC_API_URL', 'http://localhost:8000')}/api/payments/webhook",
-                customer_info={
-                    "email": request.customer_email,
-                    "name": request.customer_name,
-                },
-                user_id=request.user_id,
-                metadata=request.metadata,
-            )
-        )
+        # Initiate payment
+        result = payment_service.initiate_payment(payment_request)
 
         if result.success:
-            logger.info(f"Payment initiated successfully: {result.transaction_id}")
+            logger.info(
+                f"Payment initiated successfully for workspace {auth_context.workspace_id}, "
+                f"plan: {request.plan}, order_id: {result.merchant_order_id}"
+            )
             return InitiatePaymentResponse(
                 success=True,
-                checkout_url=result.checkout_url,
-                transaction_id=result.transaction_id,
-                merchant_order_id=merchant_order_id,
+                merchant_order_id=result.merchant_order_id,
+                payment_url=result.payment_url,
+                transaction_id=result.phonepe_transaction_id,
                 status=result.status,
+                expires_at=result.expires_at,
             )
         else:
             logger.error(f"Payment initiation failed: {result.error}")
-            return InitiatePaymentResponse(
-                success=False, merchant_order_id=merchant_order_id, error=result.error
-            )
+            return InitiatePaymentResponse(success=False, error=result.error)
 
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Payment initiation error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except PaymentError as exc:
+        logger.error(f"Payment service error: {exc}")
+        raise HTTPException(status_code=400, detail=f"Payment failed: {exc}")
+    except Exception as exc:
+        logger.error(f"Payment initiation error: {exc}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/status/{merchant_order_id}", response_model=StatusResponse)
-async def get_payment_status(merchant_order_id: str):
+async def get_payment_status(
+    merchant_order_id: str, auth_context: AuthContext = Depends(get_auth_context)
+):
     """
-    Check payment status using PhonePe SDK
+    Check payment status and subscription information
     """
     try:
-        logger.info(f"Checking payment status via SDK: {merchant_order_id}")
+        logger.info(f"Checking payment status: {merchant_order_id}")
 
-        result = await phonepe_sdk_gateway_fixed.check_payment_status(merchant_order_id)
+        # Check payment status
+        result = payment_service.check_payment_status(merchant_order_id)
 
         if result.success:
+            # Get subscription information
+            supabase = get_supabase_admin()
+            subscription_result = (
+                supabase.table("subscriptions")
+                .select("*")
+                .eq("workspace_id", auth_context.workspace_id)
+                .eq("status", "active")
+                .single()
+                .execute()
+            )
+
+            subscription_data = None
+            if subscription_result.data:
+                subscription_data = {
+                    "id": subscription_result.data["id"],
+                    "plan": subscription_result.data["plan"],
+                    "status": subscription_result.data["status"],
+                    "current_period_end": subscription_result.data[
+                        "current_period_end"
+                    ],
+                }
+
             return StatusResponse(
                 success=True,
                 status=result.status,
-                transaction_id=result.transaction_id,
+                transaction_id=result.phonepe_transaction_id,
                 amount=result.amount,
                 phonepe_transaction_id=result.phonepe_transaction_id,
+                subscription=subscription_data,
             )
         else:
             return StatusResponse(success=False, error=result.error)
 
-    except Exception as e:
-        logger.error(f"Status check error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        logger.error(f"Status check error: {exc}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/webhook")
+@router.get("/plans", response_model=PlansResponse)
+async def get_payment_plans():
+    """
+    Get available payment plans
+    """
+    try:
+        plans = payment_service.get_payment_plans()
+        return PlansResponse(success=True, plans=plans)
+    except Exception as exc:
+        logger.error(f"Get plans error: {exc}")
+        return PlansResponse(success=False, error=str(exc))
+
+
+@router.post("/webhook", response_model=WebhookResponse)
 async def handle_webhook(request: Request, background_tasks: BackgroundTasks):
     """
-    Handle PhonePe webhook callbacks (using SDK validation)
+    Handle PhonePe webhook callbacks
     """
     try:
         # Get authorization header
@@ -174,133 +210,54 @@ async def handle_webhook(request: Request, background_tasks: BackgroundTasks):
 
         logger.info("Received PhonePe webhook")
 
-        # Validate using SDK
-        result = await phonepe_sdk_gateway_fixed.validate_webhook(
-            authorization, body_str
-        )
+        # Validate webhook
+        validation_result = payment_service.validate_webhook(authorization, body_str)
 
-        if result.get("valid"):
-            callback_data = result.get("callback")
+        if validation_result["valid"]:
+            webhook_data = validation_result["data"]
 
             logger.info(
-                f"Webhook validated - Txn: {callback_data.merchant_transaction_id}, Code: {callback_data.code}"
+                f"Webhook validated - Txn: {webhook_data.get('merchantTransactionId')}, "
+                f"Code: {webhook_data.get('code')}"
             )
 
-            # Process based on callback type
-            if callback_data.code == "PAYMENT_SUCCESS":
-                background_tasks.add_task(
-                    process_payment_success, callback_data.__dict__
-                )
-            elif callback_data.code == "PAYMENT_ERROR":
-                background_tasks.add_task(
-                    process_payment_failure, callback_data.__dict__
-                )
+            # Process webhook in background
+            background_tasks.add_task(
+                payment_service.process_webhook_callback, webhook_data
+            )
 
-            return {"status": "success", "message": "Webhook processed"}
+            return WebhookResponse(
+                success=True, message="Webhook processed successfully"
+            )
         else:
-            logger.warning(f"Webhook validation failed: {result.get('error')}")
-            raise HTTPException(status_code=401, detail="Invalid webhook")
+            logger.warning("Webhook validation failed")
+            raise HTTPException(status_code=401, detail="Invalid webhook signature")
 
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Webhook error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/refund", response_model=RefundResponse)
-async def process_refund(request: RefundRequest):
-    """
-    Process refund using PhonePe SDK
-
-    Amount must be <= original transaction amount
-    """
-    try:
-        logger.info(f"Processing refund via SDK: {request.original_merchant_order_id}")
-
-        result = await phonepe_sdk_gateway_fixed.process_refund(
-            original_merchant_order_id=request.original_merchant_order_id,
-            refund_amount=request.refund_amount,
-            merchant_refund_id=request.merchant_refund_id,
-        )
-
-        if result.get("success"):
-            return RefundResponse(
-                success=True,
-                refund_id=result.get("refund_id"),
-                state=result.get("state"),
-                amount=result.get("amount"),
-            )
-        else:
-            return RefundResponse(success=False, error=result.get("error"))
-
-    except Exception as e:
-        logger.error(f"Refund error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/webhook")
-async def handle_webhook(request: Request, background_tasks: BackgroundTasks):
-    """
-    Handle PhonePe webhook callbacks (using SDK validation)
-    """
-    try:
-        # Get authorization header
-        authorization = request.headers.get("Authorization")
-        if not authorization:
-            raise HTTPException(status_code=401, detail="Missing Authorization header")
-
-        # Get raw body
-        body = await request.body()
-        body_str = body.decode("utf-8")
-
-        logger.info("Received PhonePe webhook")
-
-        # Validate using SDK
-        result = phonepe_sdk_gateway.validate_callback(authorization, body_str)
-
-        if result.get("valid"):
-            callback_data = result.get("callback_data", {})
-            callback_type = result.get("callback_type", "")
-
-            logger.info(
-                f"Webhook validated - Type: {callback_type}, State: {callback_data.get('state')}"
-            )
-
-            # Process based on callback type
-            if "COMPLETED" in callback_type:
-                background_tasks.add_task(process_payment_success, callback_data)
-            elif "FAILED" in callback_type:
-                background_tasks.add_task(process_payment_failure, callback_data)
-
-            return {"status": "success", "message": "Webhook processed"}
-        else:
-            logger.warning(f"Webhook validation failed: {result.get('error')}")
-            raise HTTPException(status_code=401, detail="Invalid webhook")
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Webhook error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        logger.error(f"Webhook error: {exc}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/health")
 async def health_check():
     """
-    Check PhonePe SDK gateway health
+    Check payment service health
     """
-    return phonepe_sdk_gateway_fixed.health_check()
-
-
-# Background tasks
-async def process_payment_success(callback_data: Dict[str, Any]):
-    """Process successful payment callback"""
-    logger.info(f"Processing payment success: {callback_data}")
-    # TODO: Update database, send email, etc.
-
-
-async def process_payment_failure(callback_data: Dict[str, Any]):
-    """Process failed payment callback"""
-    logger.info(f"Processing payment failure: {callback_data}")
-    # TODO: Update database, notify user, etc.
+    try:
+        # Test payment service initialization
+        plans = payment_service.get_payment_plans()
+        return {
+            "status": "healthy",
+            "service": "payment_service",
+            "plans_count": len(plans),
+            "timestamp": datetime.now().isoformat(),
+        }
+    except Exception as exc:
+        logger.error(f"Health check failed: {exc}")
+        return {
+            "status": "unhealthy",
+            "error": str(exc),
+            "timestamp": datetime.now().isoformat(),
+        }

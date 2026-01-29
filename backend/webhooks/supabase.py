@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..infrastructure.cloud_monitoring import get_cloud_monitoring
-from ..infrastructure.logging import get_cloud_logging
-from .handler import WebhookHandler, get_webhook_handler
+from infrastructure.cloud_monitoring import get_cloud_monitoring
+from infrastructure.logging import get_cloud_logging
+from handler import WebhookHandler, get_webhook_handler
 from .models import WebhookEvent, WebhookResponse
 
 logger = logging.getLogger(__name__)
@@ -189,7 +189,7 @@ class SupabaseWebhookHandler:
             auth_event = self._parse_auth_event(event.data)
 
             # Create user in local system
-            from backend.core.user import get_user_service
+            from core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -203,7 +203,7 @@ class SupabaseWebhookHandler:
             await user_service.create_user_from_supabase(user_data)
 
             # Send welcome notification
-            from ..notifications.notification_service import get_notification_service
+            from notifications.notification_service import get_notification_service
 
             notification_service = get_notification_service()
 
@@ -231,7 +231,7 @@ class SupabaseWebhookHandler:
             auth_event = self._parse_auth_event(event.data)
 
             # Update user login tracking
-            from backend.core.user import get_user_service
+            from core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -240,7 +240,7 @@ class SupabaseWebhookHandler:
             )
 
             # Create session
-            from ..redis_core.session import get_session_service
+            from redis_core.session import get_session_service
 
             session_service = get_session_service()
 
@@ -277,7 +277,7 @@ class SupabaseWebhookHandler:
             auth_event = self._parse_auth_event(event.data)
 
             # Update user logout tracking
-            from backend.core.user import get_user_service
+            from core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -286,7 +286,7 @@ class SupabaseWebhookHandler:
             )
 
             # Invalidate sessions
-            from ..redis_core.session import get_session_service
+            from redis_core.session import get_session_service
 
             session_service = get_session_service()
 
@@ -313,7 +313,7 @@ class SupabaseWebhookHandler:
             auth_event = self._parse_auth_event(event.data)
 
             # Send password recovery email
-            from ..notifications.notification_service import get_notification_service
+            from notifications.notification_service import get_notification_service
 
             notification_service = get_notification_service()
 
@@ -347,7 +347,7 @@ class SupabaseWebhookHandler:
             auth_event = self._parse_auth_event(event.data)
 
             # Update user in local system
-            from backend.core.user import get_user_service
+            from core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -382,7 +382,7 @@ class SupabaseWebhookHandler:
             auth_event = self._parse_auth_event(event.data)
 
             # Delete user from local system
-            from backend.core.user import get_user_service
+            from core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -472,7 +472,7 @@ class SupabaseWebhookHandler:
             storage_data = event.data
 
             # Process file upload
-            from ..infrastructure.storage import get_cloud_storage
+            from infrastructure.storage import get_cloud_storage
 
             storage_service = get_cloud_storage()
 
@@ -517,7 +517,7 @@ class SupabaseWebhookHandler:
             file_size = storage_data.get("size", 0)
 
             # Update file metadata
-            from ..infrastructure.storage import get_cloud_storage
+            from infrastructure.storage import get_cloud_storage
 
             storage_service = get_cloud_storage()
 
@@ -548,7 +548,7 @@ class SupabaseWebhookHandler:
             file_path = storage_data.get("path")
 
             # Clean up local references
-            from ..infrastructure.storage import get_cloud_storage
+            from infrastructure.storage import get_cloud_storage
 
             storage_service = get_cloud_storage()
 
@@ -595,13 +595,13 @@ class SupabaseWebhookHandler:
         """Clean up user data after deletion."""
         try:
             # Invalidate all sessions
-            from ..redis_core.session import get_session_service
+            from redis_core.session import get_session_service
 
             session_service = get_session_service()
             await session_service.invalidate_user_sessions(user_id)
 
             # Clean up user cache
-            from ..redis_core.cache import get_cache_service
+            from redis_core.cache import get_cache_service
 
             cache_service = get_cache_service()
             await cache_service.clear_user_cache(user_id)
@@ -619,7 +619,7 @@ class SupabaseWebhookHandler:
         try:
             workspace_data = db_event.record
 
-            from backend.core.workspace import get_workspace_service
+            from core.workspace import get_workspace_service
 
             workspace_service = get_workspace_service()
 
@@ -643,7 +643,7 @@ class SupabaseWebhookHandler:
         try:
             project_data = db_event.record
 
-            from backend.core.project import get_project_service
+            from core.project import get_project_service
 
             project_service = get_project_service()
 
@@ -667,7 +667,7 @@ class SupabaseWebhookHandler:
         try:
             agent_data = db_event.record
 
-            from backend.agents.core.registry import get_agent_registry
+            from agents.core.registry import get_agent_registry
 
             agent_registry = get_agent_registry()
 
@@ -701,7 +701,7 @@ class SupabaseWebhookHandler:
         try:
             workspace_data = db_event.record
 
-            from backend.core.workspace import get_workspace_service
+            from core.workspace import get_workspace_service
 
             workspace_service = get_workspace_service()
 
@@ -727,7 +727,7 @@ class SupabaseWebhookHandler:
         try:
             project_data = db_event.record
 
-            from backend.core.project import get_project_service
+            from core.project import get_project_service
 
             project_service = get_project_service()
 
@@ -753,7 +753,7 @@ class SupabaseWebhookHandler:
         try:
             agent_data = db_event.record
 
-            from backend.agents.core.registry import get_agent_registry
+            from agents.core.registry import get_agent_registry
 
             agent_registry = get_agent_registry()
 
@@ -792,7 +792,7 @@ class SupabaseWebhookHandler:
             )
 
             if workspace_id:
-                from backend.core.workspace import get_workspace_service
+                from core.workspace import get_workspace_service
 
                 workspace_service = get_workspace_service()
 
@@ -817,7 +817,7 @@ class SupabaseWebhookHandler:
             project_id = db_event.old_record.get("id") if db_event.old_record else None
 
             if project_id:
-                from backend.core.project import get_project_service
+                from core.project import get_project_service
 
                 project_service = get_project_service()
 
@@ -842,7 +842,7 @@ class SupabaseWebhookHandler:
             agent_id = db_event.old_record.get("id") if db_event.old_record else None
 
             if agent_id:
-                from backend.agents.core.registry import get_agent_registry
+                from agents.core.registry import get_agent_registry
 
                 agent_registry = get_agent_registry()
 

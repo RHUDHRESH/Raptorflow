@@ -18,7 +18,7 @@ except ImportError:
     REDIS_AVAILABLE = False
     Redis = None
 
-from backend.agents.exceptions import DatabaseError, ValidationError, WorkspaceError
+from .agents.exceptions import DatabaseError, ValidationError, WorkspaceError
 
 logger = logging.getLogger(__name__)
 

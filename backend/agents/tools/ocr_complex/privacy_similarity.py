@@ -11,7 +11,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from .base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
+from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
 
 
 class PIIRedactor(BaseProcessor):

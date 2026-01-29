@@ -1,4 +1,4 @@
-﻿"""
+"""
 Enhanced Supabase Storage Service
 Handles file uploads, validation, CDN, security scanning, and image processing
 """
@@ -23,9 +23,9 @@ except ImportError:
     PIL_AVAILABLE = False
     logging.warning("PIL not available - image processing disabled")
 
-from ..infrastructure.supabase_storage import FileCategory, get_supabase_storage
+from infrastructure.supabase_storage import FileCategory, get_supabase_storage
 
-# No longer importing from .storage to avoid circular dependency
+# No longer importing from storage to avoid circular dependency
 # basic_storage_service will be initialized using get_supabase_storage()
 
 logger = logging.getLogger(__name__)

@@ -11,9 +11,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..infrastructure.cloud_monitoring import get_cloud_monitoring
-from ..infrastructure.logging import get_cloud_logging
-from .decorators import background_job, daily_job, hourly_job, job, weekly_job
+from infrastructure.cloud_monitoring import get_cloud_monitoring
+from infrastructure.logging import get_cloud_logging
+from decorators import background_job, daily_job, hourly_job, job, weekly_job
 from .models import JobResult, JobStatus
 
 logger = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ class ResearchJobs:
             )
 
             # Get research service
-            from ..research.research_service import get_research_service
+            from research.research_service import get_research_service
 
             research_service = get_research_service()
 
@@ -254,7 +254,7 @@ class ResearchJobs:
             )
 
             # Get research service
-            from ..research.research_service import get_research_service
+            from research.research_service import get_research_service
 
             research_service = get_research_service()
 
@@ -393,7 +393,7 @@ class ResearchJobs:
             )
 
             # Get research service
-            from ..research.research_service import get_research_service
+            from research.research_service import get_research_service
 
             research_service = get_research_service()
 
@@ -513,7 +513,7 @@ class ResearchJobs:
             )
 
             # Get research service
-            from ..research.research_service import get_research_service
+            from research.research_service import get_research_service
 
             research_service = get_research_service()
 
@@ -645,7 +645,7 @@ class ResearchJobs:
             )
 
             # Get research service
-            from ..research.research_service import get_research_service
+            from research.research_service import get_research_service
 
             research_service = get_research_service()
 

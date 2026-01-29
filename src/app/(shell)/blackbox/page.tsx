@@ -115,7 +115,7 @@ export default function BlackBoxPage() {
             }
 
             const businessContext = messaging
-                ? `Company: ${messaging.oneLiner}. Target: ${messaging.positioningStatement.target}. Strategy: ${messaging.positioningStatement.keyBenefit}`
+                ? `Company: ${messaging.oneLiner}. Target: ${messaging.positioningStatement?.target || 'growth-focused audience'}. Strategy: ${messaging.positioningStatement?.keyBenefit || 'maximize impact'}`
                 : "Aggressive growth strategy needed.";
 
             // Map frontend category to backend focus area

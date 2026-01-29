@@ -14,8 +14,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
-from .discovery import ServiceDiscovery, ServiceType
-from .messages import AgentMessage, MessageFormat, MessageType
+from discovery import ServiceDiscovery, ServiceType
+from messages import AgentMessage, MessageFormat, MessageType
 
 
 class RuleType(Enum):

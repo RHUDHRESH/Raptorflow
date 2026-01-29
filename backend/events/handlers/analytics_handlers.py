@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 
 from ...infrastructure.bigquery import BigQueryClient
 from ...redis.usage import UsageTracker
-from ..types import AgentExecutionEvent, ContentGeneratedEvent, Event, EventType
+from types import AgentExecutionEvent, ContentGeneratedEvent, Event, EventType
 
 logger = logging.getLogger(__name__)
 
@@ -352,7 +352,7 @@ async def on_move_failed(event: Event) -> None:
 # Register all handlers
 def register_analytics_handlers():
     """Register all analytics event handlers."""
-    from ..bus import subscribe_event
+    from bus import subscribe_event
 
     handlers = [
         (EventType.AGENT_EXECUTION_STARTED, on_agent_execution_started),

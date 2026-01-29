@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from backend.config.settings import get_settings
+from .config.settings import get_settings
 
-from ..redis_core.client import RedisClient
+from .redis_core.client import RedisClient
 
 logger = logging.getLogger(__name__)
 

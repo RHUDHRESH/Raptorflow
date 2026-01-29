@@ -10,29 +10,29 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 
-from backend.core.cleanup_scheduler import (
+from ..core.cleanup_scheduler import (
     CleanupPriority,
     CleanupScheduler,
     CleanupTask,
     get_cleanup_scheduler,
 )
-from backend.core.metrics import (
+from ..core.metrics import (
     AgentMetrics,
     MetricData,
     MetricType,
     get_metrics_collector,
 )
-from backend.core.metrics_collector import (
+from ..core.metrics_collector import (
     AlertRule,
     MetricCategory,
     MetricDefinition,
     MetricsCollector,
     OptimizationRecommendation,
 )
-from backend.core.metrics_collector import (
+from ..core.metrics_collector import (
     get_metrics_collector as get_enhanced_collector,
 )
-from backend.core.quota_manager import (
+from ..core.quota_manager import (
     QuotaAction,
     QuotaDefinition,
     QuotaManager,
@@ -40,13 +40,13 @@ from backend.core.quota_manager import (
     QuotaType,
     get_quota_manager,
 )
-from backend.core.resource_analytics import (
+from ..core.resource_analytics import (
     OptimizationPriority,
     OptimizationType,
     ResourceAnalyzer,
     get_resource_analyzer,
 )
-from backend.core.resources import (
+from ..core.resources import (
     ResourceLeak,
     ResourceManager,
     ResourceType,

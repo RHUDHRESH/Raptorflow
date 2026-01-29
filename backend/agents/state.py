@@ -332,3 +332,24 @@ def cleanup_expired_states() -> int:
         return expired_count
     except Exception:
         return 0
+
+
+# AgentStateManager for backward compatibility
+class AgentStateManager:
+    """Agent state manager (backward compatibility)."""
+
+    def __init__(self):
+        self.states = {}
+
+    def get_state(self, agent_id: str):
+        """Get state for agent."""
+        return self.states.get(agent_id)
+
+    def set_state(self, agent_id: str, state: dict):
+        """Set state for agent."""
+        self.states[agent_id] = state
+
+    def delete_state(self, agent_id: str):
+        """Delete state for agent."""
+        if agent_id in self.states:
+            del self.states[agent_id]

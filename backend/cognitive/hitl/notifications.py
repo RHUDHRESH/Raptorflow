@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 
 from ...redis.client import RedisClient
 from ...redis.pubsub import PubSubService
-from .models import ApprovalRequest, ApprovalStatus
+from ..models import ApprovalRequest, ApprovalStatus
 
 logger = logging.getLogger(__name__)
 
@@ -211,7 +211,7 @@ class ApprovalNotifier:
         """
         try:
             # Get pending approvals for workspace
-            from .gate import ApprovalGate
+            from gate import ApprovalGate
 
             gate = ApprovalGate(self.redis)
             pending_approvals = await gate.get_pending_approvals(workspace_id)
@@ -267,7 +267,7 @@ class ApprovalNotifier:
     async def _check_expiring_approvals(self):
         """Check for approvals about to expire and send notifications."""
         try:
-            from .gate import ApprovalGate
+            from gate import ApprovalGate
 
             gate = ApprovalGate(self.redis)
 

@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from .interfaces import ICacheBackend, IStorageBackend
+from interfaces import ICacheBackend, IStorageBackend
 
 logger = logging.getLogger(__name__)
 

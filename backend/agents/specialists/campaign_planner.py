@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from backend.agents.config import ModelTier
+from ..config import ModelTier
 
 from ..base import BaseAgent
 from ..exceptions import DatabaseError, ValidationError

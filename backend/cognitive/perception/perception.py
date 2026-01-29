@@ -437,7 +437,7 @@ class PerceptionModule:
             "javascript",
             "react",
             "node",
-            "aws",
+            "gcp",
             "azure",
         ]
         common_names = [

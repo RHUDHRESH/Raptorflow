@@ -12,9 +12,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from backend.core.auth import get_current_user
-from backend.infrastructure.storage import FileCategory, get_cloud_storage
-from backend.services.storage import get_enhanced_storage_service
+from ..core.auth import get_current_user
+from infrastructure.storage import FileCategory, get_cloud_storage
+from ..services.storage import get_enhanced_storage_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

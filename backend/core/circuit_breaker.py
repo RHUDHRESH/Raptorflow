@@ -18,7 +18,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, Union
 
 import redis
 
-from backend.core.audit_logger import EventType, LogLevel, audit_logger
+from .core.audit_logger import EventType, LogLevel, audit_logger
 
 logger = logging.getLogger(__name__)
 

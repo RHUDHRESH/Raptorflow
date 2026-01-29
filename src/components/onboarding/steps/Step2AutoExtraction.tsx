@@ -13,10 +13,11 @@ import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButto
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { OnboardingStepLayout } from "../OnboardingStepLayout";
 import { cn } from "@/lib/utils";
+import { clientAuth } from "@/lib/auth-service";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    PHASE 01: FOUNDATION — Step 2: Insights Summary
-   
+
    "Quiet Luxury: Here's what we found."
    Automatic synthesis of the Evidence Vault.
    ══════════════════════════════════════════════════════════════════════════════ */
@@ -39,6 +40,12 @@ const INSIGHT_CARDS = [
     { id: "proof", label: "Authority Proof", icon: ShieldCheck, color: "var(--ink)" },
 ];
 
+const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    const session = await clientAuth.getSession();
+    const token = session?.access_token;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export default function Step2AutoExtraction() {
     const { session, updateStepData, updateStepStatus, getStepById } = useOnboardingStore();
     const step1Data = getStepById(1)?.data as { evidence?: any[] } | undefined;
@@ -53,17 +60,18 @@ export default function Step2AutoExtraction() {
         if (!stepData?.facts && !facts.length) {
             const runExtraction = async () => {
                 try {
+                    const authHeaders = await getAuthHeaders();
                     const response = await fetch('/api/onboarding/extract', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', ...authHeaders },
                         body: JSON.stringify({
                             session_id: session?.sessionId || 'demo',
                             evidence_list: step1Data?.evidence || [],
                         })
                     });
-                    
+
                     const result = await response.json();
-                    
+
                     // Map API response to our fact format
                     const extractedFacts: ExtractedFact[] = (result.facts || []).map((f: any, idx: number) => ({
                         id: f.id || `${idx + 1}`,
@@ -75,7 +83,7 @@ export default function Step2AutoExtraction() {
                         status: f.status || 'pending',
                         code: f.id || `EX-${idx + 1}`,
                     }));
-                    
+
                     const factsToUse = extractedFacts.length > 0 ? extractedFacts : generateMockFacts();
                     setFacts(factsToUse);
                     updateStepData(2, { facts: factsToUse });
@@ -89,13 +97,13 @@ export default function Step2AutoExtraction() {
                 }
                 setIsAnalyzing(false);
             };
-            
+
             runExtraction();
         } else {
             setIsAnalyzing(false);
         }
     }, [stepData, step1Data, session, updateStepData, updateStepStatus]);
-    
+
     const mapCategoryToLocal = (category: string): string => {
         const mapping: Record<string, string> = {
             'Company': 'identity',

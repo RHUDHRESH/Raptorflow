@@ -1,4 +1,4 @@
-﻿"""
+﻿+"""
 RaptorFlow Backend Service
 Runs on Google Cloud Run with GCP integrations
 """
@@ -29,7 +29,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import aiplatform, bigquery, storage
 
 # Import API routers
-from backend.api.v1 import (  # episodes,
+from api.v1 import (  # episodes,
     admin,
     agents,
     ai_proxy,
@@ -72,54 +72,49 @@ from backend.api.v1 import (  # episodes,
     users,
     workspaces,
 )
-from backend.core.database_automation import (
+from core.database_automation import (
     start_database_automation,
     stop_database_automation,
 )
 
 # Import database automation
-from backend.core.database_integration import shutdown_database, startup_database
-from backend.core.database_scaling import start_database_scaling, stop_database_scaling
-from backend.core.posthog import add_posthog_middleware
-from backend.core.prometheus_metrics import (
+from core.database_integration import shutdown_database, startup_database
+from core.database_scaling import start_database_scaling, stop_database_scaling
+from core.posthog import add_posthog_middleware
+from core.prometheus_metrics import (
     PrometheusMiddleware,
     init_prometheus_metrics,
 )
 
 # Import monitoring
-from backend.core.sentry import init_sentry
+from core.sentry import init_sentry
 
 # Import dependencies
-from backend.dependencies import (
+from dependencies import (
     get_cognitive_engine,
     get_db,
     get_memory_controller,
     get_redis,
 )
-from backend.middleware.compression import add_compression_middleware
-from backend.middleware.errors import ErrorMiddleware
-from backend.middleware.logging import LoggingMiddleware
-from backend.middleware.metrics import MetricsMiddleware
-from backend.middleware.rate_limit import create_rate_limit_middleware
-from backend.redis_services_activation import (
+from middleware.compression import add_compression_middleware
+from middleware.errors import ErrorMiddleware
+from middleware.logging import LoggingMiddleware
+from middleware.metrics import MetricsMiddleware
+from middleware.rate_limit import create_rate_limit_middleware
+from redis_services_activation import (
     activate_redis_services,
     deactivate_redis_services,
 )
-from backend.services.bcm_sweeper import BCMSweeper
+from services.bcm_sweeper import BCMSweeper
 
 # Import payment status service
-from backend.services.payment_status_service import PaymentStatusService
-from backend.shutdown import cleanup_app
+from services.payment_status_service import PaymentStatusService
+from shutdown import cleanup_app
 
 # Import startup/shutdown
-from backend.startup import initialize
+from startup import initialize
 
 # from jobs import file_cleanup  # Temporarily disabled due to import issues
-
-
-
-
-
 
 
 # Configure logging
@@ -402,7 +397,7 @@ app.include_router(
     database_automation.router, prefix="/api/v1", tags=["database-automation"]
 )
 # Add simple health router as fallback
-from backend.api.v1 import health_simple
+from api.v1 import health_simple
 
 app.include_router(health_simple.router, prefix="/api/v1", tags=["health"])
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
@@ -458,7 +453,7 @@ async def health_check():
         redis_status = "connected" if redis_client else "disconnected"
 
         # Check Redis services
-        from backend.redis_services_activation import health_check_redis_services
+        from redis_services_activation import health_check_redis_services
 
         redis_services_health = await health_check_redis_services()
 

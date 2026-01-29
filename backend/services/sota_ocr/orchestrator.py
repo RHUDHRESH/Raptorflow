@@ -9,13 +9,13 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
 
-from .models import (
+from ..models import (
     DocumentCharacteristics, ModelCapabilities, OCRModelResult,
     DocumentType, DocumentComplexity, LanguageCategory, ProcessingVolume
 )
-from .preprocessor import DocumentPreprocessor
-from .quality_assurance import QualityAssurance
-from .model_implementations import ModelFactory
+from preprocessor import DocumentPreprocessor
+from quality_assurance import QualityAssurance
+from model_implementations import ModelFactory
 
 
 class ModelSelectionStrategy(str, Enum):
@@ -49,19 +49,19 @@ class OCRModelOrchestrator:
         self.config = config
         self.preprocessor = DocumentPreprocessor(config.get("preprocessing", {}))
         self.quality_assurance = QualityAssurance(config.get("quality_assurance", {}))
-        
+
         # Initialize model registry with 2025 SOTA models
         self.models = self._initialize_models()
-        
+
         # Performance tracking
         self.model_performance: Dict[str, ModelPerformance] = {}
         self._initialize_performance_tracking()
-        
+
         # Model selection strategy
         self.selection_strategy = ModelSelectionStrategy(
             config.get("selection_strategy", "auto")
         )
-        
+
         # Cost and performance constraints
         self.cost_budget = config.get("cost_budget_per_page", 0.5)  # $0.50 per page
         self.max_latency = config.get("max_latency_seconds", 10.0)
@@ -154,39 +154,39 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
         Intelligently select the best OCR model based on document characteristics.
         """
         candidates = []
-        
+
         # Filter models by basic requirements
         for model_key, model in self.models.items():
             if self._meets_requirements(model, characteristics):
                 score = self._calculate_model_score(model, characteristics)
                 candidates.append((model, score))
-        
+
         # Sort by score (highest first)
         candidates.sort(key=lambda x: x[1], reverse=True)
-        
+
         if not candidates:
             # Fallback to most versatile model
             return self.models["open_source"]
-        
+
         # Return best candidate
         best_model, _ = candidates[0]
         return best_model
 
     def _meets_requirements(self, model: ModelCapabilities, characteristics: DocumentCharacteristics) -> bool:
         """Check if model meets basic requirements for the document."""
-        
+
         # Language support
         if characteristics.language not in model.supported_languages:
             return False
-        
+
         # Resolution requirements
         if characteristics.resolution_dpi and characteristics.resolution_dpi > model.max_resolution:
             return False
-        
+
         # Specialized document types
         if characteristics.document_type in model.specializations:
             return True
-        
+
         # Complexity matching
         if characteristics.complexity == DocumentComplexity.VERY_COMPLEX:
             return model.accuracy_score >= 0.80
@@ -199,7 +199,7 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
 
     def _calculate_model_score(self, model: ModelCapabilities, characteristics: DocumentCharacteristics) -> float:
         """Calculate score for model selection based on strategy."""
-        
+
         if self.selection_strategy == ModelSelectionStrategy.ACCURACY_FIRST:
             return self._accuracy_score(model, characteristics)
         elif self.selection_strategy == ModelSelectionStrategy.SPEED_FIRST:
@@ -214,16 +214,16 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
     def _accuracy_score(self, model: ModelCapabilities, characteristics: DocumentCharacteristics) -> float:
         """Score based on accuracy considerations."""
         score = model.accuracy_score * 0.6
-        
+
         # Bonus for specializations
         if characteristics.document_type in model.specializations:
             score += 0.2
-        
+
         # Bonus for high complexity docs
         if characteristics.complexity in [DocumentComplexity.COMPLEX, DocumentComplexity.VERY_COMPLEX]:
             if model.accuracy_score >= 0.80:
                 score += 0.2
-        
+
         return min(1.0, score)
 
     def _speed_score(self, model: ModelCapabilities, characteristics: DocumentCharacteristics) -> float:
@@ -231,10 +231,10 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
         # Normalize throughput (max 6 pages/sec)
         normalized_throughput = min(model.throughput_pages_per_sec / 6.0, 1.0)
         score = normalized_throughput * 0.7
-        
+
         # Small accuracy bonus
         score += model.accuracy_score * 0.3
-        
+
         return min(1.0, score)
 
     def _cost_score(self, model: ModelCapabilities, characteristics: DocumentCharacteristics) -> float:
@@ -242,14 +242,14 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
         # Normalize cost (lower is better, max $500 per million pages)
         normalized_cost = max(0, 1.0 - (model.cost_per_million_pages / 500.0))
         score = normalized_cost * 0.6
-        
+
         # Throughput bonus (affects cost efficiency)
         throughput_bonus = min(model.throughput_pages_per_sec / 5.0, 1.0) * 0.2
         score += throughput_bonus
-        
+
         # Small accuracy bonus
         score += model.accuracy_score * 0.2
-        
+
         return min(1.0, score)
 
     def _balanced_score(self, model: ModelCapabilities, characteristics: DocumentCharacteristics) -> float:
@@ -257,26 +257,26 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
         accuracy_weight = 0.4
         speed_weight = 0.3
         cost_weight = 0.3
-        
+
         accuracy_score = model.accuracy_score
         speed_score = min(model.throughput_pages_per_sec / 5.0, 1.0)
         cost_score = max(0, 1.0 - (model.cost_per_million_pages / 500.0))
-        
-        return (accuracy_score * accuracy_weight + 
-                speed_score * speed_weight + 
+
+        return (accuracy_score * accuracy_weight +
+                speed_score * speed_weight +
                 cost_score * cost_weight)
 
     def _auto_score(self, model: ModelCapabilities, characteristics: DocumentCharacteristics) -> float:
         """Automatic scoring based on document characteristics."""
         score = 0.0
-        
+
         # Base accuracy score
         score += model.accuracy_score * 0.3
-        
+
         # Document type matching
         if characteristics.document_type in model.specializations:
             score += 0.25
-        
+
         # Language support quality
         if characteristics.language_category == LanguageCategory.LOW_RESOURCE:
             if len(model.supported_languages) > 50:  # Supports many languages
@@ -284,13 +284,13 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
         elif characteristics.language_category == LanguageCategory.MEDIUM_RESOURCE:
             if characteristics.language in model.supported_languages:
                 score += 0.1
-        
+
         # Volume considerations
         if characteristics.volume in [ProcessingVolume.HIGH, ProcessingVolume.VERY_HIGH]:
             # Prefer faster models for high volume
             speed_bonus = min(model.throughput_pages_per_sec / 4.0, 1.0) * 0.15
             score += speed_bonus
-        
+
         # Complexity considerations
         if characteristics.complexity == DocumentComplexity.VERY_COMPLEX:
             if model.accuracy_score >= 0.80:
@@ -299,7 +299,7 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
             # Prefer efficient models for simple docs
             if model.throughput_pages_per_sec >= 3.0:
                 score += 0.1
-        
+
         return min(1.0, score)
 
     async def process_with_model(self, model: ModelCapabilities, document_path: str, file_data: bytes) -> OCRModelResult:
@@ -307,11 +307,11 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
         Process document with specific model.
         """
         start_time = time.time()
-        
+
         try:
             # Preprocess document
             processed_data = await self.preprocessor.process_document(file_data, model.name)
-            
+
             # Process with appropriate model implementation
             if model.name == "chandra_ocr_8b":
                 result = await self._process_with_chandra(processed_data)
@@ -325,12 +325,12 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
                 result = await self._process_with_lighton(processed_data)
             else:
                 raise ValueError(f"Unknown model: {model.name}")
-            
+
             processing_time = time.time() - start_time
-            
+
             # Update performance tracking
             self._update_model_performance(model.name, result.confidence_score, processing_time, True)
-            
+
             return OCRModelResult(
                 model_name=model.name,
                 extracted_text=result.text,
@@ -341,11 +341,11 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
                 detected_language=result.language,
                 metadata=result.metadata
             )
-            
+
         except Exception as e:
             processing_time = time.time() - start_time
             self._update_model_performance(model.name, 0.0, processing_time, False)
-            
+
             return OCRModelResult(
                 model_name=model.name,
                 extracted_text="",
@@ -361,10 +361,10 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
         """Update performance tracking for a model."""
         if model_name not in self.model_performance:
             return
-        
+
         perf = self.model_performance[model_name]
         perf.total_processed += 1
-        
+
         if success:
             # Update moving average of confidence
             perf.average_confidence = (perf.average_confidence * 0.9 + confidence * 0.1)
@@ -372,7 +372,7 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
             perf.recent_throughput = 1.0 / processing_time if processing_time > 0 else 0
         else:
             perf.recent_errors += 1
-        
+
         perf.last_updated = time.time()
 
     # Placeholder methods for individual model implementations
@@ -408,11 +408,11 @@ eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
     def get_model_recommendations(self, characteristics: DocumentCharacteristics) -> List[Tuple[ModelCapabilities, float]]:
         """Get ranked list of model recommendations."""
         candidates = []
-        
+
         for model_key, model in self.models.items():
             if self._meets_requirements(model, characteristics):
                 score = self._calculate_model_score(model, characteristics)
                 candidates.append((model, score))
-        
+
         candidates.sort(key=lambda x: x[1], reverse=True)
         return candidates

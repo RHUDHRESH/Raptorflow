@@ -9,13 +9,13 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional
 
-from backend.agents.dispatcher import AgentDispatcher
-from backend.agents.state import AgentState
-from backend.cognitive import CognitiveEngine
-from backend.memory.controller import MemoryController
-from backend.services.onboarding_state_service import OnboardingStateService, StepStatus
-from backend.services.onboarding_validator import OnboardingValidator
-from backend.services.upstash_client import UpstashClient
+from .agents.dispatcher import AgentDispatcher
+from .agents.state import AgentState
+from cognitive import CognitiveEngine
+from memory.controller import MemoryController
+from .services.onboarding_state_service import OnboardingStateService, StepStatus
+from .services.onboarding_validator import OnboardingValidator
+from .services.upstash_client import UpstashClient
 from supabase import Client
 
 logger = logging.getLogger(__name__)
@@ -853,7 +853,7 @@ class OnboardingWorkflow:
             summary = await self._generate_onboarding_summary(workspace_id)
 
             # Generate and write businesscontext.json
-            from backend.integration.context_builder import (
+            from integration.context_builder import (
                 build_business_context_manifest,
             )
 

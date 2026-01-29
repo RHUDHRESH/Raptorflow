@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 # Use QualityChecker agent instead of missing cognitive module
 try:
-    from backend.agents.specialists.quality_checker import QualityChecker
+    from agents.specialists.quality_checker import QualityChecker
 except ImportError:
 
     class QualityChecker:
@@ -19,7 +19,7 @@ except ImportError:
             return state
 
 
-from backend.memory.controller import MemoryController
+from memory.controller import MemoryController
 from supabase import Client
 
 logger = logging.getLogger(__name__)

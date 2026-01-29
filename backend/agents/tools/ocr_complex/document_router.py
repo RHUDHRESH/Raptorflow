@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
-from .base_processor import (
+from ...base_processor import (
     BaseProcessor,
     ProcessingResult,
     ProcessingStatus,

@@ -15,13 +15,14 @@ import requests
 import tempfile
 import os
 
-from .models import OCRModelResult, ModelCapabilities
-from backend.services.vertex_ai_service import vertex_ai_service
+from ..models import OCRModelResult, ModelCapabilities
+from ..services.vertex_ai_service import vertex_ai_service
 
 
 @dataclass
 class ModelResponse:
     """Response from OCR model processing."""
+
     text: str
     confidence: float
     structured_data: Optional[Dict[str, Any]]
@@ -50,37 +51,43 @@ class VertexAIOCRModel:
             model_size_gb=0,
             license_type="commercial",
             confidence_threshold=0.90,
-            strengths=["State-of-the-art accuracy", "Excellent layout preservation", "Multimodal"],
-            weaknesses=["Cloud dependency", "Latency varies by region"]
+            strengths=[
+                "State-of-the-art accuracy",
+                "Excellent layout preservation",
+                "Multimodal",
+            ],
+            weaknesses=["Cloud dependency", "Latency varies by region"],
         )
 
-    async def process_document(self, image_data: bytes, language: str = "auto") -> ModelResponse:
+    async def process_document(
+        self, image_data: bytes, language: str = "auto"
+    ) -> ModelResponse:
         """Process document with Vertex AI Gemini."""
         start_time = time.time()
-        
+
         try:
             if not vertex_ai_service:
                 raise Exception("Vertex AI service not initialized")
 
             # Prepare prompt for OCR
             prompt = f"Perform high-accuracy OCR on this document. Maintain the layout structure. Detected language hint: {language}. Return the extracted text."
-            
+
             # Use Vertex AI to process the image/text
             # Note: In a real implementation, we'd pass the bytes directly if supported by our bridge
             # For now, we use the text generation bridge with a prompt that includes the context if possible
             # or we enhance the bridge to handle vision.
-            
+
             # ASSUMPTION: VertexAIService has been enhanced or we use a vision-specific method.
             # Given the current bridge only has generate_text, we'll use a placeholder for vision processing
             # but wired to the real service.
-            
+
             # For "production grade", we actually implement the vision call if needed.
             # But let's assume the bridge handles it or we'll stick to text-based extraction from pre-processed data.
-            
+
             ai_res = await vertex_ai_service.generate_text(
                 prompt=f"[OCR REQUEST] {prompt}",
                 workspace_id=self.config.get("workspace_id", "default"),
-                user_id=self.config.get("user_id", "system")
+                user_id=self.config.get("user_id", "system"),
             )
 
             if ai_res["status"] == "success":
@@ -94,8 +101,8 @@ class VertexAIOCRModel:
                     metadata={
                         "processing_time": processing_time,
                         "model": "vertex_ai_gemini",
-                        "tokens": ai_res.get("total_tokens")
-                    }
+                        "tokens": ai_res.get("total_tokens"),
+                    },
                 )
             else:
                 raise Exception(ai_res.get("error", "Unknown AI error"))
@@ -111,8 +118,8 @@ class VertexAIOCRModel:
                 metadata={
                     "error": str(e),
                     "processing_time": processing_time,
-                    "model": "vertex_ai_ocr"
-                }
+                    "model": "vertex_ai_ocr",
+                },
             )
 
 
@@ -128,7 +135,7 @@ class DotsOCRModel:
         self.base_url = config.get("base_url", "https://api.dots.ocr/v1")
         self.timeout = config.get("timeout", 30)
         self.max_retries = config.get("max_retries", 3)
-        
+
         # Model capabilities
         self.capabilities = ModelCapabilities(
             name="dots_ocr",
@@ -136,10 +143,41 @@ class DotsOCRModel:
             throughput_pages_per_sec=2.0,
             cost_per_million_pages=200.0,
             supported_languages=[
-                "eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
-                "ara", "hin", "rus", "por", "ita", "tur", "pol", "nld", "tha",
-                "vie", "ind", "heb", "ben", "tam", "tel", "mar", "guj", "kan",
-                "mal", "ori", "pun", "urd", "mya", "khm", "lao", "sin", "tib"
+                "eng",
+                "chi_sim",
+                "chi_tra",
+                "spa",
+                "fra",
+                "deu",
+                "jpn",
+                "kor",
+                "ara",
+                "hin",
+                "rus",
+                "por",
+                "ita",
+                "tur",
+                "pol",
+                "nld",
+                "tha",
+                "vie",
+                "ind",
+                "heb",
+                "ben",
+                "tam",
+                "tel",
+                "mar",
+                "guj",
+                "kan",
+                "mal",
+                "ori",
+                "pun",
+                "urd",
+                "mya",
+                "khm",
+                "lao",
+                "sin",
+                "tib",
             ],
             specializations=["multilingual", "id_document", "receipt"],
             max_resolution=2000,
@@ -147,48 +185,52 @@ class DotsOCRModel:
             model_size_gb=6.2,
             license_type="commercial",
             confidence_threshold=0.80,
-            strengths=["100+ languages", "Unified architecture", "Grounding capabilities"],
-            weaknesses=["Lower accuracy on complex docs", "Limited resolution"]
+            strengths=[
+                "100+ languages",
+                "Unified architecture",
+                "Grounding capabilities",
+            ],
+            weaknesses=["Lower accuracy on complex docs", "Limited resolution"],
         )
 
-    async def process_document(self, image_data: bytes, language: str = "auto") -> ModelResponse:
+    async def process_document(
+        self, image_data: bytes, language: str = "auto"
+    ) -> ModelResponse:
         """Process document with dots.ocr model."""
         start_time = time.time()
-        
+
         try:
             # Prepare request
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
-            
+
             # Convert image to base64
             image_base64 = self._image_to_base64(image_data)
-            
+
             payload = {
                 "image": image_base64,
                 "language": language,
                 "output_format": "json",
                 "include_confidence": True,
-                "include_structured_data": True
+                "include_structured_data": True,
             }
-            
+
             # Make API request with retries
             response_data = await self._make_request_with_retry(
-                f"{self.base_url}/extract",
-                headers=headers,
-                json=payload
+                f"{self.base_url}/extract", headers=headers, json=payload
             )
-            
+
             # Parse response
             text = response_data.get("text", "")
             confidence = response_data.get("confidence", 0.0)
             structured_data = response_data.get("structured_data")
             detected_language = response_data.get("language", language)
             page_count = response_data.get("page_count", 1)
-            
+
             processing_time = time.time() - start_time
-            
+
             return ModelResponse(
                 text=text,
                 confidence=confidence,
@@ -198,10 +240,10 @@ class DotsOCRModel:
                 metadata={
                     "processing_time": processing_time,
                     "model": "dots_ocr",
-                    "api_version": response_data.get("version", "1.0")
-                }
+                    "api_version": response_data.get("version", "1.0"),
+                },
             )
-            
+
         except Exception as e:
             processing_time = time.time() - start_time
             return ModelResponse(
@@ -213,16 +255,19 @@ class DotsOCRModel:
                 metadata={
                     "error": str(e),
                     "processing_time": processing_time,
-                    "model": "dots_ocr"
-                }
+                    "model": "dots_ocr",
+                },
             )
 
     def _image_to_base64(self, image_data: bytes) -> str:
         """Convert image bytes to base64 string."""
         import base64
-        return base64.b64encode(image_data).decode('utf-8')
 
-    async def _make_request_with_retry(self, url: str, headers: Dict, json: Dict) -> Dict:
+        return base64.b64encode(image_data).decode("utf-8")
+
+    async def _make_request_with_retry(
+        self, url: str, headers: Dict, json: Dict
+    ) -> Dict:
         """Make HTTP request with retry logic."""
         for attempt in range(self.max_retries):
             try:
@@ -233,8 +278,8 @@ class DotsOCRModel:
             except Exception as e:
                 if attempt == self.max_retries - 1:
                     raise e
-                await asyncio.sleep(2 ** attempt)  # Exponential backoff
-        
+                await asyncio.sleep(2**attempt)  # Exponential backoff
+
         raise Exception("Max retries exceeded")
 
 
@@ -250,7 +295,7 @@ class ChandraOCRModel:
         self.base_url = config.get("base_url", "https://api.chandra.ocr/v1")
         self.timeout = config.get("timeout", 45)
         self.max_retries = config.get("max_retries", 3)
-        
+
         # Model capabilities
         self.capabilities = ModelCapabilities(
             name="chandra_ocr_8b",
@@ -258,8 +303,21 @@ class ChandraOCRModel:
             throughput_pages_per_sec=1.29,
             cost_per_million_pages=456.0,
             supported_languages=[
-                "eng", "chi_sim", "spa", "fra", "deu", "jpn", "kor", 
-                "ara", "hin", "rus", "por", "ita", "tur", "pol", "nld"
+                "eng",
+                "chi_sim",
+                "spa",
+                "fra",
+                "deu",
+                "jpn",
+                "kor",
+                "ara",
+                "hin",
+                "rus",
+                "por",
+                "ita",
+                "tur",
+                "pol",
+                "nld",
             ],
             specializations=["complex", "form", "table", "technical", "mathematical"],
             max_resolution=4000,
@@ -268,48 +326,48 @@ class ChandraOCRModel:
             license_type="open_source",
             confidence_threshold=0.85,
             strengths=["Highest accuracy", "Layout awareness", "Multilingual"],
-            weaknesses=["Slower processing", "Higher GPU memory usage"]
+            weaknesses=["Slower processing", "Higher GPU memory usage"],
         )
 
-    async def process_document(self, image_data: bytes, language: str = "auto") -> ModelResponse:
+    async def process_document(
+        self, image_data: bytes, language: str = "auto"
+    ) -> ModelResponse:
         """Process document with Chandra-OCR-8B model."""
         start_time = time.time()
-        
+
         try:
             # Prepare request
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
-            
+
             # Convert image to base64
             image_base64 = self._image_to_base64(image_data)
-            
+
             payload = {
                 "image": image_base64,
                 "language": language,
                 "high_accuracy": True,
                 "layout_analysis": True,
                 "include_confidence": True,
-                "include_structured_data": True
+                "include_structured_data": True,
             }
-            
+
             # Make API request
             response_data = await self._make_request_with_retry(
-                f"{self.base_url}/extract",
-                headers=headers,
-                json=payload
+                f"{self.base_url}/extract", headers=headers, json=payload
             )
-            
+
             # Parse response
             text = response_data.get("text", "")
             confidence = response_data.get("confidence", 0.0)
             structured_data = response_data.get("structured_data")
             detected_language = response_data.get("language", language)
             page_count = response_data.get("page_count", 1)
-            
+
             processing_time = time.time() - start_time
-            
+
             return ModelResponse(
                 text=text,
                 confidence=confidence,
@@ -320,10 +378,10 @@ class ChandraOCRModel:
                     "processing_time": processing_time,
                     "model": "chandra_ocr_8b",
                     "layout_analysis": response_data.get("layout_analysis", {}),
-                    "version": response_data.get("version", "1.0")
-                }
+                    "version": response_data.get("version", "1.0"),
+                },
             )
-            
+
         except Exception as e:
             processing_time = time.time() - start_time
             return ModelResponse(
@@ -335,16 +393,19 @@ class ChandraOCRModel:
                 metadata={
                     "error": str(e),
                     "processing_time": processing_time,
-                    "model": "chandra_ocr_8b"
-                }
+                    "model": "chandra_ocr_8b",
+                },
             )
 
     def _image_to_base64(self, image_data: bytes) -> str:
         """Convert image bytes to base64 string."""
         import base64
-        return base64.b64encode(image_data).decode('utf-8')
 
-    async def _make_request_with_retry(self, url: str, headers: Dict, json: Dict) -> Dict:
+        return base64.b64encode(image_data).decode("utf-8")
+
+    async def _make_request_with_retry(
+        self, url: str, headers: Dict, json: Dict
+    ) -> Dict:
         """Make HTTP request with retry logic."""
         for attempt in range(self.max_retries):
             try:
@@ -355,8 +416,8 @@ class ChandraOCRModel:
             except Exception as e:
                 if attempt == self.max_retries - 1:
                     raise e
-                await asyncio.sleep(2 ** attempt)  # Exponential backoff
-        
+                await asyncio.sleep(2**attempt)  # Exponential backoff
+
         raise Exception("Max retries exceeded")
 
 
@@ -371,7 +432,7 @@ class OlmOCRModel:
         self.model_path = config.get("model_path", "./models/olm-ocr-2-7b")
         self.device = config.get("device", "cuda")
         self.timeout = config.get("timeout", 30)
-        
+
         # Model capabilities
         self.capabilities = ModelCapabilities(
             name="olm_ocr_2_7b",
@@ -379,9 +440,29 @@ class OlmOCRModel:
             throughput_pages_per_sec=1.78,
             cost_per_million_pages=0.0,  # Open source
             supported_languages=[
-                "eng", "chi_sim", "spa", "fra", "deu", "jpn", "kor",
-                "ara", "hin", "rus", "por", "ita", "tur", "pol", "nld",
-                "tha", "vie", "ind", "heb", "ben", "tam", "tel", "mar"
+                "eng",
+                "chi_sim",
+                "spa",
+                "fra",
+                "deu",
+                "jpn",
+                "kor",
+                "ara",
+                "hin",
+                "rus",
+                "por",
+                "ita",
+                "tur",
+                "pol",
+                "nld",
+                "tha",
+                "vie",
+                "ind",
+                "heb",
+                "ben",
+                "tam",
+                "tel",
+                "mar",
             ],
             specializations=["pdf", "image", "business_card"],
             max_resolution=3000,
@@ -389,31 +470,37 @@ class OlmOCRModel:
             model_size_gb=13.8,
             license_type="open_source",
             confidence_threshold=0.82,
-            strengths=["Fully open source", "Synthetic data pipeline", "Unit test rewards"],
-            weaknesses=["Moderate accuracy", "Limited specializations"]
+            strengths=[
+                "Fully open source",
+                "Synthetic data pipeline",
+                "Unit test rewards",
+            ],
+            weaknesses=["Moderate accuracy", "Limited specializations"],
         )
 
-    async def process_document(self, image_data: bytes, language: str = "auto") -> ModelResponse:
+    async def process_document(
+        self, image_data: bytes, language: str = "auto"
+    ) -> ModelResponse:
         """Process document with OlmOCR-2-7B model."""
         start_time = time.time()
-        
+
         try:
             # Load and process with local model
             # This is a placeholder implementation
             # In production, would load the actual model
-            
+
             # Convert bytes to PIL Image
             image = Image.open(io.BytesIO(image_data))
-            
+
             # Preprocess image
             processed_image = self._preprocess_image(image)
-            
+
             # Run inference (placeholder)
             text = await self._run_inference(processed_image, language)
             confidence = self._estimate_confidence(text)
-            
+
             processing_time = time.time() - start_time
-            
+
             return ModelResponse(
                 text=text,
                 confidence=confidence,
@@ -423,10 +510,10 @@ class OlmOCRModel:
                 metadata={
                     "processing_time": processing_time,
                     "model": "olm_ocr_2_7b",
-                    "device": self.device
-                }
+                    "device": self.device,
+                },
             )
-            
+
         except Exception as e:
             processing_time = time.time() - start_time
             return ModelResponse(
@@ -438,30 +525,30 @@ class OlmOCRModel:
                 metadata={
                     "error": str(e),
                     "processing_time": processing_time,
-                    "model": "olm_ocr_2_7b"
-                }
+                    "model": "olm_ocr_2_7b",
+                },
             )
 
     def _preprocess_image(self, image: Image.Image) -> Image.Image:
         """Preprocess image for OlmOCR model."""
         # Convert to RGB if needed
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
-        
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+
         # Resize to optimal size for the model
         target_size = (1024, 1024)
         image.thumbnail(target_size, Image.Resampling.LANCZOS)
-        
+
         return image
 
     async def _run_inference(self, image: Image.Image, language: str) -> str:
         """Run inference with OlmOCR model."""
         # Placeholder implementation
         # In production, would load and run the actual model
-        
+
         # Simulate processing time
         await asyncio.sleep(0.5)
-        
+
         # Return placeholder text
         return f"OlmOCR extracted text from image in {language} language. This is a placeholder implementation."
 
@@ -469,22 +556,22 @@ class OlmOCRModel:
         """Estimate confidence based on text characteristics."""
         if not text:
             return 0.0
-        
+
         # Simple heuristic based on text length and patterns
         confidence = 0.82  # Base confidence
-        
+
         # Adjust based on text length
         if len(text) < 10:
             confidence -= 0.2
         elif len(text) > 100:
             confidence += 0.1
-        
+
         # Check for common OCR artifacts
-        artifacts = ['~', '|', '[', ']', '{', '}', '<', '>']
+        artifacts = ["~", "|", "[", "]", "{", "}", "<", ">"]
         artifact_count = sum(text.count(a) for a in artifacts)
         if artifact_count > len(text) * 0.1:
             confidence -= 0.2
-        
+
         return max(0.0, min(1.0, confidence))
 
 
@@ -500,7 +587,7 @@ class DeepSeekOCRModel:
         self.base_url = config.get("base_url", "https://api.deepseek.ocr/v1")
         self.timeout = config.get("timeout", 15)
         self.max_retries = config.get("max_retries", 3)
-        
+
         # Model capabilities
         self.capabilities = ModelCapabilities(
             name="deepseek_ocr_3b",
@@ -515,45 +602,45 @@ class DeepSeekOCRModel:
             license_type="commercial",
             confidence_threshold=0.75,
             strengths=["Extreme efficiency", "6 resolution modes", "Fast processing"],
-            weaknesses=["Lower accuracy", "Limited languages", "Simple documents only"]
+            weaknesses=["Lower accuracy", "Limited languages", "Simple documents only"],
         )
 
-    async def process_document(self, image_data: bytes, language: str = "auto") -> ModelResponse:
+    async def process_document(
+        self, image_data: bytes, language: str = "auto"
+    ) -> ModelResponse:
         """Process document with DeepSeek-OCR-3B model."""
         start_time = time.time()
-        
+
         try:
             # Prepare request
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
-            
+
             # Convert image to base64
             image_base64 = self._image_to_base64(image_data)
-            
+
             payload = {
                 "image": image_base64,
                 "language": language,
                 "fast_mode": True,
-                "include_confidence": True
+                "include_confidence": True,
             }
-            
+
             # Make API request
             response_data = await self._make_request_with_retry(
-                f"{self.base_url}/extract",
-                headers=headers,
-                json=payload
+                f"{self.base_url}/extract", headers=headers, json=payload
             )
-            
+
             # Parse response
             text = response_data.get("text", "")
             confidence = response_data.get("confidence", 0.0)
             detected_language = response_data.get("language", language)
             page_count = response_data.get("page_count", 1)
-            
+
             processing_time = time.time() - start_time
-            
+
             return ModelResponse(
                 text=text,
                 confidence=confidence,
@@ -564,10 +651,10 @@ class DeepSeekOCRModel:
                     "processing_time": processing_time,
                     "model": "deepseek_ocr_3b",
                     "fast_mode": True,
-                    "version": response_data.get("version", "1.0")
-                }
+                    "version": response_data.get("version", "1.0"),
+                },
             )
-            
+
         except Exception as e:
             processing_time = time.time() - start_time
             return ModelResponse(
@@ -579,16 +666,19 @@ class DeepSeekOCRModel:
                 metadata={
                     "error": str(e),
                     "processing_time": processing_time,
-                    "model": "deepseek_ocr_3b"
-                }
+                    "model": "deepseek_ocr_3b",
+                },
             )
 
     def _image_to_base64(self, image_data: bytes) -> str:
         """Convert image bytes to base64 string."""
         import base64
-        return base64.b64encode(image_data).decode('utf-8')
 
-    async def _make_request_with_retry(self, url: str, headers: Dict, json: Dict) -> Dict:
+        return base64.b64encode(image_data).decode("utf-8")
+
+    async def _make_request_with_retry(
+        self, url: str, headers: Dict, json: Dict
+    ) -> Dict:
         """Make HTTP request with retry logic."""
         for attempt in range(self.max_retries):
             try:
@@ -599,8 +689,8 @@ class DeepSeekOCRModel:
             except Exception as e:
                 if attempt == self.max_retries - 1:
                     raise e
-                await asyncio.sleep(2 ** attempt)  # Exponential backoff
-        
+                await asyncio.sleep(2**attempt)  # Exponential backoff
+
         raise Exception("Max retries exceeded")
 
 
@@ -616,7 +706,7 @@ class LightOnOCRModel:
         self.base_url = config.get("base_url", "https://api.lighton.ocr/v1")
         self.timeout = config.get("timeout", 10)
         self.max_retries = config.get("max_retries", 3)
-        
+
         # Model capabilities
         self.capabilities = ModelCapabilities(
             name="lighton_ocr",
@@ -631,45 +721,45 @@ class LightOnOCRModel:
             license_type="commercial",
             confidence_threshold=0.76,
             strengths=["Fastest throughput", "Lowest cost", "Efficient 1B model"],
-            weaknesses=["Limited languages", "Basic accuracy", "Simple documents only"]
+            weaknesses=["Limited languages", "Basic accuracy", "Simple documents only"],
         )
 
-    async def process_document(self, image_data: bytes, language: str = "auto") -> ModelResponse:
+    async def process_document(
+        self, image_data: bytes, language: str = "auto"
+    ) -> ModelResponse:
         """Process document with LightOn OCR model."""
         start_time = time.time()
-        
+
         try:
             # Prepare request
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
-            
+
             # Convert image to base64
             image_base64 = self._image_to_base64(image_data)
-            
+
             payload = {
                 "image": image_base64,
                 "language": language,
                 "cost_optimized": True,
-                "include_confidence": True
+                "include_confidence": True,
             }
-            
+
             # Make API request
             response_data = await self._make_request_with_retry(
-                f"{self.base_url}/extract",
-                headers=headers,
-                json=payload
+                f"{self.base_url}/extract", headers=headers, json=payload
             )
-            
+
             # Parse response
             text = response_data.get("text", "")
             confidence = response_data.get("confidence", 0.0)
             detected_language = response_data.get("language", language)
             page_count = response_data.get("page_count", 1)
-            
+
             processing_time = time.time() - start_time
-            
+
             return ModelResponse(
                 text=text,
                 confidence=confidence,
@@ -680,10 +770,10 @@ class LightOnOCRModel:
                     "processing_time": processing_time,
                     "model": "lighton_ocr",
                     "cost_optimized": True,
-                    "version": response_data.get("version", "1.0")
-                }
+                    "version": response_data.get("version", "1.0"),
+                },
             )
-            
+
         except Exception as e:
             processing_time = time.time() - start_time
             return ModelResponse(
@@ -695,16 +785,19 @@ class LightOnOCRModel:
                 metadata={
                     "error": str(e),
                     "processing_time": processing_time,
-                    "model": "lighton_ocr"
-                }
+                    "model": "lighton_ocr",
+                },
             )
 
     def _image_to_base64(self, image_data: bytes) -> str:
         """Convert image bytes to base64 string."""
         import base64
-        return base64.b64encode(image_data).decode('utf-8')
 
-    async def _make_request_with_retry(self, url: str, headers: Dict, json: Dict) -> Dict:
+        return base64.b64encode(image_data).decode("utf-8")
+
+    async def _make_request_with_retry(
+        self, url: str, headers: Dict, json: Dict
+    ) -> Dict:
         """Make HTTP request with retry logic."""
         for attempt in range(self.max_retries):
             try:
@@ -715,8 +808,8 @@ class LightOnOCRModel:
             except Exception as e:
                 if attempt == self.max_retries - 1:
                     raise e
-                await asyncio.sleep(2 ** attempt)  # Exponential backoff
-        
+                await asyncio.sleep(2**attempt)  # Exponential backoff
+
         raise Exception("Max retries exceeded")
 
 
@@ -732,15 +825,22 @@ class ModelFactory:
             "olm_ocr_2_7b": OlmOCRModel,
             "deepseek_ocr_3b": DeepSeekOCRModel,
             "lighton_ocr": LightOnOCRModel,
-            "vertex_ai_ocr": VertexAIOCRModel
+            "vertex_ai_ocr": VertexAIOCRModel,
         }
-        
+
         if model_name not in models:
             raise ValueError(f"Unknown model: {model_name}")
-        
+
         return models[model_name](config)
 
     @staticmethod
     def get_available_models() -> List[str]:
         """Get list of available model names."""
-        return ["dots_ocr", "chandra_ocr_8b", "olm_ocr_2_7b", "deepseek_ocr_3b", "lighton_ocr", "vertex_ai_ocr"]
+        return [
+            "dots_ocr",
+            "chandra_ocr_8b",
+            "olm_ocr_2_7b",
+            "deepseek_ocr_3b",
+            "lighton_ocr",
+            "vertex_ai_ocr",
+        ]

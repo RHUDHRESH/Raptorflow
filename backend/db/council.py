@@ -4,8 +4,9 @@ Handles database persistence for council sessions and reports.
 """
 
 from typing import Any, Dict, List, Optional
-from backend.db.base import Repository
-from backend.core.supabase_mgr import get_supabase_client
+from db.base import Repository
+from .core.supabase_mgr import get_supabase_client
+
 
 class CouncilRepository(Repository):
     """Repository for Expert Council operations"""
@@ -17,7 +18,9 @@ class CouncilRepository(Repository):
         """Map database record to dict."""
         return data
 
-    async def create_session(self, workspace_id: str, session_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_session(
+        self, workspace_id: str, session_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Create a new session record."""
         session_data["workspace_id"] = workspace_id
         result = (
@@ -28,7 +31,9 @@ class CouncilRepository(Repository):
         )
         return result.data[0] if result.data else {}
 
-    async def list_by_workspace(self, workspace_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+    async def list_by_workspace(
+        self, workspace_id: str, limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """Retrieve recent sessions for a workspace."""
         result = (
             self._get_supabase_client()
@@ -41,7 +46,9 @@ class CouncilRepository(Repository):
         )
         return result.data or []
 
-    async def get_by_id(self, session_id: str, workspace_id: str) -> Optional[Dict[str, Any]]:
+    async def get_by_id(
+        self, session_id: str, workspace_id: str
+    ) -> Optional[Dict[str, Any]]:
         """Get a specific session."""
         try:
             result = (

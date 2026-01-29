@@ -15,6 +15,9 @@ import { BlueprintAvatar } from "@/components/ui/BlueprintAvatar"
 import { BlueprintLoader } from "@/components/ui/BlueprintLoader"
 import { PageHeader } from "@/components/ui/PageHeader"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/components/auth/AuthProvider"
+import { useBcmStore } from "@/stores/bcmStore"
+import { formatDistanceToNow } from "date-fns"
 import {
   Brain,
   Zap,
@@ -66,10 +69,68 @@ export default function Dashboard() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [agents, setAgents] = useState<AgentCard[]>([])
   const [loading, setLoading] = useState(true)
+  const [isRefreshingBcm, setIsRefreshingBcm] = useState(false)
+  const [isRebuildingBcm, setIsRebuildingBcm] = useState(false)
+
+  const { user } = useAuth()
+  const workspaceId = user?.workspaceId
+  const {
+    manifest,
+    status: bcmStatus,
+    lastFetchedAt,
+    staleReason,
+    error: bcmError,
+    fetchLatest,
+    rebuild,
+  } = useBcmStore()
 
   useEffect(() => {
     loadDashboardData()
   }, [])
+
+  useEffect(() => {
+    if (!workspaceId) return
+    fetchLatest(workspaceId).catch(() => {
+      // errors already captured in store state
+    })
+  }, [workspaceId, fetchLatest])
+
+  const handleRefreshBcm = async () => {
+    if (!workspaceId) return
+    setIsRefreshingBcm(true)
+    try {
+      await fetchLatest(workspaceId)
+    } finally {
+      setIsRefreshingBcm(false)
+    }
+  }
+
+  const handleRebuildBcm = async () => {
+    if (!workspaceId) return
+    setIsRebuildingBcm(true)
+    try {
+      await rebuild(workspaceId, true)
+    } catch (error) {
+      // store already captures error state
+    } finally {
+      setIsRebuildingBcm(false)
+    }
+  }
+
+  const manifestGeneratedAt = manifest?.generatedAt || (manifest as any)?.generated_at
+  const lastUpdatedText = manifestGeneratedAt
+    ? formatDistanceToNow(new Date(manifestGeneratedAt), { addSuffix: true })
+    : lastFetchedAt
+    ? formatDistanceToNow(new Date(lastFetchedAt), { addSuffix: true })
+    : "Never"
+  const bcmStatusLabel = (() => {
+    if (!workspaceId) return "Workspace unavailable"
+    if (bcmStatus === "loading") return "Fetching context"
+    if (bcmStatus === "error") return "Context error"
+    if (bcmStatus === "stale" && staleReason) return `Stale: ${staleReason}`
+    if (manifest) return "Context healthy"
+    return "Not generated"
+  })()
 
   /* MOCK DATA IMPLEMENTATION */
   const loadDashboardData = async () => {
@@ -148,18 +209,53 @@ export default function Dashboard() {
           title="Command Center"
           subtitle="Real-time monitoring and control of autonomous agent systems."
           actions={
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" className="h-9 border-[var(--border)] gap-2">
-                <Settings className="w-4 h-4" />
-                Config
-              </Button>
-              <Button size="sm" className="h-9 bg-[var(--ink)] text-white gap-2 hover:bg-[var(--ink)]/90">
-                <Plus className="w-4 h-4" />
-                Deploy Agent
-              </Button>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="flex items-center gap-2 text-left">
+                <Badge
+                  variant={bcmStatus === "error" || staleReason ? "destructive" : "outline"}
+                  className="uppercase tracking-wide text-[10px]"
+                >
+                  BCM
+                </Badge>
+                <div>
+                  <p className="text-xs font-mono text-[var(--muted)]">{bcmStatusLabel}</p>
+                  <p className="text-[10px] font-mono text-[var(--ink-secondary)]">Updated {lastUpdatedText}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 border-[var(--border)] gap-2"
+                  onClick={handleRefreshBcm}
+                  disabled={!workspaceId || bcmStatus === "loading" || isRefreshingBcm}
+                >
+                  <Clock className="w-4 h-4" />
+                  Refresh
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-9 bg-[var(--ink)] text-white gap-2 hover:bg-[var(--ink)]/90"
+                  onClick={handleRebuildBcm}
+                  disabled={!workspaceId || isRebuildingBcm}
+                >
+                  <Plus className="w-4 h-4" />
+                  Rebuild BCM
+                </Button>
+              </div>
             </div>
           }
         />
+
+        {bcmError && (
+          <div className="p-4 border border-red-200 bg-red-50 rounded-md flex items-start gap-3">
+            <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-700">BCM fetch error</p>
+              <p className="text-xs text-red-600">{bcmError}</p>
+            </div>
+          </div>
+        )}
 
         {/* KPI Grid - 4 Columns strict */}
         {stats && (

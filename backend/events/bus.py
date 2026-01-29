@@ -9,9 +9,9 @@ import weakref
 from datetime import datetime
 from typing import Callable, Dict, List, Optional, Set
 
-from ..redis_core.client import RedisClient
-from ..redis_core.pubsub import PubSubService
-from .types import Event, EventType
+from .redis_core.client import RedisClient
+from .redis_core.pubsub import PubSubService
+from types import Event, EventType
 
 logger = logging.getLogger(__name__)
 

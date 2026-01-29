@@ -14,13 +14,13 @@ import os
 # Add root directory to path
 sys.path.append(os.getcwd())
 
-from backend.ticker import ticker
+from ticker import ticker
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("ticker_starter")
+
 
 async def main():
     logger.info("⚡ Starting Absolute Infinity Strategic Ticker...")
@@ -28,6 +28,7 @@ async def main():
         await ticker.start_ticker()
     except Exception as e:
         logger.error(f"🔥 Critical Ticker Failure: {e}")
+
 
 if __name__ == "__main__":
     try:

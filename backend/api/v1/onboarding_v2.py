@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from backend.agents.graphs.onboarding_v2 import OnboardingGraphV2, OnboardingStateV2
+from ..agents.graphs.onboarding_v2 import OnboardingGraphV2, OnboardingStateV2
 
 # Local imports
 from ...infrastructure.storage import FileCategory, upload_file

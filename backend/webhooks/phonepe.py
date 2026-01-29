@@ -10,13 +10,13 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from backend.config.settings import get_settings
-from backend.services.phonepe_auth import get_phonepe_auth_client
-from backend.services.phonepe_webhook_service import PhonePeWebhookService
+from .config.settings import get_settings
+from .services.phonepe_auth import get_phonepe_auth_client
+from .services.phonepe_webhook_service import PhonePeWebhookService
 
-from .handler import WebhookHandler
+from handler import WebhookHandler
 from .models import WebhookEvent
-from .verification import verify_webhook
+from verification import verify_webhook
 
 logger = logging.getLogger(__name__)
 
@@ -471,7 +471,7 @@ class PhonePeWebhookHandler:
         """Update payment status in database."""
         logger.info(f"Updating payment status: {transaction_id} -> {status}")
         try:
-            from backend.db.repositories.payment import PaymentRepository
+            from db.repositories.payment import PaymentRepository
 
             repo = PaymentRepository()
             await repo.update_status(
@@ -490,7 +490,7 @@ class PhonePeWebhookHandler:
         """Grant access to user/workspace after successful payment."""
         logger.info(f"Granting access to user {user_id} for workspace {workspace_id}")
         try:
-            from backend.core.supabase_mgr import get_supabase_client
+            from core.supabase_mgr import get_supabase_client
 
             supabase = get_supabase_client()
 

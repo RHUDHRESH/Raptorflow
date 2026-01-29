@@ -33,9 +33,9 @@ import structlog
 from pydantic import BaseModel, ValidationError
 
 # Local imports
-from .config import settings
-from .llm import LLMManager, LLMRequest, LLMResponse
-from .state import StateManager, StateStatus, StateType
+from config import settings
+from llm import LLMManager, LLMRequest, LLMResponse
+from state import StateManager, StateStatus, StateType
 
 logger = structlog.get_logger(__name__)
 
@@ -818,6 +818,33 @@ class BaseWorkflow(BaseComponent):
         """Execute a single node."""
         # This should be implemented by subclasses
         return {"status": "completed", "data": {}}
+
+
+class BaseRouter:
+    """Base class for routing components."""
+
+    def __init__(self):
+        self.routes = []
+
+    def add_route(self, pattern: str, handler: callable, priority: int = 1):
+        """Add a route to the router."""
+        self.routes.append(
+            {"pattern": pattern, "handler": handler, "priority": priority}
+        )
+
+    async def route(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Route a request to the appropriate handler."""
+        # Simple routing logic - can be extended
+        for route in sorted(self.routes, key=lambda x: x["priority"], reverse=True):
+            if self._matches_pattern(request_data, route["pattern"]):
+                return await route["handler"](request_data)
+
+        raise ValueError("No matching route found")
+
+    def _matches_pattern(self, data: Dict[str, Any], pattern: str) -> bool:
+        """Check if data matches the pattern."""
+        # Simple pattern matching - can be extended
+        return pattern in data.get("type", "").lower()
 
 
 class BaseService(BaseComponent):

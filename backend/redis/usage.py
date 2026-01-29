@@ -1,432 +1,279 @@
 """
-Usage tracking service for Redis-based monitoring.
+Usage tracking service using Redis.
 
-Tracks token usage, costs, and agent performance metrics
-with budget enforcement and alerting.
+Tracks API usage, resource consumption, and billing metrics
+with workspace isolation and fraud prevention.
 """
 
-import os
-from datetime import date, datetime, timedelta
-from decimal import Decimal
+import json
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from .client import get_redis
 from .critical_fixes import UsageDataValidator
-from .usage_models import AgentUsage, DailyUsage, MonthlyUsage, UsageAlert
 
 
 class UsageTracker:
-    """Redis-based usage tracking and monitoring service."""
+    """Redis-based usage tracking service."""
 
     KEY_PREFIX = "usage:"
     DAILY_PREFIX = "daily:"
     MONTHLY_PREFIX = "monthly:"
-    ALERT_PREFIX = "alert:"
+    REALTIME_PREFIX = "realtime:"
 
     def __init__(self):
         self.redis = get_redis()
-        self.usage_validator = UsageDataValidator()
+        self.validator = UsageDataValidator()
 
-    def _get_daily_key(self, workspace_id: str, date_str: str) -> str:
-        """Get Redis key for daily usage."""
-        return f"{self.KEY_PREFIX}{self.DAILY_PREFIX}{workspace_id}:{date_str}"
+    def _get_key(self, workspace_id: str, period: str, date: str) -> str:
+        """Get Redis key for usage tracking."""
+        return f"{self.KEY_PREFIX}{period}{workspace_id}:{date}"
 
-    def _get_monthly_key(self, workspace_id: str, month_str: str) -> str:
-        """Get Redis key for monthly usage."""
-        return f"{self.KEY_PREFIX}{self.MONTHLY_PREFIX}{workspace_id}:{month_str}"
+    def _get_realtime_key(self, workspace_id: str) -> str:
+        """Get Redis key for realtime usage."""
+        return f"{self.REALTIME_PREFIX}{workspace_id}"
 
-    def _get_alert_key(self, workspace_id: str, alert_id: str) -> str:
-        """Get Redis key for alert."""
-        return f"{self.KEY_PREFIX}{self.ALERT_PREFIX}{workspace_id}:{alert_id}"
-
-    async def record_usage(
+    async def track_usage(
         self,
         workspace_id: str,
-        tokens_input: int,
-        tokens_output: int,
-        cost_usd: float,
-        agent_name: str,
-        success: bool = True,
-        latency_ms: float = 0.0,
-    ):
-        """Record usage for a request with validation."""
-        # Validate usage data before recording
+        event_type: str,
+        quantity: float,
+        metadata: Optional[Dict[str, Any]] = None,
+        timestamp: Optional[datetime] = None,
+    ) -> bool:
+        """Track a usage event."""
+        if timestamp is None:
+            timestamp = datetime.now()
+
+        # Create usage event
+        usage_data = {
+            "event_type": event_type,
+            "quantity": quantity,
+            "timestamp": timestamp.isoformat(),
+            "metadata": metadata or {},
+        }
+
+        # Validate usage data
         try:
-            validated_data = self.usage_validator.validate_usage_data(
-                tokens_input, tokens_output, cost_usd, agent_name
+            validated_data = self.validator.validate_usage_data(
+                {"events": [usage_data]}
             )
         except ValueError as e:
             raise ValueError(f"Invalid usage data: {e}")
 
-        today = date.today()
-        date_str = today.isoformat()
-        month_str = today.strftime("%Y-%m")
+        # Track in different time windows
+        date_str = timestamp.strftime("%Y-%m-%d")
+        month_str = timestamp.strftime("%Y-%m")
 
-        # Get or create daily usage
-        daily_key = self._get_daily_key(workspace_id, date_str)
-        daily_data = await self.redis.get_json(daily_key)
+        # Daily usage
+        daily_key = self._get_key(workspace_id, self.DAILY_PREFIX, date_str)
+        await self._add_usage_to_key(daily_key, validated_data["events"][0])
 
-        if daily_data:
-            daily_usage = DailyUsage.from_dict(daily_data)
-        else:
-            daily_usage = DailyUsage(date=today, workspace_id=workspace_id)
+        # Monthly usage
+        monthly_key = self._get_key(workspace_id, self.MONTHLY_PREFIX, month_str)
+        await self._add_usage_to_key(monthly_key, validated_data["events"][0])
 
-        # Add validated usage
-        daily_usage.add_usage(
-            tokens_input=validated_data["tokens_input"],
-            tokens_output=validated_data["tokens_output"],
-            cost_usd=validated_data["cost_usd"],
-            agent_name=validated_data["agent_name"],
-            success=success,
-            latency_ms=latency_ms,
+        # Realtime usage (for current limits)
+        realtime_key = self._get_realtime_key(workspace_id)
+        await self._add_usage_to_key(
+            realtime_key, validated_data["events"][0], ttl=3600
         )
 
-        # Save daily usage
-        await self.redis.set_json(
-            daily_key, daily_usage.to_dict(), ex=86400 * 7
-        )  # 7 days
+        return True
 
-        # Update monthly usage
-        await self._update_monthly_usage(workspace_id, month_str, daily_usage)
-
-        # Check for alerts
-        await self._check_usage_alerts(workspace_id, daily_usage)
-
-    async def _update_monthly_usage(
-        self, workspace_id: str, month_str: str, daily_usage: DailyUsage
+    async def _add_usage_to_key(
+        self, key: str, event: Dict[str, Any], ttl: Optional[int] = None
     ):
-        """Update monthly usage aggregation."""
-        monthly_key = self._get_monthly_key(workspace_id, month_str)
-        monthly_data = await self.redis.get_json(monthly_key)
+        """Add usage event to a tracking key."""
+        # Use Redis hash to store usage by type
+        field = f"{event['event_type']}:{event['timestamp']}"
 
-        if monthly_data:
-            monthly_usage = MonthlyUsage.from_dict(monthly_data)
-        else:
-            monthly_usage = MonthlyUsage(month=month_str, workspace_id=workspace_id)
+        # Store event data
+        await self.redis.async_client.hset(key, field, json.dumps(event))
 
-        monthly_usage.add_daily_usage(daily_usage)
+        # Update totals
+        total_field = f"total:{event['event_type']}"
+        current_total = await self.redis.async_client.hget(key, total_field)
+        new_total = float(current_total or 0) + event["quantity"]
+        await self.redis.async_client.hset(key, total_field, str(new_total))
 
-        # Save monthly usage
-        await self.redis.set_json(
-            monthly_key, monthly_usage.to_dict(), ex=86400 * 35
-        )  # 35 days
+        # Set TTL if provided
+        if ttl:
+            await self.redis.async_client.expire(key, ttl)
 
     async def get_daily_usage(
-        self, workspace_id: str, target_date: Optional[date] = None
-    ) -> Optional[DailyUsage]:
+        self, workspace_id: str, date: Optional[datetime] = None
+    ) -> Dict[str, Any]:
         """Get daily usage for workspace."""
-        if target_date is None:
-            target_date = date.today()
+        if date is None:
+            date = datetime.now()
 
-        date_str = target_date.isoformat()
-        daily_key = self._get_daily_key(workspace_id, date_str)
-        daily_data = await self.redis.get_json(daily_key)
+        date_str = date.strftime("%Y-%m-%d")
+        key = self._get_key(workspace_id, self.DAILY_PREFIX, date_str)
 
-        if daily_data:
-            return DailyUsage.from_dict(daily_data)
-
-        return None
+        return await self._get_usage_from_key(key)
 
     async def get_monthly_usage(
-        self, workspace_id: str, target_month: Optional[str] = None
-    ) -> Optional[MonthlyUsage]:
+        self, workspace_id: str, year: Optional[int] = None, month: Optional[int] = None
+    ) -> Dict[str, Any]:
         """Get monthly usage for workspace."""
-        if target_month is None:
-            target_month = date.today().strftime("%Y-%m")
+        if year is None or month is None:
+            now = datetime.now()
+            year = now.year
+            month = now.month
 
-        monthly_key = self._get_monthly_key(workspace_id, target_month)
-        monthly_data = await self.redis.get_json(monthly_key)
+        month_str = f"{year:04d}-{month:02d}"
+        key = self._get_key(workspace_id, self.MONTHLY_PREFIX, month_str)
 
-        if monthly_data:
-            return MonthlyUsage.from_dict(monthly_data)
+        return await self._get_usage_from_key(key)
 
-        return None
+    async def get_realtime_usage(self, workspace_id: str) -> Dict[str, Any]:
+        """Get current realtime usage for workspace."""
+        key = self._get_realtime_key(workspace_id)
+        return await self._get_usage_from_key(key)
+
+    async def _get_usage_from_key(self, key: str) -> Dict[str, Any]:
+        """Get usage data from Redis key."""
+        # Get all hash fields
+        hash_data = await self.redis.async_client.hgetall(key)
+
+        if not hash_data:
+            return {"events": [], "totals": {}}
+
+        # Parse data
+        events = []
+        totals = {}
+
+        for field, value in hash_data.items():
+            if field.startswith("total:"):
+                event_type = field.replace("total:", "")
+                totals[event_type] = float(value)
+            elif ":" in field:
+                try:
+                    event = json.loads(value)
+                    events.append(event)
+                except (json.JSONDecodeError, ValueError):
+                    continue
+
+        return {"events": events, "totals": totals}
 
     async def get_usage_summary(
         self, workspace_id: str, days: int = 30
     ) -> Dict[str, Any]:
         """Get usage summary for the last N days."""
-        summary = {
-            "workspace_id": workspace_id,
-            "period_days": days,
-            "total_tokens": 0,
-            "total_cost": 0.0,
-            "total_requests": 0,
-            "success_rate": 0.0,
-            "top_agents": [],
-            "daily_breakdown": [],
-        }
-
-        total_successful = 0
-        agent_totals = {}
+        summary = {"daily_usage": {}, "totals": {}, "trends": {}}
 
         # Collect daily data
         for i in range(days):
-            target_date = date.today() - timedelta(days=i)
-            daily_usage = await self.get_daily_usage(workspace_id, target_date)
+            date = datetime.now() - timedelta(days=i)
+            date_str = date.strftime("%Y-%m-%d")
+            daily_data = await self.get_daily_usage(workspace_id, date)
+            summary["daily_usage"][date_str] = daily_data["totals"]
 
-            if daily_usage:
-                summary["total_tokens"] += daily_usage.total_tokens
-                summary["total_cost"] += float(daily_usage.cost_usd)
-                summary["total_requests"] += daily_usage.total_requests
-                total_successful += daily_usage.successful_requests
-
-                # Aggregate agent usage
-                for agent_name, agent_usage in daily_usage.agent_usage.items():
-                    if agent_name not in agent_totals:
-                        agent_totals[agent_name] = AgentUsage(agent_name=agent_name)
-
-                    total_agent = agent_totals[agent_name]
-                    total_agent.requests += agent_usage.requests
-                    total_agent.tokens_input += agent_usage.tokens_input
-                    total_agent.tokens_output += agent_usage.tokens_output
-                    total_agent.cost_usd += agent_usage.cost_usd
-                    total_agent.errors += agent_usage.errors
-
-                # Add to daily breakdown
-                summary["daily_breakdown"].append(
-                    {
-                        "date": target_date.isoformat(),
-                        "tokens": daily_usage.total_tokens,
-                        "cost": float(daily_usage.cost_usd),
-                        "requests": daily_usage.total_requests,
-                    }
+        # Calculate totals
+        for daily_totals in summary["daily_usage"].values():
+            for event_type, quantity in daily_totals.items():
+                summary["totals"][event_type] = (
+                    summary["totals"].get(event_type, 0) + quantity
                 )
 
-        # Calculate success rate
-        if summary["total_requests"] > 0:
-            summary["success_rate"] = total_successful / summary["total_requests"]
+        # Calculate trends (simple average comparison)
+        if len(summary["daily_usage"]) > 1:
+            recent_days = list(summary["daily_usage"].values())[:7]  # Last 7 days
+            older_days = list(summary["daily_usage"].values())[7:14]  # Previous 7 days
 
-        # Get top agents
-        top_agents = sorted(
-            agent_totals.values(), key=lambda x: x.cost_usd, reverse=True
-        )[:5]
+            for event_type in summary["totals"].keys():
+                recent_avg = sum(d.get(event_type, 0) for d in recent_days) / len(
+                    recent_days
+                )
+                older_avg = (
+                    sum(d.get(event_type, 0) for d in older_days) / len(older_days)
+                    if older_days
+                    else 0
+                )
 
-        summary["top_agents"] = [
-            {
-                "agent_name": agent.agent_name,
-                "requests": agent.requests,
-                "cost_usd": float(agent.cost_usd),
-                "tokens": agent.tokens_input + agent.tokens_output,
-                "success_rate": agent.success_rate,
-            }
-            for agent in top_agents
-        ]
+                trend = (recent_avg - older_avg) / older_avg if older_avg > 0 else 0
+                summary["trends"][event_type] = {
+                    "change_percent": trend * 100,
+                    "direction": (
+                        "up" if trend > 0 else "down" if trend < 0 else "stable"
+                    ),
+                }
 
         return summary
 
-    async def check_budget(
-        self, workspace_id: str, estimated_cost: float, user_tier: str = "free"
+    async def check_usage_limits(
+        self, workspace_id: str, limits: Dict[str, float]
     ) -> Dict[str, Any]:
-        """Check if user can afford the operation."""
-        # Get budget limits by tier
-        budget_limits = {
-            "free": 1.00,
-            "starter": 10.00,
-            "growth": 50.00,
-            "enterprise": 200.00,
-        }
+        """Check if workspace is within usage limits."""
+        realtime_usage = await self.get_realtime_usage(workspace_id)
 
-        budget_limit = budget_limits.get(user_tier, 1.00)
+        violations = []
+        remaining = {}
 
-        # Get current month usage
-        monthly_usage = await self.get_monthly_usage(workspace_id)
-        current_usage = float(monthly_usage.total_cost_usd) if monthly_usage else 0.0
+        for event_type, limit in limits.items():
+            current_usage = realtime_usage["totals"].get(event_type, 0)
+            remaining[event_type] = max(0, limit - current_usage)
 
-        remaining = budget_limit - current_usage
-        can_afford = remaining >= estimated_cost
+            if current_usage > limit:
+                violations.append(
+                    {
+                        "event_type": event_type,
+                        "current": current_usage,
+                        "limit": limit,
+                        "overage": current_usage - limit,
+                    }
+                )
 
         return {
-            "can_afford": can_afford,
-            "budget_limit": budget_limit,
-            "current_usage": current_usage,
+            "within_limits": len(violations) == 0,
+            "violations": violations,
             "remaining": remaining,
-            "estimated_cost": estimated_cost,
-            "usage_percentage": (
-                (current_usage / budget_limit * 100) if budget_limit > 0 else 0
-            ),
         }
 
-    async def enforce_budget(
-        self, workspace_id: str, estimated_cost: float, user_tier: str = "free"
-    ):
-        """Enforce budget limit, raises exception if exceeded."""
-        budget = await self.check_budget(workspace_id, estimated_cost, user_tier)
+    async def set_usage_limit(
+        self, workspace_id: str, event_type: str, limit: float, period: str = "monthly"
+    ) -> bool:
+        """Set usage limit for workspace."""
+        limit_key = f"limit:{period}:{workspace_id}:{event_type}"
+        await self.redis.async_client.set(limit_key, str(limit), ex=2592000)  # 30 days
+        return True
 
-        if not budget["can_afford"]:
-            from fastapi import HTTPException
+    async def get_usage_limit(
+        self, workspace_id: str, event_type: str, period: str = "monthly"
+    ) -> Optional[float]:
+        """Get usage limit for workspace."""
+        limit_key = f"limit:{period}:{workspace_id}:{event_type}"
+        limit_str = await self.redis.async_client.get(limit_key)
+        return float(limit_str) if limit_str else None
 
-            raise HTTPException(
-                status_code=402,
-                detail={
-                    "error": "Budget exceeded",
-                    "budget_limit": budget["budget_limit"],
-                    "current_usage": budget["current_usage"],
-                    "remaining": budget["remaining"],
-                    "estimated_cost": budget["estimated_cost"],
-                },
-            )
-
-    async def get_agent_performance(
-        self, workspace_id: str, agent_name: str, days: int = 30
-    ) -> Dict[str, Any]:
-        """Get performance metrics for a specific agent."""
-        performance = {
-            "agent_name": agent_name,
-            "period_days": days,
-            "total_requests": 0,
-            "total_tokens": 0,
-            "total_cost": 0.0,
-            "success_rate": 0.0,
-            "avg_latency_ms": 0.0,
-            "error_rate": 0.0,
-            "daily_performance": [],
-        }
-
-        total_successful = 0
-        total_errors = 0
-        total_latency = 0.0
-        latency_count = 0
-
-        # Collect daily data for the agent
-        for i in range(days):
-            target_date = date.today() - timedelta(days=i)
-            daily_usage = await self.get_daily_usage(workspace_id, target_date)
-
-            if daily_usage and agent_name in daily_usage.agent_usage:
-                agent_usage = daily_usage.agent_usage[agent_name]
-
-                performance["total_requests"] += agent_usage.requests
-                performance["total_tokens"] += (
-                    agent_usage.tokens_input + agent_usage.tokens_output
-                )
-                performance["total_cost"] += float(agent_usage.cost_usd)
-                total_successful += agent_usage.requests - agent_usage.errors
-                total_errors += agent_usage.errors
-
-                if agent_usage.avg_latency_ms > 0:
-                    total_latency += agent_usage.avg_latency_ms * agent_usage.requests
-                    latency_count += agent_usage.requests
-
-                # Add daily performance
-                performance["daily_performance"].append(
-                    {
-                        "date": target_date.isoformat(),
-                        "requests": agent_usage.requests,
-                        "cost": float(agent_usage.cost_usd),
-                        "success_rate": agent_usage.success_rate,
-                        "avg_latency_ms": agent_usage.avg_latency_ms,
-                    }
-                )
-
-        # Calculate rates
-        if performance["total_requests"] > 0:
-            performance["success_rate"] = (
-                total_successful / performance["total_requests"]
-            )
-            performance["error_rate"] = total_errors / performance["total_requests"]
-
-        if latency_count > 0:
-            performance["avg_latency_ms"] = total_latency / latency_count
-
-        return performance
-
-    async def _check_usage_alerts(self, workspace_id: str, daily_usage: DailyUsage):
-        """Check for usage alerts and create if needed."""
-        alerts = []
-
-        # Budget alert (80% of monthly budget)
-        monthly_usage = await self.get_monthly_usage(workspace_id)
-        if monthly_usage and monthly_usage.budget_limit_usd:
-            usage_percentage = float(
-                monthly_usage.total_cost_usd / monthly_usage.budget_limit_usd * 100
-            )
-            if usage_percentage >= 80 and usage_percentage < 85:
-                alerts.append(
-                    {
-                        "type": "budget_warning",
-                        "message": f"Usage at {usage_percentage:.1f}% of monthly budget",
-                        "severity": "warning",
-                    }
-                )
-            elif usage_percentage >= 90:
-                alerts.append(
-                    {
-                        "type": os.getenv("TYPE"),
-                        "message": f"Usage at {usage_percentage:.1f}% of monthly budget",
-                        "severity": "critical",
-                    }
-                )
-
-        # Daily spend anomaly (if daily cost is 3x average)
-        if len(monthly_usage.daily_breakdown) >= 7:
-            recent_costs = [
-                float(daily.cost_usd)
-                for daily in monthly_usage.daily_breakdown.values()
-                if daily.date != daily_usage.date
-            ]
-            if recent_costs:
-                avg_cost = sum(recent_costs) / len(recent_costs)
-                current_cost = float(daily_usage.cost_usd)
-                if current_cost > avg_cost * 3:
-                    alerts.append(
-                        {
-                            "type": "spike_anomaly",
-                            "message": f"Daily spend (${current_cost:.2f}) is 3x average (${avg_cost:.2f})",
-                            "severity": "warning",
-                        }
-                    )
-
-        # Create alerts
-        for alert_data in alerts:
-            await self.create_alert(
-                workspace_id=workspace_id,
-                alert_type=alert_data["type"],
-                message=alert_data["message"],
-                severity=alert_data["severity"],
-                current_value=float(daily_usage.cost_usd),
-            )
-
-    async def create_alert(
-        self,
-        workspace_id: str,
-        alert_type: str,
-        message: str,
-        severity: str,
-        current_value: float,
-        threshold: Optional[float] = None,
-    ) -> str:
-        """Create a usage alert."""
-        import uuid
-
-        alert_id = str(uuid.uuid4())
-
-        alert = UsageAlert(
-            alert_id=alert_id,
-            workspace_id=workspace_id,
-            alert_type=alert_type,
-            threshold=threshold or 0.0,
-            current_value=current_value,
-            message=message,
-            severity=severity,
-        )
-
-        alert_key = self._get_alert_key(workspace_id, alert_id)
-        await self.redis.set_json(alert_key, alert.to_dict(), ex=86400 * 7)  # 7 days
-
-        return alert_id
-
-    async def get_active_alerts(self, workspace_id: str) -> List[UsageAlert]:
-        """Get active alerts for workspace."""
-        # In production, maintain an alert index
-        # For now, return empty list
-        return []
-
-    async def cleanup_old_usage_data(self, days_to_keep: int = 90) -> int:
+    async def cleanup_old_usage_data(self, retention_days: int = 90):
         """Clean up old usage data."""
-        cleaned = 0
-        cutoff_date = date.today() - timedelta(days=days_to_keep)
+        # This would typically be run as a background job
+        cutoff_date = datetime.now() - timedelta(days=retention_days)
 
-        # In production, scan and delete old keys
-        # For now, return placeholder
-        return cleaned
+        # In production, implement proper cleanup logic
+        # For now, this is a placeholder
+        pass
+
+    async def export_usage_data(
+        self, workspace_id: str, start_date: datetime, end_date: datetime
+    ) -> List[Dict[str, Any]]:
+        """Export usage data for date range."""
+        all_events = []
+        current_date = start_date
+
+        while current_date <= end_date:
+            daily_data = await self.get_daily_usage(workspace_id, current_date)
+            all_events.extend(daily_data["events"])
+            current_date += timedelta(days=1)
+
+        return all_events
+
+    async def get_top_consumers(
+        self, event_type: str, limit: int = 10, period: str = "monthly"
+    ) -> List[Dict[str, Any]]:
+        """Get top consumers by usage."""
+        # This would require maintaining a sorted set of usage by workspace
+        # For now, return placeholder data
+        return []

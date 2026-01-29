@@ -42,133 +42,95 @@ class RedisClient:
             self._async_client = AsyncRedis(url=self.url, token=self.token)
         return self._async_client
 
-    # Basic operations
-    async def get(self, key: str) -> Optional[str]:
-        """Get string value."""
-        return await self.async_client.get(key)
+    async def get_json(self, key: str) -> Optional[Any]:
+        """Get JSON value from Redis."""
+        try:
+            value = await self.async_client.get(key)
+            if value is None:
+                return None
+            return json.loads(value)
+        except (json.JSONDecodeError, Exception):
+            return None
 
-    async def set(
-        self,
-        key: str,
-        value: str,
-        ex: Optional[int] = None,  # Expiry in seconds
-        px: Optional[int] = None,  # Expiry in milliseconds
-        nx: bool = False,  # Only set if not exists
-        xx: bool = False,  # Only set if exists
-    ) -> bool:
-        """Set string value."""
-        return await self.async_client.set(key, value, ex=ex, px=px, nx=nx, xx=xx)
+    async def set_json(self, key: str, value: Any, ex: Optional[int] = None) -> bool:
+        """Set JSON value in Redis."""
+        try:
+            json_value = json.dumps(value, default=str)
+            await self.async_client.set(key, json_value, ex=ex)
+            return True
+        except Exception:
+            return False
 
-    async def delete(self, *keys: str) -> int:
-        """Delete keys."""
-        return await self.async_client.delete(*keys)
+    async def delete(self, key: str) -> int:
+        """Delete key from Redis."""
+        try:
+            return await self.async_client.delete(key)
+        except Exception:
+            return 0
 
-    async def exists(self, *keys: str) -> int:
-        """Check if keys exist."""
-        return await self.async_client.exists(*keys)
+    async def exists(self, key: str) -> int:
+        """Check if key exists in Redis."""
+        try:
+            return await self.async_client.exists(key)
+        except Exception:
+            return 0
 
     async def expire(self, key: str, seconds: int) -> bool:
-        """Set key expiry."""
-        return await self.async_client.expire(key, seconds)
+        """Set expiration for key."""
+        try:
+            return await self.async_client.expire(key, seconds)
+        except Exception:
+            return False
 
     async def ttl(self, key: str) -> int:
-        """Get time to live."""
-        return await self.async_client.ttl(key)
+        """Get time to live for key."""
+        try:
+            return await self.async_client.ttl(key)
+        except Exception:
+            return -1
 
-    # Counter operations
-    async def incr(self, key: str) -> int:
-        """Increment counter."""
-        return await self.async_client.incr(key)
+    async def zadd(self, key: str, mapping: dict, *args, **kwargs) -> int:
+        """Add to sorted set."""
+        try:
+            return await self.async_client.zadd(key, mapping, *args, **kwargs)
+        except Exception:
+            return 0
 
-    async def incrby(self, key: str, amount: int) -> int:
-        """Increment counter by amount."""
-        return await self.async_client.incrby(key, amount)
+    async def zrange(self, key: str, start: int, end: int, *args, **kwargs) -> list:
+        """Get range from sorted set."""
+        try:
+            return await self.async_client.zrange(key, start, end, *args, **kwargs)
+        except Exception:
+            return []
 
-    async def decr(self, key: str) -> int:
-        """Decrement counter."""
-        return await self.async_client.decr(key)
+    async def zrem(self, key: str, *values) -> int:
+        """Remove from sorted set."""
+        try:
+            return await self.async_client.zrem(key, *values)
+        except Exception:
+            return 0
 
-    async def decrby(self, key: str, amount: int) -> int:
-        """Decrement counter by amount."""
-        return await self.async_client.decrby(key, amount)
+    async def zcard(self, key: str) -> int:
+        """Get sorted set size."""
+        try:
+            return await self.async_client.zcard(key)
+        except Exception:
+            return 0
 
-    # JSON operations
-    async def get_json(self, key: str) -> Optional[dict]:
-        """Get JSON value."""
-        value = await self.get(key)
-        if value:
-            try:
-                return json.loads(value)
-            except json.JSONDecodeError:
-                return None
-        return None
-
-    async def set_json(self, key: str, value: dict, ex: Optional[int] = None) -> bool:
-        """Set JSON value."""
-        return await self.set(key, json.dumps(value), ex=ex)
-
-    # Hash operations
-    async def hget(self, key: str, field: str) -> Optional[str]:
-        """Get hash field."""
-        return await self.async_client.hget(key, field)
-
-    async def hset(self, key: str, field: str, value: str) -> int:
-        """Set hash field."""
-        return await self.async_client.hset(key, field, value)
-
-    async def hgetall(self, key: str) -> dict:
-        """Get all hash fields."""
-        return await self.async_client.hgetall(key)
-
-    async def hmset(self, key: str, mapping: dict) -> bool:
-        """Set multiple hash fields."""
-        return await self.async_client.hmset(key, mapping)
-
-    async def hincrby(self, key: str, field: str, amount: int = 1) -> int:
-        """Increment hash field."""
-        return await self.async_client.hincrby(key, field, amount)
-
-    async def hincrbyfloat(self, key: str, field: str, amount: float) -> float:
-        """Increment hash field by float."""
-        return await self.async_client.hincrbyfloat(key, field, amount)
-
-    async def hdel(self, key: str, *fields: str) -> int:
-        """Delete hash fields."""
-        return await self.async_client.hdel(key, *fields)
-
-    # List operations (for queues)
-    async def lpush(self, key: str, *values: str) -> int:
-        """Push to left of list."""
-        return await self.async_client.lpush(key, *values)
-
-    async def rpush(self, key: str, *values: str) -> int:
-        """Push to right of list."""
-        return await self.async_client.rpush(key, *values)
-
-    async def lpop(self, key: str) -> Optional[str]:
-        """Pop from left of list."""
-        return await self.async_client.lpop(key)
-
-    async def rpop(self, key: str) -> Optional[str]:
-        """Pop from right of list."""
-        return await self.async_client.rpop(key)
-
-    async def lrange(self, key: str, start: int, end: int) -> list:
-        """Get range from list."""
-        return await self.async_client.lrange(key, start, end)
-
-    async def llen(self, key: str) -> int:
-        """Get list length."""
-        return await self.async_client.llen(key)
-
-    # Health check
     async def ping(self) -> bool:
-        """Check Redis connection."""
+        """Ping Redis server."""
         try:
             result = await self.async_client.ping()
             return result is True
         except Exception:
             return False
+
+    async def close(self):
+        """Close Redis connections."""
+        if self._async_client:
+            await self._async_client.close()
+        if self._sync_client:
+            self._sync_client.close()
 
 
 # Singleton instance

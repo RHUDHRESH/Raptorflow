@@ -7,7 +7,7 @@ import threading
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from .base import Skill, SkillAssessment, SkillCategory, SkillLevel, SkillPath
+from ..base import Skill, SkillAssessment, SkillCategory, SkillLevel, SkillPath
 from .implementations import (
     ConflictResolverSkill,
     MultiChannelAdaptationSkill,

@@ -10,15 +10,15 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from pydantic import BaseModel
 
-from backend.config.settings import get_settings
-from backend.core.health_analytics import (
+from ..config.settings import get_settings
+from ..core.health_analytics import (
     AlertSeverity,
     acknowledge_alert,
     get_alert_summary,
     get_health_analytics,
     resolve_alert,
 )
-from backend.core.health_monitor import (
+from ..core.health_monitor import (
     get_health_dashboard_data,
     get_health_monitor_advanced,
     record_health_metric,
@@ -26,7 +26,7 @@ from backend.core.health_monitor import (
     start_advanced_health_monitoring,
     stop_advanced_health_monitoring,
 )
-from backend.core.threat_intelligence import get_threat_summary
+from ..core.threat_intelligence import get_threat_summary
 
 from ...monitoring.health_checks import HealthAggregator
 from ...redis.client import RedisClient

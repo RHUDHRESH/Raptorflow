@@ -223,52 +223,6 @@ class CacheService:
         # For now, placeholder implementation
         return 0
 
-    # Specialized cache methods
-    async def get_foundation(self, workspace_id: str) -> Optional[Dict[str, Any]]:
-        """Get foundation data from cache."""
-        return await self.get(workspace_id, "foundation")
-
-    async def set_foundation(
-        self, workspace_id: str, foundation_data: Dict[str, Any]
-    ) -> bool:
-        """Set foundation data in cache."""
-        return await self.set(
-            workspace_id, "foundation", foundation_data, cache_type="foundation"
-        )
-
-    async def get_icps(self, workspace_id: str) -> Optional[List[Dict[str, Any]]]:
-        """Get ICP data from cache."""
-        return await self.get(workspace_id, "icps")
-
-    async def set_icps(self, workspace_id: str, icp_data: List[Dict[str, Any]]) -> bool:
-        """Set ICP data in cache."""
-        return await self.set(workspace_id, "icps", icp_data, cache_type="icps")
-
-    async def get_semantic_cached(
-        self, workspace_id: str, query_hash: str
-    ) -> Optional[Dict[str, Any]]:
-        """Get semantically cached LLM response."""
-        key = f"semantic:{query_hash}"
-        return await self.get(workspace_id, key)
-
-    async def set_semantic_cache(
-        self, workspace_id: str, query_hash: str, response: Dict[str, Any]
-    ) -> bool:
-        """Cache LLM response for semantic queries."""
-        key = f"semantic:{query_hash}"
-        return await self.set(workspace_id, key, response, cache_type="semantic")
-
-    async def get_cache_stats(self, workspace_id: str) -> Dict[str, Any]:
-        """Get cache statistics for workspace."""
-        # In production, maintain cache statistics
-        # For now, return placeholder data
-        return {
-            "workspace_id": workspace_id,
-            "keys_count": 0,
-            "memory_usage": 0,
-            "hit_rate": 0.0,
-        }
-
 
 def cached(
     ttl: int = 3600, key_fn: Optional[Callable] = None, cache_type: str = "default"

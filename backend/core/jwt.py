@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Import models from same package
 try:
-    from .models import JWTPayload
+    from models import JWTPayload
 except ImportError:
     # Fallback for when models aren't available yet
     @dataclass
@@ -30,25 +30,28 @@ except ImportError:
         session_id: Optional[str] = None
 
         @classmethod
-        def from_dict(cls, data: Dict[str, Any]) -> 'JWTPayload':
+        def from_dict(cls, data: Dict[str, Any]) -> "JWTPayload":
             return cls(
-                sub=data.get('sub'),
-                email=data.get('email'),
-                role=data.get('role', 'authenticated'),
-                aud=data.get('aud', 'authenticated'),
-                exp=data.get('exp'),
-                iat=data.get('iat'),
-                iss=data.get('iss'),
-                session_id=data.get('session_id')
+                sub=data.get("sub"),
+                email=data.get("email"),
+                role=data.get("role", "authenticated"),
+                aud=data.get("aud", "authenticated"),
+                exp=data.get("exp"),
+                iat=data.get("iat"),
+                iss=data.get("iss"),
+                session_id=data.get("session_id"),
             )
+
 
 @dataclass
 class RefreshTokenResult:
-        """Result of token refresh operation"""
-        access_token: str
-        refresh_token: str
-        expires_in: int
-        token_type: str = "bearer"
+    """Result of token refresh operation"""
+
+    access_token: str
+    refresh_token: str
+    expires_in: int
+    token_type: str = "bearer"
+
 
 class JWTValidator:
     """Validates Supabase JWT tokens with refresh rotation"""
@@ -97,7 +100,7 @@ class JWTValidator:
                 self.jwt_secret,
                 algorithms=[self.algorithm],
                 audience="authenticated",
-                issuer=issuer
+                issuer=issuer,
             )
 
             # Validate required claims
@@ -144,9 +147,9 @@ class JWTValidator:
                     f"{self.supabase_url}/auth/v1/token?grant_type=refresh_token",
                     headers={
                         "apikey": os.getenv("SUPABASE_ANON_KEY", ""),
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    json={"refresh_token": refresh_token}
+                    json={"refresh_token": refresh_token},
                 )
 
                 if response.status_code == 200:
@@ -155,7 +158,7 @@ class JWTValidator:
                         access_token=data["access_token"],
                         refresh_token=data["refresh_token"],
                         expires_in=data["expires_in"],
-                        token_type=data["token_type"]
+                        token_type=data["token_type"],
                     )
                 else:
                     logger.error(f"Token refresh failed: {response.status_code}")
@@ -165,7 +168,9 @@ class JWTValidator:
             logger.error(f"Error refreshing token: {e}")
             return None
 
-    async def verify_and_refresh_if_needed(self, token: str, refresh_token: Optional[str] = None) -> Tuple[Optional[JWTPayload], Optional[RefreshTokenResult]]:
+    async def verify_and_refresh_if_needed(
+        self, token: str, refresh_token: Optional[str] = None
+    ) -> Tuple[Optional[JWTPayload], Optional[RefreshTokenResult]]:
         """
         Verify token and refresh if needed
 
@@ -191,7 +196,7 @@ class JWTValidator:
 
     def validate_claims(self, payload: Dict[str, Any]) -> bool:
         """Validate JWT claims"""
-        required_claims = ['sub', 'email', 'role', 'aud']
+        required_claims = ["sub", "email", "role", "aud"]
 
         for claim in required_claims:
             if claim not in payload:
@@ -199,17 +204,17 @@ class JWTValidator:
                 return False
 
         # Validate role
-        if payload['role'] not in ['authenticated', 'anon']:
+        if payload["role"] not in ["authenticated", "anon"]:
             logger.error(f"Invalid role: {payload['role']}")
             return False
 
         # Validate audience
-        if payload['aud'] != 'authenticated':
+        if payload["aud"] != "authenticated":
             logger.error(f"Invalid audience: {payload['aud']}")
             return False
 
         # Validate subject (user ID)
-        if not payload['sub'] or not isinstance(payload['sub'], str):
+        if not payload["sub"] or not isinstance(payload["sub"], str):
             logger.error(f"Invalid subject: {payload['sub']}")
             return False
 
@@ -217,16 +222,18 @@ class JWTValidator:
 
     def is_token_expired(self, payload: Dict[str, Any]) -> bool:
         """Check if token is expired"""
-        if 'exp' not in payload:
+        if "exp" not in payload:
             return True
 
-        exp_timestamp = payload['exp']
+        exp_timestamp = payload["exp"]
         current_timestamp = datetime.now().timestamp()
 
         return current_timestamp > exp_timestamp
 
+
 # Singleton instance
 _jwt_validator: Optional[JWTValidator] = None
+
 
 def get_jwt_validator() -> JWTValidator:
     """Get JWT validator singleton"""

@@ -11,9 +11,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..infrastructure.cloud_monitoring import get_cloud_monitoring
-from ..infrastructure.logging import get_cloud_logging
-from .decorators import background_job, daily_job, hourly_job, job, weekly_job
+from infrastructure.cloud_monitoring import get_cloud_monitoring
+from infrastructure.logging import get_cloud_logging
+from decorators import background_job, daily_job, hourly_job, job, weekly_job
 from .models import JobResult, JobStatus
 
 logger = logging.getLogger(__name__)
@@ -130,7 +130,7 @@ class BillingJobs:
             )
 
             # Get billing service
-            from ..billing.billing_service import get_billing_service
+            from billing.billing_service import get_billing_service
 
             billing_service = get_billing_service()
 
@@ -248,7 +248,7 @@ class BillingJobs:
             )
 
             # Get billing service
-            from ..billing.billing_service import get_billing_service
+            from billing.billing_service import get_billing_service
 
             billing_service = get_billing_service()
 
@@ -345,7 +345,7 @@ class BillingJobs:
             )
 
             # Get billing service
-            from ..billing.billing_service import get_billing_service
+            from billing.billing_service import get_billing_service
 
             billing_service = get_billing_service()
 
@@ -393,7 +393,7 @@ class BillingJobs:
                 recommendations = []
 
                 # Get all workspaces
-                from backend.core.workspace import get_workspace_service
+                from core.workspace import get_workspace_service
 
                 workspace_service = get_workspace_service()
                 workspaces = await workspace_service.get_all_workspaces()
@@ -526,7 +526,7 @@ class BillingJobs:
             )
 
             # Get billing service
-            from ..billing.billing_service import get_billing_service
+            from billing.billing_service import get_billing_service
 
             billing_service = get_billing_service()
 
@@ -655,7 +655,7 @@ class BillingJobs:
             )
 
             # Get billing service
-            from ..billing.billing_service import get_billing_service
+            from billing.billing_service import get_billing_service
 
             billing_service = get_billing_service()
 
@@ -748,7 +748,7 @@ _billing_jobs = BillingJobs()
 async def calculate_usage_job() -> Dict[str, Any]:
     """Calculate usage job for all workspaces."""
     # Get all workspaces and calculate usage for each
-    from backend.core.workspace import get_workspace_service
+    from core.workspace import get_workspace_service
 
     workspace_service = get_workspace_service()
     workspaces = await workspace_service.get_all_workspaces()
@@ -775,7 +775,7 @@ async def calculate_usage_job() -> Dict[str, Any]:
 async def generate_invoice_job() -> Dict[str, Any]:
     """Generate invoice job for all workspaces."""
     # Get all workspaces and generate invoices for each
-    from backend.core.workspace import get_workspace_service
+    from core.workspace import get_workspace_service
 
     workspace_service = get_workspace_service()
     workspaces = await workspace_service.get_all_workspaces()

@@ -9,6 +9,8 @@ import { DashboardActivity, ActivityItem } from "@/components/dashboard/Dashboar
 import { useMovesStore } from "@/stores/movesStore";
 import { useCampaignStore } from "@/stores/campaignStore";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { BCMIndicator } from "@/components/bcm/BCMIndicator";
+import { useBcmStore } from "@/stores/bcmStore";
 import { Activity, Target, Users, Zap } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -20,17 +22,18 @@ export default function DashboardPage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const { moves, fetchMoves } = useMovesStore();
   const { campaigns, fetchCampaigns } = useCampaignStore();
-  const { user, profile } = useAuth();
+  const { user, profileStatus } = useAuth();
+  const { manifest, status } = useBcmStore();
 
   // Fetch data on mount
   useEffect(() => {
     if (user?.id) {
       fetchMoves(user.id);
     }
-    if (profile?.workspace_id) {
-      fetchCampaigns(profile.workspace_id);
+    if (profileStatus?.workspaceId) {
+      fetchCampaigns(profileStatus.workspaceId);
     }
-  }, [user?.id, profile?.workspace_id, fetchMoves, fetchCampaigns]);
+  }, [user?.id, profileStatus?.workspaceId, fetchMoves, fetchCampaigns]);
 
   // Calculate active items
   const activeMoves = moves.filter(
@@ -48,7 +51,7 @@ export default function DashboardPage() {
   const primaryMove = activeMoves.length > 0 ? activeMoves[0] : null;
 
   // Extract user name
-  const userName = profile?.full_name || (user
+  const userName = user?.fullName || (user?.email
     ? user.email.split("@")[0].charAt(0).toUpperCase() +
     user.email.split("@")[0].slice(1)
     : "Founder");
@@ -131,11 +134,18 @@ export default function DashboardPage() {
     <div ref={pageRef} className="min-h-screen bg-[var(--canvas)] pb-16">
       <div className="max-w-[1200px] mx-auto px-6 lg:px-12 pt-8">
         {/* Header */}
-        <div data-fade>
+        <div data-fade className="flex items-center justify-between">
           <DashboardHeader
             userName={userName}
             systemStatus={systemStatus}
           />
+          {profileStatus?.workspaceId && (
+            <BCMIndicator
+              workspaceId={profileStatus.workspaceId}
+              className="ml-4"
+              showDetails={true}
+            />
+          )}
         </div>
 
         {/* Metrics row */}

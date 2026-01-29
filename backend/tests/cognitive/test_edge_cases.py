@@ -15,17 +15,17 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from .concurrent_processor import ConcurrentProcessor, RequestPriority
-from .config_manager import ConfigManager, ConfigValidationError
-from .error_handling import CircuitBreaker, ErrorHandler, RetryPolicy
-from .health_monitor import HealthMonitor, HealthStatus
-from .metrics import CostCalculation, MetricsCollector, TokenUsage
-from .rate_limiter import RateLimitConfig, RateLimiter, RateLimitExceeded
-from .resource_manager import ResourceManager, ResourceTracker
-from .session_manager import SessionData, SessionManager
+from concurrent_processor import ConcurrentProcessor, RequestPriority
+from ..config_manager import ConfigManager, ConfigValidationError
+from error_handling import CircuitBreaker, ErrorHandler, RetryPolicy
+from health_monitor import HealthMonitor, HealthStatus
+from metrics import CostCalculation, MetricsCollector, TokenUsage
+from rate_limiter import RateLimitConfig, RateLimiter, RateLimitExceeded
+from resource_manager import ResourceManager, ResourceTracker
+from session_manager import SessionData, SessionManager
 
 # Import the modules we're testing
-from .validation import ProcessingRequest, UserContext, UserRole, validator
+from validation import ProcessingRequest, UserContext, UserRole, validator
 
 
 class TestValidationEdgeCases(unittest.TestCase):

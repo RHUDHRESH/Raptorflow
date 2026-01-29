@@ -10,7 +10,7 @@ import threading
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from .base_processor import BaseProcessor
+from ...base_processor import BaseProcessor
 
 
 class DocumentCache(BaseProcessor):

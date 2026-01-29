@@ -7,9 +7,9 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr
 
-from backend.core.auth import get_auth_context, get_current_user
-from backend.core.models import AuthContext, User
-from backend.core.supabase_mgr import get_supabase_client
+from ..core.auth import get_auth_context, get_current_user
+from ..core.models import AuthContext, User
+from ..core.supabase_mgr import get_supabase_client
 
 router = APIRouter(prefix="/users", tags=["users"])
 

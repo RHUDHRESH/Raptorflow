@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from ...llm import LLMClient, ModelConfig
-from .models import AdversarialCritique, Vulnerability
+from ..models import AdversarialCritique, Vulnerability
 
 logger = logging.getLogger(__name__)
 

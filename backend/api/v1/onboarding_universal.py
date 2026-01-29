@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.agents.universal.agent import UniversalAgent
-from backend.db.repositories.onboarding import OnboardingRepository
+from ..agents.universal.agent import UniversalAgent
+from db.repositories.onboarding import OnboardingRepository
 
 logger = logging.getLogger(__name__)
 

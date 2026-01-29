@@ -18,8 +18,8 @@ export default async function OnboardingLayout({
     supabase = await createServerSupabaseClient()
   } catch (error) {
     console.error('Failed to create Supabase client in onboarding layout:', error)
-    // Redirect to login if we can't initialize auth
-    redirect('/login')
+    // Redirect to sign in if we can't initialize auth
+    redirect('/signin')
   }
 
   // Get session
@@ -29,8 +29,8 @@ export default async function OnboardingLayout({
     session = data?.session
   } catch (error) {
     console.error('Failed to get session in onboarding layout:', error)
-    // Redirect to login if we can't get session
-    redirect('/login')
+    // Redirect to sign in if we can't get session
+    redirect('/signin')
   }
 
   // DEV BYPASS: If no session, mock a user for UI viewing purposes
@@ -61,7 +61,7 @@ export default async function OnboardingLayout({
   }
 
   if (!user) {
-    redirect('/login')
+    redirect('/signin')
   }
 
   // Check if user is banned (role-based check)

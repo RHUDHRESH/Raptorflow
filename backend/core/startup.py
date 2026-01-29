@@ -8,19 +8,19 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from backend.agents.core.dispatcher import AgentDispatcher
-from backend.agents.core.executor import AgentExecutor
-from backend.agents.core.gateway import AgentGateway
-from backend.agents.core.memory import AgentMemoryManager
-from backend.agents.core.metrics import AgentMetricsCollector
-from backend.agents.core.monitor import AgentMonitor
-from backend.agents.core.orchestrator import AgentOrchestrator
-from backend.agents.core.registry import AgentRegistry
-from backend.agents.core.state import AgentStateManager
+from .agents.core.dispatcher import AgentDispatcher
+from .agents.core.executor import AgentExecutor
+from .agents.core.gateway import AgentGateway
+from .agents.core.memory import AgentMemoryManager
+from .agents.core.metrics import AgentMetricsCollector
+from .agents.core.monitor import AgentMonitor
+from .agents.core.orchestrator import AgentOrchestrator
+from .agents.core.registry import AgentRegistry
+from .agents.core.state import AgentStateManager
 
-from ..cache.redis_client import RedisClient
-from ..database.connection import DatabaseManager
-from ..llm.vertex_client import VertexAIClient
+from cache.redis_client import RedisClient
+from database.connection import DatabaseManager
+from .llm.vertex_client import VertexAIClient
 
 logger = logging.getLogger(__name__)
 

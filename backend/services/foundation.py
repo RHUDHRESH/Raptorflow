@@ -1,4 +1,4 @@
-ï»¿"""
+"""
 Foundation service for business logic operations
 Handles foundation-related business logic and validation
 """
@@ -6,16 +6,16 @@ Handles foundation-related business logic and validation
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.core.models import User
-from backend.core.supabase_mgr import get_supabase_client
-from backend.db.campaigns import CampaignRepository
-from backend.db.foundations import FoundationRepository
-from backend.db.icps import ICPRepository
-from backend.db.messaging import MessagingRepository
-from backend.db.moves import MoveRepository
-from backend.redis_core.cache import cached
-from backend.schemas import RICP, MessagingStrategy
-from backend.services.business_context_generator import get_business_context_generator
+from .core.models import User
+from .core.supabase_mgr import get_supabase_client
+from db.campaigns import CampaignRepository
+from db.foundations import FoundationRepository
+from db.icps import ICPRepository
+from db.messaging import MessagingRepository
+from db.moves import MoveRepository
+from .redis_core.cache import cached
+from schemas import RICP, MessagingStrategy
+from .services.business_context_generator import get_business_context_generator
 
 
 class FoundationService:
@@ -75,7 +75,7 @@ class FoundationService:
                     id=str(item.get("id")),
                     name=item.get("name", "Unknown"),
                     persona_name=item.get("persona_name"),
-                    avatar=item.get("avatar", "â‰¡Æ’Ã¦Ã±"),
+                    avatar=item.get("avatar", "=ƒæñ"),
                     demographics=item.get("demographics", {}),
                     psychographics=item.get("psychographics", {}),
                     market_sophistication=stage,
@@ -171,7 +171,7 @@ class FoundationService:
         result = await self.repository.upsert(workspace_id, data)
 
         # Invalidate Cache
-        from backend.redis_core.cache import CacheService
+        from redis_core.cache import CacheService
 
         cache = CacheService()
 

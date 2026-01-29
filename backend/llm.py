@@ -84,18 +84,40 @@ except ImportError:
     class ConversationBufferMemory:
         pass
 
+    try:
+        from langchain.schema import AIMessage, HumanMessage, SystemMessage
+    except ImportError:
+
+        class AIMessage:
+            pass
+
+
+# ModelTier for backward compatibility
+class ModelTier(str, Enum):
+    """Model tier enumeration."""
+
+    FLASH_LITE = "gemini-2.0-flash-lite"
+    FLASH = "gemini-2.0-flash"
+    PRO = "gemini-1.5-pro"
+
+
+def get_llm(model_tier: ModelTier = ModelTier.FLASH):
+    """Get LLM instance for backward compatibility."""
+    return llm_manager
+
 
 try:
-    from langchain.schema import AIMessage, HumanMessage, SystemMessage
-except ImportError:
-
-    class AIMessage:
-        pass
 
     class HumanMessage:
         pass
 
     class SystemMessage:
+        pass
+
+    from langchain.schema import AIMessage, HumanMessage, SystemMessage
+except ImportError:
+
+    class AIMessage:
         pass
 
 
@@ -108,7 +130,7 @@ except ImportError:
 
 
 # Local imports
-from .config import LLMProvider, settings
+from config import LLMProvider, settings
 
 logger = structlog.get_logger(__name__)
 
@@ -692,7 +714,7 @@ class LLMManager:
     """Main LLM manager with provider abstraction and caching."""
 
     def __init__(self):
-        from .redis_core.client import get_redis
+        from redis.client import get_redis
 
         self.providers = {}
         self.default_provider = None
@@ -887,6 +909,8 @@ __all__ = [
     "OpenAIProvider",
     "GoogleProvider",
     "AnthropicProvider",
+    "ModelTier",
+    "llm_manager",
     "TokenCounter",
     "CostCalculator",
     "LLMCache",

@@ -9,7 +9,7 @@ import logging
 from typing import Dict, List, Optional
 
 from ...llm import LLMClient, ModelConfig
-from .models import Correction, QualityScore
+from ..models import Correction, QualityScore
 
 logger = logging.getLogger(__name__)
 

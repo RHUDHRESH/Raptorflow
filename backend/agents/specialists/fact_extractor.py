@@ -28,7 +28,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import structlog
 
-from backend.agents.config import ModelTier
+from ..config import ModelTier
 
 # Local imports
 from ..base import BaseAgent

@@ -11,7 +11,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 from ...llm import LLMClient, ModelConfig
-from .models import Severity, Vulnerability, VulnerabilityType
+from ..models import Severity, Vulnerability, VulnerabilityType
 
 logger = logging.getLogger(__name__)
 

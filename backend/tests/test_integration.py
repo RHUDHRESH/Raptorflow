@@ -10,17 +10,17 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from backend.integration.agents_cognitive import execute_with_cognition
-from backend.integration.auth_all import inject_auth_context
-from backend.integration.billing_usage import deduct_from_budget
-from backend.integration.context_builder import build_full_context
-from backend.integration.events_all import wire_all_event_handlers
-from backend.integration.memory_database import sync_database_to_memory
-from backend.integration.output_pipeline import process_output
-from backend.integration.redis_sessions import persist_agent_state, restore_agent_state
-from backend.integration.routing_memory import route_with_memory_context
-from backend.integration.test_harness import run_integration_tests
-from backend.integration.validation import (
+from integration.agents_cognitive import execute_with_cognition
+from integration.auth_all import inject_auth_context
+from integration.billing_usage import deduct_from_budget
+from integration.context_builder import build_full_context
+from integration.events_all import wire_all_event_handlers
+from integration.memory_database import sync_database_to_memory
+from integration.output_pipeline import process_output
+from integration.redis_sessions import persist_agent_state, restore_agent_state
+from integration.routing_memory import route_with_memory_context
+from integration.test_harness import run_integration_tests
+from integration.validation import (
     validate_agent_state,
     validate_workspace_consistency,
 )
@@ -317,7 +317,7 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_onboarding_workflow(self, mock_workflow_dependencies):
         """Test onboarding workflow."""
-        from backend.workflows.onboarding import OnboardingWorkflow
+        from workflows.onboarding import OnboardingWorkflow
 
         workflow = OnboardingWorkflow(**mock_workflow_dependencies)
 
@@ -349,7 +349,7 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_move_workflow(self, mock_workflow_dependencies):
         """Test move workflow."""
-        from backend.workflows.move import MoveWorkflow
+        from workflows.move import MoveWorkflow
 
         workflow = MoveWorkflow(**mock_workflow_dependencies)
 
@@ -375,7 +375,7 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_content_workflow(self, mock_workflow_dependencies):
         """Test content workflow."""
-        from backend.workflows.content import ContentWorkflow
+        from workflows.content import ContentWorkflow
 
         workflow = ContentWorkflow(**mock_workflow_dependencies)
 
@@ -400,7 +400,7 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_research_workflow(self, mock_workflow_dependencies):
         """Test research workflow."""
-        from backend.workflows.research import ResearchWorkflow
+        from workflows.research import ResearchWorkflow
 
         workflow = ResearchWorkflow(**mock_workflow_dependencies)
 
@@ -426,7 +426,7 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_blackbox_workflow(self, mock_workflow_dependencies):
         """Test blackbox workflow."""
-        from backend.workflows.blackbox import BlackboxWorkflow
+        from workflows.blackbox import BlackboxWorkflow
 
         workflow = BlackboxWorkflow(**mock_workflow_dependencies)
 
@@ -448,7 +448,7 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_daily_wins_workflow(self, mock_workflow_dependencies):
         """Test daily wins workflow."""
-        from backend.workflows.daily_wins import DailyWinsWorkflow
+        from workflows.daily_wins import DailyWinsWorkflow
 
         workflow = DailyWinsWorkflow(**mock_workflow_dependencies)
 
@@ -470,7 +470,7 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_campaign_workflow(self, mock_workflow_dependencies):
         """Test campaign workflow."""
-        from backend.workflows.campaign import CampaignWorkflow
+        from workflows.campaign import CampaignWorkflow
 
         workflow = CampaignWorkflow(**mock_workflow_dependencies)
 
@@ -494,7 +494,7 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_approval_workflow(self, mock_workflow_dependencies):
         """Test approval workflow."""
-        from backend.workflows.approval import ApprovalWorkflow
+        from workflows.approval import ApprovalWorkflow
 
         workflow = ApprovalWorkflow(**mock_workflow_dependencies)
 
@@ -524,7 +524,7 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_feedback_workflow(self, mock_workflow_dependencies):
         """Test feedback workflow."""
-        from backend.workflows.feedback import FeedbackWorkflow
+        from workflows.feedback import FeedbackWorkflow
 
         workflow = FeedbackWorkflow(**mock_workflow_dependencies)
 
@@ -595,9 +595,9 @@ class TestSystemIntegration:
         # This would test a complete user journey
         # For now, just verify the structure exists
 
-        from backend.workflows.content import ContentWorkflow
-        from backend.workflows.move import MoveWorkflow
-        from backend.workflows.onboarding import OnboardingWorkflow
+        from workflows.content import ContentWorkflow
+        from workflows.move import MoveWorkflow
+        from workflows.onboarding import OnboardingWorkflow
 
         # Verify workflow classes exist
         assert OnboardingWorkflow is not None
@@ -620,7 +620,7 @@ class TestSystemIntegration:
         memory_controller.search.return_value = []
 
         # Test health check
-        from backend.integration.test_harness import run_quick_integration_check
+        from integration.test_harness import run_quick_integration_check
 
         result = await run_quick_integration_check(
             db_client=db_client,
@@ -643,7 +643,7 @@ class TestSystemIntegration:
         memory_controller.search.side_effect = Exception("Memory error")
 
         # Test that errors are handled gracefully
-        from backend.integration.validation import validate_workspace_consistency
+        from integration.validation import validate_workspace_consistency
 
         result = await validate_workspace_consistency(
             workspace_id="test_workspace",
@@ -667,7 +667,7 @@ class TestSystemIntegration:
         memory_controller.search.return_value = []
 
         # Test performance of context building
-        from backend.integration.context_builder import ContextBuilder
+        from integration.context_builder import ContextBuilder
 
         builder = ContextBuilder(db_client, memory_controller)
 

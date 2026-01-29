@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Literal
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
-from backend.services.titan.tool import TitanIntelligenceTool
+from services.titan.tool import TitanIntelligenceTool
 
 from ..state import AgentState
 

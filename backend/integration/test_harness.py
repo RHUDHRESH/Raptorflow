@@ -8,9 +8,9 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from backend.agents.dispatcher import AgentDispatcher
-from backend.cognitive import CognitiveEngine
-from backend.memory.controller import MemoryController
+from .agents.dispatcher import AgentDispatcher
+from cognitive import CognitiveEngine
+from memory.controller import MemoryController
 from supabase import Client
 
 logger = logging.getLogger(__name__)
@@ -385,7 +385,7 @@ async def _test_cross_module_integration(
 
         # Test database to memory sync
         try:
-            from .memory_database import sync_database_to_memory
+            from memory_database import sync_database_to_memory
 
             sync_result = await sync_database_to_memory(
                 "test_workspace", db_client, memory_controller
@@ -402,9 +402,9 @@ async def _test_cross_module_integration(
 
         # Test agent with cognitive engine
         try:
-            from backend.agents.state import AgentState
+            from agents.state import AgentState
 
-            from .agents_cognitive import execute_with_cognition
+            from agents_cognitive import execute_with_cognition
 
             test_state = AgentState()
             test_state.update(
@@ -437,7 +437,7 @@ async def _test_cross_module_integration(
 
         # Test output pipeline
         try:
-            from .output_pipeline import process_output
+            from output_pipeline import process_output
 
             output_result = await process_output(
                 output="Test output for integration",
@@ -492,9 +492,9 @@ async def _test_redis_integration(redis_client) -> Dict[str, Any]:
 
         # Test session management
         try:
-            from backend.agents.state import AgentState
+            from agents.state import AgentState
 
-            from .redis_sessions import persist_agent_state, restore_agent_state
+            from redis_sessions import persist_agent_state, restore_agent_state
 
             test_state = AgentState()
             test_state.update(

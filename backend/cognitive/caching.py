@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from ..models import ExecutionPlan, PerceivedInput, ReflectionResult
+from .models import ExecutionPlan, PerceivedInput, ReflectionResult
 
 
 class CachePolicy(Enum):

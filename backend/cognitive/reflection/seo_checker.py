@@ -10,7 +10,7 @@ import re
 from typing import Dict, List, Optional
 
 from ...llm import LLMClient, ModelConfig
-from .models import Issue, SEOCheckResult, Severity
+from ..models import Issue, SEOCheckResult, Severity
 
 logger = logging.getLogger(__name__)
 

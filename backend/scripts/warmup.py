@@ -14,12 +14,12 @@ from pathlib import Path
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.config.settings import get_settings
-from backend.events.bus import get_event_bus
-from backend.memory.services import MemoryService
-from backend.redis.cache import CacheService
-from backend.redis.client import RedisClient
-from backend.redis.session import SessionService
+from .config.settings import get_settings
+from events.bus import get_event_bus
+from memory.services import MemoryService
+from .redis.cache import CacheService
+from .redis.client import RedisClient
+from .redis.session import SessionService
 
 # Configure logging
 logging.basicConfig(

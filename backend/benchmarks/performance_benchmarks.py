@@ -19,14 +19,14 @@ import numpy as np
 import pandas as pd
 import psutil
 
-from ..caching import CognitiveCache
+from caching import CognitiveCache
 
 # Import cognitive engine components
-from ..engine import CognitiveEngine
-from ..models import CognitiveResult
-from ..monitoring import CognitiveMonitor
-from ..parallel import ParallelExecutor
-from ..retry import RetryManager
+from engine import CognitiveEngine
+from .models import CognitiveResult
+from monitoring import CognitiveMonitor
+from parallel import ParallelExecutor
+from retry import RetryManager
 
 
 @dataclass

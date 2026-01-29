@@ -1,9 +1,11 @@
 /**
  * Centralized Authentication Service
  * Handles all authentication operations with proper key separation
+ * CONSOLIDATED: Single source of truth for all auth operations
  */
 
 import { createClient } from '@/lib/supabase/client'
+import { getAuthCallbackUrl, getBaseUrl } from '@/lib/env-utils'
 // Only import server-side modules in server environment
 const isServer = typeof window === 'undefined'
 let createServerClient: any = null
@@ -27,7 +29,105 @@ if (isServer) {
   }
 }
 
-import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
+import type { User as SupabaseUser, Session, AuthError, Provider } from '@supabase/supabase-js'
+
+// =============================================================================
+// CONFIGURATION & HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Get auth configuration (consolidated from auth-config.ts)
+ */
+export function getAuthConfig() {
+  return {
+    baseUrl: getBaseUrl(),
+    authCallbackUrl: getAuthCallbackUrl(),
+    isDevelopment: process.env.NODE_ENV === 'development',
+    isProduction: process.env.NODE_ENV === 'production',
+    oauth: {
+      google: {
+        enabled: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+        clientId: process.env.GOOGLE_CLIENT_ID,
+      },
+      github: {
+        enabled: !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET),
+        clientId: process.env.GITHUB_CLIENT_ID,
+      },
+    },
+    supabase: {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    }
+  }
+}
+
+/**
+ * Handle authentication error (consolidated from auth-helpers.ts)
+ */
+export function handleAuthError(error: any): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  return 'An unknown error occurred';
+}
+
+/**
+ * Redirect to sign in page (consolidated from auth-helpers.ts)
+ */
+export function redirectToLogin(): void {
+  if (typeof window !== 'undefined') {
+    window.location.href = '/signin';
+  }
+}
+
+/**
+ * Redirect to dashboard (consolidated from auth-helpers.ts)
+ */
+export function redirectToDashboard(): void {
+  if (typeof window !== 'undefined') {
+    window.location.href = '/dashboard';
+  }
+}
+
+/**
+ * Check if user is authenticated using API (consolidated from auth-helpers.ts)
+ */
+export async function isAuthenticated(): Promise<boolean> {
+  try {
+    const response = await fetch('/api/auth/me');
+    return response.ok;
+  } catch (error) {
+    console.error('🔐 [Auth] Error checking authentication:', error);
+    return false;
+  }
+}
+
+/**
+ * Get current user data using API (consolidated from auth-helpers.ts)
+ */
+export async function getCurrentUserAPI(): Promise<{
+  userId: string;
+  email: string;
+} | null> {
+  try {
+    const response = await fetch('/api/auth/me');
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return data.user;
+  } catch (error) {
+    console.error('🔐 [Auth] Error getting current user:', error);
+    return null;
+  }
+}
 
 // =============================================================================
 // TYPES
@@ -37,20 +137,40 @@ export interface AuthUser {
   id: string
   email: string
   fullName: string
-  subscriptionPlan: 'soar' | 'glide' | 'ascent' | null
-  subscriptionStatus: 'active' | 'trial' | 'cancelled' | 'expired' | 'none'
+  avatarUrl?: string
+  phone?: string
+  role: 'user' | 'admin' | 'super_admin'
+  subscriptionPlan: 'soar' | 'glide' | 'ascent' | 'free' | null
+  subscriptionStatus: 'active' | 'trial' | 'cancelled' | 'expired' | 'none' | 'pending' | 'suspended' | null
+  onboardingStatus: 'pending' | 'in_progress' | 'active' | 'skipped'
   hasCompletedOnboarding: boolean
+  isActive: boolean
+  isBanned: boolean
   createdAt: string
+  updatedAt?: string
   workspaceId?: string
-  role?: string
-  onboardingStatus?: string
+  ucid?: string
 }
 
-export interface AuthResult {
+export interface AuthResult<T = void> {
   success: boolean
+  data?: T
   user?: AuthUser
   session?: Session
   error?: string
+  authError?: AuthError
+}
+
+export interface SignUpData {
+  email: string
+  password: string
+  fullName: string
+  phone?: string
+}
+
+export interface SignInData {
+  email: string
+  password: string
 }
 
 // =============================================================================
@@ -127,8 +247,8 @@ class CrossTabManager {
     }
 
     if (typeof window !== 'undefined') {
-      // Check if already on login page
-      if (window.location.pathname === '/login') {
+      // Check if already on sign in page
+      if (window.location.pathname === '/signin') {
         return;
       }
 
@@ -141,8 +261,8 @@ class CrossTabManager {
       localStorage.removeItem('raptorflow_session');
       localStorage.removeItem('raptorflow_user');
 
-      // Redirect to login
-      window.location.href = '/login';
+      // Redirect to sign in
+      window.location.href = '/signin';
     }
   }
 
@@ -248,6 +368,13 @@ export class ClientAuthService {
   }
 
   /**
+   * Get the underlying Supabase client
+   */
+  public getSupabaseClient() {
+    return this.supabase
+  }
+
+  /**
    * Get current session with proper error handling
    */
   async getSession(): Promise<Session | null> {
@@ -282,100 +409,119 @@ export class ClientAuthService {
   }
 
   /**
-   * Load user data from database with fallbacks
+   * Load user data from database with unified lookup strategy
+   * Order of priority: profiles -> users -> user_profiles -> auth metadata
    */
   private async loadUserData(supabaseUser: SupabaseUser): Promise<AuthUser> {
     try {
-      const { data: profileData } = await this.supabase
+      // 1. Primary: profiles table (modern schema)
+      const { data: profile } = await this.supabase
         .from('profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .maybeSingle()
 
-      if (profileData) {
+      if (profile) {
         return {
           id: supabaseUser.id,
-          email: supabaseUser.email || '',
-          fullName: profileData.full_name || supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'User',
-          subscriptionPlan: profileData.subscription_plan || supabaseUser.user_metadata?.subscription_plan || null,
-          subscriptionStatus: profileData.subscription_status || supabaseUser.user_metadata?.subscription_status || 'none',
-          hasCompletedOnboarding: profileData.onboarding_status === 'active',
-          createdAt: supabaseUser.created_at,
-          workspaceId: profileData.workspace_id,
-          role: profileData.role || supabaseUser.user_metadata?.role,
-          onboardingStatus: profileData.onboarding_status || 'pending',
+          email: profile.email || supabaseUser.email || '',
+          fullName: profile.full_name || supabaseUser.user_metadata?.full_name || profile.email?.split('@')[0] || 'User',
+          avatarUrl: profile.avatar_url || supabaseUser.user_metadata?.avatar_url,
+          role: profile.role || (supabaseUser.user_metadata?.role as any) || 'user',
+          subscriptionPlan: (profile.subscription_plan || supabaseUser.user_metadata?.subscription_plan || 'free') as any,
+          subscriptionStatus: (profile.subscription_status || supabaseUser.user_metadata?.subscription_status || 'none') as any,
+          onboardingStatus: (profile.onboarding_status || supabaseUser.user_metadata?.onboarding_status || 'pending') as any,
+          hasCompletedOnboarding: profile.onboarding_status === 'active' || supabaseUser.user_metadata?.has_completed_onboarding === true,
+          isActive: profile.is_active ?? true,
+          isBanned: profile.is_banned ?? false,
+          createdAt: profile.created_at || supabaseUser.created_at,
+          updatedAt: profile.updated_at,
+          workspaceId: profile.workspace_id || supabaseUser.user_metadata?.workspace_id,
+          ucid: profile.ucid
         }
       }
 
-      const { data: userProfilesData } = await this.supabase
+      // 2. Fallback: users table (some legacy parts use this)
+      const { data: userRecord } = await this.supabase
+        .from('users')
+        .select('*')
+        .or(`id.eq.${supabaseUser.id},auth_user_id.eq.${supabaseUser.id}`)
+        .maybeSingle()
+
+      if (userRecord) {
+        return {
+          id: userRecord.id || supabaseUser.id,
+          email: userRecord.email || supabaseUser.email || '',
+          fullName: userRecord.full_name || supabaseUser.user_metadata?.full_name || userRecord.email?.split('@')[0] || 'User',
+          avatarUrl: userRecord.avatar_url || supabaseUser.user_metadata?.avatar_url,
+          phone: userRecord.phone,
+          role: userRecord.role || (supabaseUser.user_metadata?.role as any) || 'user',
+          subscriptionPlan: (userRecord.subscription_plan || userRecord.subscription_tier || supabaseUser.user_metadata?.subscription_plan || 'free') as any,
+          subscriptionStatus: (userRecord.subscription_status || supabaseUser.user_metadata?.subscription_status || 'none') as any,
+          onboardingStatus: (userRecord.onboarding_status || supabaseUser.user_metadata?.onboarding_status || 'pending') as any,
+          hasCompletedOnboarding: userRecord.onboarding_status === 'active',
+          isActive: userRecord.is_active ?? true,
+          isBanned: userRecord.is_banned ?? false,
+          createdAt: userRecord.created_at || supabaseUser.created_at,
+          updatedAt: userRecord.updated_at,
+          workspaceId: userRecord.workspace_id || supabaseUser.user_metadata?.workspace_id,
+        }
+      }
+
+      // 3. Last Resort Fallback: user_profiles table
+      const { data: legacyProfile } = await this.supabase
         .from('user_profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .maybeSingle()
 
-      if (userProfilesData) {
+      if (legacyProfile) {
         return {
           id: supabaseUser.id,
-          email: supabaseUser.email || '',
-          fullName: userProfilesData.full_name || supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'User',
-          subscriptionPlan: userProfilesData.subscription_plan || supabaseUser.user_metadata?.subscription_plan || null,
-          subscriptionStatus: userProfilesData.subscription_status || supabaseUser.user_metadata?.subscription_status || 'none',
+          email: legacyProfile.email || supabaseUser.email || '',
+          fullName: legacyProfile.full_name || supabaseUser.user_metadata?.full_name || legacyProfile.email?.split('@')[0] || 'User',
+          role: (supabaseUser.user_metadata?.role as any) || 'user',
+          subscriptionPlan: (legacyProfile.subscription_plan || 'free') as any,
+          subscriptionStatus: (legacyProfile.subscription_status || 'none') as any,
+          onboardingStatus: (supabaseUser.user_metadata?.onboarding_status || 'pending') as any,
           hasCompletedOnboarding: supabaseUser.user_metadata?.has_completed_onboarding === true,
-          createdAt: supabaseUser.created_at,
+          isActive: true,
+          isBanned: false,
+          createdAt: legacyProfile.created_at || supabaseUser.created_at,
           workspaceId: supabaseUser.user_metadata?.workspace_id,
-          role: supabaseUser.user_metadata?.role,
-          onboardingStatus: supabaseUser.user_metadata?.onboarding_status || 'pending',
-        }
-      }
-
-      const { data: usersData } = await this.supabase
-        .from('users')
-        .select('id, auth_user_id, email, full_name, avatar_url, role, onboarding_status, subscription_plan, subscription_tier, subscription_status, workspace_id')
-        .eq('auth_user_id', supabaseUser.id)
-        .maybeSingle()
-
-      if (usersData) {
-        return {
-          id: usersData.id || supabaseUser.id,
-          email: usersData.email || supabaseUser.email || '',
-          fullName: usersData.full_name || supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'User',
-          subscriptionPlan: usersData.subscription_plan || usersData.subscription_tier || supabaseUser.user_metadata?.subscription_plan || null,
-          subscriptionStatus: usersData.subscription_status || supabaseUser.user_metadata?.subscription_status || 'none',
-          hasCompletedOnboarding: usersData.onboarding_status === 'active',
-          createdAt: supabaseUser.created_at,
-          workspaceId: usersData.workspace_id || supabaseUser.user_metadata?.workspace_id,
-          role: usersData.role || supabaseUser.user_metadata?.role,
-          onboardingStatus: usersData.onboarding_status || 'pending',
         }
       }
     } catch (error) {
-      console.error('Error loading user data:', error)
+      console.error('Error in unified user data lookup:', error)
     }
 
-    // Fallback to session metadata
+    // 4. Emergency: use Supabase Auth metadata only
     return {
       id: supabaseUser.id,
       email: supabaseUser.email || '',
       fullName: supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'User',
-      subscriptionPlan: supabaseUser.user_metadata?.subscription_plan || null,
-      subscriptionStatus: supabaseUser.user_metadata?.subscription_status || 'none',
+      avatarUrl: supabaseUser.user_metadata?.avatar_url,
+      role: (supabaseUser.user_metadata?.role as any) || 'user',
+      subscriptionPlan: (supabaseUser.user_metadata?.subscription_plan || 'free') as any,
+      subscriptionStatus: (supabaseUser.user_metadata?.subscription_status || 'none') as any,
+      onboardingStatus: (supabaseUser.user_metadata?.onboarding_status || 'pending') as any,
       hasCompletedOnboarding: supabaseUser.user_metadata?.has_completed_onboarding === true,
+      isActive: true,
+      isBanned: false,
       createdAt: supabaseUser.created_at,
       workspaceId: supabaseUser.user_metadata?.workspace_id,
-      role: supabaseUser.user_metadata?.role,
-      onboardingStatus: supabaseUser.user_metadata?.onboarding_status || 'pending',
     }
   }
 
   /**
    * Sign in with OAuth provider (Google, GitHub, etc.)
    */
-  async signInWithOAuth(provider: 'google' | 'github' | 'azure', options?: any): Promise<{ success: boolean; error?: string; url?: string }> {
+  async signInWithOAuth(provider: Provider, options?: any): Promise<{ success: boolean; error?: string; url?: string }> {
     try {
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/auth/callback`,
+          redirectTo: getAuthCallbackUrl(),
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -389,10 +535,262 @@ export class ClientAuthService {
         return { success: false, error: error.message };
       }
 
-      return { success: true, url: data.url };
+      return { success: true, url: data.url || undefined };
     } catch (error) {
       console.error('OAuth sign in error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'OAuth sign in failed' };
+    }
+  }
+
+  /**
+   * Sign up with email and password
+   */
+  async signUp(data: SignUpData): Promise<AuthResult<{ user: SupabaseUser | null; session: Session | null }>> {
+    try {
+      const { data: authData, error } = await this.supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName,
+            phone: data.phone,
+          },
+          emailRedirectTo: getAuthCallbackUrl(),
+        },
+      })
+
+      if (error) {
+        return { success: false, error: error.message, authError: error }
+      }
+
+      return { success: true, data: authData }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Sign up failed' }
+    }
+  }
+
+  /**
+   * Sign in with email and password
+   */
+  async signIn(data: SignInData): Promise<AuthResult<{ user: SupabaseUser | null; session: Session | null }>> {
+    try {
+      const { data: authData, error } = await this.supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      })
+
+      if (error) {
+        return { success: false, error: error.message, authError: error }
+      }
+
+      const user = authData.user ? await this.loadUserData(authData.user) : undefined
+
+      return {
+        success: true,
+        data: authData,
+        user,
+        session: authData.session || undefined
+      }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Sign in failed' }
+    }
+  }
+
+  /**
+   * Sign in with magic link (passwordless)
+   */
+  async signInWithMagicLink(email: string): Promise<AuthResult> {
+    try {
+      const { error } = await this.supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: getAuthCallbackUrl(),
+          shouldCreateUser: true,
+        },
+      })
+
+      if (error) {
+        return { success: false, error: error.message, authError: error }
+      }
+
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Magic link failed' }
+    }
+  }
+
+  /**
+   * Send password reset email
+   */
+  async resetPassword(email: string): Promise<AuthResult> {
+    try {
+      const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${getAuthCallbackUrl().replace('/auth/callback', '')}/auth/reset-password`,
+      })
+
+      if (error) {
+        return { success: false, error: error.message, authError: error }
+      }
+
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Password reset failed' }
+    }
+  }
+
+  /**
+   * Update user password
+   */
+  async updatePassword(newPassword: string): Promise<AuthResult> {
+    try {
+      const { error } = await this.supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (error) {
+        return { success: false, error: error.message, authError: error }
+      }
+
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Password update failed' }
+    }
+  }
+
+  /**
+   * Enroll TOTP MFA
+   */
+  async enrollTOTP(): Promise<AuthResult<{ qr: string; secret: string; uri: string }>> {
+    try {
+      const { data, error } = await this.supabase.auth.mfa.enroll({
+        factorType: 'totp'
+      })
+
+      if (error) {
+        return { success: false, error: error.message, authError: error }
+      }
+
+      return {
+        success: true,
+        data: {
+          qr: data.totp.qr_code,
+          secret: data.totp.secret,
+          uri: data.totp.uri
+        }
+      }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'MFA enrollment failed' }
+    }
+  }
+
+  /**
+   * Verify TOTP MFA
+   */
+  async verifyTOTP(factorId: string, code: string): Promise<AuthResult> {
+    try {
+      const { error } = await this.supabase.auth.mfa.challengeAndVerify({
+        factorId,
+        code
+      })
+
+      if (error) {
+        return { success: false, error: error.message, authError: error }
+      }
+
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'MFA verification failed' }
+    }
+  }
+
+  /**
+   * Unenroll MFA
+   */
+  async unenrollMFA(factorId: string): Promise<AuthResult> {
+    try {
+      const { error } = await this.supabase.auth.mfa.unenroll({
+        factorId
+      })
+
+      if (error) {
+        return { success: false, error: error.message, authError: error }
+      }
+
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'MFA unenrollment failed' }
+    }
+  }
+
+  /**
+   * Check if user has active subscription
+   */
+  async hasActiveSubscription(): Promise<boolean> {
+    const user = await this.getCurrentUser()
+    return user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trial'
+  }
+
+  /**
+   * Check if user has completed onboarding
+   */
+  async hasCompletedOnboarding(): Promise<boolean> {
+    const user = await this.getCurrentUser()
+    return user?.onboardingStatus === 'active' || user?.hasCompletedOnboarding === true
+  }
+
+  /**
+   * Resend verification email
+   */
+  async resendVerificationEmail(email: string): Promise<AuthResult> {
+    try {
+      const { error } = await this.supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: getAuthCallbackUrl(),
+        },
+      })
+
+      if (error) {
+        return { success: false, error: error.message, authError: error }
+      }
+
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Resend verification failed' }
+    }
+  }
+
+  /**
+   * Update user onboarding status
+   */
+  async updateOnboardingStatus(status: string): Promise<AuthResult> {
+    try {
+      const user = await this.getCurrentUser()
+      if (!user) {
+        return { success: false, error: 'Not authenticated' }
+      }
+
+      const { error } = await this.supabase
+        .from('profiles')
+        .update({ onboarding_status: status })
+        .eq('id', user.id)
+
+      if (error) {
+        // Fallback to users table if profiles update fails
+        const { error: usersError } = await this.supabase
+          .from('users')
+          .update({ onboarding_status: status })
+          .eq('auth_user_id', user.id)
+
+        if (usersError) {
+          return { success: false, error: usersError.message }
+        }
+      }
+
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Update onboarding status failed' }
     }
   }
 
@@ -594,19 +992,27 @@ export class ServerAuthService {
       }
     }
 
-    // Check profile for onboarding status if missing
-    if (!onboardingStatus || onboardingStatus === 'pending') {
-      const { data: profile } = await this.supabase
-        .from('profiles')
-        .select('onboarding_status')
-        .eq('id', supabaseUser.id)
-        .maybeSingle()
+    // Always check profile for full_name (not just when onboarding is pending)
+    const { data: profile } = await this.supabase
+      .from('profiles')
+      .select('onboarding_status, full_name')
+      .eq('id', supabaseUser.id)
+      .maybeSingle()
 
-      if (profile?.onboarding_status) {
-        onboardingStatus = profile.onboarding_status
+    if (profile?.onboarding_status) {
+      onboardingStatus = profile.onboarding_status
+    }
+
+    // Store full_name in user metadata for client-side access
+    if (profile?.full_name) {
+      supabaseUser.user_metadata = {
+        ...supabaseUser.user_metadata,
+        full_name: profile.full_name
       }
+    }
 
-      if (!onboardingStatus || onboardingStatus === 'pending') {
+    // Additional checks for onboarding status if still pending
+    if (!onboardingStatus || onboardingStatus === 'pending') {
         const { data: userProfile } = await this.supabase
           .from('user_profiles')
           .select('id')
@@ -629,7 +1035,6 @@ export class ServerAuthService {
           onboardingStatus = usersRecord.onboarding_status
         }
       }
-    }
 
     // Fetch subscription status if missing
     if (!subscriptionStatus) {

@@ -18,9 +18,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from monitoring.health_checks import HealthAggregator
 
-from backend.config.settings import get_settings
-from backend.redis_core.client import RedisClient
-from backend.redis_core.health import RedisHealthChecker
+from .config.settings import get_settings
+from .redis_core.client import RedisClient
+from .redis_core.health import RedisHealthChecker
 
 # Configure logging
 logging.basicConfig(

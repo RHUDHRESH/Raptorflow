@@ -8,8 +8,9 @@ from contextlib import contextmanager
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from .base import RaptorflowTool, ToolResult
-from .database import DatabaseTool
+from ..base import RaptorflowTool, ToolResult
+
+# from database import DatabaseTool
 from .web_search import WebSearchTool
 
 logger = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ class ToolRegistry:
 
         # Register Titan as the primary web_search tool
         try:
-            from backend.services.titan.tool import TitanIntelligenceTool
+            from services.titan.tool import TitanIntelligenceTool
 
             titan = TitanIntelligenceTool()
             titan.name = "web_search"  # Alias Titan as 'web_search' for agents

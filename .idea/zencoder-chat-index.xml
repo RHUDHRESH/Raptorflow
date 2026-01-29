@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ai.zencoder.plugin.chat.index">
+    <option name="chatMetadata" value="{&quot;b99cd3a8-7920-4ae3-9ccd-885e7f90a57d&quot;:{&quot;id&quot;:&quot;b99cd3a8-7920-4ae3-9ccd-885e7f90a57d&quot;,&quot;title&quot;:&quot;Backend Chaos and Incorrect Deployments&quot;,&quot;createdAt&quot;:1769402215693,&quot;updatedAt&quot;:1769403425715,&quot;isAgent&quot;:true,&quot;isNameGenerated&quot;:true,&quot;messageCount&quot;:210,&quot;lastMessagePreview&quot;:&quot;The BCM Evolution system has been fully repaired and optimized.\n\n### Summary of Fixes:\n\n#### 1. BCM ...&quot;,&quot;lastUserMessageAt&quot;:1769403206942},&quot;c0f248f2-31da-4d10-8ae8-6b6a57465a45&quot;:{&quot;id&quot;:&quot;c0f248f2-31da-4d10-8ae8-6b6a57465a45&quot;,&quot;title&quot;:&quot;Auth 100% Fix &amp; Onboard BCM Integration&quot;,&quot;createdAt&quot;:1769403544457,&quot;updatedAt&quot;:1769403935283,&quot;isAgent&quot;:true,&quot;isNameGenerated&quot;:true,&quot;messageCount&quot;:71,&quot;lastMessagePreview&quot;:&quot;You've reached your usage limit. Please try again in 115 minutes or upgrade your plan for higher lim...&quot;,&quot;lastUserMessageAt&quot;:1769403681451}}" />
+  </component>
+</project>

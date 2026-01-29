@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic';
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { getEnvironmentSummary } from "@/lib/env-validation";
-import { getSupabaseClient } from '@/lib/supabase-auth';
+import { clientAuth } from '@/lib/auth-service';
 
 const BlueprintButton = dynamic(() => import("@/components/ui/BlueprintButton").then(mod => ({ default: mod.BlueprintButton })), { ssr: false });
 const SecondaryButton = dynamic(() => import("@/components/ui/BlueprintButton").then(mod => ({ default: mod.SecondaryButton })), { ssr: false });
@@ -54,23 +54,12 @@ export default function PricingPage() {
     // Check authentication status and load user data
     const checkAuth = async () => {
       try {
-        const supabase = getSupabaseClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const user = await clientAuth.getCurrentUser();
 
-        if (session?.user) {
+        if (user) {
           setIsAuthenticated(true);
-          setUserEmail(session.user.email || null);
-
-          // Load user profile data
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name, onboarding_status')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profile) {
-            setUserName(profile.full_name || session.user.email?.split('@')[0] || 'User');
-          }
+          setUserEmail(user.email);
+          setUserName(user.fullName);
         }
       } catch (error) {
         console.log('Auth check failed:', error);
@@ -123,7 +112,7 @@ export default function PricingPage() {
             </>
           ) : (
             <>
-              <button onClick={() => router.push('/login')} className="text-sm font-technical text-[var(--muted)] hover:text-[var(--ink)]">LOG IN</button>
+              <button onClick={() => router.push('/signin')} className="text-sm font-technical text-[var(--muted)] hover:text-[var(--ink)]">LOG IN</button>
               <BlueprintButton size="sm" onClick={() => router.push('/signup')}>START NOW</BlueprintButton>
             </>
           )}

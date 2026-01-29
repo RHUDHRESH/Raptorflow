@@ -11,9 +11,9 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from backend.core.models import User
-from backend.core.supabase_mgr import get_supabase_client
-from backend.redis_core.client import get_redis
+from .core.models import User
+from .core.supabase_mgr import get_supabase_client
+from .redis_core.client import get_redis
 
 logger = logging.getLogger(__name__)
 

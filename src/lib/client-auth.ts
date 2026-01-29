@@ -107,7 +107,7 @@ export function clientIsAuthenticated(): boolean {
  */
 export function clientRedirectToLogin(): void {
   if (typeof window !== 'undefined') {
-    window.location.href = '/login';
+    window.location.href = '/signin';
   }
 }
 

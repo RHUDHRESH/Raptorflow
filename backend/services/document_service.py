@@ -2,7 +2,7 @@
 RaptorFlow Document Service
 Phase 1.1.1: Document Upload Infrastructure
 
-Handles file upload, validation, virus scanning, and S3 storage integration
+Handles file upload, validation, virus scanning, and Cloud Storage integration
 for the onboarding system document processing pipeline.
 """
 
@@ -44,8 +44,8 @@ from fastapi import HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 # Configuration
-from backend.config import get_settings
-from backend.core.logging_config import get_logger
+from .config import get_settings
+from .core.logging_config import get_logger
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -90,7 +90,7 @@ class DocumentMetadata:
 
     id: str
     filename: str
-    s3_key: str
+    storage_path: str
     size: int
     content_type: str
     workspace_id: str
@@ -106,7 +106,7 @@ class VirusScanner:
 
     def __init__(self):
         self.enabled = settings.VIRUS_SCAN_ENABLED
-        self.scan_engine = settings.VIRUS_SCAN_PROVIDER  # 'clamav', 'aws', 'disabled'
+        self.scan_engine = settings.VIRUS_SCAN_PROVIDER  # 'clamav', 'gcp', 'disabled'
 
     async def scan(self, file: UploadFile) -> ScanResult:
         """
@@ -333,7 +333,7 @@ class SupabaseStorageManager:
     """Supabase Storage integration for document management."""
 
     def __init__(self):
-        from ..services.supabase_storage_client import get_supabase_storage_client
+        from services.supabase_storage_client import get_supabase_storage_client
 
         self.client = get_supabase_storage_client()
 

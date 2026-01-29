@@ -41,7 +41,7 @@ export function HeaderV2() {
                         Pricing
                     </Link>
                     <Link
-                        href="/login"
+                        href="/signin"
                         className="text-sm text-[var(--ink)]"
                     >
                         Log in

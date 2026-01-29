@@ -1,4 +1,4 @@
-﻿"""
+"""
 ICP service for business logic operations
 Handles ICP-related business logic and validation
 """
@@ -6,15 +6,15 @@ Handles ICP-related business logic and validation
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.core.models import ValidationError
-from backend.core.supabase_mgr import get_supabase_client
-from backend.db.foundations import FoundationRepository
-from backend.db.icps import ICPRepository
-from backend.db.moves import MoveRepository
-from backend.redis_core.cache import cached
-from backend.schemas import RICP
-from backend.services.business_context_generator import get_business_context_generator
-from backend.services.business_context_graph import (
+from .core.models import ValidationError
+from .core.supabase_mgr import get_supabase_client
+from db.foundations import FoundationRepository
+from db.icps import ICPRepository
+from db.moves import MoveRepository
+from .redis_core.cache import cached
+from schemas import RICP
+from .services.business_context_generator import get_business_context_generator
+from .services.business_context_graph import (
     create_initial_workflow_state,
     get_business_context_graph,
 )
@@ -92,7 +92,7 @@ class ICPService:
 
         # Record interaction in BCM Ledger
         try:
-            from backend.services.bcm_integration import bcm_evolution
+            from services.bcm_integration import bcm_evolution
 
             await bcm_evolution.record_interaction(
                 workspace_id=workspace_id,
@@ -269,7 +269,7 @@ class ICPService:
 
         if result:
             # Invalidate ICP related caches
-            from backend.redis_core.cache import CacheService
+            from redis_core.cache import CacheService
 
             cache = CacheService()
             await cache.invalidate_pattern(workspace_id, "icps*")

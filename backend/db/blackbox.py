@@ -5,11 +5,11 @@ Blackbox Strategies repository for database operations
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from backend.core.supabase_mgr import get_supabase_client
+from .core.supabase_mgr import get_supabase_client
 
 from .base import Repository
-from .filters import Filter, build_query
-from .pagination import PaginatedResult, Pagination
+from filters import Filter, build_query
+from pagination import PaginatedResult, Pagination
 
 
 class BlackboxRepository(Repository):

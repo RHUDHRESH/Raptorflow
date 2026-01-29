@@ -25,7 +25,7 @@ from enum import Enum
 from collections import deque
 
 from .base import BaseAgent
-from .metrics import get_metrics_collector
+from metrics import get_metrics_collector
 from .exceptions import FailoverError
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class CircuitState(Enum):
 @dataclass
 class AgentInstance:
     """Agent instance configuration and status."""
-    
+
     instance_id: str
     agent_name: str
     host: str
@@ -85,7 +85,7 @@ class AgentInstance:
 @dataclass
 class FailoverConfig:
     """Configuration for failover system."""
-    
+
     strategy: FailoverStrategy = FailoverStrategy.ACTIVE_PASSIVE
     health_check_interval: int = 30
     health_check_timeout: int = 10
@@ -101,7 +101,7 @@ class FailoverConfig:
 
 class FailoverManager:
     """Failover manager for agent instances."""
-    
+
     def __init__(self, config: FailoverConfig):
         self.config = config
         self.agent_instances: Dict[str, AgentInstance] = {}
@@ -112,73 +112,73 @@ class FailoverManager:
         self._is_running = False
         self._health_check_task: Optional[asyncio.Task] = None
         self._failover_lock = asyncio.Lock()
-    
+
     async def start(self) -> None:
         """Start failover manager."""
         if self._is_running:
             logger.warning("Failover manager is already running")
             return
-        
+
         self._is_running = True
-        
+
         # Start health monitoring
         self._health_check_task = asyncio.create_task(self._health_monitoring_loop())
-        
+
         logger.info("Failover manager started")
-    
+
     async def stop(self) -> None:
         """Stop failover manager."""
         if not self._is_running:
             return
-        
+
         self._is_running = False
-        
+
         # Cancel health monitoring
         if self._health_check_task:
             self._health_check_task.cancel()
             self._health_check_task = None
-        
+
         logger.info("Failover manager stopped")
-    
+
     def add_agent_instance(self, instance: AgentInstance) -> bool:
         """Add an agent instance to failover pool."""
         try:
             if instance.instance_id in self.agent_instances:
                 logger.warning(f"Agent instance {instance.instance_id} already exists")
                 return False
-            
+
             self.agent_instances[instance.instance_id] = instance
-            
+
             # Set primary if none exists
             if self.primary_instance is None:
                 self.primary_instance = instance.instance_id
                 instance.is_primary = True
-            
+
             # Set active if none exists
             if self.active_instance is None:
                 self.active_instance = instance.instance_id
-            
+
             logger.info(f"Added agent instance {instance.instance_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to add agent instance {instance.instance_id}: {e}")
             return False
-    
+
     def remove_agent_instance(self, instance_id: str) -> bool:
         """Remove an agent instance from failover pool."""
         try:
             if instance_id not in self.agent_instances:
                 logger.warning(f"Agent instance {instance_id} not found")
                 return False
-            
+
             instance = self.agent_instances[instance_id]
-            
+
             # Handle primary removal
             if self.primary_instance == instance_id:
                 # Select new primary
                 remaining_instances = [
-                    inst for inst in self.agent_instances.values() 
+                    inst for inst in self.agent_instances.values()
                     if inst.instance_id != instance_id
                 ]
                 if remaining_instances:
@@ -187,7 +187,7 @@ class FailoverManager:
                     new_primary.is_primary = True
                 else:
                     self.primary_instance = None
-            
+
             # Handle active removal
             if self.active_instance == instance_id:
                 # Switch to primary or next best
@@ -195,22 +195,22 @@ class FailoverManager:
                     self.active_instance = self.primary_instance
                 else:
                     remaining_instances = [
-                        inst for inst in self.agent_instances.values() 
+                        inst for inst in self.agent_instances.values()
                         if inst.instance_id != instance_id
                     ]
                     if remaining_instances:
                         best_instance = self._select_best_instance(remaining_instances)
                         self.active_instance = best_instance.instance_id
-            
+
             del self.agent_instances[instance_id]
-            
+
             logger.info(f"Removed agent instance {instance_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to remove agent instance {instance_id}: {e}")
             return False
-    
+
     def _select_best_instance(self, instances: List[AgentInstance]) -> AgentInstance:
         """Select best instance based on strategy."""
         try:
@@ -229,68 +229,68 @@ class FailoverManager:
             else:
                 # Default to priority-based
                 return min(instances, key=lambda x: x.priority)
-                
+
         except Exception as e:
             logger.error(f"Failed to select best instance: {e}")
             return instances[0] if instances else None
-    
+
     async def _health_monitoring_loop(self) -> None:
         """Main health monitoring loop."""
         while self._is_running:
             try:
                 await asyncio.sleep(self.config.health_check_interval)
                 await self._perform_health_checks()
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Health monitoring loop error: {e}")
                 await asyncio.sleep(10)  # Prevent tight error loops
-    
+
     async def _perform_health_checks(self) -> None:
         """Perform health checks on all instances."""
         try:
             async with self._failover_lock:
                 current_time = datetime.now()
-                
+
                 for instance_id, instance in self.agent_instances.items():
                     if not instance.is_active:
                         continue
-                    
+
                     # Perform health check
                     health_status = await self._check_instance_health(instance)
-                    
+
                     # Update instance status
                     old_status = instance.status
                     instance.status = health_status["status"]
                     instance.last_health_check = current_time
-                    
+
                     # Update circuit breaker
                     await self._update_circuit_breaker(instance, health_status)
-                    
+
                     # Log status changes
                     if old_status != instance.status:
                         logger.info(f"Instance {instance_id} status changed: {old_status.value} -> {instance.status.value}")
-                    
+
                     # Record metrics
                     if self.config.enable_metrics:
                         await self._record_health_metrics(instance, health_status)
-                
+
                 # Check if failover is needed
                 await self._check_failover_needed()
-                
+
         except Exception as e:
             logger.error(f"Failed to perform health checks: {e}")
-    
+
     async def _check_instance_health(self, instance: AgentInstance) -> Dict[str, Any]:
         """Check health of a specific instance."""
         try:
             start_time = time.time()
-            
+
             # Simple HTTP health check
             # In a real implementation, this would make an HTTP request
             # For now, we'll simulate health checks
-            
+
             # Simulate health based on failure count and circuit state
             if instance.circuit_state == CircuitState.OPEN:
                 return {
@@ -298,11 +298,11 @@ class FailoverManager:
                     "response_time": 0,
                     "error": "Circuit breaker is open"
                 }
-            
+
             # Simulate health check
             import random
             health_check_result = random.random() > 0.1  # 90% success rate
-            
+
             if not health_check_result:
                 instance.failure_count += 1
                 return {
@@ -310,17 +310,17 @@ class FailoverManager:
                     "response_time": 0,
                     "error": "Health check failed"
                 }
-            
+
             response_time = time.time() - start_time
             instance.response_times.append(response_time)
             instance.failure_count = 0  # Reset on success
-            
+
             return {
                 "status": FailoverStatus.HEALTHY.value,
                 "response_time": response_time,
                 "error": None
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to check instance health for {instance.instance_id}: {e}")
             return {
@@ -328,12 +328,12 @@ class FailoverManager:
                 "response_time": 0,
                 "error": str(e)
             }
-    
+
     async def _update_circuit_breaker(self, instance: AgentInstance, health_status: Dict[str, Any]) -> None:
         """Update circuit breaker state based on health status."""
         try:
             is_healthy = health_status["status"] == FailoverStatus.HEALTHY.value
-            
+
             if is_healthy:
                 if instance.circuit_state == CircuitState.OPEN:
                     # Check if enough time has passed to try half-open
@@ -363,50 +363,50 @@ class FailoverManager:
                             instance.circuit_state = CircuitState.OPEN
                             instance.circuit_open_time = datetime.now()
                             logger.warning(f"Circuit breaker for {instance.instance_id} OPENED due to high failure rate")
-            
+
         except Exception as e:
             logger.error(f"Failed to update circuit breaker for {instance.instance_id}: {e}")
-    
+
     async def _check_failover_needed(self) -> None:
         """Check if failover is needed and perform it."""
         try:
             if not self.active_instance:
                 return
-            
+
             active_instance = self.agent_instances.get(self.active_instance)
             if not active_instance:
                 return
-            
+
             # Check if active instance is healthy
             if active_instance.status == FailoverStatus.HEALTHY:
                 return
-            
+
             # Find alternative instances
             alternative_instances = [
                 inst for inst in self.agent_instances.values()
-                if inst.instance_id != self.active_instance and 
-                   inst.is_active and 
+                if inst.instance_id != self.active_instance and
+                   inst.is_active and
                    inst.status == FailoverStatus.HEALTHY
             ]
-            
+
             if not alternative_instances:
                 logger.warning("No healthy alternative instances available")
                 return
-            
+
             # Select best alternative
             best_alternative = self._select_best_instance(alternative_instances)
-            
+
             # Perform failover
             await self._perform_failover(active_instance, best_alternative)
-            
+
         except Exception as e:
             logger.error(f"Failed to check failover: {e}")
-    
+
     async def _perform_failover(self, failed_instance: AgentInstance, new_instance: AgentInstance) -> None:
         """Perform failover from failed to new instance."""
         try:
             failover_time = datetime.now()
-            
+
             # Record failover event
             failover_event = {
                 "timestamp": failover_time.isoformat(),
@@ -416,51 +416,51 @@ class FailoverManager:
                 "strategy": self.config.strategy.value,
                 "downtime": 0  # Will be calculated when service is restored
             }
-            
+
             self.failover_history.append(failover_event)
-            
+
             # Update active instance
             old_active = self.active_instance
             self.active_instance = new_instance.instance_id
-            
+
             logger.warning(f"Failover: {failed_instance.instance_id} -> {new_instance.instance_id} (reason: {failed_instance.status.value})")
-            
+
             # Record failover metrics
             if self.config.enable_metrics:
                 await self._record_failover_metrics(failed_instance, new_instance, failover_event)
-            
+
             # Attempt recovery of failed instance if auto-recovery is enabled
             if self.config.enable_auto_recovery:
                 asyncio.create_task(self._attempt_recovery(failed_instance))
-            
+
         except Exception as e:
             logger.error(f"Failed to perform failover: {e}")
-    
+
     async def _attempt_recovery(self, instance: AgentInstance) -> None:
         """Attempt to recover a failed instance."""
         try:
             logger.info(f"Attempting recovery of instance {instance.instance_id}")
-            
+
             # Wait recovery delay
             await asyncio.sleep(self.config.recovery_delay)
-            
+
             # Perform recovery health check
             health_status = await self._check_instance_health(instance)
-            
+
             if health_status["status"] == FailoverStatus.HEALTHY.value:
                 instance.status = FailoverStatus.RECOVERING
                 logger.info(f"Instance {instance.instance_id} recovered successfully")
-                
+
                 # Update circuit breaker
                 instance.circuit_state = CircuitState.CLOSED
                 instance.circuit_open_time = None
                 instance.failure_count = 0
             else:
                 logger.warning(f"Instance {instance.instance_id} recovery failed: {health_status.get('error', 'Unknown error')}")
-                
+
         except Exception as e:
             logger.error(f"Failed to attempt recovery of {instance.instance_id}: {e}")
-    
+
     async def _record_health_metrics(self, instance: AgentInstance, health_status: Dict[str, Any]) -> None:
         """Record health check metrics."""
         try:
@@ -475,10 +475,10 @@ class FailoverManager:
                     "timestamp": datetime.now().isoformat()
                 }
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to record health metrics: {e}")
-    
+
     async def _record_failover_metrics(self, failed_instance: AgentInstance, new_instance: AgentInstance, failover_event: Dict[str, Any]) -> None:
         """Record failover metrics."""
         try:
@@ -493,17 +493,17 @@ class FailoverManager:
                     "downtime": failover_event["downtime"]
                 }
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to record failover metrics: {e}")
-    
+
     def get_failover_status(self) -> Dict[str, Any]:
         """Get current failover status."""
         try:
             active_instance = None
             if self.active_instance and self.active_instance in self.agent_instances:
                 active_instance = self.agent_instances[self.active_instance]
-            
+
             return {
                 "active_instance": self.active_instance,
                 "primary_instance": self.primary_instance,
@@ -535,23 +535,23 @@ class FailoverManager:
                     for instance_id, instance in self.agent_instances.items()
                 }
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to get failover status: {e}")
             return {"error": str(e)}
-    
+
     def get_failover_history(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Get failover history."""
         return self.failover_history[-limit:]
-    
+
     def get_instance_metrics(self, instance_id: str) -> Dict[str, Any]:
         """Get detailed metrics for a specific instance."""
         try:
             if instance_id not in self.agent_instances:
                 return {"error": f"Instance {instance_id} not found"}
-            
+
             instance = self.agent_instances[instance_id]
-            
+
             return {
                 "instance_id": instance_id,
                 "agent_name": instance.agent_name,
@@ -567,7 +567,7 @@ class FailoverManager:
                 "last_health_check": instance.last_health_check.isoformat() if instance.last_health_check else None,
                 "circuit_open_time": instance.circuit_open_time.isoformat() if instance.circuit_open_time else None
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to get instance metrics: {e}")
             return {"error": str(e)}

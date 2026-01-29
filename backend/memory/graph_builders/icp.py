@@ -10,9 +10,9 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..embeddings import get_embedding_model
-from ..graph_memory import GraphMemory
-from ..graph_models import EntityType, GraphEntity, GraphRelationship, RelationType
+from embeddings import get_embedding_model
+from graph_memory import GraphMemory
+from graph_models import EntityType, GraphEntity, GraphRelationship, RelationType
 
 logger = logging.getLogger(__name__)
 

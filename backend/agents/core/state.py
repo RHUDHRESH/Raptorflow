@@ -17,11 +17,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from backend.agents.config import ModelTier
+from ..agents.config import ModelTier
 
 from ..base import BaseAgent
 from ..exceptions import StateError, ValidationError
-from ..memory.controller import SimpleMemoryController
+from memory.controller import SimpleMemoryController
 
 logger = logging.getLogger(__name__)
 
@@ -747,7 +747,7 @@ class AgentStateManager:
                 json.dump(snapshot_data, f, indent=2, default=str)
 
     async def _remove_from_backend(self, state_id: str):
-        """Remove state from backend."""
+        """Remove state from"""
         backend = self._backends[self.config.default_backend]
 
         if self.config.default_backend == StorageBackend.FILE:

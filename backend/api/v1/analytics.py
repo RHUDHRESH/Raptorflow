@@ -8,9 +8,9 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.core.auth import get_current_user
-from backend.core.database import get_db
-from backend.redis_core.cache import cached
+from core.auth import get_current_user
+from core.database import get_db
+from redis.cache import cached
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 

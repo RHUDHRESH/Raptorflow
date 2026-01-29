@@ -13,7 +13,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from .embeddings import get_embedding_model
+from embeddings import get_embedding_model
 from .models import MemoryChunk, MemoryType
 
 logger = logging.getLogger(__name__)

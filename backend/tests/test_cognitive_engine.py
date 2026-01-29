@@ -20,24 +20,24 @@ import pytest
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-from ..caching import CognitiveCache
-from ..context import CognitiveContextBuilder
-from ..critic import AdversarialCritic
+from caching import CognitiveCache
+from context import CognitiveContextBuilder
+from critic import AdversarialCritic
 
 # Import cognitive engine components
-from ..engine import CognitiveEngine
-from ..execution import PlanExecutor
-from ..fallback import FallbackHandler
-from ..hitl import ApprovalGate
-from ..models import CognitiveResult, ExecutionPlan, PerceivedInput, ReflectionResult
-from ..monitoring import CognitiveMonitor
-from ..parallel import ParallelExecutor
-from ..perception import PerceptionModule
-from ..pipeline import CognitivePipeline
-from ..planning import PlanningModule
-from ..reflection import ReflectionModule
-from ..retry import RetryManager
-from ..traces import CognitiveTracer
+from engine import CognitiveEngine
+from execution import PlanExecutor
+from fallback import FallbackHandler
+from hitl import ApprovalGate
+from .models import CognitiveResult, ExecutionPlan, PerceivedInput, ReflectionResult
+from monitoring import CognitiveMonitor
+from parallel import ParallelExecutor
+from perception import PerceptionModule
+from pipeline import CognitivePipeline
+from planning import PlanningModule
+from reflection import ReflectionModule
+from retry import RetryManager
+from traces import CognitiveTracer
 
 # Test configuration
 TEST_TIMEOUT = 30

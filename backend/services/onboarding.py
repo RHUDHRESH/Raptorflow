@@ -6,12 +6,12 @@ Handles onboarding-related business logic and validation
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from backend.core.models import ValidationError
-from backend.core.supabase import get_supabase_client
+from .core.models import ValidationError
+from .core.supabase import get_supabase_client
 
-from ..db.evidence import EvidenceRepository
-from ..db.foundations import FoundationRepository
-from ..db.repositories.onboarding import OnboardingRepository
+from db.evidence import EvidenceRepository
+from db.foundations import FoundationRepository
+from db.repositories.onboarding import OnboardingRepository
 
 
 class OnboardingService:

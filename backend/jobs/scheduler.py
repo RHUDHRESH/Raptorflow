@@ -15,8 +15,8 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from ..infrastructure.cloud_tasks import get_cloud_tasks_client
-from ..infrastructure.logging import get_cloud_logging
+from infrastructure.cloud_tasks import get_cloud_tasks_client
+from infrastructure.logging import get_cloud_logging
 from .models import JobResult, JobStatus
 
 logger = logging.getLogger(__name__)

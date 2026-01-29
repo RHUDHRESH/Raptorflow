@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from backend.core.redis import get_redis_client
+from .core.redis import get_redis_client
 
 logger = logging.getLogger(__name__)
 

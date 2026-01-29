@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 from ...llm import LLMClient, ModelConfig
 from ..models import PerceivedInput
-from .models import Issue, QualityScore, Severity
+from ..models import Issue, QualityScore, Severity
 
 logger = logging.getLogger(__name__)
 

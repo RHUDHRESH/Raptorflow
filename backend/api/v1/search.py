@@ -7,16 +7,18 @@ from typing import List, Optional, Any, Dict
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from backend.core.auth import get_current_user, get_workspace_id
-from backend.core.models import User
-from backend.services.search.orchestrator import SOTASearchOrchestrator
+from ..core.auth import get_current_user, get_workspace_id
+from ..core.models import User
+from ..services.search.orchestrator import SOTASearchOrchestrator
 
 router = APIRouter(prefix="/search", tags=["search"])
+
 
 class SearchRequest(BaseModel):
     query: str
     limit: Optional[int] = 10
     site: Optional[str] = None
+
 
 class SearchResult(BaseModel):
     title: str
@@ -25,18 +27,22 @@ class SearchResult(BaseModel):
     source: str
     metadata: Optional[Dict[str, Any]] = None
 
+
 class SearchResponse(BaseModel):
     results: List[SearchResult]
     count: int
     query: str
 
+
 _orchestrator: Optional[SOTASearchOrchestrator] = None
+
 
 def get_search_orchestrator() -> SOTASearchOrchestrator:
     global _orchestrator
     if _orchestrator is None:
         _orchestrator = SOTASearchOrchestrator()
     return _orchestrator
+
 
 @router.get("/sync", response_model=SearchResponse)
 async def sync_search(
@@ -52,12 +58,11 @@ async def sync_search(
     try:
         results = await orchestrator.query(q, limit=limit, site=site)
         return SearchResponse(
-            results=[SearchResult(**r) for r in results],
-            count=len(results),
-            query=q
+            results=[SearchResult(**r) for r in results], count=len(results), query=q
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+
 
 @router.post("/async")
 async def async_search_trigger(
@@ -74,5 +79,5 @@ async def async_search_trigger(
         "status": "queued",
         "message": "Deep research search task triggered",
         "query": request.query,
-        "workspace_id": workspace_id
+        "workspace_id": workspace_id,
     }

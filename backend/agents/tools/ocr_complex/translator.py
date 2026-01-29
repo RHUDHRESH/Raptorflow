@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 
 import aiohttp
 
-from .base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
+from ...base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
 
 
 @dataclass

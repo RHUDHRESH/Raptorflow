@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from ...redis.client import RedisClient
-from .models import FeedbackData
+from ..models import FeedbackData
 
 logger = logging.getLogger(__name__)
 

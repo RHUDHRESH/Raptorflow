@@ -15,7 +15,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from ..models import ExecutionPlan, PlanStep
+from .models import ExecutionPlan, PlanStep
 
 
 class FallbackLevel(Enum):
@@ -590,7 +590,7 @@ class FallbackHandler:
                                       context: Dict[str, Any]) -> Any:
         """Retry with exponential backoff."""
         # This would integrate with the retry manager
-        from .retry import RetryManager
+        from retry import RetryManager
 
         retry_manager = RetryManager()
 

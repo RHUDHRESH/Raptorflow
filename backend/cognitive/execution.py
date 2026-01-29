@@ -14,7 +14,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from ..models import ExecutionPlan, PlanStep, RiskLevel
+from .models import ExecutionPlan, PlanStep, RiskLevel
 
 
 class ExecutionStatus(Enum):

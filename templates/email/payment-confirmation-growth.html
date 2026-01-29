@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to RaptorFlow - Growth Plan</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .welcome {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        .plan-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #d97706;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+        }
+        .feature-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        .checkmark {
+            color: #10b981;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        .pro-feature {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .pro-feature h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            margin: 20px 0;
+        }
+        .footer {
+            background: #f7fafc;
+            padding: 30px;
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+        }
+        .next-steps {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .next-steps h3 {
+            margin-top: 0;
+            color: #1e40af;
+        }
+        .upgrade-pitch {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .upgrade-pitch h3 {
+            color: #166534;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚀 RaptorFlow</div>
+            <h1>Great choice! You're on Growth Plan!</h1>
+        </div>
+
+        <div class="content">
+            <h2 class="welcome">Hi {{user_name}},</h2>
+
+            <div class="plan-badge">🚀 Growth Plan</div>
+
+            <p>Congratulations on upgrading to the Growth Plan! You've unlocked powerful features to accelerate your team's productivity.</p>
+
+            <h3>✨ Your Growth Plan includes everything in Starter PLUS:</h3>
+            <ul class="feature-list">
+                <li><span class="checkmark">✓</span> Up to 20 team members</li>
+                <li><span class="checkmark">✓</span> 10,000 AI credits per month</li>
+                <li><span class="checkmark">✓</span> Advanced analytics & insights</li>
+                <li><span class="checkmark">✓</span> Priority email support</li>
+                <li><span class="checkmark">✓</span> 50 GB cloud storage</li>
+                <li><span class="checkmark">✓</span> Custom integrations</li>
+                <li><span class="checkmark">✓</span> Team collaboration tools</li>
+            </ul>
+
+            <div class="pro-feature">
+                <h3>🎯 Pro Features Unlocked</h3>
+                <p>• <strong>Advanced AI Models</strong> - Access to our latest AI capabilities</p>
+                <p>• <strong>Custom Workflows</strong> - Build automated workflows tailored to your needs</p>
+                <p>• <strong>API Access</strong> - Integrate RaptorFlow with your existing tools</p>
+                <p>• <strong>Advanced Security</strong> - Enhanced security features for your team</p>
+            </div>
+
+            <div class="next-steps">
+                <h3>🎯 Next Steps</h3>
+                <p>1. <strong>Invite your team</strong> - Add up to 20 team members to collaborate</p>
+                <p>2. <strong>Set up integrations</strong> - Connect your favorite tools and workflows</p>
+                <p>3. <strong>Explore advanced analytics</strong> - Get deep insights into your productivity</p>
+                <p>4. <strong>Try AI workflows</strong> - Experience the power of advanced AI automation</p>
+            </div>
+
+            <div class="upgrade-pitch">
+                <h3>💡 Ready for Enterprise?</h3>
+                <p>As you grow, consider upgrading to Enterprise for unlimited team members, dedicated support, and custom solutions.</p>
+                <a href="{{enterprise_upgrade_url}}" style="color: #166534; text-decoration: underline;">Learn about Enterprise →</a>
+            </div>
+
+            <a href="{{dashboard_url}}" class="cta-button">Go to Dashboard</a>
+
+            <p><strong>Payment Details:</strong></p>
+            <p>Plan: Growth Plan - {{billing_cycle}}<br>
+            Amount: {{amount}}<br>
+            Transaction ID: {{transaction_id}}<br>
+            Date: {{payment_date}}</p>
+        </div>
+
+        <div class="footer">
+            <p>Priority support available at <a href="mailto:support@raptorflow.com">support@raptorflow.com</a></p>
+            <p>© 2026 RaptorFlow. All rights reserved.</p>
+            <p><a href="{{unsubscribe_url}}">Unsubscribe</a> | <a href="{{privacy_url}}">Privacy Policy</a></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -9,12 +9,12 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 
-from backend.config.settings import get_settings
-from backend.jobs.scheduler import JobScheduler
-from backend.memory import MemoryController
-from backend.redis_core.backup import BackupManager
-from backend.redis_core.cleanup import RedisCleanup
-from backend.redis_core.client import RedisClient
+from config.settings import get_settings
+from jobs.scheduler import JobScheduler
+from memory import MemoryController
+from redis.backup import BackupManager
+from redis.cleanup import RedisCleanup
+from redis.client import RedisClient
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

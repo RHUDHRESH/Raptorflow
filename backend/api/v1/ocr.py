@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
-from backend.services.ocr.queue import OCRQueue
+from ..services.ocr.queue import OCRQueue
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -41,13 +41,13 @@ async def get_ocr_job_status(job_id: str):
     """
     try:
         status_info = await ocr_queue.get_job_status(job_id)
-        
+
         if not status_info:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"OCR job {job_id} not found"
+                detail=f"OCR job {job_id} not found",
             )
-            
+
         return status_info
 
     except HTTPException:
@@ -56,7 +56,7 @@ async def get_ocr_job_status(job_id: str):
         logger.error(f"Error retrieving OCR job status: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving job status"
+            detail="Error retrieving job status",
         )
 
 
@@ -72,5 +72,5 @@ async def clear_ocr_queue():
         logger.error(f"Error clearing OCR queue: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error clearing OCR queue"
+            detail="Error clearing OCR queue",
         )

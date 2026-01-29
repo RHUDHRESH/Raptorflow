@@ -6,11 +6,11 @@ Handle events that trigger memory indexing, graph updates, and synchronization.
 import logging
 from typing import Any, Dict
 
-from backend.memory.graph import MemoryGraph
-from backend.memory.services import MemoryService
-from backend.memory.vector_store import VectorStore
+from memory.graph import MemoryGraph
+from memory.services import MemoryService
+from memory.vector_store import VectorStore
 
-from ..types import Event, EventType, FoundationUpdatedEvent, ICPCreatedEvent
+from types import Event, EventType, FoundationUpdatedEvent, ICPCreatedEvent
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ async def on_icp_deleted(event: Event) -> None:
 # Register all handlers
 def register_memory_handlers():
     """Register all memory event handlers."""
-    from ..bus import subscribe_event
+    from bus import subscribe_event
 
     handlers = [
         (EventType.FOUNDATION_UPDATED, on_foundation_updated),

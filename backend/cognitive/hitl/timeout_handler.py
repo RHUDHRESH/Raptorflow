@@ -12,7 +12,7 @@ from enum import Enum
 from typing import Any, Dict, Optional
 
 from ...redis.client import RedisClient
-from .models import ApprovalRequest, ApprovalStatus
+from ..models import ApprovalRequest, ApprovalStatus
 
 logger = logging.getLogger(__name__)
 
@@ -277,7 +277,7 @@ class TimeoutHandler:
     async def _auto_reject(self, gate_id: str, request: Dict[str, Any]) -> bool:
         """Auto-reject approval on timeout."""
         try:
-            from .gate import ApprovalGate
+            from gate import ApprovalGate
 
             gate = ApprovalGate(self.redis)
 
@@ -292,7 +292,7 @@ class TimeoutHandler:
     async def _auto_approve(self, gate_id: str, request: Dict[str, Any]) -> bool:
         """Auto-approve approval on timeout."""
         try:
-            from .gate import ApprovalGate
+            from gate import ApprovalGate
 
             gate = ApprovalGate(self.redis)
 
@@ -314,7 +314,7 @@ class TimeoutHandler:
             extend_hours = config.get("extension_hours", 24)
 
             # Send notification
-            from .notifications import ApprovalNotifier
+            from notifications import ApprovalNotifier
 
             notifier = ApprovalNotifier(self.redis)
 
@@ -332,7 +332,7 @@ class TimeoutHandler:
     async def _escalate(self, gate_id: str, request: Dict[str, Any]) -> bool:
         """Escalate approval on timeout."""
         try:
-            from .escalation import EscalationManager
+            from escalation import EscalationManager
 
             escalation = EscalationManager(self.redis)
 
@@ -353,7 +353,7 @@ class TimeoutHandler:
     ) -> None:
         """Log timeout action for audit."""
         try:
-            from .audit import ApprovalAudit
+            from audit import ApprovalAudit
 
             audit = ApprovalAudit(self.redis)
 

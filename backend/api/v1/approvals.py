@@ -9,9 +9,9 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from backend.agents.graphs.hitl import HITLGraph
-from backend.core.auth import get_current_user
-from backend.core.database import get_db
+from ..agents.graphs.hitl import HITLGraph
+from ..core.auth import get_current_user
+from ..core.database import get_db
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
 

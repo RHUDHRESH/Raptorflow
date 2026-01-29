@@ -18,7 +18,7 @@ from .supabase_mgr import get_supabase_client
 
 # Import models with fallback
 try:
-    from .models import JWTPayload, User
+    from models import JWTPayload, User
 except ImportError:
     from dataclasses import dataclass
     from datetime import datetime
@@ -323,7 +323,7 @@ class WorkspaceMiddleware(BaseHTTPMiddleware):
 
         if workspace_id and hasattr(request.state, "user"):
             # Validate workspace ownership
-            from .workspace import validate_workspace_access
+            from workspace import validate_workspace_access
 
             user = request.state.user
             if await validate_workspace_access(workspace_id, user.id):

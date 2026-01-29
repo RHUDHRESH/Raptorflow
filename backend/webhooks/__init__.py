@@ -5,7 +5,7 @@ Provides webhook handling, verification, and event processing
 for external integrations like Supabase, Stripe, and PhonePe.
 """
 
-from .handler import WebhookHandler, get_webhook_handler
+from handler import WebhookHandler, get_webhook_handler
 from .models import (
     WebhookConfig,
     WebhookDelivery,
@@ -15,7 +15,7 @@ from .models import (
     WebhookRetry,
     WebhookSignature,
 )
-from .verification import WebhookVerifier, get_webhook_verifier
+from verification import WebhookVerifier, get_webhook_verifier
 
 # Export main components
 __all__ = [

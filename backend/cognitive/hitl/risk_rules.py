@@ -9,7 +9,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from .models import RequestType, RiskLevel
+from ..models import RequestType, RiskLevel
 
 logger = logging.getLogger(__name__)
 

@@ -18,7 +18,7 @@ from google.api_core import exceptions
 from google.api_core.retry import Retry
 from google.cloud import pubsub_v1
 
-from .gcp import get_gcp_client
+from gcp import get_gcp_client
 
 logger = logging.getLogger(__name__)
 

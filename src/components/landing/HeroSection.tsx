@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowRight01Icon, PlayCircle02Icon } from "hugeicons-react";
 import { BlueprintButton } from "@/components/ui/BlueprintButton";
 import { VideoModal } from "./VideoModal";
@@ -9,9 +10,18 @@ import { motion } from "framer-motion";
 /**
  * HeroSection - Simplified, high-impact hero
  * Focus: Clear headline, prominent CTA, minimal distraction
+ *
+ * FIXED: Replaced window.location.href with Next.js router to preserve
+ * authentication state and prevent full page reloads that break Supabase sessions.
  */
 export function HeroSection() {
+    const router = useRouter();
     const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+    // Prefetch signup page for instant navigation
+    useEffect(() => {
+        router.prefetch('/signup');
+    }, [router]);
 
     return (
         <>
@@ -46,7 +56,7 @@ export function HeroSection() {
                         className="text-5xl md:text-6xl lg:text-7xl font-editorial font-medium leading-[1.1] text-[var(--ink)] tracking-tight mb-6"
                     >
                         Marketing by vibes is <span className="italic text-[var(--muted)] text-4xl md:text-5xl lg:text-6xl align-middle">dead.</span><br />
-                        Deploy the Founder’s OS.
+                        Deploy Founder's OS.
                     </motion.h1>
 
                     {/* Subheadline */}
@@ -73,7 +83,7 @@ export function HeroSection() {
                             size="lg"
                             label="Initialize Your OS"
                             variant="blueprint"
-                            onClick={() => window.location.href = '/signup'}
+                            onClick={() => router.push('/signup')}
                             className="group min-w-[220px]"
                         >
                             <span className="flex items-center gap-2">

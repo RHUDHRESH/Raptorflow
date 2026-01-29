@@ -2,16 +2,20 @@
 Authentication API endpoints
 """
 
+import logging
 from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from backend.core.auth import get_auth_context, get_current_user, get_workspace_id
-from backend.core.models import AuthContext, User
-from backend.core.supabase_mgr import get_supabase_client
+from ..core.auth import get_auth_context, get_current_user, get_workspace_id
+from ..core.models import AuthContext, User
+from ..core.supabase_mgr import get_supabase_client
+from ..services.profile_service import ProfileService, ProfileError
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["authentication"])
+profile_service = ProfileService()
 
 
 @router.get("/me")
@@ -37,6 +41,82 @@ async def get_user_workspace(auth_context: AuthContext = Depends(get_auth_contex
         "permissions": auth_context.permissions,
         "workspace_id": auth_context.workspace_id,
     }
+
+
+@router.post("/ensure-profile")
+async def ensure_profile(current_user: User = Depends(get_current_user)):
+    """Create missing Supabase profile/workspace/membership records for the user."""
+    try:
+        logger.info("Ensuring profile for user %s", current_user.id)
+        result = profile_service.ensure_profile(current_user)
+        logger.info(
+            "Profile ensured successfully for user %s, workspace %s",
+            current_user.id,
+            result.get("workspace_id"),
+        )
+        return {
+            "workspace_id": result["workspace_id"],
+            "subscription_plan": result["subscription_plan"],
+            "subscription_status": result["subscription_status"],
+        }
+    except ProfileError as e:
+        logger.error("Profile service error for user %s: %s", current_user.id, e)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": e.error_type, "message": str(e), "context": e.context},
+        ) from e
+    except Exception as e:
+        logger.error(
+            "Unexpected error ensuring profile for user %s: %s", current_user.id, e
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error while ensuring profile",
+        ) from e
+
+
+@router.get("/verify-profile")
+async def verify_profile(current_user: User = Depends(get_current_user)):
+    """Return profile/workspace/payment readiness so the frontend can gate access."""
+    try:
+        logger.debug("Verifying profile for user %s", current_user.id)
+        result = profile_service.verify_profile(current_user)
+
+        # Log verification outcome for monitoring
+        if not result.get("profile_exists"):
+            logger.warning(
+                "Profile verification failed: profile not found for user %s",
+                current_user.id,
+            )
+        elif not result.get("workspace_exists"):
+            logger.warning(
+                "Profile verification failed: workspace not found for user %s",
+                current_user.id,
+            )
+        elif result.get("needs_payment"):
+            logger.info(
+                "Profile verification: payment required for user %s, status %s",
+                current_user.id,
+                result.get("subscription_status"),
+            )
+        else:
+            logger.info("Profile verification successful for user %s", current_user.id)
+
+        return result
+    except ProfileError as e:
+        logger.error("Profile verification error for user %s: %s", current_user.id, e)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": e.error_type, "message": str(e), "context": e.context},
+        ) from e
+    except Exception as e:
+        logger.error(
+            "Unexpected error verifying profile for user %s: %s", current_user.id, e
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error while verifying profile",
+        ) from e
 
 
 @router.get("/me/usage")
@@ -189,20 +269,41 @@ async def switch_workspace(
     """
     supabase = get_supabase_client()
 
-    # Validate user owns the workspace
+    # Validate user owns the workspace using owner_id only
     workspace_result = (
         supabase.table("workspaces")
         .select("*")
         .eq("id", workspace_id)
-        .eq("user_id", current_user.id)
+        .eq("owner_id", current_user.id)
         .single()
         .execute()
     )
 
     if not workspace_result.data:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Workspace not found or access denied",
+        # Also check membership
+        membership_check = (
+            supabase.table("workspace_members")
+            .select("workspace_id")
+            .eq("workspace_id", workspace_id)
+            .eq("user_id", current_user.id)
+            .eq("is_active", True)
+            .single()
+            .execute()
+        )
+
+        if not membership_check.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Workspace not found or access denied",
+            )
+
+        # Get workspace details for member
+        workspace_result = (
+            supabase.table("workspaces")
+            .select("*")
+            .eq("id", workspace_id)
+            .single()
+            .execute()
         )
 
     workspace = workspace_result.data
@@ -221,15 +322,30 @@ async def list_user_workspaces(current_user: User = Depends(get_current_user)):
     """
     supabase = get_supabase_client()
 
-    result = (
+    owned = (
         supabase.table("workspaces")
         .select("*")
-        .eq("user_id", current_user.id)
-        .order("created_at", desc=True)
+        .eq("owner_id", current_user.id)
         .execute()
     )
+    workspace_map = {ws["id"]: ws for ws in (owned.data or [])}
 
-    return {"workspaces": result.data or [], "total": len(result.data or [])}
+    memberships = (
+        supabase.table("workspace_members")
+        .select("workspace_id")
+        .eq("user_id", current_user.id)
+        .execute()
+    )
+    member_ids = [entry["workspace_id"] for entry in memberships.data or []]
+    if member_ids:
+        member_records = (
+            supabase.table("workspaces").select("*").in_("id", member_ids).execute()
+        )
+        for record in member_records.data or []:
+            workspace_map.setdefault(record["id"], record)
+
+    workspaces = list(workspace_map.values())
+    return {"workspaces": workspaces, "total": len(workspaces)}
 
 
 @router.delete("/me")

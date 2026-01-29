@@ -10,12 +10,12 @@ import time
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from backend.agents.dispatcher import AgentDispatcher
-from backend.agents.llm import get_llm
-from backend.core.migrations import run_migrations
-from backend.core.redis import get_redis_client
-from backend.core.supabase_mgr import get_supabase_client
-from backend.memory.controller import SimpleMemoryController as MemoryController
+from ..agents.dispatcher import AgentDispatcher
+from ..agents.llm import get_llm
+from core.migrations import run_migrations
+from core.redis import get_redis_client
+from core.supabase_mgr import get_supabase_client
+from memory.controller import SimpleMemoryController as MemoryController
 from supabase import create_client
 
 logger = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ async def verify_redis_connection() -> bool:
 async def initialize_agent_dispatcher() -> bool:
     """Initialize the agent dispatcher system."""
     try:
-        from backend.agents.dispatcher import AgentDispatcher
+        from ..agents.dispatcher import AgentDispatcher
 
         # Create dispatcher instance
         dispatcher = AgentDispatcher()
@@ -150,7 +150,7 @@ async def warm_up_embedding_models() -> bool:
 async def initialize_tool_registry() -> bool:
     """Initialize the tool registry."""
     try:
-        from backend.agents.tools import ToolRegistry
+        from ..agents.tools import ToolRegistry
 
         registry = ToolRegistry()
         # Registry is auto-initialized on import
@@ -164,7 +164,7 @@ async def initialize_tool_registry() -> bool:
 async def compile_langgraph_workflows() -> bool:
     """Compile LangGraph workflows for better performance."""
     try:
-        from backend.agents.routing.pipeline import RoutingPipeline
+        from ..agents.routing.pipeline import RoutingPipeline
 
         pipeline = RoutingPipeline()
         # Pipeline is auto-compiled on first use
@@ -178,7 +178,7 @@ async def compile_langgraph_workflows() -> bool:
 async def initialize_memory_controller() -> bool:
     """Initialize memory controller."""
     try:
-        from backend.memory import SimpleMemoryController as MemoryController
+        from memory import SimpleMemoryController as MemoryController
 
         controller = MemoryController()
         return controller is not None

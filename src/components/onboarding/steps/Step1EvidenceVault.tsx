@@ -13,10 +13,11 @@ import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButto
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { OnboardingStepLayout } from "../OnboardingStepLayout";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabaseClient";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    PHASE 01: FOUNDATION — Step 1: Evidence Vault
-   
+
    "Quiet Luxury: Decisive, Calm, Expensive."
    Updated for compact layout and auto-recognition.
    ══════════════════════════════════════════════════════════════════════════════ */
@@ -44,6 +45,12 @@ const RECOMMENDED_ITEMS = [
     { id: "testimonials", label: "Proofs & Case Studies", icon: ShieldCheck, required: false, description: "Social proof and results." },
     { id: "competitors", label: "Competitor Intelligence", icon: Database, required: false, description: "Pricing or feature maps." },
 ];
+
+const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export default function Step1EvidenceVault() {
     const { session, updateStepData, updateStepStatus, getStepById } = useOnboardingStore();
@@ -73,7 +80,7 @@ export default function Step1EvidenceVault() {
         const hasEvidence = evidence.length > 0;
         // Always set status based on presence. If present -> complete.
         // If not -> in-progress (so they can still see it, but sidebar might show incomplete)
-        // Ideally, we want to allow them to "Continue" even if "in-progress" if they really want to, 
+        // Ideally, we want to allow them to "Continue" even if "in-progress" if they really want to,
         // but OnboardingShell blocks unless complete. So we mark complete if > 0.
         if (hasEvidence) {
             updateStepStatus(1, "complete");
@@ -92,9 +99,10 @@ export default function Step1EvidenceVault() {
 
         try {
             // Call the backend classification API
+            const authHeaders = await getAuthHeaders();
             const response = await fetch('/api/onboarding/classify', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({
                     session_id: session?.sessionId || 'demo',
                     evidence_data: {

@@ -12,12 +12,12 @@ export const runtime = 'edge';
 
 export default function ProfileSettingsPage() {
     const { user } = useAuth();
-    
+
     // Extract user info
-    const displayName = user ? user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1) : "User";
+    const displayName = user?.email ? user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1) : "User";
     const email = user?.email || "user@example.com";
     const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    
+
     return (
         <div className="space-y-8">
             <div>

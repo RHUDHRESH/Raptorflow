@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..infrastructure.cloud_monitoring import get_cloud_monitoring
-from ..infrastructure.logging import get_cloud_logging
-from .handler import WebhookHandler, get_webhook_handler
+from infrastructure.cloud_monitoring import get_cloud_monitoring
+from infrastructure.logging import get_cloud_logging
+from handler import WebhookHandler, get_webhook_handler
 from .models import WebhookEvent, WebhookResponse
 
 logger = logging.getLogger(__name__)
@@ -209,7 +209,7 @@ class StripeWebhookHandler:
             )
 
             # Update payment status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -257,7 +257,7 @@ class StripeWebhookHandler:
             )
 
             # Update payment status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -292,7 +292,7 @@ class StripeWebhookHandler:
             payment_event = self._parse_payment_event(event.data)
 
             # Update payment status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -318,7 +318,7 @@ class StripeWebhookHandler:
             payment_event = self._parse_payment_event(event.data)
 
             # Update payment status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -347,7 +347,7 @@ class StripeWebhookHandler:
             charge_data = event.data.get("object", {})
 
             # Update charge status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -371,7 +371,7 @@ class StripeWebhookHandler:
             charge_data = event.data.get("object", {})
 
             # Update charge status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -397,7 +397,7 @@ class StripeWebhookHandler:
             dispute_data = event.data.get("object", {})
 
             # Create dispute record
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -422,7 +422,7 @@ class StripeWebhookHandler:
             subscription_event = self._parse_subscription_event(event.data)
 
             # Create subscription in local system
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -455,7 +455,7 @@ class StripeWebhookHandler:
             subscription_event = self._parse_subscription_event(event.data)
 
             # Update subscription in local system
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -477,7 +477,7 @@ class StripeWebhookHandler:
             subscription_event = self._parse_subscription_event(event.data)
 
             # Delete subscription from local system
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -531,7 +531,7 @@ class StripeWebhookHandler:
             invoice_event = self._parse_invoice_event(event.data)
 
             # Create invoice in local system
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -553,7 +553,7 @@ class StripeWebhookHandler:
             invoice_event = self._parse_invoice_event(event.data)
 
             # Update invoice status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -577,7 +577,7 @@ class StripeWebhookHandler:
             invoice_event = self._parse_invoice_event(event.data)
 
             # Update invoice payment status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -613,7 +613,7 @@ class StripeWebhookHandler:
             invoice_event = self._parse_invoice_event(event.data)
 
             # Update invoice payment status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -640,7 +640,7 @@ class StripeWebhookHandler:
             invoice_event = self._parse_invoice_event(event.data)
 
             # Update invoice status
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -664,7 +664,7 @@ class StripeWebhookHandler:
             customer_data = event.data.get("object", {})
 
             # Create customer in local system
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -686,7 +686,7 @@ class StripeWebhookHandler:
             customer_data = event.data.get("object", {})
 
             # Update customer in local system
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -708,7 +708,7 @@ class StripeWebhookHandler:
             customer_data = event.data.get("object", {})
 
             # Delete customer from local system
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -732,7 +732,7 @@ class StripeWebhookHandler:
             payment_method_data = event.data.get("object", {})
 
             # Update customer payment methods
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -756,7 +756,7 @@ class StripeWebhookHandler:
             payment_method_data = event.data.get("object", {})
 
             # Remove payment method from customer
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -782,7 +782,7 @@ class StripeWebhookHandler:
             payment_method_data = event.data.get("object", {})
 
             # Update payment method
-            from ..billing.stripe_service import get_stripe_service
+            from billing.stripe_service import get_stripe_service
 
             stripe_service = get_stripe_service()
 
@@ -860,7 +860,7 @@ class StripeWebhookHandler:
 
             if workspace_id:
                 # Update workspace usage
-                from ..billing.billing_service import get_billing_service
+                from billing.billing_service import get_billing_service
 
                 billing_service = get_billing_service()
 
@@ -885,7 +885,7 @@ class StripeWebhookHandler:
 
             if workspace_id:
                 # Handle payment failure
-                from ..billing.billing_service import get_billing_service
+                from billing.billing_service import get_billing_service
 
                 billing_service = get_billing_service()
 
@@ -894,7 +894,7 @@ class StripeWebhookHandler:
                 )
 
                 # Send failure notification
-                from ..notifications.notification_service import (
+                from notifications.notification_service import (
                     get_notification_service,
                 )
 
@@ -915,7 +915,7 @@ class StripeWebhookHandler:
             workspace_id = payment_event.metadata.get("workspace_id")
 
             if workspace_id:
-                from ..notifications.notification_service import (
+                from notifications.notification_service import (
                     get_notification_service,
                 )
 
@@ -931,7 +931,7 @@ class StripeWebhookHandler:
     async def _send_dispute_alert(self, dispute_data: Dict[str, Any]):
         """Send dispute alert to administrators."""
         try:
-            from ..notifications.notification_service import get_notification_service
+            from notifications.notification_service import get_notification_service
 
             notification_service = get_notification_service()
 
@@ -945,7 +945,7 @@ class StripeWebhookHandler:
     ):
         """Send subscription welcome notification."""
         try:
-            from ..notifications.notification_service import get_notification_service
+            from notifications.notification_service import get_notification_service
 
             notification_service = get_notification_service()
 
@@ -961,7 +961,7 @@ class StripeWebhookHandler:
     ):
         """Send subscription cancellation notification."""
         try:
-            from ..notifications.notification_service import get_notification_service
+            from notifications.notification_service import get_notification_service
 
             notification_service = get_notification_service()
 
@@ -979,7 +979,7 @@ class StripeWebhookHandler:
     ):
         """Send trial ending notification."""
         try:
-            from ..notifications.notification_service import get_notification_service
+            from notifications.notification_service import get_notification_service
 
             notification_service = get_notification_service()
 
@@ -995,7 +995,7 @@ class StripeWebhookHandler:
     ):
         """Send invoice payment confirmation."""
         try:
-            from ..notifications.notification_service import get_notification_service
+            from notifications.notification_service import get_notification_service
 
             notification_service = get_notification_service()
 
@@ -1014,7 +1014,7 @@ class StripeWebhookHandler:
     ):
         """Send invoice payment failure notification."""
         try:
-            from ..notifications.notification_service import get_notification_service
+            from notifications.notification_service import get_notification_service
 
             notification_service = get_notification_service()
 

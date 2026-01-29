@@ -21,6 +21,7 @@ interface BlueprintProgressProps {
     variant?: "bar" | "gauge" | "steps";
     steps?: number;
     className?: string;
+    indicatorClassName?: string;
 }
 
 export function BlueprintProgress({
@@ -33,6 +34,7 @@ export function BlueprintProgress({
     variant = "bar",
     steps,
     className,
+    indicatorClassName,
 }: BlueprintProgressProps) {
     const percentage = Math.min(100, Math.max(0, (value / max) * 100));
 
@@ -174,7 +176,7 @@ export function BlueprintProgress({
                 >
                     {/* Progress fill */}
                     <div
-                        className="h-full bg-accent-blue transition-all duration-300"
+                        className={cn("h-full bg-accent-blue transition-all duration-300", indicatorClassName)}
                         style={{ width: `${percentage}%` }}
                     />
                 </div>

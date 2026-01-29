@@ -6,9 +6,9 @@ import logging
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-from .hlk import HLKRouter
-from .intent import IntentRouter
-from .semantic import SemanticRouter
+from hlk import HLKRouter
+from intent import IntentRouter
+from semantic import SemanticRouter
 
 logger = logging.getLogger(__name__)
 

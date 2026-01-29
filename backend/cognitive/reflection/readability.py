@@ -9,7 +9,7 @@ import math
 import re
 from typing import Dict, List, Optional
 
-from .models import ReadabilityResult
+from ..models import ReadabilityResult
 
 logger = logging.getLogger(__name__)
 

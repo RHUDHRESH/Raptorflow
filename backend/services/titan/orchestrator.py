@@ -6,13 +6,13 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
-from backend.core.supabase_mgr import get_supabase_client
-from backend.llm import LLMManager
-from backend.services.search.orchestrator import SOTASearchOrchestrator
-from backend.services.storage import get_enhanced_storage_service
-from backend.services.titan.multiplexer import SearchMultiplexer, SemanticRanker
-from backend.services.titan.scraper import IntelligentMarkdown, PlaywrightStealthPool
-from backend.tools.web_scraper import ContentType, ScrapingMethod, WebScraperTool
+from ..core.supabase_mgr import get_supabase_client
+from ..llm import LLMManager
+from ..services.search.orchestrator import SOTASearchOrchestrator
+from ..services.storage import get_enhanced_storage_service
+from ..services.titan.multiplexer import SearchMultiplexer, SemanticRanker
+from ..services.titan.scraper import IntelligentMarkdown, PlaywrightStealthPool
+from tools.web_scraper import ContentType, ScrapingMethod, WebScraperTool
 
 logger = logging.getLogger("raptorflow.services.titan.orchestrator")
 
@@ -238,7 +238,7 @@ class TitanOrchestrator:
             json_content = json.dumps(result, indent=2).encode("utf-8")
 
             # Use enhanced storage service (lazy getter)
-            from backend.services.storage import get_enhanced_storage_service
+            from services.storage import get_enhanced_storage_service
 
             upload_res = await get_enhanced_storage_service().upload_file(
                 file_content=json_content,

@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel
 
-from .base import RaptorflowTool, ToolError, ToolResult
+from ..base import RaptorflowTool, ToolError, ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -237,7 +237,7 @@ class DatabaseTool(RaptorflowTool):
         try:
             # Try new database system first for optimal performance
             try:
-                from backend.core.database import get_database_service
+                from core.database import get_database_service
 
                 db_service = await get_database_service()
                 if db_service:
@@ -252,7 +252,7 @@ class DatabaseTool(RaptorflowTool):
 
             # Try legacy connection pooling as fallback
             try:
-                from backend.core.connections import get_db_pool
+                from core.connections import get_db_pool
 
                 db_pool = await get_db_pool()
                 if db_pool._initialized:

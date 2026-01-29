@@ -25,20 +25,27 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 import structlog
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.core.batch_processor import (
+from ..core.batch_processor import (
     get_batch_processor,
     get_request_deduplicator,
     InferenceRequest,
     RequestStatus,
 )
-from backend.core.inference_cache import get_inference_cache
-from backend.core.inference_optimizer import get_cost_optimizer, OptimizationStrategy
-from backend.core.inference_queue import get_queue_manager, QueuePriority
-from backend.core.streaming_inference import get_streaming_manager, StreamingInferenceService
+from ..core.inference_cache import get_inference_cache
+from ..core.inference_optimizer import get_cost_optimizer, OptimizationStrategy
+from ..core.inference_queue import get_queue_manager, QueuePriority
+from ..core.streaming_inference import get_streaming_manager, StreamingInferenceService
 from ..llm import LLMManager, LLMRequest, LLMResponse
 
 logger = structlog.get_logger(__name__)
@@ -50,105 +57,131 @@ router = APIRouter(prefix="/ai-inference", tags=["AI Inference"])
 # Request/Response Models
 class InferenceRequestModel(BaseModel):
     """Single inference request model."""
-    
+
     prompt: str = Field(..., description="The prompt to process")
     model_name: str = Field(default="gpt-3.5-turbo", description="Model to use")
-    temperature: float = Field(default=0.7, ge=0.0, le=2.0, description="Temperature for sampling")
-    max_tokens: Optional[int] = Field(default=None, ge=1, description="Maximum tokens to generate")
+    temperature: float = Field(
+        default=0.7, ge=0.0, le=2.0, description="Temperature for sampling"
+    )
+    max_tokens: Optional[int] = Field(
+        default=None, ge=1, description="Maximum tokens to generate"
+    )
     user_id: Optional[str] = Field(default=None, description="User ID for tracking")
-    workspace_id: Optional[str] = Field(default=None, description="Workspace ID for tracking")
+    workspace_id: Optional[str] = Field(
+        default=None, description="Workspace ID for tracking"
+    )
     priority: int = Field(default=5, ge=1, le=10, description="Request priority (1-10)")
     stream: bool = Field(default=False, description="Enable streaming response")
-    timeout_seconds: int = Field(default=300, ge=1, description="Request timeout in seconds")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
-    
+    timeout_seconds: int = Field(
+        default=300, ge=1, description="Request timeout in seconds"
+    )
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Additional metadata"
+    )
+
     # Optimization options
     use_cache: bool = Field(default=True, description="Use cached responses")
     cost_optimize: bool = Field(default=True, description="Enable cost optimization")
     strategy: str = Field(default="balanced", description="Optimization strategy")
-    budget_limit: Optional[float] = Field(default=None, description="Maximum cost limit")
+    budget_limit: Optional[float] = Field(
+        default=None, description="Maximum cost limit"
+    )
 
 
 class BatchInferenceRequestModel(BaseModel):
     """Batch inference request model."""
-    
-    requests: List[InferenceRequestModel] = Field(..., description="List of inference requests")
+
+    requests: List[InferenceRequestModel] = Field(
+        ..., description="List of inference requests"
+    )
     batch_id: Optional[str] = Field(default=None, description="Custom batch ID")
-    max_batch_size: int = Field(default=10, ge=1, le=50, description="Maximum batch size")
-    timeout_seconds: int = Field(default=600, ge=1, description="Batch timeout in seconds")
-    
+    max_batch_size: int = Field(
+        default=10, ge=1, le=50, description="Maximum batch size"
+    )
+    timeout_seconds: int = Field(
+        default=600, ge=1, description="Batch timeout in seconds"
+    )
+
     # Batch processing options
     deduplicate: bool = Field(default=True, description="Deduplicate similar requests")
-    parallel_processing: bool = Field(default=True, description="Process requests in parallel")
+    parallel_processing: bool = Field(
+        default=True, description="Process requests in parallel"
+    )
     fail_fast: bool = Field(default=False, description="Stop on first error")
 
 
 class InferenceResponseModel(BaseModel):
     """Inference response model."""
-    
+
     request_id: str = Field(..., description="Unique request identifier")
     response: str = Field(..., description="Generated response")
     model_used: str = Field(..., description="Model that was used")
     provider_used: str = Field(..., description="Provider that was used")
-    
+
     # Performance metrics
     processing_time: float = Field(..., description="Processing time in seconds")
     cache_hit: bool = Field(..., description="Whether response was from cache")
-    
+
     # Cost information
     input_tokens: int = Field(..., description="Number of input tokens")
     output_tokens: int = Field(..., description="Number of output tokens")
     estimated_cost: float = Field(..., description="Estimated cost in USD")
     actual_cost: float = Field(..., description="Actual cost in USD")
-    
+
     # Metadata
     timestamp: datetime = Field(..., description="Response timestamp")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Additional metadata"
+    )
 
 
 class BatchInferenceResponseModel(BaseModel):
     """Batch inference response model."""
-    
+
     batch_id: str = Field(..., description="Batch identifier")
-    responses: List[InferenceResponseModel] = Field(..., description="List of responses")
-    
+    responses: List[InferenceResponseModel] = Field(
+        ..., description="List of responses"
+    )
+
     # Batch metrics
     total_requests: int = Field(..., description="Total requests in batch")
     successful_requests: int = Field(..., description="Successful requests")
     failed_requests: int = Field(..., description="Failed requests")
     duplicate_requests: int = Field(..., description="Duplicate requests removed")
-    
+
     # Performance metrics
     total_processing_time: float = Field(..., description="Total processing time")
-    avg_processing_time: float = Field(..., description="Average processing time per request")
-    
+    avg_processing_time: float = Field(
+        ..., description="Average processing time per request"
+    )
+
     # Cost information
     total_estimated_cost: float = Field(..., description="Total estimated cost")
     total_actual_cost: float = Field(..., description="Total actual cost")
-    
+
     # Cache statistics
     cache_hits: int = Field(..., description="Number of cache hits")
     cache_hit_rate: float = Field(..., description="Cache hit rate percentage")
-    
+
     timestamp: datetime = Field(..., description="Response timestamp")
 
 
 class StatusResponseModel(BaseModel):
     """Status response model."""
-    
+
     status: str = Field(..., description="System status")
     timestamp: datetime = Field(..., description="Status timestamp")
-    
+
     # Queue statistics
     pending_requests: int = Field(..., description="Number of pending requests")
     processing_requests: int = Field(..., description="Number of processing requests")
-    
+
     # Cache statistics
     cache_stats: Dict[str, Any] = Field(..., description="Cache statistics")
-    
+
     # Cost statistics
     cost_stats: Dict[str, Any] = Field(..., description="Cost statistics")
-    
+
     # Worker statistics
     worker_stats: Dict[str, Any] = Field(..., description="Worker statistics")
 
@@ -162,7 +195,7 @@ async def get_inference_components():
     queue_manager = await get_queue_manager()
     cost_optimizer = await get_cost_optimizer()
     streaming_manager = await get_streaming_manager()
-    
+
     return {
         "cache": cache,
         "deduplicator": deduplicator,
@@ -178,11 +211,11 @@ async def get_inference_components():
 async def single_inference(
     request: InferenceRequestModel,
     background_tasks: BackgroundTasks,
-    components: Dict[str, Any] = Depends(get_inference_components)
+    components: Dict[str, Any] = Depends(get_inference_components),
 ):
     """
     Process single inference request with intelligent optimization.
-    
+
     This endpoint provides:
     - Intelligent caching to reduce costs
     - Request deduplication to avoid duplicate processing
@@ -191,11 +224,11 @@ async def single_inference(
     - Automatic error handling and retries
     """
     start_time = time.time()
-    
+
     try:
         # Generate request ID
         request_id = str(uuid.uuid4())
-        
+
         # Create inference request
         inference_req = InferenceRequest(
             id=request_id,
@@ -209,7 +242,7 @@ async def single_inference(
             timeout_seconds=request.timeout_seconds,
             metadata=request.metadata,
         )
-        
+
         # Check cache first
         cache_key = components["cache"]._generate_cache_key(
             prompt=request.prompt,
@@ -217,15 +250,15 @@ async def single_inference(
             temperature=request.temperature,
             max_tokens=request.max_tokens,
         )
-        
+
         cache_entry = None
         if request.use_cache:
             cache_entry = await components["cache"].get(cache_key)
-        
+
         if cache_entry:
             # Cache hit
             logger.info(f"Cache hit for request {request_id}")
-            
+
             # Update usage tracking
             await components["cost_optimizer"].track_usage(
                 input_tokens=cache_entry.token_count // 2,  # Estimate
@@ -236,7 +269,7 @@ async def single_inference(
                 provider_used="cache",
                 request_id=request_id,
             )
-            
+
             return InferenceResponseModel(
                 request_id=request_id,
                 response=cache_entry.value,
@@ -251,23 +284,29 @@ async def single_inference(
                 timestamp=datetime.utcnow(),
                 metadata={"cache_hit": True, **cache_entry.metadata},
             )
-        
+
         # Check for duplicates
-        is_unique, duplicate = await components["deduplicator"].add_request(inference_req)
+        is_unique, duplicate = await components["deduplicator"].add_request(
+            inference_req
+        )
         if not is_unique and duplicate:
             # Duplicate request found
             logger.info(f"Duplicate request found for {request_id}: {duplicate.id}")
-            
+
             # Wait for original request to complete
-            max_wait = min(request.timeout_seconds, 60)  # Max 60 seconds for duplicate wait
+            max_wait = min(
+                request.timeout_seconds, 60
+            )  # Max 60 seconds for duplicate wait
             wait_start = time.time()
-            
+
             while time.time() - wait_start < max_wait:
-                duplicate_req = await components["deduplicator"].get_request(duplicate.id)
+                duplicate_req = await components["deduplicator"].get_request(
+                    duplicate.id
+                )
                 if duplicate_req and duplicate_req.status == RequestStatus.COMPLETED:
                     break
                 await asyncio.sleep(0.5)
-            
+
             if duplicate_req and duplicate_req.response:
                 return InferenceResponseModel(
                     request_id=request_id,
@@ -283,16 +322,17 @@ async def single_inference(
                     timestamp=datetime.utcnow(),
                     metadata={"duplicate_request": duplicate.id},
                 )
-        
+
         # Estimate tokens and cost
         input_tokens = await components["cost_optimizer"].estimate_tokens(
-            prompt=request.prompt,
-            model_name=request.model_name
+            prompt=request.prompt, model_name=request.model_name
         )
-        
+
         # Select optimal provider if cost optimization is enabled
         if request.cost_optimize:
-            provider, model, cost = await components["cost_optimizer"].select_optimal_provider(
+            provider, model, cost = await components[
+                "cost_optimizer"
+            ].select_optimal_provider(
                 input_tokens=input_tokens,
                 output_tokens=request.max_tokens or 1000,
                 requirements={"min_quality": 0.8},
@@ -307,12 +347,12 @@ async def single_inference(
                 model_name=request.model_name,
                 provider=provider,
             )
-        
+
         # Process the request
         try:
             # Mark as processing
             await components["deduplicator"].mark_processing(request_id)
-            
+
             # Create LLM request
             llm_request = LLMRequest(
                 prompt=request.prompt,
@@ -320,17 +360,16 @@ async def single_inference(
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,
             )
-            
+
             # Process with LLM manager
             llm_manager = LLMManager()
             llm_response = await llm_manager.process_request(llm_request)
-            
+
             processing_time = time.time() - start_time
-            
+
             # Calculate actual tokens and cost
             output_tokens = await components["cost_optimizer"].estimate_tokens(
-                prompt=llm_response.content,
-                model_name=inference_req.model_name
+                prompt=llm_response.content, model_name=inference_req.model_name
             )
             actual_cost = await components["cost_optimizer"].estimate_cost(
                 input_tokens=input_tokens,
@@ -338,7 +377,7 @@ async def single_inference(
                 model_name=inference_req.model_name,
                 provider=provider,
             )
-            
+
             # Cache the response
             if request.use_cache:
                 await components["cache"].set(
@@ -350,12 +389,12 @@ async def single_inference(
                     ttl_seconds=3600,  # 1 hour
                     prompt=request.prompt,
                 )
-            
+
             # Mark as completed
             await components["deduplicator"].mark_completed(
                 request_id, llm_response.content
             )
-            
+
             # Track usage
             await components["cost_optimizer"].track_usage(
                 input_tokens=input_tokens,
@@ -366,7 +405,7 @@ async def single_inference(
                 provider_used=provider,
                 request_id=request_id,
             )
-            
+
             return InferenceResponseModel(
                 request_id=request_id,
                 response=llm_response.content,
@@ -384,36 +423,30 @@ async def single_inference(
                     "optimization_enabled": request.cost_optimize,
                 },
             )
-            
+
         except Exception as e:
             # Mark as failed
-            await components["deduplicator"].mark_completed(
-                request_id, None, str(e)
-            )
+            await components["deduplicator"].mark_completed(request_id, None, str(e))
             raise HTTPException(
-                status_code=500,
-                detail=f"Inference processing failed: {str(e)}"
+                status_code=500, detail=f"Inference processing failed: {str(e)}"
             )
-    
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Unexpected error in single inference: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Internal server error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @router.post("/batch-inference", response_model=BatchInferenceResponseModel)
 async def batch_inference(
     batch_request: BatchInferenceRequestModel,
     background_tasks: BackgroundTasks,
-    components: Dict[str, Any] = Depends(get_inference_components)
+    components: Dict[str, Any] = Depends(get_inference_components),
 ):
     """
     Process batch inference requests with optimization.
-    
+
     This endpoint provides:
     - Intelligent batching and deduplication
     - Parallel processing for improved throughput
@@ -423,7 +456,7 @@ async def batch_inference(
     """
     start_time = time.time()
     batch_id = batch_request.batch_id or str(uuid.uuid4())
-    
+
     try:
         # Convert to inference requests
         inference_requests = []
@@ -441,37 +474,35 @@ async def batch_inference(
                 metadata=req.metadata,
             )
             inference_requests.append(inference_req)
-        
+
         # Add to batch processor
         successful_requests = []
         failed_requests = []
         duplicate_requests = []
         responses = []
-        
+
         for req in inference_requests:
             # Check for duplicates
             is_unique, duplicate = await components["deduplicator"].add_request(req)
             if not is_unique and duplicate:
                 duplicate_requests.append(req.id)
                 continue
-            
+
             # Add to batch processor
             added, request_id = await components["batch_processor"].add_request(req)
             if added:
                 successful_requests.append(req)
             else:
                 failed_requests.append(req)
-        
+
         # Process requests
         if batch_request.parallel_processing:
             # Process in parallel
             tasks = []
             for req in successful_requests:
-                task = _process_single_request(
-                    req, batch_request, components
-                )
+                task = _process_single_request(req, batch_request, components)
                 tasks.append(task)
-            
+
             results = await asyncio.gather(*tasks, return_exceptions=True)
         else:
             # Process sequentially
@@ -484,7 +515,7 @@ async def batch_inference(
                     results.append(result)
                 except Exception as e:
                     results.append(e)
-        
+
         # Process results
         for i, result in enumerate(results):
             if isinstance(result, Exception):
@@ -493,17 +524,17 @@ async def batch_inference(
                 failed_requests.append(successful_requests[i])
             else:
                 responses.append(result)
-        
+
         # Calculate statistics
         total_processing_time = time.time() - start_time
         avg_processing_time = total_processing_time / len(responses) if responses else 0
-        
+
         total_estimated_cost = sum(resp.estimated_cost for resp in responses)
         total_actual_cost = sum(resp.actual_cost for resp in responses)
-        
+
         cache_hits = sum(1 for resp in responses if resp.cache_hit)
         cache_hit_rate = (cache_hits / len(responses)) * 100 if responses else 0
-        
+
         return BatchInferenceResponseModel(
             batch_id=batch_id,
             responses=responses,
@@ -519,19 +550,16 @@ async def batch_inference(
             cache_hit_rate=cache_hit_rate,
             timestamp=datetime.utcnow(),
         )
-    
+
     except Exception as e:
         logger.error(f"Error in batch inference: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Batch inference failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Batch inference failed: {str(e)}")
 
 
 async def _process_single_request(
     request: InferenceRequest,
     batch_request: BatchInferenceRequestModel,
-    components: Dict[str, Any]
+    components: Dict[str, Any],
 ) -> InferenceResponseModel:
     """Process a single request within a batch."""
     # Convert to single request model
@@ -546,7 +574,7 @@ async def _process_single_request(
         timeout_seconds=min(request.timeout_seconds, batch_request.timeout_seconds),
         metadata=request.metadata,
     )
-    
+
     # Process as single request
     response = await single_inference(single_req, BackgroundTasks(), components)
     return response
@@ -556,11 +584,11 @@ async def _process_single_request(
 async def stream_inference(
     websocket: WebSocket,
     request_id: str,
-    components: Dict[str, Any] = Depends(get_inference_components)
+    components: Dict[str, Any] = Depends(get_inference_components),
 ):
     """
     Stream inference results for long-running tasks.
-    
+
     This endpoint provides:
     - Real-time progress updates
     - Chunked response delivery
@@ -570,10 +598,10 @@ async def stream_inference(
     try:
         # Accept WebSocket connection
         await websocket.accept()
-        
+
         # Create streaming service
         streaming_service = StreamingInferenceService(components["streaming_manager"])
-        
+
         # Create inference generator
         async def inference_generator():
             # This would be your actual inference logic
@@ -587,22 +615,22 @@ async def stream_inference(
                     }
                 }
                 await asyncio.sleep(1)
-            
+
             yield {
                 "data": "This is the final inference result",
-                "metadata": {"completed": True}
+                "metadata": {"completed": True},
             }
-        
+
         # Stream inference
         success = await streaming_service.stream_inference(
             request_id=request_id,
             websocket=websocket,
             inference_generator=inference_generator(),
         )
-        
+
         if not success:
             await websocket.close(code=1000, reason="Stream completed")
-    
+
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for request {request_id}")
     except Exception as e:
@@ -614,7 +642,7 @@ async def stream_inference(
 async def get_status(components: Dict[str, Any] = Depends(get_inference_components)):
     """
     Get system status and statistics.
-    
+
     This endpoint provides:
     - Current system status
     - Queue statistics
@@ -625,19 +653,19 @@ async def get_status(components: Dict[str, Any] = Depends(get_inference_componen
     try:
         # Get queue stats
         queue_stats = await components["queue_manager"].get_system_stats()
-        
+
         # Get cache stats
         cache_stats = await components["cache"].get_comprehensive_stats()
-        
+
         # Get cost stats
         cost_stats = await components["cost_optimizer"].get_cost_analysis(days=7)
-        
+
         # Get deduplicator stats
         deduplicator_stats = await components["deduplicator"].get_stats()
-        
+
         # Get batch processor stats
         batch_stats = await components["batch_processor"].get_stats()
-        
+
         # Calculate pending/processing requests
         pending_requests = sum(
             queue_stats["queue_stats"].get(q_id, {}).get("current_size", 0)
@@ -647,7 +675,7 @@ async def get_status(components: Dict[str, Any] = Depends(get_inference_componen
             queue_stats["queue_stats"].get(q_id, {}).get("processing_count", 0)
             for q_id in queue_stats["queue_stats"]
         )
-        
+
         return StatusResponseModel(
             status="healthy",
             timestamp=datetime.utcnow(),
@@ -658,25 +686,24 @@ async def get_status(components: Dict[str, Any] = Depends(get_inference_componen
             worker_stats={
                 "total_workers": queue_stats["manager_stats"]["total_workers"],
                 "active_workers": queue_stats["manager_stats"]["active_workers"],
-                "total_requests_processed": queue_stats["manager_stats"]["total_requests_processed"],
+                "total_requests_processed": queue_stats["manager_stats"][
+                    "total_requests_processed"
+                ],
                 "deduplicator": deduplicator_stats,
                 "batch_processor": batch_stats,
             },
         )
-    
+
     except Exception as e:
         logger.error(f"Error getting status: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get status: {str(e)}")
 
 
 @router.get("/providers")
 async def get_providers(components: Dict[str, Any] = Depends(get_inference_components)):
     """
     Get available providers and recommendations.
-    
+
     This endpoint provides:
     - List of available providers
     - Provider recommendations based on cost
@@ -685,32 +712,33 @@ async def get_providers(components: Dict[str, Any] = Depends(get_inference_compo
     """
     try:
         # Get provider recommendations
-        recommendations = await components["cost_optimizer"].get_provider_recommendations(
+        recommendations = await components[
+            "cost_optimizer"
+        ].get_provider_recommendations(
             input_tokens=1000,
             output_tokens=1000,
         )
-        
+
         return {
             "providers": recommendations,
             "timestamp": datetime.utcnow(),
         }
-    
+
     except Exception as e:
         logger.error(f"Error getting providers: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get providers: {str(e)}"
+            status_code=500, detail=f"Failed to get providers: {str(e)}"
         )
 
 
 @router.post("/clear-cache")
 async def clear_cache(
     level: str = "all",  # Options: l1, l2, l3, all
-    components: Dict[str, Any] = Depends(get_inference_components)
+    components: Dict[str, Any] = Depends(get_inference_components),
 ):
     """
     Clear cache at specified level.
-    
+
     This endpoint provides:
     - Cache clearing by level
     - Cache statistics before/after
@@ -727,32 +755,27 @@ async def clear_cache(
             success = await components["cache"].l3_cache.clear()
         else:
             raise HTTPException(
-                status_code=400,
-                detail="Invalid cache level. Options: l1, l2, l3, all"
+                status_code=400, detail="Invalid cache level. Options: l1, l2, l3, all"
             )
-        
+
         return {
             "success": success,
             "level": level,
             "timestamp": datetime.utcnow(),
         }
-    
+
     except Exception as e:
         logger.error(f"Error clearing cache: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to clear cache: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")
 
 
 @router.get("/analytics")
 async def get_analytics(
-    days: int = 7,
-    components: Dict[str, Any] = Depends(get_inference_components)
+    days: int = 7, components: Dict[str, Any] = Depends(get_inference_components)
 ):
     """
     Get comprehensive analytics and insights.
-    
+
     This endpoint provides:
     - Cost analysis over time
     - Performance metrics
@@ -763,13 +786,13 @@ async def get_analytics(
     try:
         # Get cost analysis
         cost_analysis = await components["cost_optimizer"].get_cost_analysis(days=days)
-        
+
         # Get cache stats
         cache_stats = await components["cache"].get_comprehensive_stats()
-        
+
         # Get queue stats
         queue_stats = await components["queue_manager"].get_system_stats()
-        
+
         return {
             "cost_analysis": cost_analysis,
             "cache_stats": cache_stats,
@@ -777,10 +800,9 @@ async def get_analytics(
             "period_days": days,
             "timestamp": datetime.utcnow(),
         }
-    
+
     except Exception as e:
         logger.error(f"Error getting analytics: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get analytics: {str(e)}"
+            status_code=500, detail=f"Failed to get analytics: {str(e)}"
         )

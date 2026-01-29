@@ -16,29 +16,33 @@ print(f"Python path: {sys.path[:3]}")
 
 try:
     print("\n=== Testing Imports ===")
-    from agents.base import BaseAgent
+    from ..base import BaseAgent
+
     print("✅ BaseAgent imported successfully")
-    
-    from agents.specialists.content_creator import ContentCreator
+
+    from ..agents.specialists.content_creator import ContentCreator
+
     print("✅ ContentCreator imported successfully")
-    
-    from agents.skills.registry import get_skills_registry
+
+    from ..agents.skills.registry import get_skills_registry
+
     print("✅ Skills registry imported successfully")
-    
+
     print("\n=== Testing Agent Creation ===")
     agent = ContentCreator()
     print(f"✅ Agent created: {agent.name}")
-    
+
     print("\n=== Testing Skills Registry ===")
     registry = get_skills_registry()
     skills = registry.list_skills()
     print(f"✅ Registry loaded with {len(skills)} skills")
-    
+
     print("\n=== SUCCESS: All Core Components Working ===")
-    
+
 except Exception as e:
     print(f"❌ ERROR: {e}")
     import traceback
+
     traceback.print_exc()
 
 print("\n=== Test Complete ===")

@@ -14,6 +14,8 @@ import { MoveIntelCenter } from "@/components/moves/MoveIntelCenter";
 import { MovesSkeleton } from "@/components/ui/DashboardSkeletons";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider"; // IMPORT AUTH
+import { BCMIndicator } from "@/components/bcm/BCMIndicator";
+import { BCMRebuildDialog } from "@/components/bcm/BCMRebuildDialog";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    MOVES PAGE — QUIET LUXURY REDESIGN
@@ -30,7 +32,7 @@ export default function MovesPage() {
   const [activeTab, setActiveTab] = useState<ViewTab>('agenda');
 
   // Auth Integration
-  const { user, profile } = useAuth();
+  const { user, profileStatus } = useAuth();
 
   const { moves, addMove, fetchMoves, isLoading } = useMovesStore();
 
@@ -75,10 +77,10 @@ export default function MovesPage() {
       icp: data.brief.icp || "General Audience",
       metrics: data.brief.metrics || [],
       campaignId: undefined,
-      workspaceId: profile?.workspace_id
+      workspaceId: profileStatus?.workspaceId || undefined
     };
 
-    await addMove(newMove, user.id, profile?.workspace_id);
+    await addMove(newMove, user.id, profileStatus?.workspaceId || undefined);
     setIsWizardOpen(false);
   };
 
@@ -104,7 +106,7 @@ export default function MovesPage() {
       <div className="border-b border-[var(--border)] bg-[var(--paper)]">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-start justify-between">
-            <div>
+            <div className="flex-1">
               <h1 className="font-serif text-3xl text-[var(--ink)]">
                 Strategic Moves
               </h1>
@@ -113,8 +115,15 @@ export default function MovesPage() {
               </p>
             </div>
 
-            {/* Action Bar */}
-            <div className="flex items-center gap-3">
+            {/* BCM Controls */}
+            <div className="flex items-center gap-4 ml-6">
+              <BCMIndicator workspaceId={profileStatus?.workspaceId || ""} />
+              <BCMRebuildDialog workspaceId={profileStatus?.workspaceId || ""} />
+            </div>
+          </div>
+
+          {/* Action Bar */}
+          <div className="flex items-center gap-3 mt-6">
               {/* Search - Only show in Gallery view */}
               {activeTab === 'gallery' && (
                 <div className="relative">
@@ -148,7 +157,6 @@ export default function MovesPage() {
                 <span>New Move</span>
               </button>
             </div>
-          </div>
 
           {/* Tab Navigation */}
           <div className="flex items-center gap-1 mt-6 border-b border-[var(--border)] -mb-px">

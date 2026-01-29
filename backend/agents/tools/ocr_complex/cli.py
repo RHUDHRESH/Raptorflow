@@ -9,7 +9,7 @@ import argparse
 import json
 from pathlib import Path
 
-from .ocr_complex import OCRComplex
+from ocr_complex import OCRComplex
 
 
 def process_file(args):

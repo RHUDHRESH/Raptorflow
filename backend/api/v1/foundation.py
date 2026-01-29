@@ -8,10 +8,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.core.auth import get_current_user, get_workspace_id
-from backend.core.models import User
-from backend.schemas import RICP, MessagingStrategy
-from backend.services.foundation import FoundationService
+from ..core.auth import get_current_user, get_workspace_id
+from ..core.models import User
+from schemas import RICP, MessagingStrategy
+from ..services.foundation import FoundationService
 
 router = APIRouter(prefix="/foundation", tags=["foundation"])
 

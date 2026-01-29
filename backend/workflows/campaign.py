@@ -7,10 +7,10 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from backend.agents.dispatcher import AgentDispatcher
-from backend.agents.state import AgentState
-from backend.cognitive import CognitiveEngine
-from backend.memory.controller import MemoryController
+from .agents.dispatcher import AgentDispatcher
+from .agents.state import AgentState
+from cognitive import CognitiveEngine
+from memory.controller import MemoryController
 from supabase import Client
 
 logger = logging.getLogger(__name__)
@@ -640,7 +640,7 @@ class CampaignWorkflow:
         """Execute a single move within campaign context."""
         try:
             # Use move workflow to execute move
-            from .move import MoveWorkflow
+            from move import MoveWorkflow
 
             move_workflow = MoveWorkflow(
                 self.db_client,

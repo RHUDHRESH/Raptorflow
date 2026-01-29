@@ -41,11 +41,11 @@ export async function POST(request: Request) {
     }
 
     // Get Supabase client with service role for admin operations
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     // Find user by email
     const { data: { users }, error: userError } = await supabase.auth.admin.listUsers();
-    
+
     if (userError) {
       console.error('Error listing users:', userError);
       return NextResponse.json(
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     }
 
     const user = users.find(u => u.email === tokenData.email);
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -65,22 +65,14 @@ export async function POST(request: Request) {
 
     // Production password update with proper error handling
     try {
-      // Method 1: Try admin.updateUserById
+      // Use admin.updateUserById for password reset
       const { error: updateError } = await supabase.auth.admin.updateUserById(
         user.id,
         { password: newPassword }
       );
 
       if (updateError) {
-        // Method 2: Try direct auth.updateUser with service role
-        const { error: altError } = await supabase.auth.updateUser({
-          id: user.id,
-          password: newPassword
-        });
-
-        if (altError) {
-          throw new Error(`Both update methods failed: ${updateError.message} | ${altError.message}`);
-        }
+        throw new Error(`Password update failed: ${updateError.message}`);
       }
 
       // Mark token as used
@@ -97,11 +89,11 @@ export async function POST(request: Request) {
 
     } catch (updateError) {
       console.error('Password update failed:', updateError);
-      
+
       // For development/testing - simulate success
       if (process.env.NODE_ENV === 'development') {
         await deleteToken(token);
-        
+
         return NextResponse.json({
           success: true,
           message: 'Password reset simulated in development mode',
@@ -115,7 +107,7 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json(
-        { 
+        {
           error: 'Failed to update password. Please contact support.',
           details: process.env.NODE_ENV === 'development' ? updateError : undefined
         },

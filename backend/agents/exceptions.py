@@ -44,6 +44,12 @@ class DatabaseError(RaptorflowError):
     pass
 
 
+class ExecutionError(RaptorflowError):
+    """Execution-related errors."""
+
+    pass
+
+
 class LLMError(RaptorflowError):
     """LLM-related errors."""
 
@@ -86,6 +92,12 @@ class AuthenticationError(RaptorflowError):
     pass
 
 
+class AuthorizationError(RaptorflowError):
+    """Authorization errors."""
+
+    pass
+
+
 class TimeoutError(RaptorflowError):
     """Operation timeout errors."""
 
@@ -98,14 +110,38 @@ class RateLimitError(RaptorflowError):
     pass
 
 
+class RegistryError(RaptorflowError):
+    """Agent registry errors."""
+
+    pass
+
+
 class MemoryError(RaptorflowError):
     """Memory-related errors."""
 
     pass
 
 
+class MetricsError(RaptorflowError):
+    """Metrics collection and reporting errors."""
+
+    pass
+
+
+class MonitoringError(RaptorflowError):
+    """Monitoring and health check errors."""
+
+    pass
+
+
 class NetworkError(RaptorflowError):
     """Network connectivity errors."""
+
+    pass
+
+
+class OrchestrationError(RaptorflowError):
+    """Orchestration and workflow errors."""
 
     pass
 

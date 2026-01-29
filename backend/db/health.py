@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from backend.core.supabase_mgr import get_supabase_client
+from .core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

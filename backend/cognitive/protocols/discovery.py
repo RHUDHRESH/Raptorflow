@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
-from .messages import AgentMessage, MessageFormat, MessageType
+from messages import AgentMessage, MessageFormat, MessageType
 
 
 class ServiceStatus(Enum):

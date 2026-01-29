@@ -16,27 +16,27 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from pydantic import BaseModel
 
 from .config_manager import config_manager
-from .di import container
-from .error_handling import ErrorHandler, with_error_handling
-from .health_monitor import health_monitor
-from .human_loop import ApprovalGate, ApprovalLevel, ApprovalStatus, HumanLoopModule
+from di import container
+from error_handling import ErrorHandler, with_error_handling
+from health_monitor import health_monitor
+from human_loop import ApprovalGate, ApprovalLevel, ApprovalStatus, HumanLoopModule
 
 # Import cognitive modules
-from .interfaces import (
+from interfaces import (
     IHumanLoopModule,
     IPerceptionModule,
     IPlanningModule,
     IReflectionModule,
 )
-from .metrics import LLMProvider, ProcessingPhase, metrics_collector
+from metrics import LLMProvider, ProcessingPhase, metrics_collector
 
 # Import actual module implementations
-from .perception import PerceivedInput, PerceptionModule
-from .planning import ExecutionPlan, PlanningModule
-from .rate_limiter import RateLimitExceeded, rate_limiter
-from .reflection import QualityScore, ReflectionModule, SelfCorrectionResult
-from .session_manager import SessionManager
-from .validation import validator
+from perception import PerceivedInput, PerceptionModule
+from planning import ExecutionPlan, PlanningModule
+from rate_limiter import RateLimitExceeded, rate_limiter
+from reflection import QualityScore, ReflectionModule, SelfCorrectionResult
+from session_manager import SessionManager
+from validation import validator
 
 
 class ProcessingPhase(str, Enum):

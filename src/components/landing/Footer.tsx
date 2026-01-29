@@ -28,7 +28,7 @@ export function Footer() {
                             <ul className="space-y-2 text-sm text-[var(--secondary)]">
                                 <li><Link href="#features" className="hover:text-[var(--ink)]">Features</Link></li>
                                 <li><Link href="#pricing" className="hover:text-[var(--ink)]">Pricing</Link></li>
-                                <li><Link href="/login" className="hover:text-[var(--ink)]">Log In</Link></li>
+                                <li><Link href="/signin" className="hover:text-[var(--ink)]">Log In</Link></li>
                             </ul>
                         </div>
                         <div className="space-y-3">
