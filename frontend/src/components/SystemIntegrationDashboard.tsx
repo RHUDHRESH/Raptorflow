@@ -11,6 +11,7 @@ import { useToolsStore } from '../stores/toolsStore';
 import { useAgentsStore } from '../stores/agentsStore';
 import { useAnalyticsStore } from '../stores/analyticsStore';
 import { getCurrentWorkspaceId, getCurrentUserId } from '../lib/auth-helpers';
+import BusinessContextForm from './BusinessContextForm';
 
 interface SystemStatus {
   name: string;
@@ -286,6 +287,8 @@ export default function SystemIntegrationDashboard() {
             </div>
           </div>
         )}
+
+        <BusinessContextForm />
 
         {/* Tools and Services Status */}
         {toolsStore.servicesStatus && (
