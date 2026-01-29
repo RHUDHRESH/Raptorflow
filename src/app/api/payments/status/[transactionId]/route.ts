@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/auth-server'
+import { createServerSupabaseClient, createServiceSupabaseClient, getProfileByAuthUserId, upsertProfileForAuthUser, updateProfileRecord } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
 
 // PhonePe 2026 API Configuration
@@ -22,6 +22,48 @@ export async function GET(
       return NextResponse.json(
         { error: 'Transaction ID is required' },
         { status: 400 }
+      )
+    }
+
+    const supabase = await createServerSupabaseClient()
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    let serviceClient
+    try {
+      serviceClient = await createServiceSupabaseClient()
+    } catch {
+      serviceClient = supabase
+    }
+
+    const { profile: existingProfile } = await getProfileByAuthUserId(serviceClient, authUser.id)
+    let profile = existingProfile
+
+    if (!profile) {
+      const created = await upsertProfileForAuthUser(serviceClient, authUser)
+      profile = created.profile
+    }
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      )
+    }
+
+    const { data: transaction } = await serviceClient
+      .from('payment_transactions')
+      .select('*')
+      .eq('transaction_id', transactionId)
+      .single()
+
+    if (!transaction || transaction.user_id !== profile.id) {
+      return NextResponse.json(
+        { error: 'Transaction not found' },
+        { status: 404 }
       )
     }
 
@@ -74,6 +116,59 @@ export async function GET(
 
     if (data.success) {
       const paymentData = data.data
+      const paymentState = paymentData.state
+
+      if (paymentState === 'COMPLETED') {
+        await serviceClient
+          .from('payment_transactions')
+          .update({
+            status: 'completed',
+            phonepe_response: data,
+            completed_at: new Date().toISOString()
+          })
+          .eq('transaction_id', transactionId)
+
+        const now = new Date()
+        const periodEnd = transaction.billing_cycle === 'yearly'
+          ? new Date(now.setFullYear(now.getFullYear() + 1))
+          : new Date(now.setMonth(now.getMonth() + 1))
+
+        await serviceClient
+          .from('user_subscriptions')
+          .upsert({
+            user_id: profile.id,
+            plan_id: transaction.plan_id,
+            billing_cycle: transaction.billing_cycle,
+            amount_paid: transaction.amount_paise,
+            status: 'active',
+            current_period_start: new Date().toISOString(),
+            current_period_end: periodEnd.toISOString(),
+            phonepe_order_id: transactionId,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          })
+
+        await updateProfileRecord(
+          serviceClient,
+          { authUserId: authUser.id, profileId: profile.id },
+          {
+            subscription_plan: transaction.plan_id,
+            subscription_status: 'active',
+            onboarding_status: 'pending',
+            updated_at: new Date().toISOString()
+          }
+        )
+      } else if (paymentState === 'FAILED') {
+        await serviceClient
+          .from('payment_transactions')
+          .update({
+            status: 'failed',
+            phonepe_response: data
+          })
+          .eq('transaction_id', transactionId)
+      }
+
       return NextResponse.json({
         success: true,
         status: paymentData.state, // COMPLETED, PENDING, FAILED

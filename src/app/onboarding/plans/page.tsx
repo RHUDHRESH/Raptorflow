@@ -11,41 +11,41 @@ import { clientAuth } from '@/lib/auth-service'
 // =============================================================================
 
 interface Plan {
+  id: string
+  slug: string
   name: string
-  amount: number
-  currency: string
-  interval: string
-  trial_days: number
-  display_amount: string
   description?: string
+  price_monthly_paise: number
+  price_yearly_paise: number
+  storage_limit_bytes?: number
   features?: string[]
   popular?: boolean
 }
 
 // Plan configurations with features
 const PLAN_CONFIGS = {
-  starter: {
-    description: "Perfect for individuals getting started",
+  ascent: {
+    description: "For founders just getting started with systematic marketing.",
     features: [
-      "100 GB storage",
-      "10 projects",
+      "5 GB storage",
+      "3 projects",
       "Email support"
     ]
   },
-  growth: {
-    description: "Ideal for growing teams and businesses",
+  glide: {
+    description: "For founders scaling their marketing engine.",
     features: [
-      "500 GB storage",
+      "25 GB storage",
       "Unlimited projects",
       "5 team members",
       "Priority support"
     ],
     popular: true
   },
-  enterprise: {
-    description: "For large organizations with advanced needs",
+  soar: {
+    description: "For teams running multi-channel campaigns.",
     features: [
-      "Unlimited storage",
+      "100 GB storage",
       "Unlimited projects",
       "Unlimited team members",
       "Dedicated support"
@@ -131,15 +131,19 @@ export default function ChoosePlan() {
 
   async function fetchPlans() {
     try {
-      const response = await fetch('/api/proxy/payments/v2/plans')
+      const response = await fetch('/api/plans')
       const data = await response.json()
 
-      if (data.success && data.plans) {
-        // Merge API plans with configuration
-        const mergedPlans = data.plans.map((plan: Plan) => ({
-          ...plan,
-          ...PLAN_CONFIGS[plan.name as keyof typeof PLAN_CONFIGS]
-        }))
+      if (data.plans) {
+        const mergedPlans = data.plans.map((plan: Plan) => {
+          const config = PLAN_CONFIGS[plan.slug as keyof typeof PLAN_CONFIGS]
+          return {
+            ...plan,
+            description: plan.description || config?.description,
+            features: plan.features?.length ? plan.features : config?.features,
+            popular: plan.popular ?? config?.popular
+          }
+        })
         setPlans(mergedPlans)
       } else {
         setError('Failed to load plans')
@@ -158,13 +162,12 @@ export default function ChoosePlan() {
     setError('')
 
     try {
-      const response = await fetch('/api/proxy/payments/v2/initiate', {
+      const response = await fetch('/api/onboarding/select-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          plan: selectedPlan,
-          redirect_url: `${window.location.origin}/onboarding/plans/callback`,
-          webhook_url: `${window.location.origin}/api/webhooks/phonepe`
+          planId: selectedPlan,
+          billingCycle: 'monthly'
         }),
       })
 
@@ -174,9 +177,8 @@ export default function ChoosePlan() {
         throw new Error(data.error || 'Failed to initiate payment')
       }
 
-      if (data.success && data.payment_url) {
-        // Redirect to PhonePe payment page
-        window.location.href = data.payment_url
+      if (data.success) {
+        router.push('/onboarding/payment')
       } else {
         throw new Error(data.error || 'Payment initiation failed')
       }
@@ -215,14 +217,14 @@ export default function ChoosePlan() {
     }
   }
 
-  function getPlanIcon(planName: string) {
+  function getPlanIcon(planSlug: string) {
     const iconClass = "w-7 h-7"
-    switch (planName) {
-      case 'starter':
+    switch (planSlug) {
+      case 'ascent':
         return <Zap className={iconClass} />
-      case 'growth':
+      case 'glide':
         return <Star className={iconClass} />
-      case 'enterprise':
+      case 'soar':
         return <Crown className={iconClass} />
       default:
         return <Zap className={iconClass} />
@@ -288,7 +290,7 @@ export default function ChoosePlan() {
           animate="visible"
         >
           {plans.map((plan, index) => {
-            const isSelected = selectedPlan === plan.name
+            const isSelected = selectedPlan === plan.slug
             const isPopular = plan.popular
 
             return (
@@ -296,7 +298,7 @@ export default function ChoosePlan() {
                 key={plan.name}
                 variants={cardVariants}
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                onClick={() => setSelectedPlan(plan.name)}
+                onClick={() => setSelectedPlan(plan.slug)}
                 className={`relative group cursor-pointer ${isPopular ? 'md:-mt-4 md:mb-4' : ''}`}
               >
                 {/* Popular badge */}
@@ -342,7 +344,7 @@ export default function ChoosePlan() {
                         ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
                         : 'bg-slate-800 text-slate-400 group-hover:text-indigo-400 group-hover:bg-indigo-500/10'
                       }`}>
-                      {getPlanIcon(plan.name)}
+                      {getPlanIcon(plan.slug)}
                     </div>
 
                     {/* Plan name and description */}
@@ -352,11 +354,11 @@ export default function ChoosePlan() {
                     {/* Price */}
                     <div className="mb-8">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold text-white">{plan.display_amount}</span>
+                        <span className="text-4xl font-bold text-white">{formatPrice(plan.price_monthly_paise)}</span>
                         <span className="text-slate-500">/month</span>
                       </div>
                       <p className="text-sm text-slate-500 mt-1">
-                        {plan.trial_days}-day free trial included
+                        {formatPrice(plan.price_yearly_paise)} billed yearly
                       </p>
                     </div>
 
