@@ -2,6 +2,16 @@ import { createServerSupabaseClient, createServiceSupabaseClient, getProfileByAu
 import { NextResponse } from 'next/server'
 import { sendPaymentConfirmationEmail } from '@/lib/email'
 
+// PhonePe 2026 API Configuration
+const PHONEPE_BASE_URL = process.env.PHONEPE_ENV === 'PRODUCTION'
+  ? 'https://api.phonepe.com/apis/pg'
+  : 'https://api-preprod.phonepe.com/apis/pg-sandbox'
+
+const PHONEPE_MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID!
+const PHONEPE_CLIENT_ID = process.env.PHONEPE_CLIENT_ID!
+const PHONEPE_CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET!
+const PHONEPE_CLIENT_VERSION = process.env.PHONEPE_CLIENT_VERSION || '1'
+
 export async function POST(request: Request) {
   try {
     const { transactionId } = await request.json()
@@ -37,12 +47,54 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check status with PhonePe via Backend SDK
-    const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${BACKEND_API_URL}/api/v1/payments/v2/status/${transactionId}`);
-    const data = await response.json();
+    // Get OAuth token for 2026 API
+    const tokenResponse = await fetch(`${PHONEPE_BASE_URL}/v1/oauth/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: PHONEPE_CLIENT_ID,
+        client_version: PHONEPE_CLIENT_VERSION,
+        client_secret: PHONEPE_CLIENT_SECRET,
+      }),
+    })
 
-    if (data.success && data.status === 'COMPLETED') {
+    if (!tokenResponse.ok) {
+      console.error('Failed to get PhonePe OAuth token:', await tokenResponse.text())
+      return NextResponse.json(
+        { error: 'Payment service authentication failed' },
+        { status: 500 }
+      )
+    }
+
+    const tokenData = await tokenResponse.json()
+    const accessToken = tokenData.access_token
+
+    // Check payment status using 2026 API
+    const response = await fetch(
+      `${PHONEPE_BASE_URL}/pg/v1/status/${PHONEPE_MERCHANT_ID}/${transactionId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'X-MERCHANT-ID': PHONEPE_MERCHANT_ID,
+        },
+      }
+    )
+
+    if (!response.ok) {
+      console.error('PhonePe status check failed:', await response.text())
+      return NextResponse.json(
+        { error: 'Failed to check payment status' },
+        { status: 500 }
+      )
+    }
+
+    const data = await response.json()
+
+    if (data.success && data.data?.state === 'COMPLETED') {
       // Update transaction
       await serviceClient
         .from('payment_transactions')
@@ -126,6 +178,16 @@ export async function POST(request: Request) {
       })
 
       return NextResponse.json({ success: true })
+    }
+
+    if (data.success && data.data?.state === 'FAILED') {
+      await serviceClient
+        .from('payment_transactions')
+        .update({
+          status: 'failed',
+          phonepe_response: data
+        })
+        .eq('transaction_id', transactionId)
     }
 
     return NextResponse.json({

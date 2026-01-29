@@ -87,13 +87,14 @@ export async function POST(request: Request) {
     }
 
     // Create subscription using the new unified schema function
+    const normalizedBillingCycle = billingCycle === 'annual' ? 'yearly' : billingCycle || 'monthly'
     const { data: subscription, error: subError } = await serviceClient
       .rpc('create_user_subscription', {
         p_user_id: user.id,
         p_plan_slug: planId,
-        p_billing_cycle: billingCycle || 'monthly',
+        p_billing_cycle: normalizedBillingCycle,
         p_phonepe_order_id: null, // Will be set after payment
-        p_amount_paid: billingCycle === 'annual' ? plan.price_annual : plan.price_monthly
+        p_amount_paid: normalizedBillingCycle === 'yearly' ? plan.price_annual : plan.price_monthly
       });
 
     if (subError) {
