@@ -10,7 +10,6 @@ import { useMovesStore } from "@/stores/movesStore";
 import { useCampaignStore } from "@/stores/campaignStore";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { BCMIndicator } from "@/components/bcm/BCMIndicator";
-import { useBcmStore } from "@/stores/bcmStore";
 import { Activity, Target, Users, Zap } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -23,7 +22,6 @@ export default function DashboardPage() {
   const { moves, fetchMoves } = useMovesStore();
   const { campaigns, fetchCampaigns } = useCampaignStore();
   const { user, profileStatus } = useAuth();
-  const { manifest, status } = useBcmStore();
 
   // Fetch data on mount
   useEffect(() => {

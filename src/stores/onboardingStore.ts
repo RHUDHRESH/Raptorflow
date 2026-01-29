@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ONBOARDING_STEPS, type StepStatus, type StepState } from "@/lib/onboarding-tokens";
 import { supabase } from "@/lib/supabaseClient";
-import { useContextStore } from "./contextStore";
+import { useBcmStore } from "./bcmStore";
 
 // --- Types ---
 export interface OnboardingSession {
@@ -176,7 +176,7 @@ export const useOnboardingStore = create<OnboardingState>()(
                         throw new Error(`Backend sync failed: ${response.statusText}`);
                     }
 
-                    await useContextStore.getState().triggerRebuild(session.sessionId);
+                    await useBcmStore.getState().rebuild(session.sessionId);
 
                     set({ saveStatus: "saved", lastSyncedAt: new Date() });
                 } catch (error) {
@@ -205,7 +205,7 @@ export const useOnboardingStore = create<OnboardingState>()(
                         throw new Error(`Backend sync failed: ${response.statusText}`);
                     }
 
-                    await useContextStore.getState().triggerRebuild(session.sessionId);
+                    await useBcmStore.getState().rebuild(session.sessionId);
 
                     set({ saveStatus: "saved", lastSyncedAt: new Date() });
                 } catch (error) {

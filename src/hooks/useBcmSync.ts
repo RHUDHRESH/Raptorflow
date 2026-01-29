@@ -16,6 +16,8 @@ export function useBcmSync(workspaceId?: string) {
     staleReason,
     error,
     fetchLatest,
+    ensureLatest,
+    setActiveWorkspace,
     rebuild,
     markStale,
   } = useBcmStore();
@@ -34,9 +36,12 @@ export function useBcmSync(workspaceId?: string) {
   );
 
   useEffect(() => {
+    setActiveWorkspace(workspaceId ?? null);
     if (!workspaceId) return;
-    refresh();
-  }, [workspaceId, refresh]);
+    ensureLatest(workspaceId).catch(() => {
+      // errors captured in store state
+    });
+  }, [workspaceId, ensureLatest, setActiveWorkspace]);
 
   const rebuildNow = useCallback(
     async (force = false) => {

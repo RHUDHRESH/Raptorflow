@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Target,
   TrendingUp,
@@ -18,6 +18,7 @@ import {
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton } from "@/components/ui/BlueprintButton";
 import { OnboardingProgressEnhanced } from "./OnboardingProgressEnhanced";
+import { useBcmSync } from "@/hooks/useBcmSync";
 
 interface DashboardMetrics {
   totalSessions: number;
@@ -53,9 +54,27 @@ interface BCMStatus {
 export function OnboardingDashboard() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
-  const [bcmStatus, setBcmStatus] = useState<BCMStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const latestWorkspaceId = useMemo(
+    () => sessions[0]?.workspaceId ?? null,
+    [sessions]
+  );
+  const { manifest, status: bcmStatus, error: bcmError, rebuild } = useBcmSync(
+    latestWorkspaceId ?? undefined
+  );
+  const bcmStatusSummary: BCMStatus | null = useMemo(() => {
+    if (!manifest) return null;
+    const payload = JSON.stringify(manifest || {});
+    return {
+      generated: true,
+      version: manifest.version ?? "1.0.0",
+      checksum: manifest.checksum ?? "",
+      generatedAt: manifest.generatedAt ?? new Date().toISOString(),
+      size: payload.length,
+      tokenCount: Math.round(payload.length / 4),
+    };
+  }, [manifest]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -76,24 +95,6 @@ export function OnboardingDashboard() {
           setSessions(sessionsData.sessions || []);
         }
 
-        // Fetch BCM status for latest session
-        if (sessions.length > 0) {
-          const latestSession = sessions[0];
-          const bcmResponse = await fetch(`${apiUrl}/api/v1/onboarding/context/manifest?workspace_id=${latestSession.workspaceId}`);
-          if (bcmResponse.ok) {
-            const bcmData = await bcmResponse.json();
-            if (bcmData.success) {
-              setBcmStatus({
-                generated: true,
-                version: bcmData.version,
-                checksum: bcmData.checksum,
-                generatedAt: bcmData.retrieved_at,
-                size: JSON.stringify(bcmData.manifest || {}).length,
-                tokenCount: Math.round(JSON.stringify(bcmData.manifest || {}).length / 4),
-              });
-            }
-          }
-        }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -102,7 +103,7 @@ export function OnboardingDashboard() {
     };
 
     fetchDashboardData();
-  }, [sessions.length]);
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -310,7 +311,7 @@ export function OnboardingDashboard() {
             )}
 
             {/* BCM Status */}
-            {bcmStatus && (
+            {bcmStatusSummary && (
               <BlueprintCard className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-[var(--success-light)] rounded-[var(--radius-md)] flex items-center justify-center">
@@ -325,30 +326,32 @@ export function OnboardingDashboard() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--muted)]">Version</span>
-                    <span className="text-sm font-medium text-[var(--ink)]">{bcmStatus.version}</span>
+                    <span className="text-sm font-medium text-[var(--ink)]">{bcmStatusSummary.version}</span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--muted)]">Size</span>
-                    <span className="text-sm font-medium text-[var(--ink)]">{bcmStatus.size} bytes</span>
+                    <span className="text-sm font-medium text-[var(--ink)]">{bcmStatusSummary.size} bytes</span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--muted)]">Tokens</span>
-                    <span className="text-sm font-medium text-[var(--ink)]">{bcmStatus.tokenCount}</span>
+                    <span className="text-sm font-medium text-[var(--ink)]">{bcmStatusSummary.tokenCount}</span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--muted)]">Generated</span>
                     <span className="text-sm font-medium text-[var(--ink)]">
-                      {new Date(bcmStatus.generatedAt).toLocaleDateString()}
+                      {new Date(bcmStatusSummary.generatedAt).toLocaleDateString()}
                     </span>
                   </div>
 
                   <div className="pt-3 border-t border-[var(--border-subtle)]">
                     <div className="flex items-center gap-2 text-[var(--success)]">
                       <CheckCircle2 size={16} />
-                      <span className="text-sm">BCM Ready</span>
+                      <span className="text-sm">
+                        {bcmStatus === "loading" ? "Syncing BCM" : "BCM Ready"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -359,7 +362,18 @@ export function OnboardingDashboard() {
             <BlueprintCard className="p-6">
               <h3 className="font-semibold text-[var(--ink)] mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <BlueprintButton variant="outline" size="sm" className="w-full justify-start">
+                <BlueprintButton
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  disabled={!latestWorkspaceId || bcmStatus === "loading"}
+                  onClick={() => {
+                    if (!latestWorkspaceId) return;
+                    rebuild(true).catch(() => {
+                      // errors captured in BCM store state
+                    });
+                  }}
+                >
                   <Zap size={16} className="mr-2" />
                   Generate BCM
                 </BlueprintButton>
