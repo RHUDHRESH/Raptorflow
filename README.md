@@ -73,6 +73,9 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 - **Real-time updates** - WebSocket connections
 - **Error handling** - Graceful degradation
 
+### System Architecture Docs
+- [RaptorFlow System Overview](docs/architecture/raptorflow_system_overview.md)
+
 ## ≡ƒô▒ Features Deep Dive
 
 ### ≡ƒÅù∩╕Å Marketing Foundation
