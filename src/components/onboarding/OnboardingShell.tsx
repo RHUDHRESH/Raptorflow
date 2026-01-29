@@ -296,7 +296,12 @@ export function OnboardingShell({ children, stepId }: OnboardingShellProps) {
                     <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[var(--canvas)] via-[var(--canvas)] to-transparent z-20 pointer-events-none">
                         <div className="max-w-3xl mx-auto flex items-center justify-between pointer-events-auto">
                             <SecondaryButton
-                                onClick={() => stepId > 1 && router.push(`/onboarding/session/step/${stepId - 1}`)}
+                                onClick={() => {
+                                    if (stepId <= 1) return;
+                                    const previousStep = stepId - 1;
+                                    setCurrentStep(previousStep);
+                                    router.push(`/onboarding/session/step/${previousStep}`);
+                                }}
                                 disabled={stepId <= 1}
                             >
                                 <ChevronLeft size={16} /> Previous
