@@ -9,7 +9,7 @@ import asyncio
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -124,8 +124,26 @@ async def validate_session_completion(session_id: str) -> float:
     return completion_percentage
 
 
-async def generate_bcm_from_session(session_id: str) -> BusinessContextManifest:
-    """Generate BCM from onboarding session data."""
+async def _get_business_context(workspace_id: str) -> Optional[Dict[str, Any]]:
+    """Fetch the latest business context for a workspace."""
+    client = supabase_client.get_client()
+    result = (
+        client.table("business_contexts")
+        .select("*")
+        .eq("workspace_id", workspace_id)
+        .order("updated_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    if result.data:
+        return result.data[0]
+    return None
+
+
+async def generate_bcm_from_session(
+    session_id: str,
+) -> Tuple[BusinessContextManifest, Optional[Dict[str, Any]]]:
+    """Generate BCM from onboarding session data and business context."""
     try:
         # Get all session data
         all_steps = await session_manager.get_all_steps(session_id)
@@ -133,6 +151,13 @@ async def generate_bcm_from_session(session_id: str) -> BusinessContextManifest:
         # Add metadata to step data
         metadata = await session_manager.get_metadata(session_id)
         all_steps["metadata"] = metadata
+
+        business_context = None
+        workspace_id = metadata.get("workspace_id") if metadata else None
+        if workspace_id:
+            business_context = await _get_business_context(workspace_id)
+            if business_context:
+                all_steps["business_context"] = business_context
 
         # Generate BCM using reducer
         manifest = await bcm_reducer.reduce(all_steps)
@@ -143,26 +168,21 @@ async def generate_bcm_from_session(session_id: str) -> BusinessContextManifest:
         logger.info(
             f"Generated BCM for session {session_id}: {len(manifest.json())} chars"
         )
-        return manifest
+        return manifest, business_context
 
     except Exception as e:
         logger.error(f"Error generating BCM for session {session_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"BCM generation failed: {str(e)}")
 
 
-async def cache_bcm_in_redis(
-    workspace_id: str, manifest: BusinessContextManifest
-) -> bool:
+async def cache_bcm_in_redis(workspace_id: str, manifest: Dict[str, Any]) -> bool:
     """Cache BCM in Redis/Upstash."""
     try:
         # Cache key: w:{workspace_id}:bcm:latest
         cache_key = f"w:{workspace_id}:bcm:latest"
 
         # Serialize manifest
-        manifest_data = manifest.dict()
-
-        # Cache with 24h TTL
-        success = await upstash_client.set_json(cache_key, manifest_data, ex=86400)
+        success = await upstash_client.set_json(cache_key, manifest, ex=86400)
 
         if success:
             logger.info(f"Cached BCM for workspace {workspace_id}")
@@ -177,47 +197,42 @@ async def cache_bcm_in_redis(
 
 
 async def persist_bcm_to_supabase(
-    workspace_id: str, manifest: BusinessContextManifest
+    workspace_id: str,
+    manifest: Dict[str, Any],
+    session_id: Optional[str] = None,
 ) -> bool:
     """Persist BCM to Supabase database."""
     try:
-        # Get next version
-        version_query = """
-            SELECT COALESCE(MAX(version), 0) + 1 as next_version
-            FROM business_context_manifests
-            WHERE workspace_id = $1
-        """
-
-        result = await supabase_client.execute(version_query, [workspace_id])
-        next_version = result[0]["next_version"] if result else 1
-
-        # Insert manifest
-        insert_query = """
-            INSERT INTO business_context_manifests
-            (workspace_id, version, manifest_json, checksum, created_at)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, version, created_at
-        """
-
-        manifest_data = manifest.dict()
-
-        result = await supabase_client.execute(
-            insert_query,
-            [
-                workspace_id,
-                next_version,
-                manifest_data,
-                manifest.checksum,
-                datetime.utcnow(),
-            ],
+        client = supabase_client.get_client()
+        latest = (
+            client.table("bcm_manifests")
+            .select("version")
+            .eq("workspace_id", workspace_id)
+            .order("version", desc=True)
+            .limit(1)
+            .execute()
         )
+        next_version = (latest.data[0]["version"] if latest.data else 0) + 1
 
-        if result:
+        record = {
+            "workspace_id": workspace_id,
+            "session_id": session_id,
+            "version": next_version,
+            "checksum": manifest.get("checksum"),
+            "manifest_json": manifest,
+            "generated_at": manifest.get("generated_at"),
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+
+        result = client.table("bcm_manifests").insert(record).execute()
+
+        if result.data:
             logger.info(f"Persisted BCM v{next_version} for workspace {workspace_id}")
             return True
-        else:
-            logger.error(f"Failed to persist BCM for workspace {workspace_id}")
-            return False
+
+        logger.error(f"Failed to persist BCM for workspace {workspace_id}")
+        return False
 
     except Exception as e:
         logger.error(f"Error persisting BCM for workspace {workspace_id}: {str(e)}")
@@ -317,16 +332,25 @@ async def finalize_onboarding(
 
         # Generate BCM if requested
         if request.generate_bcm:
-            manifest = await generate_bcm_from_session(session_id)
+            manifest, business_context_payload = await generate_bcm_from_session(
+                session_id
+            )
             bcm_generated = True
+            manifest_payload = manifest.dict()
+            if business_context_payload:
+                manifest_payload["business_context"] = business_context_payload
 
             # Cache BCM in Redis if requested
             if request.cache_bcm:
-                bcm_cached = await cache_bcm_in_redis(workspace_id, manifest)
+                bcm_cached = await cache_bcm_in_redis(workspace_id, manifest_payload)
 
             # Persist BCM to Supabase if requested
             if request.persist_bcm:
-                bcm_persisted = await persist_bcm_to_supabase(workspace_id, manifest)
+                bcm_persisted = await persist_bcm_to_supabase(
+                    workspace_id,
+                    manifest_payload,
+                    session_id=session_id,
+                )
 
             # Enqueue embeddings if requested
             if request.enqueue_embeddings:
@@ -335,7 +359,7 @@ async def finalize_onboarding(
                 )
 
             # Prepare business context for response
-            business_context = manifest.dict()
+            business_context = manifest_payload
 
         # Calculate processing time
         end_time = datetime.utcnow()
@@ -465,34 +489,33 @@ async def get_bcm_manifest(
         manifest_data = await upstash_client.get_json(cache_key)
         cached = True
 
-        # If not in cache and no specific version requested, try Supabase
-        if not manifest_data and not version:
-            # Query Supabase for latest version
-            query = """
-                SELECT manifest_json, version, checksum, created_at
-                FROM business_context_manifests
-                WHERE workspace_id = $1
-                ORDER BY version DESC
-                LIMIT 1
-            """
+        # If not in cache, try Supabase
+        if not manifest_data:
+            client = supabase_client.get_client()
+            query = (
+                client.table("bcm_manifests")
+                .select("manifest_json, version, checksum, generated_at")
+                .eq("workspace_id", workspace_id)
+            )
+            if version:
+                query = query.eq("version", int(version))
+            else:
+                query = query.order("version", desc=True).limit(1)
 
-            result = await supabase_client.execute(query, [workspace_id])
+            result = query.execute()
 
-            if result:
-                manifest_data = result[0]["manifest_json"]
+            if result.data:
+                manifest_data = result.data[0]["manifest_json"]
                 cached = False
 
-                # Rehydrate cache
-                await cache_bcm_in_redis(
-                    workspace_id, BusinessContextManifest(**manifest_data)
-                )
+                if not version:
+                    await cache_bcm_in_redis(workspace_id, manifest_data)
 
         if not manifest_data:
             raise HTTPException(
                 status_code=404, detail=f"BCM not found for workspace {workspace_id}"
             )
 
-        # Validate manifest
         manifest = BCMSchemaValidator.validate_manifest(manifest_data)
 
         return BCMManifestResponse(

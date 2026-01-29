@@ -19,8 +19,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from ..core.auth import get_current_user
-from ..services.bcm_service import BCMService
-from ..services.supabase_client import get_supabase_admin
+from ..services.bcm_manifest_service import BCMManifestService
+from ..core.supabase_mgr import get_supabase_admin
 
 logger = logging.getLogger(__name__)
 
@@ -63,8 +63,7 @@ async def rebuild_bcm(request: RebuildRequest):
         ManifestResponse with new BCM
     """
     try:
-        # Initialize BCM service
-        bcm_service = BCMService()
+        bcm_service = BCMManifestService()
 
         # Validate workspace access
         supabase = get_supabase_admin()
@@ -79,27 +78,29 @@ async def rebuild_bcm(request: RebuildRequest):
             raise HTTPException(status_code=404, detail="Workspace not found")
 
         # Rebuild BCM
-        result = await bcm_service.rebuild_manifest(request.workspace_id, request.force)
+        result = await bcm_service.generate_manifest(
+            request.workspace_id, force=request.force
+        )
 
-        if result.get("success"):
-            return ManifestResponse(
-                success=True,
-                manifest=result.get("bcm"),
-                version="1.0.0",  # Would be calculated from actual version
-                checksum=result.get("checksum"),
-                generated_at=(
-                    datetime.fromisoformat(result.get("generated_at"))
-                    if result.get("generated_at")
-                    else None
-                ),
-                source="api_rebuild",
-            )
-        else:
+        if not result.get("success"):
             return ManifestResponse(
                 success=False,
                 source="api_rebuild",
                 error=result.get("reason", "Unknown error"),
             )
+
+        return ManifestResponse(
+            success=True,
+            manifest=result.get("manifest"),
+            version=str(result.get("version")),
+            checksum=result.get("checksum"),
+            generated_at=(
+                datetime.fromisoformat(result.get("generated_at"))
+                if result.get("generated_at")
+                else None
+            ),
+            source="api_rebuild",
+        )
 
     except HTTPException:
         raise
@@ -126,8 +127,7 @@ async def get_manifest(
         ManifestResponse with latest BCM
     """
     try:
-        # Initialize BCM service
-        bcm_service = BCMService()
+        bcm_service = BCMManifestService()
 
         # Validate workspace access
         supabase = get_supabase_admin()
@@ -142,34 +142,34 @@ async def get_manifest(
             raise HTTPException(status_code=404, detail="Workspace not found")
 
         # Get manifest
-        manifest = await bcm_service.get_latest_manifest(workspace_id, use_fallback)
+        manifest_record = await bcm_service.get_manifest(workspace_id)
 
+        if not manifest_record:
+            return ManifestResponse(
+                success=False, source="database", error="BCM not found"
+            )
+
+        manifest = manifest_record.get("manifest_json")
         if manifest:
-            # Verify checksum
             current_checksum = hashlib.sha256(
                 json.dumps(manifest, sort_keys=True).encode()
             ).hexdigest()
-
-            stored_checksum = manifest.get("checksum")
+            stored_checksum = manifest_record.get("checksum")
             if stored_checksum and current_checksum != stored_checksum:
                 logger.warning(f"BCM checksum mismatch for workspace {workspace_id}")
 
-            return ManifestResponse(
-                success=True,
-                manifest=manifest,
-                version=manifest.get("version", "1.0.0"),
-                checksum=manifest.get("checksum"),
-                generated_at=(
-                    datetime.fromisoformat(manifest.get("generated_at"))
-                    if manifest.get("generated_at")
-                    else None
-                ),
-                source=f"cache_{tier}" if use_fallback else "cache_only",
-            )
-        else:
-            return ManifestResponse(
-                success=False, source="cache", error="BCM not found"
-            )
+        return ManifestResponse(
+            success=True,
+            manifest=manifest,
+            version=str(manifest_record.get("version")),
+            checksum=manifest_record.get("checksum"),
+            generated_at=(
+                datetime.fromisoformat(manifest_record.get("generated_at"))
+                if manifest_record.get("generated_at")
+                else None
+            ),
+            source="database",
+        )
 
     except HTTPException:
         raise
@@ -193,8 +193,7 @@ async def get_version_history(
         VersionHistoryResponse with version list
     """
     try:
-        # Initialize BCM service
-        bcm_service = BCMService()
+        bcm_service = BCMManifestService()
 
         # Validate workspace access
         supabase = get_supabase_admin()
