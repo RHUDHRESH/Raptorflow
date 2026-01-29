@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from db.repositories.onboarding import OnboardingRepository
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from integration.bcm_reducer import BCMReducer
 from pydantic import BaseModel
 from schemas.onboarding_schema import (
@@ -53,6 +53,9 @@ from ..agents.specialists.proof_point_validator import ProofPointValidator
 from ..agents.specialists.reddit_researcher import RedditResearcher
 from ..agents.specialists.soundbites_generator import SoundbitesGenerator
 from ..agents.specialists.truth_sheet_generator import TruthSheetGenerator
+from ..core.auth import get_current_user
+from ..core.models import User
+from ..services.profile_service import ProfileService
 
 # Redis session management
 from ..redis.session_manager import get_onboarding_session_manager
@@ -82,6 +85,20 @@ onboarding_repo = OnboardingRepository()
 
 # Initialize Redis session manager
 session_manager = get_onboarding_session_manager()
+profile_service = ProfileService()
+
+
+def _ensure_active_subscription(profile: Dict[str, Any]) -> None:
+    subscription_status = profile.get("subscription_status")
+    if subscription_status != "active":
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "error": "SUBSCRIPTION_REQUIRED",
+                "message": "An active subscription is required to start onboarding.",
+                "subscription_status": subscription_status,
+            },
+        )
 
 # Initialize AI agents
 evidence_classifier = EvidenceClassifier()
@@ -296,9 +313,27 @@ async def process_ocr(file_path: str, file_content: bytes) -> Dict[str, Any]:
 
 
 @router.post("/session")
-async def create_or_get_session(workspace_id: str, user_id: Optional[str] = None):
+async def create_or_get_session(
+    workspace_id: str,
+    user_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+):
     """Create or retrieve onboarding session for workspace using Redis"""
     try:
+        profile = profile_service.verify_profile(current_user)
+        _ensure_active_subscription(profile)
+
+        profile_workspace_id = profile.get("workspace_id")
+        if not profile_workspace_id:
+            raise HTTPException(status_code=400, detail="Workspace not found for user")
+        if workspace_id and workspace_id != profile_workspace_id:
+            raise HTTPException(
+                status_code=403, detail="Workspace does not match authenticated user"
+            )
+
+        workspace_id = profile_workspace_id
+        user_id = current_user.id
+
         # Generate a unique session ID
         import uuid
 

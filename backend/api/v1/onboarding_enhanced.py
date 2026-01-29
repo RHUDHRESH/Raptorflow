@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import (
     APIRouter,
     BackgroundTasks,
+    Depends,
     File,
     Form,
     HTTPException,
@@ -57,6 +58,9 @@ from ..services.ocr_service import OCRService
 from ..services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
 from ..services.storage import get_enhanced_storage_service
 from ..services.vertex_ai_service import vertex_ai_service
+from ..core.auth import get_current_user
+from ..core.models import User
+from ..services.profile_service import ProfileService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -69,6 +73,20 @@ router = APIRouter(prefix="/api/v1/onboarding", tags=["onboarding-enhanced"])
 ocr_service = OCRService()
 search_service = NativeSearch()
 session_manager = get_onboarding_session_manager()
+profile_service = ProfileService()
+
+
+def _ensure_active_subscription(profile: Dict[str, Any]) -> None:
+    subscription_status = profile.get("subscription_status")
+    if subscription_status != "active":
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "error": "SUBSCRIPTION_REQUIRED",
+                "message": "An active subscription is required to start onboarding.",
+                "subscription_status": subscription_status,
+            },
+        )
 
 # Initialize AI agents with timeout configuration
 AI_AGENT_TIMEOUT = 30  # 30 seconds max per agent
@@ -314,13 +332,29 @@ async def execute_ai_agent_with_timeout(
 
 @router.post("/session")
 async def create_or_get_session_enhanced(
-    workspace_id: str, user_id: Optional[str] = None
+    workspace_id: str,
+    user_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
 ):
     """Create or retrieve onboarding session with enhanced validation"""
     try:
         # Validate inputs
         if not workspace_id or len(workspace_id) < 1:
             raise HTTPException(status_code=400, detail="Invalid workspace ID")
+
+        profile = profile_service.verify_profile(current_user)
+        _ensure_active_subscription(profile)
+
+        profile_workspace_id = profile.get("workspace_id")
+        if not profile_workspace_id:
+            raise HTTPException(status_code=400, detail="Workspace not found for user")
+        if workspace_id and workspace_id != profile_workspace_id:
+            raise HTTPException(
+                status_code=403, detail="Workspace does not match authenticated user"
+            )
+
+        workspace_id = profile_workspace_id
+        user_id = current_user.id
 
         # Generate a unique session ID
         import uuid

@@ -14,12 +14,29 @@ from pydantic import BaseModel
 from ...infrastructure.storage import FileCategory, upload_file
 from ...utils.ucid import UCIDGenerator
 from ..agents.graphs.onboarding_v2 import OnboardingGraphV2, OnboardingStateV2
+from ..core.auth import get_current_user
+from ..core.models import User
+from ..services.profile_service import ProfileService
 
 router = APIRouter(prefix="/onboarding/v2", tags=["onboarding-v2"])
 logger = logging.getLogger(__name__)
 
 # Global graph instance (using MemorySaver for now as per v2 spec)
 onboarding_graph = OnboardingGraphV2().create_graph()
+profile_service = ProfileService()
+
+
+def _ensure_active_subscription(profile: Dict[str, Any]) -> None:
+    subscription_status = profile.get("subscription_status")
+    if subscription_status != "active":
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "error": "SUBSCRIPTION_REQUIRED",
+                "message": "An active subscription is required to start onboarding.",
+                "subscription_status": subscription_status,
+            },
+        )
 
 
 class StartSessionRequest(BaseModel):
@@ -54,8 +71,23 @@ async def run_onboarding_step(
 
 
 @router.post("/start", response_model=Dict[str, Any])
-async def start_onboarding_v2(request: StartSessionRequest):
+async def start_onboarding_v2(
+    request: StartSessionRequest,
+    current_user: User = Depends(get_current_user),
+):
     """Initialize a new 23-step onboarding session."""
+    profile = profile_service.verify_profile(current_user)
+    _ensure_active_subscription(profile)
+    profile_workspace_id = profile.get("workspace_id")
+    if not profile_workspace_id:
+        raise HTTPException(status_code=400, detail="Workspace not found for user")
+    if request.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="User does not match session owner")
+    if request.workspace_id != profile_workspace_id:
+        raise HTTPException(
+            status_code=403, detail="Workspace does not match authenticated user"
+        )
+
     ucid = UCIDGenerator.generate()
     session_id = str(uuid.uuid4())
 

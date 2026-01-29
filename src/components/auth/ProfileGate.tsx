@@ -65,21 +65,22 @@ export function ProfileGate({ children }: { children: React.ReactNode }) {
     }
 
     // Smart redirect logic with state tracking
-    const redirectKey = `${profileStatus.profileExists}-${profileStatus.workspaceExists}-${profileStatus.needsPayment}`;
+    const hasActiveSubscription = profileStatus.subscriptionStatus === 'active';
+    const redirectKey = `${profileStatus.profileExists}-${profileStatus.workspaceExists}-${profileStatus.needsPayment}-${hasActiveSubscription}`;
 
     if (!profileStatus.profileExists && redirectAttempted !== "no-profile") {
       setRedirectAttempted("no-profile");
-      router.replace("/onboarding/start");
+      router.replace(hasActiveSubscription ? "/onboarding/start" : "/onboarding/plans");
       return;
     }
 
     if (!profileStatus.workspaceExists && redirectAttempted !== "no-workspace") {
       setRedirectAttempted("no-workspace");
-      router.replace("/onboarding/start");
+      router.replace(hasActiveSubscription ? "/onboarding/start" : "/onboarding/plans");
       return;
     }
 
-    if (profileStatus.needsPayment && redirectAttempted !== "needs-payment") {
+    if ((profileStatus.needsPayment || !hasActiveSubscription) && redirectAttempted !== "needs-payment") {
       setRedirectAttempted("needs-payment");
       router.replace("/onboarding/plans");
       return;
