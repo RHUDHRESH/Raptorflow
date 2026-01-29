@@ -18,6 +18,7 @@ export interface OnboardingState {
     // Session
     session: OnboardingSession | null;
     currentStep: number;
+    hasHydrated: boolean;
 
     // Steps
     steps: StepState[];
@@ -32,6 +33,9 @@ export interface OnboardingState {
     updateStepStatus: (stepId: number, status: StepStatus) => void;
     updateStepData: (stepId: number, data: Record<string, unknown>) => void;
     setSaveStatus: (status: "idle" | "saving" | "saved" | "error") => void;
+    completeStep: (stepId: number) => Promise<void>;
+    updateStep: (stepId: number, data: Record<string, unknown>) => Promise<void>;
+    setHasHydrated: (hydrated: boolean) => void;
 
     // Computed
     getStepById: (stepId: number) => StepState | undefined;
@@ -55,6 +59,7 @@ export const useOnboardingStore = create<OnboardingState>()(
             // Initial state
             session: null,
             currentStep: 1,
+            hasHydrated: false,
             steps: createInitialSteps(),
             saveStatus: "idle",
             lastSyncedAt: null,
@@ -69,6 +74,7 @@ export const useOnboardingStore = create<OnboardingState>()(
                         updatedAt: new Date(),
                     },
                     currentStep: 1,
+                    hasHydrated: true,
                     steps: createInitialSteps(),
                     saveStatus: "idle",
                     lastSyncedAt: null,
@@ -92,11 +98,18 @@ export const useOnboardingStore = create<OnboardingState>()(
             },
 
             updateStepStatus: (stepId, status) => {
+                const { steps } = get();
+                const previousStatus = steps.find((s) => s.id === stepId)?.status;
+
                 set((state) => ({
                     steps: state.steps.map((s) =>
                         s.id === stepId ? { ...s, status } : s
                     ),
                 }));
+
+                if (status === "complete" && previousStatus !== "complete") {
+                    void get().completeStep(stepId);
+                }
             },
 
             updateStepData: async (stepId, data) => {
@@ -216,6 +229,8 @@ export const useOnboardingStore = create<OnboardingState>()(
 
             setSaveStatus: (status) => set({ saveStatus: status }),
 
+            setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),
+
             // Computed
             getStepById: (stepId) => get().steps.find((s) => s.id === stepId),
 
@@ -261,6 +276,9 @@ export const useOnboardingStore = create<OnboardingState>()(
         }),
         {
             name: "raptorflow-onboarding",
+            onRehydrateStorage: () => (state) => {
+                state?.setHasHydrated(true);
+            },
         }
     )
 );
