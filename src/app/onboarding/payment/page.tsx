@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CreditCard, Shield, CheckCircle, AlertCircle, Smartphone, Loader2, ArrowLeft, Sparkles, Lock, Zap } from 'lucide-react'
+import { CreditCard, Shield, CheckCircle, AlertCircle, Smartphone, Loader2, ArrowLeft, Sparkles, Lock, Zap, ExternalLink, RefreshCw } from 'lucide-react'
 import PaymentProgress from '@/components/payment/PaymentProgress'
 import { PaymentPoller, pollPaymentStatus } from '@/lib/payment-polling'
 
@@ -36,6 +36,11 @@ export default function Payment() {
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [paymentError, setPaymentError] = useState('')
   const [paymentPoller, setPaymentPoller] = useState<PaymentPoller | null>(null)
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
+  const [transactionId, setTransactionId] = useState<string | null>(null)
+  const [paymentFlow, setPaymentFlow] = useState<'redirect' | 'inline'>('redirect')
+  const [lastStatusCheck, setLastStatusCheck] = useState<string | null>(null)
+  const hasTrackedPayment = useRef(false)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -44,11 +49,16 @@ export default function Payment() {
     const status = searchParams.get('status')
     const transactionId = searchParams.get('transactionId')
 
-    if (status && transactionId) {
-      verifyPayment(transactionId)
-    } else {
-      fetchSelectedPlan()
+    if (transactionId) {
+      setTransactionId(transactionId)
+      if (status || !hasTrackedPayment.current) {
+        startPaymentTracking(transactionId)
+        hasTrackedPayment.current = true
+      }
+      return
     }
+
+    fetchSelectedPlan()
   }, [searchParams])
 
   async function fetchSelectedPlan() {
@@ -68,10 +78,14 @@ export default function Payment() {
     }
   }
 
-  async function verifyPayment(transactionId: string) {
+  function startPaymentTracking(transactionId: string) {
     setIsProcessing(true)
     setPaymentStatus('pending')
     setPaymentError('')
+
+    if (paymentPoller) {
+      paymentPoller.stop()
+    }
 
     // Start payment polling with enhanced progress tracking
     const poller = pollPaymentStatus({
@@ -122,29 +136,28 @@ export default function Payment() {
   }
 
   function retryPayment() {
-    if (paymentPoller) {
-      paymentPoller.stop()
-    }
-
-    // Reset state and retry
-    setPaymentStatus('pending')
-    setPaymentProgress(0)
-    setTimeRemaining(0)
-    setPaymentError('')
-
-    const transactionId = searchParams.get('transactionId')
     if (transactionId) {
-      verifyPayment(transactionId)
+      startPaymentTracking(transactionId)
     }
   }
 
   function cancelPayment() {
+    resetPaymentState()
+    router.push('/onboarding/plans')
+  }
+
+  function resetPaymentState() {
     if (paymentPoller) {
       paymentPoller.stop()
     }
     setIsProcessing(false)
     setPaymentStatus('pending')
-    router.push('/onboarding/plans')
+    setPaymentProgress(0)
+    setTimeRemaining(0)
+    setPaymentError('')
+    setPaymentUrl(null)
+    setTransactionId(null)
+    hasTrackedPayment.current = false
   }
 
   // Cleanup polling on unmount
@@ -156,9 +169,68 @@ export default function Payment() {
     }
   }, [paymentPoller])
 
+  useEffect(() => {
+    if (!transactionId || paymentFlow === 'redirect' || hasTrackedPayment.current) return
+    startPaymentTracking(transactionId)
+    hasTrackedPayment.current = true
+  }, [transactionId, paymentFlow])
+
+  const refreshPaymentStatus = useCallback(async () => {
+    if (!transactionId) return
+    try {
+      setPaymentStatus((prev) => (prev === 'completed' ? prev : 'processing'))
+      const response = await fetch(`/api/payments/status/${transactionId}`)
+      const data = await response.json()
+
+      if (data.success || data.status === 'COMPLETED') {
+        setPaymentStatus('completed')
+        setPaymentProgress(100)
+        setIsProcessing(false)
+      } else if (data.status === 'FAILED' || data.status === 'CANCELLED') {
+        setPaymentStatus('failed')
+        setPaymentError(data.error || 'Payment failed. Please try again.')
+        setIsProcessing(false)
+      } else {
+        setPaymentStatus('pending')
+      }
+    } catch (err) {
+      setPaymentStatus('failed')
+      setPaymentError('Unable to refresh payment status. Please try again.')
+      setIsProcessing(false)
+    } finally {
+      setLastStatusCheck(new Date().toLocaleTimeString())
+    }
+  }, [transactionId])
+
+  useEffect(() => {
+    if (!transactionId) return
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refreshPaymentStatus()
+      }
+    }
+
+    window.addEventListener('focus', handleVisibility)
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    return () => {
+      window.removeEventListener('focus', handleVisibility)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [transactionId, refreshPaymentStatus])
+
+  function openPaymentWindow() {
+    if (!paymentUrl) return
+    window.open(paymentUrl, '_blank', 'noopener,noreferrer')
+  }
+
   async function initiatePayment() {
     setIsProcessing(true)
     setError('')
+    setPaymentError('')
+    setPaymentStatus('pending')
+    setPaymentProgress(0)
 
     try {
       const response = await fetch('/api/payments/initiate', {
@@ -176,15 +248,21 @@ export default function Payment() {
         throw new Error(data.error || 'Failed to initiate payment')
       }
 
-      // PhonePe API returns redirectUrl
-      if (data.redirectUrl) {
-        window.location.href = data.redirectUrl
-      } else if (data.url) {
-        // Fallback for backwards compatibility
-        window.location.href = data.url
-      } else {
+      const resolvedUrl = data.redirectUrl || data.url
+      if (!resolvedUrl) {
         throw new Error('No redirect URL received from payment provider')
       }
+
+      setPaymentUrl(resolvedUrl)
+      hasTrackedPayment.current = false
+      setTransactionId(data.transactionId || null)
+
+      if (paymentFlow === 'redirect') {
+        window.location.href = resolvedUrl
+        return
+      }
+
+      setIsProcessing(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Payment failed')
       setIsProcessing(false)
@@ -207,6 +285,8 @@ export default function Payment() {
     if (!selectedPlan) return 0
     return Math.round(getPrice() / (selectedPlan.billingCycle === 'yearly' ? 12 : 1))
   }
+
+  const showPaymentProgress = isProcessing || paymentStatus !== 'pending' || Boolean(paymentError)
 
   if (isLoading) {
     return (
@@ -328,6 +408,42 @@ export default function Payment() {
               {/* Divider */}
               <div className="border-t border-slate-700/50 my-6" />
 
+              {/* Payment flow selection */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">Payment Experience</h4>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {[
+                    {
+                      id: 'redirect',
+                      title: 'Redirect to PhonePe',
+                      description: 'Open the secure PhonePe checkout page in the same tab.',
+                    },
+                    {
+                      id: 'inline',
+                      title: 'Pay inline (beta)',
+                      description: 'Stay here and complete payment in an embedded view.',
+                    },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setPaymentFlow(option.id as 'redirect' | 'inline')}
+                      className={`text-left p-4 rounded-2xl border transition-all ${
+                        paymentFlow === option.id
+                          ? 'border-indigo-500/60 bg-indigo-500/10 shadow-lg shadow-indigo-500/10'
+                          : 'border-slate-700/50 bg-slate-800/40 hover:border-slate-600'
+                      }`}
+                    >
+                      <p className="text-sm font-semibold text-white mb-1">{option.title}</p>
+                      <p className="text-xs text-slate-400">{option.description}</p>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500 mt-3">
+                  You can switch flows anytime. If inline doesn&apos;t load, open the payment page in a new tab.
+                </p>
+              </div>
+
               {/* Total */}
               <div className="flex items-center justify-between mb-8">
                 <span className="text-lg font-semibold text-white">Total</span>
@@ -343,7 +459,7 @@ export default function Payment() {
 
               {/* Enhanced Payment Progress */}
               <AnimatePresence>
-                {isProcessing && (
+                {showPaymentProgress && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -363,6 +479,109 @@ export default function Payment() {
                 )}
               </AnimatePresence>
 
+              {/* Inline payment actions */}
+              {paymentUrl && paymentFlow !== 'redirect' && (
+                <div className="mb-6 rounded-2xl border border-slate-700/50 bg-slate-800/40 p-4 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Payment link ready</p>
+                      <p className="text-xs text-slate-400">
+                        Use the embedded checkout below or open PhonePe in a new tab.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={openPaymentWindow}
+                        className="inline-flex items-center gap-2 rounded-xl bg-slate-700 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-600 transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Open in new tab
+                      </button>
+                      <button
+                        type="button"
+                        onClick={refreshPaymentStatus}
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-600 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700/40 transition-colors"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Refresh status
+                      </button>
+                    </div>
+                  </div>
+                  {lastStatusCheck && (
+                    <p className="text-xs text-slate-500">Last checked at {lastStatusCheck}</p>
+                  )}
+                  {transactionId && (
+                    <div className="rounded-xl border border-slate-700/50 bg-slate-900/60 p-3 text-xs text-slate-300">
+                      Tracking transaction: <span className="font-mono text-indigo-300">{transactionId}</span>
+                    </div>
+                  )}
+                  {paymentFlow === 'inline' && (
+                    <div className="rounded-2xl overflow-hidden border border-slate-700/50 bg-slate-950">
+                      <iframe
+                        src={paymentUrl}
+                        title="PhonePe Checkout"
+                        className="w-full h-[420px]"
+                        sandbox="allow-forms allow-scripts allow-same-origin allow-popups"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Success and recovery actions */}
+              {(paymentStatus === 'completed' || paymentStatus === 'failed' || paymentStatus === 'timeout') && (
+                <div className="mb-6 rounded-2xl border border-slate-700/50 bg-slate-800/40 p-4 space-y-4">
+                  <h4 className="text-sm font-semibold text-white">
+                    {paymentStatus === 'completed' ? 'Payment complete' : 'Need to take action?'}
+                  </h4>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {paymentStatus === 'completed' ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => router.push('/onboarding/session/step/1?welcome=true')}
+                          className="rounded-xl bg-emerald-500/20 text-emerald-100 px-4 py-3 text-sm font-semibold hover:bg-emerald-500/30 transition-colors"
+                        >
+                          Continue to onboarding
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => router.push('/dashboard')}
+                          className="rounded-xl border border-emerald-400/40 text-emerald-100 px-4 py-3 text-sm font-semibold hover:bg-emerald-500/10 transition-colors"
+                        >
+                          Go to dashboard
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={initiatePayment}
+                          className="rounded-xl bg-indigo-500/20 text-indigo-100 px-4 py-3 text-sm font-semibold hover:bg-indigo-500/30 transition-colors"
+                        >
+                          Retry payment
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => router.push('/onboarding/plans')}
+                          className="rounded-xl border border-slate-600 text-slate-200 px-4 py-3 text-sm font-semibold hover:bg-slate-700/40 transition-colors"
+                        >
+                          Change plan
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Need assistance?{' '}
+                    <a href="mailto:support@raptorflow.in" className="text-indigo-300 hover:text-indigo-200">
+                      Contact support
+                    </a>
+                    .
+                  </p>
+                </div>
+              )}
+
               {/* Payment button */}
               <motion.button
                 onClick={initiatePayment}
@@ -376,7 +595,7 @@ export default function Payment() {
                 {isProcessing ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Redirecting to PhonePe...
+                    {paymentFlow === 'redirect' ? 'Redirecting to PhonePe...' : 'Preparing payment...'}
                   </>
                 ) : (
                   <>
