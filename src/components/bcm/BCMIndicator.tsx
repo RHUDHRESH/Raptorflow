@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useBcmStore } from '@/stores/bcmStore';
+import { useBcmSync } from '@/hooks/useBcmSync';
 import { getFreshnessStatus } from '@/lib/bcm-client';
 import { cn } from '@/lib/utils';
 
@@ -18,7 +18,7 @@ export function BCMIndicator({
   showDetails = false,
   compact = false
 }: BCMIndicatorProps) {
-  const { manifest, status, lastFetchedAt, error } = useBcmStore();
+  const { manifest, status, lastFetchedAt, error } = useBcmSync(workspaceId);
 
   // Calculate freshness status
   const freshness = manifest?.generatedAt

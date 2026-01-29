@@ -31,6 +31,7 @@ class ProfileService:
         """Ensure Supabase profile/workspace records exist for the authenticated user."""
         try:
             user_record = self._get_or_create_user(auth_user)
+            self._ensure_user_profile(auth_user)
             workspace_record = self._get_or_create_workspace(user_record, auth_user)
             return {
                 "user_id": user_record["id"],
@@ -168,6 +169,20 @@ class ProfileService:
         except Exception as exc:
             logger.error("Failed to create user profile: %s", exc)
             raise
+
+    def _ensure_user_profile(self, auth_user: User) -> None:
+        payload = {
+            "id": auth_user.id,
+            "email": auth_user.email,
+            "full_name": auth_user.full_name,
+            "avatar_url": auth_user.avatar_url,
+        }
+        try:
+            self.supabase.table("user_profiles").upsert(payload).execute()
+        except Exception as exc:
+            logger.warning(
+                "Failed to upsert user_profiles for user %s: %s", auth_user.id, exc
+            )
 
     def _get_workspace_for_owner(self, owner_id: str) -> Optional[Dict[str, Any]]:
         try:

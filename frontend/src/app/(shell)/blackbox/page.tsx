@@ -76,8 +76,11 @@ export default function BlackBoxPage() {
     const [volatility, setVolatility] = useState(5);
     const [generatedStrategy, setGeneratedStrategy] = useState<any>(null);
     const [createdMoveId, setCreatedMoveId] = useState<string | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
 
-    const { createMoveFromBlackBox } = useMovesStore();
+    const createMoveFromBlackBox = useMovesStore(state => state.createMoveFromBlackBox);
+    const isCreatingMove = useMovesStore(state => state.isLoading);
 
     useEffect(() => {
         setMounted(true);
@@ -97,46 +100,62 @@ export default function BlackBoxPage() {
     };
 
     const handleGenerate = async () => {
+        setActionError(null);
+        setIsGenerating(true);
         setStep("processing");
 
-        // Simulate AI generation
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        try {
+            // Simulate AI generation
+            await new Promise(resolve => setTimeout(resolve, 2500));
 
-        setGeneratedStrategy({
-            title: "Quantum Market Penetration",
-            description: "Multi-dimensional approach combining viral mechanics with authority building",
-            risk: volatility > 7 ? "High" : volatility > 4 ? "Medium" : "Low",
-            expectedImpact: "High",
-            timeline: "6-8 weeks",
-            steps: [
-                "Market reconnaissance and positioning",
-                "Initial content deployment",
-                "Engagement amplification",
-                "Conversion optimization",
-                "Scale and iterate"
-            ]
-        });
+            setGeneratedStrategy({
+                title: "Quantum Market Penetration",
+                description: "Multi-dimensional approach combining viral mechanics with authority building",
+                risk: volatility > 7 ? "High" : volatility > 4 ? "Medium" : "Low",
+                expectedImpact: "High",
+                timeline: "6-8 weeks",
+                steps: [
+                    "Market reconnaissance and positioning",
+                    "Initial content deployment",
+                    "Engagement amplification",
+                    "Conversion optimization",
+                    "Scale and iterate"
+                ]
+            });
 
-        setStep("output");
+            setStep("output");
+        } catch (error) {
+            console.error("Failed to generate strategy:", error);
+            setActionError("Unable to generate a strategy right now. Please try again.");
+            setStep("volatility");
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
-    const handleCreateMove = () => {
+    const handleCreateMove = async () => {
         if (!selectedOutcome || !generatedStrategy) return;
+        setActionError(null);
 
-        // Create move using the store
-        const moveId = createMoveFromBlackBox({
-            focusArea: selectedOutcome.label,
-            desiredOutcome: generatedStrategy.description,
-            volatilityLevel: volatility,
-            name: generatedStrategy.title,
-            steps: generatedStrategy.steps || [
-                "Phase 1: Preparation",
-                "Phase 2: Execution",
-                "Phase 3: Optimization"
-            ]
-        });
+        try {
+            // Create move using the store
+            const moveId = await createMoveFromBlackBox({
+                focusArea: selectedOutcome.label,
+                desiredOutcome: generatedStrategy.description,
+                volatilityLevel: volatility,
+                name: generatedStrategy.title,
+                steps: generatedStrategy.steps || [
+                    "Phase 1: Preparation",
+                    "Phase 2: Execution",
+                    "Phase 3: Optimization"
+                ]
+            });
 
-        setCreatedMoveId(moveId);
+            setCreatedMoveId(moveId);
+        } catch (error) {
+            console.error("Failed to create move:", error);
+            setActionError("We couldn't create this move. Please try again.");
+        }
     };
 
     const handleViewMove = () => {
@@ -151,6 +170,8 @@ export default function BlackBoxPage() {
         setVolatility(5);
         setGeneratedStrategy(null);
         setCreatedMoveId(null);
+        setActionError(null);
+        setIsGenerating(false);
     };
 
     const handleBack = () => {
@@ -307,10 +328,11 @@ export default function BlackBoxPage() {
                             <div className="mt-8 flex justify-center">
                                 <button
                                     onClick={handleGenerate}
-                                    className="flex items-center gap-2 px-8 py-3 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium"
+                                    disabled={isGenerating}
+                                    className="flex items-center gap-2 px-8 py-3 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
                                     <Sparkles size={16} />
-                                    Generate Strategy
+                                    {isGenerating ? "Generating..." : "Generate Strategy"}
                                 </button>
                             </div>
                         </BlueprintCard>
@@ -423,22 +445,25 @@ export default function BlackBoxPage() {
                                 <>
                                     <button
                                         onClick={handleReset}
+                                        disabled={isCreatingMove}
                                         className="px-6 py-2.5 border border-[var(--border)] text-[var(--ink)] rounded-[var(--radius)] hover:border-[var(--ink)] transition-colors font-medium text-sm"
                                     >
                                         Discard
                                     </button>
                                     <button
                                         onClick={handleCreateMove}
-                                        className="flex items-center gap-2 px-6 py-2.5 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium text-sm"
+                                        disabled={isCreatingMove}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
                                         <CheckCircle2 size={14} />
-                                        Accept & Create Move
+                                        {isCreatingMove ? "Creating Move..." : "Accept & Create Move"}
                                     </button>
                                 </>
                             ) : (
                                 <>
                                     <button
                                         onClick={handleReset}
+                                        disabled={isCreatingMove}
                                         className="px-6 py-2.5 border border-[var(--border)] text-[var(--ink)] rounded-[var(--radius)] hover:border-[var(--ink)] transition-colors font-medium text-sm"
                                     >
                                         Create Another
@@ -464,6 +489,12 @@ export default function BlackBoxPage() {
                                 <p className="text-sm text-green-600 mt-1">
                                     Your strategy has been converted to an actionable move.
                                 </p>
+                            </div>
+                        )}
+
+                        {actionError && (
+                            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-[var(--radius)] text-center text-sm text-red-700">
+                                {actionError}
                             </div>
                         )}
 

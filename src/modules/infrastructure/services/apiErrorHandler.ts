@@ -27,7 +27,7 @@ export class RaptorError extends Error {
   }
 
   static notFound(message: string = 'Resource not found') {
-    return new RaptorError(RaptorErrorCodes.NOT_FOUND, message, 444);
+    return new RaptorError(RaptorErrorCodes.NOT_FOUND, message, 404);
   }
 
   static internal(message: string = 'Internal Server Error', details: any = null) {

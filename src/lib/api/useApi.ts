@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { RaptorResponse } from '../../modules/infrastructure/types/api';
+import { RaptorErrorCodes, RaptorErrorMessages } from '../../modules/infrastructure/services/apiResponse';
 
 // Generic hook for API requests
 export function useApi<T>(
@@ -26,9 +27,12 @@ export function useApi<T>(
         setError(response.error);
       }
     } catch (err) {
-      setError({ 
-        code: 'NETWORK_ERROR', 
-        message: err instanceof Error ? err.message : 'An error occurred' 
+      setError({
+        code: RaptorErrorCodes.NETWORK_ERROR,
+        message:
+          err instanceof Error
+            ? err.message
+            : RaptorErrorMessages[RaptorErrorCodes.NETWORK_ERROR],
       });
     } finally {
       setLoading(false);
@@ -59,14 +63,24 @@ export function useApiMutation<T, P = unknown>(
         setData(response.data);
         return response;
       } else {
-        const err = response.error || { code: 'UNKNOWN_ERROR', message: 'Mutation failed' };
+        const err =
+          response.error || {
+            code: RaptorErrorCodes.UNKNOWN_ERROR,
+            message: RaptorErrorMessages[RaptorErrorCodes.UNKNOWN_ERROR],
+          };
         setError(err);
         throw err;
       }
     } catch (err) {
       const apiError = (err as any).code 
         ? err as { code: string; message: string }
-        : { code: 'NETWORK_ERROR', message: err instanceof Error ? err.message : 'Unknown error' };
+        : {
+            code: RaptorErrorCodes.NETWORK_ERROR,
+            message:
+              err instanceof Error
+                ? err.message
+                : RaptorErrorMessages[RaptorErrorCodes.NETWORK_ERROR],
+          };
       
       setError(apiError);
       throw apiError;

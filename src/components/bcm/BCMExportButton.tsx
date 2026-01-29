@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useBcmStore } from '@/stores/bcmStore';
+import { useBcmSync } from '@/hooks/useBcmSync';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -24,7 +24,7 @@ export function BCMExportButton({
   variant = 'outline',
   size = 'sm'
 }: BCMExportButtonProps) {
-  const { manifest, status, error } = useBcmStore();
+  const { manifest, status, error } = useBcmSync(workspaceId);
   const [isExporting, setIsExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState<'json' | 'markdown'>('json');
   const [showPreview, setShowPreview] = useState(false);

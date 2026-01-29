@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useMovesStore } from "@/stores/movesStore";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { BCMIndicator } from "@/components/bcm/BCMIndicator";
-import { useBcmStore } from "@/stores/bcmStore";
+import { useBcmSync } from "@/hooks/useBcmSync";
 import { format, subDays, isAfter, parseISO } from "date-fns";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -21,7 +21,7 @@ export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d">("30d");
   const { moves } = useMovesStore();
   const { profileStatus } = useAuth();
-  const { manifest } = useBcmStore();
+  const { manifest } = useBcmSync(profileStatus?.workspaceId ?? undefined);
 
   // Calculate analytics data
   const analytics = useMemo(() => {
