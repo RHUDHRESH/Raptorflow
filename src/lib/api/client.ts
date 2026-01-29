@@ -5,6 +5,7 @@
  */
 
 import { RaptorResponse } from '../../modules/infrastructure/types/api';
+import { RaptorErrorCodes, RaptorErrorMessages } from '../../modules/infrastructure/services/apiResponse';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -62,38 +63,84 @@ class ApiClient {
         ...options,
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
+      const requestId = response.headers.get('x-request-id') || undefined;
       
       // If the backend already returns RaptorResponse, return it directly
-      if (typeof data.success === 'boolean' && data.meta) {
-        return data as RaptorResponse<T>;
+      if (data && typeof data.success === 'boolean' && data.meta) {
+        return {
+          ...(data as RaptorResponse<T>),
+          meta: {
+            ...data.meta,
+            requestId: data.meta?.requestId || requestId,
+          },
+        };
       }
 
       // Legacy support: Wrap non-standard responses
       if (response.ok) {
         return {
           success: true,
-          data: data,
+          data: data as T,
           error: null,
-          meta: { timestamp: new Date().toISOString() }
+          meta: { timestamp: new Date().toISOString(), requestId }
         };
       } else {
+        const errorDetails = data ?? { status: response.status };
+        const error = this.mapError(response.status, errorDetails);
         return {
           success: false,
           data: null,
-          error: {
-            code: 'API_ERROR',
-            message: data.message || `HTTP error! status: ${response.status}`,
-            details: data
-          },
-          meta: { timestamp: new Date().toISOString() }
+          error,
+          meta: { timestamp: new Date().toISOString(), requestId }
         };
       }
     } catch (error) {
       console.error(`API request failed for ${endpoint}:`, error);
-      // Return mock data for development
-      return this.getMockResponse<T>(endpoint);
+      if (process.env.NODE_ENV === 'development') {
+        return this.getMockResponse<T>(endpoint);
+      }
+      return {
+        success: false,
+        data: null,
+        error: {
+          code: RaptorErrorCodes.NETWORK_ERROR,
+          message:
+            error instanceof Error
+              ? error.message
+              : RaptorErrorMessages[RaptorErrorCodes.NETWORK_ERROR],
+        },
+        meta: { timestamp: new Date().toISOString() },
+      };
     }
+  }
+
+  private mapError(status: number, details?: any) {
+    const statusMap: Record<number, { code: string; message: string }> = {
+      400: { code: RaptorErrorCodes.BAD_REQUEST, message: RaptorErrorMessages[RaptorErrorCodes.BAD_REQUEST] },
+      401: { code: RaptorErrorCodes.UNAUTHORIZED, message: RaptorErrorMessages[RaptorErrorCodes.UNAUTHORIZED] },
+      403: { code: RaptorErrorCodes.FORBIDDEN, message: RaptorErrorMessages[RaptorErrorCodes.FORBIDDEN] },
+      404: { code: RaptorErrorCodes.NOT_FOUND, message: RaptorErrorMessages[RaptorErrorCodes.NOT_FOUND] },
+      422: {
+        code: RaptorErrorCodes.UNPROCESSABLE_ENTITY,
+        message: RaptorErrorMessages[RaptorErrorCodes.UNPROCESSABLE_ENTITY],
+      },
+      429: { code: RaptorErrorCodes.RATE_LIMITED, message: RaptorErrorMessages[RaptorErrorCodes.RATE_LIMITED] },
+      500: {
+        code: RaptorErrorCodes.INTERNAL_SERVER_ERROR,
+        message: RaptorErrorMessages[RaptorErrorCodes.INTERNAL_SERVER_ERROR],
+      },
+    };
+
+    const fallback = statusMap[status] || {
+      code: RaptorErrorCodes.UNKNOWN_ERROR,
+      message: RaptorErrorMessages[RaptorErrorCodes.UNKNOWN_ERROR],
+    };
+
+    return {
+      ...fallback,
+      details,
+    };
   }
 
   private getMockResponse<T>(endpoint: string): RaptorResponse<T> {
@@ -161,8 +208,8 @@ class ApiClient {
       success: false,
       data: null,
       error: {
-        code: 'NOT_FOUND',
-        message: 'Endpoint not found'
+        code: RaptorErrorCodes.NOT_FOUND,
+        message: RaptorErrorMessages[RaptorErrorCodes.NOT_FOUND],
       },
       meta: { timestamp }
     };
