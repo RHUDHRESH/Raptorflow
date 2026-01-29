@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useBcmStore } from '@/stores/bcmStore';
+import { useBcmSync } from '@/hooks/useBcmSync';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -16,7 +16,7 @@ interface BCMRebuildDialogProps {
 }
 
 export function BCMRebuildDialog({ workspaceId, children, className }: BCMRebuildDialogProps) {
-  const { rebuild, status, manifest, error } = useBcmStore();
+  const { rebuild, status, manifest, error } = useBcmSync(workspaceId);
   const [isOpen, setIsOpen] = useState(false);
   const [isRebuilding, setIsRebuilding] = useState(false);
   const [forceRebuild, setForceRebuild] = useState(false);

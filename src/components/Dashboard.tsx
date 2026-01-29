@@ -16,7 +16,7 @@ import { BlueprintLoader } from "@/components/ui/BlueprintLoader"
 import { PageHeader } from "@/components/ui/PageHeader"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/components/auth/AuthProvider"
-import { useBcmStore } from "@/stores/bcmStore"
+import { useBcmSync } from "@/hooks/useBcmSync"
 import { formatDistanceToNow } from "date-fns"
 import {
   Brain,
@@ -80,26 +80,19 @@ export default function Dashboard() {
     lastFetchedAt,
     staleReason,
     error: bcmError,
-    fetchLatest,
+    refresh,
     rebuild,
-  } = useBcmStore()
+  } = useBcmSync(workspaceId)
 
   useEffect(() => {
     loadDashboardData()
   }, [])
 
-  useEffect(() => {
-    if (!workspaceId) return
-    fetchLatest(workspaceId).catch(() => {
-      // errors already captured in store state
-    })
-  }, [workspaceId, fetchLatest])
-
   const handleRefreshBcm = async () => {
     if (!workspaceId) return
     setIsRefreshingBcm(true)
     try {
-      await fetchLatest(workspaceId)
+      await refresh()
     } finally {
       setIsRefreshingBcm(false)
     }
