@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
 import { useNotificationStore } from '../stores/notificationStore';
+import { RaptorErrorMessages } from '../modules/infrastructure/services/apiResponse';
 
 interface NotifyOptions {
   description?: string;
@@ -15,15 +16,7 @@ const defaultOptions: NotifyOptions = {
   persistent: true,
 };
 
-const ERROR_MAP: Record<string, string> = {
-  'UNAUTHORIZED': 'Your session has expired or you do not have permission. Please log in again.',
-  'FORBIDDEN': 'You do not have access to this resource.',
-  'NOT_FOUND': 'The requested item was not found.',
-  'VALIDATION_ERROR': 'Please check your input and try again.',
-  'AI_ENGINE_ERROR': 'The Intelligence Engine encountered an issue. Our team has been notified.',
-  'NETWORK_ERROR': 'Unable to connect to the server. Please check your internet connection.',
-  'INTERNAL_SERVER_ERROR': 'A system error occurred. We are working on a fix.',
-};
+const ERROR_MAP: Record<string, string> = RaptorErrorMessages;
 
 export const notify = {
   success: (title: string, message?: string | NotifyOptions, options: NotifyOptions = {}) => {
