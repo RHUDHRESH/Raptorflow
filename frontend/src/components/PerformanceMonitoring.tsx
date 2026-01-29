@@ -53,20 +53,30 @@ export default function PerformanceMonitoring() {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [healthChecks, setHealthChecks] = useState<HealthCheck[]>([])
   const [loading, setLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [isOpeningSettings, setIsOpeningSettings] = useState(false)
   const [selectedTimeRange, setSelectedTimeRange] = useState("1h")
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [refreshInterval, setRefreshInterval] = useState(5000)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [settingsNotice, setSettingsNotice] = useState<string | null>(null)
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
 
-  useEffect(() => {
-    loadMonitoringData()
-
-    if (autoRefresh) {
-      const interval = setInterval(loadMonitoringData, refreshInterval)
-      return () => clearInterval(interval)
+  const parseResponse = async (response: Response, fallbackMessage: string) => {
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(text || fallbackMessage)
     }
-  }, [autoRefresh, refreshInterval, selectedTimeRange])
+    return response.json()
+  }
 
-  const loadMonitoringData = async () => {
+  const loadMonitoringData = async ({ silent = false } = {}) => {
+    if (!silent) {
+      setLoading(true)
+    }
+    setIsRefreshing(true)
+    setLoadError(null)
     try {
       const [systemRes, agentRes, workflowRes, alertRes, healthRes] = await Promise.all([
         fetch(`/api/monitoring/system?range=${selectedTimeRange}`),
@@ -77,11 +87,11 @@ export default function PerformanceMonitoring() {
       ])
 
       const [systemData, agentData, workflowData, alertData, healthData] = await Promise.all([
-        systemRes.json(),
-        agentRes.json(),
-        workflowRes.json(),
-        alertRes.json(),
-        healthRes.json()
+        parseResponse(systemRes, 'Failed to load system metrics'),
+        parseResponse(agentRes, 'Failed to load agent metrics'),
+        parseResponse(workflowRes, 'Failed to load workflow metrics'),
+        parseResponse(alertRes, 'Failed to load alerts'),
+        parseResponse(healthRes, 'Failed to load health checks')
       ])
 
       setSystemMetrics(systemData)
@@ -89,12 +99,64 @@ export default function PerformanceMonitoring() {
       setWorkflowMetrics(workflowData)
       setAlerts(alertData)
       setHealthChecks(healthData)
+      setLastUpdatedAt(new Date())
     } catch (error) {
       console.error('Failed to load monitoring data:', error)
+      setLoadError(error instanceof Error ? error.message : 'Unable to load monitoring data.')
     } finally {
       setLoading(false)
+      setIsRefreshing(false)
     }
   }
+
+  const handleExport = async () => {
+    setIsExporting(true)
+    setLoadError(null)
+    try {
+      const payload = {
+        range: selectedTimeRange,
+        exported_at: new Date().toISOString(),
+        system_metrics: systemMetrics,
+        agent_metrics: agentMetrics,
+        workflow_metrics: workflowMetrics,
+        alerts,
+        health_checks: healthChecks
+      }
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `monitoring-export-${selectedTimeRange}-${Date.now()}.json`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Failed to export monitoring data:', error)
+      setLoadError('Export failed. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleOpenSettings = () => {
+    setIsOpeningSettings(true)
+    setSettingsNotice('Settings panel coming soon. Configure defaults in the backend for now.')
+    setTimeout(() => {
+      setIsOpeningSettings(false)
+      setSettingsNotice(null)
+    }, 2500)
+  }
+
+  useEffect(() => {
+    loadMonitoringData()
+
+    if (autoRefresh) {
+      const interval = setInterval(() => {
+        loadMonitoringData({ silent: true })
+      }, refreshInterval)
+      return () => clearInterval(interval)
+    }
+  }, [autoRefresh, refreshInterval, selectedTimeRange])
 
   const getLatestSystemMetrics = () => {
     return systemMetrics[systemMetrics.length - 1] || {}
@@ -187,6 +249,28 @@ export default function PerformanceMonitoring() {
   return (
     <div className="min-h-screen bg-[var(--paper)] p-6">
       <div className="max-w-7xl mx-auto space-y-6">
+        {loadError && (
+          <Card>
+            <CardContent className="flex flex-col gap-3 text-sm text-red-600">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                <span>{loadError}</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => loadMonitoringData()}>
+                Retry Load
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {settingsNotice && (
+          <Card>
+            <CardContent className="text-sm text-[var(--muted)]">
+              {settingsNotice}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Header */}
         <PageHeader
           title="Performance Monitoring"
@@ -212,22 +296,28 @@ export default function PerformanceMonitoring() {
                 onClick={() => setAutoRefresh(!autoRefresh)}
                 className={autoRefresh ? 'bg-[var(--blueprint)] text-[var(--paper)]' : ''}
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
-                Auto Refresh
+                <RefreshCw className={`w-4 h-4 mr-2 ${autoRefresh && isRefreshing ? 'animate-spin' : ''}`} />
+                {autoRefresh ? (isRefreshing ? 'Refreshing...' : 'Auto Refresh') : 'Auto Refresh'}
               </Button>
 
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting}>
                 <Download className="w-4 h-4 mr-2" />
-                Export
+                {isExporting ? 'Exporting...' : 'Export'}
               </Button>
 
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleOpenSettings} disabled={isOpeningSettings}>
                 <Settings className="w-4 h-4 mr-2" />
-                Settings
+                {isOpeningSettings ? 'Opening...' : 'Settings'}
               </Button>
             </div>
           }
         />
+
+        {lastUpdatedAt && (
+          <div className="text-xs text-[var(--muted)]">
+            Last updated at {lastUpdatedAt.toLocaleTimeString()}
+          </div>
+        )}
 
         {/* System Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

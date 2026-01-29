@@ -17,6 +17,7 @@ export default function MuseVertexAIChat() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [apiStatus, setApiStatus] = useState<'loading' | 'connected' | 'error'>('loading');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -30,16 +31,22 @@ export default function MuseVertexAIChat() {
     const checkApiStatus = async () => {
         try {
             const response = await fetch('http://localhost:8000/api/v1/muse/status');
+            if (!response.ok) {
+                throw new Error('Status check failed');
+            }
             const data = await response.json();
 
             if (data.status === 'available') {
                 setApiStatus('connected');
+                setErrorMessage(null);
                 console.log('✅ REAL API connected:', data.model);
             } else {
                 setApiStatus('error');
+                setErrorMessage('Muse API is unavailable.');
             }
         } catch (error) {
             setApiStatus('error');
+            setErrorMessage('Unable to reach the Muse API.');
             console.error('❌ API connection failed:', error);
         }
     };
@@ -56,6 +63,7 @@ export default function MuseVertexAIChat() {
 
         setMessages(prev => [...prev, userMessage]);
         setIsLoading(true);
+        setErrorMessage(null);
 
         try {
             // Call REAL Muse Vertex AI API
@@ -77,6 +85,11 @@ export default function MuseVertexAIChat() {
                 })
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Chat request failed');
+            }
+
             const data = await response.json();
 
             if (data.success) {
@@ -97,9 +110,11 @@ export default function MuseVertexAIChat() {
                     content: `Error: ${data.error || 'Unknown error'}`,
                     timestamp: Date.now()
                 }]);
+                setErrorMessage(data.error || 'Unable to send message.');
             }
         } catch (error) {
             console.error('Error:', error);
+            setErrorMessage(error instanceof Error ? error.message : 'Network error. Please try again.');
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'assistant',
@@ -113,6 +128,7 @@ export default function MuseVertexAIChat() {
 
     const generateContent = async (task: string, contentType: string) => {
         setIsLoading(true);
+        setErrorMessage(null);
 
         try {
             const response = await fetch('http://localhost:8000/api/v1/muse/generate', {
@@ -130,6 +146,11 @@ export default function MuseVertexAIChat() {
                     temperature: 0.7
                 })
             });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Generation request failed');
+            }
 
             const data = await response.json();
 
@@ -149,9 +170,11 @@ export default function MuseVertexAIChat() {
                     content: `Error: ${data.error || 'Unknown error'}`,
                     timestamp: Date.now()
                 }]);
+                setErrorMessage(data.error || 'Unable to generate content.');
             }
         } catch (error) {
             console.error('Error:', error);
+            setErrorMessage(error instanceof Error ? error.message : 'Network error. Please try again.');
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'assistant',
@@ -205,6 +228,11 @@ export default function MuseVertexAIChat() {
                         </button>
                     </div>
                 </div>
+                {errorMessage && (
+                    <p className="mt-3 text-xs text-red-600">
+                        {errorMessage}
+                    </p>
+                )}
             </div>
 
             {/* Messages */}
