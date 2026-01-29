@@ -7,7 +7,7 @@
 
 ## Workflow Steps
 
-### [ ] Step: Requirements
+### [x] Step: Requirements
 <!-- chat-id: 5d5a59d5-087a-4bd6-b105-deca8b80ac03 -->
 
 Create a Product Requirements Document (PRD) based on the feature description.
@@ -21,6 +21,7 @@ Create a Product Requirements Document (PRD) based on the feature description.
 Save the PRD to `{@artifacts_path}/requirements.md`.
 
 ### [ ] Step: Technical Specification
+<!-- chat-id: e43d1f9f-b1fc-4e3f-afc0-6b32aab51c93 -->
 
 Create a technical specification based on the PRD in `{@artifacts_path}/requirements.md`.
 
@@ -36,6 +37,7 @@ Save to `{@artifacts_path}/spec.md` with:
 - Verification approach using project lint/test commands
 
 ### [ ] Step: Planning
+<!-- chat-id: 834ba902-1860-4421-bbaf-e612840d5988 -->
 
 Create a detailed implementation plan based on `{@artifacts_path}/spec.md`.
 
