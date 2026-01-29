@@ -23,6 +23,10 @@ interface SystemStatus {
 export default function SystemIntegrationDashboard() {
   const [systemStatuses, setSystemStatuses] = useState<Record<string, SystemStatus>>({});
   const [isInitializing, setIsInitializing] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
+  const [testSuccess, setTestSuccess] = useState<string | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
 
   // Store hooks
   const movesStore = useMovesStore();
@@ -43,72 +47,82 @@ export default function SystemIntegrationDashboard() {
 
       if (!workspaceId || !userId) {
         console.error('Authentication required for system initialization');
+        setInitError('Authentication required. Please sign in to load system status.');
         setIsInitializing(false);
         return;
       }
 
+      setInitError(null);
       const systems: Record<string, SystemStatus> = {};
 
-      // Initialize each system
-      try {
-        // Moves System
-        setSystemStatuses(prev => ({ ...prev, moves: { name: 'Moves', status: 'loading', lastCheck: new Date().toISOString() } }));
+      const updateStatus = (key: string, status: SystemStatus) => {
+        systems[key] = status;
+        setSystemStatuses(prev => ({ ...prev, [key]: status }));
+      };
+
+      const initializeSystem = async (
+        key: string,
+        name: string,
+        action: () => Promise<any>
+      ) => {
+        updateStatus(key, { name, status: 'loading', lastCheck: new Date().toISOString() });
+        try {
+          const data = await action();
+          updateStatus(key, { name, status: 'connected', lastCheck: new Date().toISOString(), data });
+        } catch (error) {
+          console.error(`System initialization error (${name}):`, error);
+          updateStatus(key, { name, status: 'error', lastCheck: new Date().toISOString() });
+          setInitError(prev => prev ?? 'Some systems failed to initialize. Check connectivity and retry.');
+        }
+      };
+
+      await initializeSystem('moves', 'Moves', async () => {
         await movesStore.fetchMoves();
-        systems.moves = { name: 'Moves', status: 'connected', lastCheck: new Date().toISOString(), data: movesStore.moves };
+        return movesStore.moves;
+      });
 
-        // Campaigns System
-        setSystemStatuses(prev => ({ ...prev, campaigns: { name: 'Campaigns', status: 'loading', lastCheck: new Date().toISOString() } }));
+      await initializeSystem('campaigns', 'Campaigns', async () => {
         await campaignsStore.fetchCampaigns();
-        systems.campaigns = { name: 'Campaigns', status: 'connected', lastCheck: new Date().toISOString(), data: campaignsStore.campaigns };
+        return campaignsStore.campaigns;
+      });
 
-        // Daily Wins System
-        setSystemStatuses(prev => ({ ...prev, dailyWins: { name: 'Daily Wins', status: 'loading', lastCheck: new Date().toISOString() } }));
+      await initializeSystem('dailyWins', 'Daily Wins', async () => {
         await dailyWinsStore.fetchWins(workspaceId, userId);
-        systems.dailyWins = { name: 'Daily Wins', status: 'connected', lastCheck: new Date().toISOString(), data: dailyWinsStore.wins };
+        return dailyWinsStore.wins;
+      });
 
-        // Blackbox System
-        setSystemStatuses(prev => ({ ...prev, blackbox: { name: 'Blackbox', status: 'loading', lastCheck: new Date().toISOString() } }));
+      await initializeSystem('blackbox', 'Blackbox', async () => {
         await blackboxStore.fetchStrategies(workspaceId, userId);
-        systems.blackbox = { name: 'Blackbox', status: 'connected', lastCheck: new Date().toISOString(), data: blackboxStore.strategies };
+        return blackboxStore.strategies;
+      });
 
-        // Muse System
-        setSystemStatuses(prev => ({ ...prev, muse: { name: 'Muse', status: 'loading', lastCheck: new Date().toISOString() } }));
+      await initializeSystem('muse', 'Muse', async () => {
         await museStore.fetchAssets(workspaceId, userId);
-        systems.muse = { name: 'Muse', status: 'connected', lastCheck: new Date().toISOString(), data: museStore.assets };
+        return museStore.assets;
+      });
 
-        // BCM System
-        setSystemStatuses(prev => ({ ...prev, bcm: { name: 'BCM', status: 'loading', lastCheck: new Date().toISOString() } }));
+      await initializeSystem('bcm', 'BCM', async () => {
         await bcmStore.fetchContext(workspaceId);
         await bcmStore.fetchEvolution(workspaceId);
-        systems.bcm = { name: 'BCM', status: 'connected', lastCheck: new Date().toISOString(), data: bcmStore.context };
+        return bcmStore.context;
+      });
 
-        // Tools System
-        setSystemStatuses(prev => ({ ...prev, tools: { name: 'Tools', status: 'loading', lastCheck: new Date().toISOString() } }));
+      await initializeSystem('tools', 'Tools', async () => {
         await toolsStore.fetchAvailableTools();
         await toolsStore.fetchServicesStatus();
-        systems.tools = { name: 'Tools', status: 'connected', lastCheck: new Date().toISOString(), data: toolsStore.tools };
+        return toolsStore.tools;
+      });
 
-        // Agents System
-        setSystemStatuses(prev => ({ ...prev, agents: { name: 'Agents', status: 'loading', lastCheck: new Date().toISOString() } }));
+      await initializeSystem('agents', 'Agents', async () => {
         await agentsStore.fetchAvailableAgents();
-        systems.agents = { name: 'Agents', status: 'connected', lastCheck: new Date().toISOString(), data: agentsStore.agents };
+        return agentsStore.agents;
+      });
 
-        // Analytics System
-        setSystemStatuses(prev => ({ ...prev, analytics: { name: 'Analytics', status: 'loading', lastCheck: new Date().toISOString() } }));
+      await initializeSystem('analytics', 'Analytics', async () => {
         await analyticsStore.fetchDashboard();
-        systems.analytics = { name: 'Analytics', status: 'connected', lastCheck: new Date().toISOString(), data: analyticsStore.dashboard };
+        return analyticsStore.dashboard;
+      });
 
-      } catch (error) {
-        console.error('System initialization error:', error);
-        // Mark failed systems as error
-        Object.keys(systems).forEach(key => {
-          if (!systems[key].data) {
-            systems[key] = { ...systems[key], status: 'error' as const };
-          }
-        });
-      }
-
-      setSystemStatuses(systems);
       setIsInitializing(false);
     };
 
@@ -121,9 +135,13 @@ export default function SystemIntegrationDashboard() {
     const userId = getCurrentUserId();
 
     if (!workspaceId || !userId) {
-      alert('Please authenticate first');
+      setTestError('Please authenticate first.');
       return;
     }
+
+    setIsTesting(true);
+    setTestError(null);
+    setTestSuccess(null);
 
     try {
       // Test 1: Create a Move
@@ -180,11 +198,13 @@ export default function SystemIntegrationDashboard() {
         }
       });
 
-      alert('✅ Integration test completed successfully! All systems are working together.');
+      setTestSuccess('✅ Integration test completed successfully! All systems are working together.');
 
     } catch (error) {
       console.error('Integration test failed:', error);
-      alert('❌ Integration test failed. Check console for details.');
+      setTestError('❌ Integration test failed. Check console for details.');
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -224,6 +244,21 @@ export default function SystemIntegrationDashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">🚀 Raptorflow System Integration</h1>
           <p className="text-gray-600">Complete integration of all systems with BCM, tools, and agents</p>
+          {initError && (
+            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              {initError}
+            </div>
+          )}
+          {testError && (
+            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              {testError}
+            </div>
+          )}
+          {testSuccess && (
+            <div className="mt-3 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700">
+              {testSuccess}
+            </div>
+          )}
         </div>
 
         {/* System Status Grid */}
@@ -387,9 +422,10 @@ export default function SystemIntegrationDashboard() {
         <div className="flex flex-wrap gap-4 justify-center">
           <button
             onClick={testIntegration}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            disabled={isTesting}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            🧪 Run Integration Test
+            {isTesting ? '🧪 Running Integration Test...' : '🧪 Run Integration Test'}
           </button>
           <button
             onClick={() => window.location.reload()}
