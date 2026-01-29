@@ -1,6 +1,5 @@
 import { createServerSupabaseClient, getProfileByAnyId, updateProfileRecord } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
-import crypto from 'crypto'
 import { sendWelcomeEmail, sendPaymentConfirmationEmail } from '@/lib/email'
 
 // PhonePe 2026 Webhook Configuration
@@ -112,32 +111,90 @@ async function handlePaymentSuccess(webhookData: any, supabaseClient: any) {
       .single()
 
     if (transaction) {
+      const nowIso = new Date().toISOString()
+      const periodEnd = getPeriodEnd(transaction.billing_cycle)
+      const { planRecord, entitlements } = await resolvePlanEntitlements(
+        supabaseClient,
+        transaction.plan_id,
+        transaction.billing_cycle
+      )
+      const planName = PLAN_NAMES[transaction.plan_id] || planRecord?.name || transaction.plan_id
+
       // Activate subscription in subscriptions table
-      await supabaseClient
+      const { error: subscriptionError } = await supabaseClient
         .from('subscriptions')
         .upsert({
           user_id: transaction.user_id,
           plan_id: transaction.plan_id,
+          plan_name: planName,
           billing_cycle: transaction.billing_cycle,
           status: 'active',
-          current_period_start: new Date().toISOString(),
-          current_period_end: getPeriodEnd(transaction.billing_cycle),
-          updated_at: new Date().toISOString(),
+          current_period_start: nowIso,
+          current_period_end: periodEnd,
+          updated_at: nowIso,
         }, {
           onConflict: 'user_id'
         })
 
-      // Update profile with subscription status (PRIMARY source for routing)
-      await updateProfileRecord(
-        supabaseClient,
-        { profileId: transaction.user_id },
-        {
-          subscription_plan: transaction.plan_id,
-          subscription_status: 'active',
-          onboarding_status: 'pending',
-          updated_at: new Date().toISOString(),
-        }
-      )
+      if (subscriptionError) {
+        console.error('Subscription activation failed:', subscriptionError)
+      }
+
+      // Keep unified subscriptions table in sync when available
+      const { error: unifiedSubError } = await supabaseClient
+        .from('user_subscriptions')
+        .upsert({
+          user_id: transaction.user_id,
+          plan_id: planRecord?.id || transaction.plan_id,
+          billing_cycle: transaction.billing_cycle,
+          amount_paid: transaction.amount,
+          status: 'active',
+          current_period_start: nowIso,
+          current_period_end: periodEnd,
+          phonepe_order_id: merchantTransactionId,
+          updated_at: nowIso,
+        }, {
+          onConflict: 'user_id'
+        })
+
+      if (unifiedSubError) {
+        console.error('Unified subscription activation failed:', unifiedSubError)
+      }
+
+      const subscriptionActive = !subscriptionError
+
+      if (subscriptionActive) {
+        // Update profile with subscription status (PRIMARY source for routing)
+        await updateProfileRecord(
+          supabaseClient,
+          { profileId: transaction.user_id },
+          {
+            subscription_plan: transaction.plan_id,
+            subscription_status: 'active',
+            onboarding_status: 'active',
+            updated_at: nowIso,
+          }
+        )
+
+        await upsertEntitlements(
+          supabaseClient,
+          transaction.user_id,
+          {
+            ...entitlements,
+            onboarding_unlocked: true,
+            activated_at: nowIso,
+          },
+          nowIso
+        )
+
+        await logSubscriptionActivation(
+          supabaseClient,
+          transaction.user_id,
+          transaction.plan_id,
+          merchantTransactionId,
+          entitlements
+        )
+      }
 
       console.log(`Subscription activated for user: ${transaction.user_id}`)
 
@@ -147,7 +204,6 @@ async function handlePaymentSuccess(webhookData: any, supabaseClient: any) {
       if (profile) {
         const userEmail = profile.email || ''
         const userName = profile.full_name || userEmail.split('@')[0] || 'User'
-        const planName = PLAN_NAMES[transaction.plan_id] || transaction.plan_id
         const amountInRupees = `₹${((transaction.amount || amount) / 100).toLocaleString('en-IN')}`
         const date = new Date().toLocaleDateString('en-IN', {
           day: 'numeric',
@@ -260,4 +316,130 @@ function getPeriodEnd(billingCycle: string): string {
     endDate.setFullYear(endDate.getFullYear() + 1)
     return endDate.toISOString()
   }
+}
+
+async function resolvePlanEntitlements(
+  supabaseClient: any,
+  planId: string | null,
+  billingCycle: string | null
+) {
+  let planRecord = null
+
+  if (planId) {
+    const { data: planBySlug } = await supabaseClient
+      .from('subscription_plans')
+      .select('id, slug, name, features, limits')
+      .eq('slug', planId)
+      .maybeSingle()
+
+    planRecord = planBySlug
+
+    if (!planRecord && isUuid(planId)) {
+      const { data: planById } = await supabaseClient
+        .from('subscription_plans')
+        .select('id, slug, name, features, limits')
+        .eq('id', planId)
+        .maybeSingle()
+      planRecord = planById
+    }
+  }
+
+  return {
+    planRecord,
+    entitlements: {
+      plan_id: planRecord?.slug || planId,
+      plan_name: planRecord?.name || planId,
+      billing_cycle: billingCycle,
+      features: planRecord?.features || {},
+      limits: planRecord?.limits || {},
+    }
+  }
+}
+
+async function upsertEntitlements(
+  supabaseClient: any,
+  userId: string,
+  entitlements: Record<string, any>,
+  nowIso: string
+) {
+  try {
+    const { data: profileRecord, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('workspace_preferences')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (profileError) {
+      console.warn('Unable to load workspace preferences:', profileError)
+      return
+    }
+
+    const workspacePreferences = profileRecord?.workspace_preferences || {}
+    const mergedPreferences = {
+      ...workspacePreferences,
+      entitlements
+    }
+
+    const { error: updateError } = await supabaseClient
+      .from('profiles')
+      .update({
+        workspace_preferences: mergedPreferences,
+        updated_at: nowIso
+      })
+      .eq('id', userId)
+
+    if (updateError) {
+      console.warn('Unable to persist entitlement flags:', updateError)
+    }
+
+    const { error: userProfilesError } = await supabaseClient
+      .from('user_profiles')
+      .update({
+        plan_features: entitlements,
+        updated_at: nowIso
+      })
+      .eq('id', userId)
+
+    if (userProfilesError) {
+      console.warn('Unable to persist entitlement flags in user_profiles:', userProfilesError)
+    }
+  } catch (error) {
+    console.warn('Failed to update entitlement flags:', error)
+  }
+}
+
+async function logSubscriptionActivation(
+  supabaseClient: any,
+  userId: string,
+  planId: string,
+  transactionId: string,
+  entitlements: Record<string, any>
+) {
+  try {
+    const { error } = await supabaseClient
+      .from('audit_logs')
+      .insert({
+        actor_id: userId,
+        action: 'subscription_activated',
+        action_category: 'subscription',
+        description: `Subscription activated for plan ${planId}`,
+        target_type: 'subscription',
+        target_id: transactionId,
+        changes: {
+          plan_id: planId,
+          entitlements
+        },
+        status: 'success'
+      })
+
+    if (error) {
+      console.warn('Failed to log subscription activation:', error)
+    }
+  } catch (error) {
+    console.warn('Failed to log subscription activation:', error)
+  }
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
 }
