@@ -8,15 +8,16 @@ Reddit research, perceptual mapping, neuroscience copywriting, and channel strat
 import asyncio
 import logging
 import os
-import sys
 import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from core.supabase_mgr import get_supabase_admin
 from db.repositories.onboarding import OnboardingRepository
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from db.repositories.onboarding_steps import OnboardingStepsRepository
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from integration.bcm_reducer import BCMReducer
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from schemas.onboarding_schema import (
     BusinessContext,
     OnboardingFinalizationRequest,
@@ -24,7 +25,6 @@ from schemas.onboarding_schema import (
     extract_business_context_from_steps,
     validate_step_data,
 )
-from services.supabase_client import get_supabase_admin
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -55,13 +55,13 @@ from ..agents.specialists.soundbites_generator import SoundbitesGenerator
 from ..agents.specialists.truth_sheet_generator import TruthSheetGenerator
 from ..core.auth import get_current_user
 from ..core.models import User
-from ..services.profile_service import ProfileService
 
 # Redis session management
 from ..redis.session_manager import get_onboarding_session_manager
 
 # Core system imports
 from ..services.ocr_service import OCRService
+from ..services.profile_service import ProfileService
 from ..services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
 from ..services.storage import get_enhanced_storage_service
 from ..services.vertex_ai_service import vertex_ai_service
@@ -82,6 +82,7 @@ router = APIRouter(prefix="/api/v1/onboarding", tags=["onboarding"])
 ocr_service = OCRService()
 search_service = NativeSearch()
 onboarding_repo = OnboardingRepository()
+onboarding_steps_repo = OnboardingStepsRepository()
 
 # Initialize Redis session manager
 session_manager = get_onboarding_session_manager()
@@ -99,6 +100,7 @@ def _ensure_active_subscription(profile: Dict[str, Any]) -> None:
                 "subscription_status": subscription_status,
             },
         )
+
 
 # Initialize AI agents
 evidence_classifier = EvidenceClassifier()
@@ -119,6 +121,78 @@ soundbites_generator = SoundbitesGenerator()
 icp_deep_generator = ICPDeepGenerator()
 positioning_generator = PositioningStatementGenerator()
 
+TOTAL_ONBOARDING_STEPS = 23
+STEP_STATUSES = {"pending", "in-progress", "complete", "blocked", "error"}
+STEP_NAMES = {
+    1: "Evidence Vault",
+    2: "Brand Synthesis",
+    3: "Strategic Integrity",
+    4: "Truth Confirmation",
+    5: "The Offer",
+    6: "Market Intelligence",
+    7: "Competitive Landscape",
+    8: "Comparative Angle",
+    9: "Market Category",
+    10: "Product Capabilities",
+    11: "Perceptual Map",
+    12: "Position Grid",
+    13: "Gap Analysis",
+    14: "Positioning Statements",
+    15: "Focus & Sacrifice",
+    16: "ICP Personas",
+    17: "Market Education",
+    18: "Messaging Rules",
+    19: "Soundbites Library",
+    20: "Channel Strategy",
+    21: "Market Size",
+    22: "Validation Tasks",
+    23: "Final Synthesis",
+}
+
+
+def _get_step_name(step_number: int) -> str:
+    return STEP_NAMES.get(step_number, f"Step {step_number}")
+
+
+def _get_phase_number(step_number: int) -> int:
+    if step_number <= 4:
+        return 1
+    if step_number <= 5:
+        return 2
+    if step_number <= 8:
+        return 3
+    if step_number <= 13:
+        return 4
+    if step_number <= 19:
+        return 5
+    return 6
+
+
+def _build_next_step_guidance(
+    step_number: int, completed: bool = False
+) -> Dict[str, Any]:
+    if completed or step_number >= TOTAL_ONBOARDING_STEPS:
+        return {
+            "next_step": None,
+            "message": "Onboarding complete. You can move on to the dashboard.",
+        }
+
+    next_step = step_number + 1 if step_number >= 1 else 1
+    return {
+        "next_step": {
+            "step_number": next_step,
+            "step_name": _get_step_name(next_step),
+        },
+        "message": f"Continue to step {next_step}: {_get_step_name(next_step)}.",
+    }
+
+
+def _calculate_progress_percentage(completed_steps: int) -> float:
+    if TOTAL_ONBOARDING_STEPS <= 0:
+        return 0.0
+    percentage = (completed_steps / TOTAL_ONBOARDING_STEPS) * 100
+    return round(min(max(percentage, 0.0), 100.0), 2)
+
 
 # Pydantic models with enhanced validation
 class StepUpdateRequest(BaseModel):
@@ -131,6 +205,37 @@ class StepUpdateRequest(BaseModel):
         if not v or not isinstance(v, dict):
             raise ValueError("Data must be a non-empty dictionary")
         return v
+
+
+class SessionCreateRequest(BaseModel):
+    workspace_id: str = Field(..., min_length=1)
+    user_id: str = Field(..., min_length=1)
+    client_name: Optional[str] = None
+
+
+class StepSaveRequest(BaseModel):
+    step_number: int = Field(..., ge=1, le=TOTAL_ONBOARDING_STEPS)
+    status: str = Field(..., description="pending|in-progress|complete|blocked|error")
+    step_data: Dict[str, Any] = Field(default_factory=dict)
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    is_required: bool = True
+
+    @validator("status")
+    def validate_status(cls, value: str) -> str:
+        if value not in STEP_STATUSES:
+            raise ValueError(f"Invalid status '{value}'")
+        return value
+
+    @validator("completed_at")
+    def validate_completion(cls, value: Optional[datetime], values: Dict[str, Any]):
+        if value and values.get("status") != "complete":
+            raise ValueError("completed_at requires status='complete'")
+        return value
+
+
+class CompletionRequest(BaseModel):
+    finalize_context: bool = False
 
 
 class URLProcessRequest(BaseModel):
@@ -313,27 +418,9 @@ async def process_ocr(file_path: str, file_content: bytes) -> Dict[str, Any]:
 
 
 @router.post("/session")
-async def create_or_get_session(
-    workspace_id: str,
-    user_id: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
-):
+async def create_or_get_session(workspace_id: str, user_id: Optional[str] = None):
     """Create or retrieve onboarding session for workspace using Redis"""
     try:
-        profile = profile_service.verify_profile(current_user)
-        _ensure_active_subscription(profile)
-
-        profile_workspace_id = profile.get("workspace_id")
-        if not profile_workspace_id:
-            raise HTTPException(status_code=400, detail="Workspace not found for user")
-        if workspace_id and workspace_id != profile_workspace_id:
-            raise HTTPException(
-                status_code=403, detail="Workspace does not match authenticated user"
-            )
-
-        workspace_id = profile_workspace_id
-        user_id = current_user.id
-
         # Generate a unique session ID
         import uuid
 
@@ -364,6 +451,277 @@ async def create_or_get_session(
 
     except Exception as e:
         logger.error(f"Error creating Redis session: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/session/create")
+async def create_onboarding_session(request: SessionCreateRequest):
+    """Create onboarding session persisted in onboarding_sessions/onboarding_steps."""
+    try:
+        import uuid
+
+        supabase = get_supabase_admin()
+        public_session_id = str(uuid.uuid4())
+        now = datetime.utcnow().isoformat()
+        payload = {
+            "session_id": public_session_id,
+            "user_id": request.user_id,
+            "workspace_id": request.workspace_id,
+            "client_name": request.client_name,
+            "current_step": 1,
+            "total_steps": TOTAL_ONBOARDING_STEPS,
+            "completion_percentage": 0,
+            "status": "active",
+            "started_at": now,
+            "updated_at": now,
+            "metadata": {"client_name": request.client_name},
+        }
+
+        result = (
+            await supabase.table("onboarding_sessions")
+            .insert(payload)
+            .single()
+            .execute()
+        )
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to create session")
+
+        session_row = result.data
+        db_session_id = session_row.get("id")
+        if not db_session_id:
+            raise HTTPException(status_code=500, detail="Missing session identifier")
+
+        onboarding_steps_repo.upsert_step(
+            session_id=db_session_id,
+            step_number=1,
+            step_name=_get_step_name(1),
+            phase_number=_get_phase_number(1),
+            status="pending",
+            step_data={},
+            started_at=None,
+            completed_at=None,
+            is_required=True,
+        )
+
+        return {
+            "success": True,
+            "session_id": db_session_id,
+            "public_session_id": public_session_id,
+            "workspace_id": request.workspace_id,
+            "user_id": request.user_id,
+            "current_step": 1,
+            "progress_percentage": 0.0,
+            "next_step_guidance": _build_next_step_guidance(0),
+            "created_at": now,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating onboarding session: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/session/{session_id}/steps")
+async def save_onboarding_step(session_id: str, request: StepSaveRequest):
+    """Save/update onboarding step data in onboarding_steps with ordering."""
+    try:
+        supabase = get_supabase_admin()
+        session_result = (
+            await supabase.table("onboarding_sessions")
+            .select("*")
+            .eq("id", session_id)
+            .maybe_single()
+            .execute()
+        )
+        session_row = session_result.data
+        if not session_row:
+            session_result = (
+                await supabase.table("onboarding_sessions")
+                .select("*")
+                .eq("session_id", session_id)
+                .maybe_single()
+                .execute()
+            )
+            session_row = session_result.data
+
+        if not session_row:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        db_session_id = session_row.get("id", session_id)
+        existing_step = onboarding_steps_repo.get_step(
+            db_session_id, request.step_number
+        )
+        current_step = session_row.get("current_step", 1)
+
+        if not existing_step and request.step_number > current_step + 1:
+            raise HTTPException(
+                status_code=400,
+                detail="Step order violation. Complete prior steps before continuing.",
+            )
+
+        if existing_step and existing_step.get("status") == "complete":
+            if request.status != "complete":
+                raise HTTPException(
+                    status_code=400, detail="Completed steps cannot be reverted."
+                )
+
+        if request.status == "complete":
+            is_valid, validation_errors = validate_step_data(
+                request.step_number, request.step_data
+            )
+            if not is_valid:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Step validation failed: {'; '.join(validation_errors)}",
+                )
+
+        started_at = (
+            request.started_at or existing_step.get("started_at")
+            if existing_step
+            else None
+        )
+        if not started_at and request.status in {"in-progress", "complete"}:
+            started_at = datetime.utcnow()
+
+        completed_at = request.completed_at
+        if request.status == "complete" and not completed_at:
+            completed_at = datetime.utcnow()
+        if request.status != "complete":
+            completed_at = None
+
+        saved_step = onboarding_steps_repo.upsert_step(
+            session_id=db_session_id,
+            step_number=request.step_number,
+            step_name=_get_step_name(request.step_number),
+            phase_number=_get_phase_number(request.step_number),
+            status=request.status,
+            step_data=request.step_data,
+            started_at=started_at,
+            completed_at=completed_at,
+            is_required=request.is_required,
+        )
+
+        completed_steps = onboarding_steps_repo.count_completed_steps(db_session_id)
+        progress_percentage = _calculate_progress_percentage(completed_steps)
+
+        new_current_step = current_step
+        if request.status == "complete" and request.step_number >= current_step:
+            new_current_step = min(request.step_number + 1, TOTAL_ONBOARDING_STEPS)
+        if completed_steps >= TOTAL_ONBOARDING_STEPS:
+            new_current_step = TOTAL_ONBOARDING_STEPS
+
+        session_status = (
+            "completed" if completed_steps >= TOTAL_ONBOARDING_STEPS else "active"
+        )
+
+        await supabase.table("onboarding_sessions").update(
+            {
+                "current_step": new_current_step,
+                "completion_percentage": progress_percentage,
+                "status": session_status,
+                "updated_at": datetime.utcnow().isoformat(),
+            }
+        ).eq("id", db_session_id).execute()
+
+        guidance = (
+            _build_next_step_guidance(
+                request.step_number,
+                completed=completed_steps >= TOTAL_ONBOARDING_STEPS,
+            )
+            if request.status == "complete"
+            else _build_next_step_guidance(request.step_number - 1)
+        )
+
+        return {
+            "success": True,
+            "session_id": db_session_id,
+            "step": {
+                "step_number": request.step_number,
+                "step_name": _get_step_name(request.step_number),
+                "phase_number": _get_phase_number(request.step_number),
+                "status": request.status,
+                "saved_at": saved_step.get("updated_at"),
+            },
+            "completed_steps": completed_steps,
+            "progress_percentage": progress_percentage,
+            "current_step": new_current_step,
+            "next_step_guidance": guidance,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving onboarding step: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/session/{session_id}/complete")
+async def complete_onboarding_session(
+    session_id: str, request: Optional[CompletionRequest] = None
+):
+    """Mark onboarding session as complete and return progress guidance."""
+    try:
+        _ = request
+        supabase = get_supabase_admin()
+        session_result = (
+            await supabase.table("onboarding_sessions")
+            .select("*")
+            .eq("id", session_id)
+            .maybe_single()
+            .execute()
+        )
+        session_row = session_result.data
+        if not session_row:
+            session_result = (
+                await supabase.table("onboarding_sessions")
+                .select("*")
+                .eq("session_id", session_id)
+                .maybe_single()
+                .execute()
+            )
+            session_row = session_result.data
+
+        if not session_row:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        db_session_id = session_row.get("id", session_id)
+        completed_steps = onboarding_steps_repo.count_completed_steps(db_session_id)
+        if completed_steps < TOTAL_ONBOARDING_STEPS:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Cannot complete session. "
+                    f"{completed_steps}/{TOTAL_ONBOARDING_STEPS} steps completed."
+                ),
+            )
+
+        now = datetime.utcnow().isoformat()
+        await supabase.table("onboarding_sessions").update(
+            {
+                "status": "completed",
+                "completion_percentage": 100,
+                "current_step": TOTAL_ONBOARDING_STEPS,
+                "completed_at": now,
+                "updated_at": now,
+            }
+        ).eq("id", db_session_id).execute()
+
+        return {
+            "success": True,
+            "session_id": db_session_id,
+            "completed_steps": completed_steps,
+            "progress_percentage": 100.0,
+            "next_step_guidance": _build_next_step_guidance(
+                TOTAL_ONBOARDING_STEPS, completed=True
+            ),
+            "completed_at": now,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error completing onboarding session: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

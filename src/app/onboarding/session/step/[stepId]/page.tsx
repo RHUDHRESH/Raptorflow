@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, lazy } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { Loader2 } from "lucide-react";
@@ -75,17 +75,24 @@ function StepLoadingFallback() {
 export default function OnboardingStepPage() {
   const params = useParams();
   const router = useRouter();
-  const { initSession, currentStep, session } = useOnboardingStore();
+  const searchParams = useSearchParams();
+  const { initSession, currentStep, setCurrentStep, session, hasHydrated } = useOnboardingStore();
 
   const stepId = parseInt(params.stepId as string);
   const StepComponent = StepComponents[stepId] || StepComponents[1];
+  const sessionIdParam = searchParams.get("sessionId") || searchParams.get("session_id");
 
   useEffect(() => {
     // Initialize session if not already done
+    if (!hasHydrated) return;
     if (!session?.sessionId) {
-      initSession(`session-${Date.now()}`, "New Client");
+      initSession(sessionIdParam || `session-${Date.now()}`, "New Client");
+      return;
     }
-  }, [session, initSession]);
+    if (currentStep !== stepId) {
+      setCurrentStep(stepId);
+    }
+  }, [session, initSession, currentStep, stepId, setCurrentStep, hasHydrated, sessionIdParam]);
 
   // Validate step range (now 24 steps)
   if (stepId < 1 || stepId > 24) {

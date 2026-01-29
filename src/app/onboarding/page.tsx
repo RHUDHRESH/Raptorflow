@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { clientAuth } from '@/lib/auth-service';
 import { Loader2, Zap } from "lucide-react";
@@ -9,7 +9,10 @@ import { BlueprintButton } from "@/components/ui/BlueprintButton";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { session, initSession } = useOnboardingStore();
+  const searchParams = useSearchParams();
+  const { session, initSession, currentStep, hasHydrated } = useOnboardingStore();
+
+  const sessionIdParam = searchParams.get("sessionId") || searchParams.get("session_id");
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -34,14 +37,17 @@ export default function OnboardingPage() {
 
       // Initialize session if not exists and redirect to first step
       if (!session?.sessionId) {
-        initSession(`session-${Date.now()}`, "New Client");
+        initSession(sessionIdParam || `session-${Date.now()}`, "New Client");
       }
 
-      router.push("/onboarding/session/step/1");
+      const resumeStep = currentStep || 1;
+      router.push(`/onboarding/session/step/${resumeStep}${sessionIdParam ? `?sessionId=${sessionIdParam}` : ""}`);
     };
 
-    checkStatus();
-  }, [session, initSession, router]);
+    if (hasHydrated) {
+      checkStatus();
+    }
+  }, [session, initSession, router, currentStep, hasHydrated, sessionIdParam]);
 
   return (
     <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center">

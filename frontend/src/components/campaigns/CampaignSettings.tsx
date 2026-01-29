@@ -75,6 +75,7 @@ export function CampaignSettings({ campaignId, onSave, onClose }: CampaignSettin
   const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'team' | 'integrations' | 'advanced'>('general');
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Settings state
   const [generalSettings, setGeneralSettings] = useState({
@@ -164,6 +165,7 @@ export function CampaignSettings({ campaignId, onSave, onClose }: CampaignSettin
   // Handle save
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveError(null);
     try {
       await updateCampaign({
         id: campaign.id,
@@ -172,6 +174,9 @@ export function CampaignSettings({ campaignId, onSave, onClose }: CampaignSettin
       });
       setHasChanges(false);
       onSave?.();
+    } catch (error) {
+      console.error('Failed to save campaign settings:', error);
+      setSaveError('Unable to save changes right now. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -233,6 +238,12 @@ export function CampaignSettings({ campaignId, onSave, onClose }: CampaignSettin
             <div className="flex items-center gap-2 text-sm text-[var(--warning)]">
               <Info size={16} />
               Unsaved changes
+            </div>
+          )}
+          {saveError && (
+            <div className="flex items-center gap-2 text-sm text-[var(--error)]">
+              <AlertTriangle size={16} />
+              {saveError}
             </div>
           )}
 

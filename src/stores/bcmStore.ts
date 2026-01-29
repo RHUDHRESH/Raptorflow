@@ -16,6 +16,8 @@ type FetchOptions = {
 };
 
 interface BcmState {
+  activeWorkspaceId: string | null;
+  cache: Record<string, WorkspaceCache>;
   manifest: BusinessContext | null;
   status: BcmStatus;
   lastFetchedAt: number | null;
@@ -25,7 +27,9 @@ interface BcmState {
 }
 
 interface BcmActions {
+  setActiveWorkspace: (workspaceId: string | null) => void;
   fetchLatest: (workspaceId: string, options?: FetchOptions) => Promise<void>;
+  ensureLatest: (workspaceId: string, options?: FetchOptions) => Promise<void>;
   rebuild: (workspaceId: string, force?: boolean) => Promise<void>;
   refreshHistory: (workspaceId: string) => Promise<void>;
   exportManifest: (workspaceId: string, format?: 'json' | 'markdown') => Promise<Blob>;
@@ -34,6 +38,8 @@ interface BcmActions {
 }
 
 const initialState: BcmState = {
+  activeWorkspaceId: null,
+  cache: {},
   manifest: null,
   status: 'idle',
   lastFetchedAt: null,
@@ -41,22 +47,80 @@ const initialState: BcmState = {
   error: null,
 };
 
+const defaultWorkspaceState = {
+  manifest: null,
+  status: 'idle' as BcmStatus,
+  lastFetchedAt: null,
+  staleReason: undefined as StaleReason | undefined,
+  history: [] as ManifestSummary[],
+  error: null,
+};
+
+const getWorkspaceState = (
+  cache: Record<string, WorkspaceCache>,
+  workspaceId: string | null,
+) => {
+  if (!workspaceId) {
+    return defaultWorkspaceState;
+  }
+  return cache[workspaceId] ?? defaultWorkspaceState;
+};
+
+type WorkspaceCache = typeof defaultWorkspaceState;
+
 export const useBcmStore = create<BcmState & BcmActions>()((set, get) => ({
   ...initialState,
 
+  setActiveWorkspace(workspaceId) {
+    const workspaceState = getWorkspaceState(get().cache, workspaceId);
+    set({
+      activeWorkspaceId: workspaceId,
+      ...workspaceState,
+    });
+  },
+
   async fetchLatest(workspaceId, options) {
-    set({ status: 'loading', error: null });
+    set((state) => {
+      const workspaceState = state.cache[workspaceId] ?? defaultWorkspaceState;
+      return {
+        activeWorkspaceId: workspaceId,
+        cache: {
+          ...state.cache,
+          [workspaceId]: {
+            ...workspaceState,
+            status: 'loading',
+            error: null,
+          },
+        },
+        status: 'loading',
+        error: null,
+      };
+    });
     try {
       const response = await getLatestManifest(workspaceId, {
         tier: options?.tier ?? 'tier0',
       });
 
-      set({
-        manifest: response.manifest,
-        status: 'idle',
-        lastFetchedAt: Date.now(),
-        staleReason: undefined,
-        error: null,
+      set((state) => {
+        const nextWorkspaceState: WorkspaceCache = {
+          manifest: response.manifest ?? null,
+          status: 'idle',
+          lastFetchedAt: Date.now(),
+          staleReason: undefined,
+          history: state.cache[workspaceId]?.history ?? [],
+          error: null,
+        };
+        const cache = {
+          ...state.cache,
+          [workspaceId]: nextWorkspaceState,
+        };
+        const activeState = workspaceId === state.activeWorkspaceId
+          ? nextWorkspaceState
+          : getWorkspaceState(cache, state.activeWorkspaceId);
+        return {
+          cache,
+          ...activeState,
+        };
       });
 
       // Refresh history lazily to avoid extra load if already cached recently
@@ -65,35 +129,143 @@ export const useBcmStore = create<BcmState & BcmActions>()((set, get) => ({
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to fetch BCM';
-      set({ status: 'error', error: message, staleReason: 'error' });
+      set((state) => {
+        const workspaceState = state.cache[workspaceId] ?? defaultWorkspaceState;
+        const nextWorkspaceState: WorkspaceCache = {
+          ...workspaceState,
+          status: 'error',
+          error: message,
+          staleReason: 'error',
+        };
+        const cache = {
+          ...state.cache,
+          [workspaceId]: nextWorkspaceState,
+        };
+        const activeState = workspaceId === state.activeWorkspaceId
+          ? nextWorkspaceState
+          : getWorkspaceState(cache, state.activeWorkspaceId);
+        return {
+          cache,
+          ...activeState,
+        };
+      });
     }
   },
 
+  async ensureLatest(workspaceId, options) {
+    const workspaceState = get().cache[workspaceId];
+    if (workspaceState?.manifest && workspaceState.status !== 'stale' && workspaceState.status !== 'error') {
+      get().setActiveWorkspace(workspaceId);
+      return;
+    }
+    await get().fetchLatest(workspaceId, options);
+  },
+
   async rebuild(workspaceId, force = false) {
-    set({ status: 'loading', error: null });
+    set((state) => {
+      const workspaceState = state.cache[workspaceId] ?? defaultWorkspaceState;
+      return {
+        activeWorkspaceId: workspaceId,
+        cache: {
+          ...state.cache,
+          [workspaceId]: {
+            ...workspaceState,
+            status: 'loading',
+            error: null,
+          },
+        },
+        status: 'loading',
+        error: null,
+      };
+    });
     try {
       const response = await triggerRebuild(workspaceId, force);
-      set({
-        manifest: response.manifest,
-        status: 'idle',
-        lastFetchedAt: Date.now(),
-        staleReason: undefined,
+      set((state) => {
+        const nextWorkspaceState: WorkspaceCache = {
+          manifest: response.manifest ?? null,
+          status: 'idle',
+          lastFetchedAt: Date.now(),
+          staleReason: undefined,
+          history: state.cache[workspaceId]?.history ?? [],
+          error: null,
+        };
+        const cache = {
+          ...state.cache,
+          [workspaceId]: nextWorkspaceState,
+        };
+        const activeState = workspaceId === state.activeWorkspaceId
+          ? nextWorkspaceState
+          : getWorkspaceState(cache, state.activeWorkspaceId);
+        return {
+          cache,
+          ...activeState,
+        };
       });
       await get().refreshHistory(workspaceId);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to rebuild BCM';
-      set({ status: 'error', error: message, staleReason: 'error' });
+      set((state) => {
+        const workspaceState = state.cache[workspaceId] ?? defaultWorkspaceState;
+        const nextWorkspaceState: WorkspaceCache = {
+          ...workspaceState,
+          status: 'error',
+          error: message,
+          staleReason: 'error',
+        };
+        const cache = {
+          ...state.cache,
+          [workspaceId]: nextWorkspaceState,
+        };
+        const activeState = workspaceId === state.activeWorkspaceId
+          ? nextWorkspaceState
+          : getWorkspaceState(cache, state.activeWorkspaceId);
+        return {
+          cache,
+          ...activeState,
+        };
+      });
       throw error;
     }
   },
 
   async refreshHistory(workspaceId) {
     try {
-      const history = await getManifestHistory(workspaceId);
-      set({ history });
+      const historyResponse = await getManifestHistory(workspaceId);
+      const history = historyResponse.versions;
+      set((state) => {
+        const workspaceState = state.cache[workspaceId] ?? defaultWorkspaceState;
+        const nextWorkspaceState: WorkspaceCache = {
+          ...workspaceState,
+          history,
+        };
+        const cache = {
+          ...state.cache,
+          [workspaceId]: nextWorkspaceState,
+        };
+        const activeState = workspaceId === state.activeWorkspaceId
+          ? nextWorkspaceState
+          : getWorkspaceState(cache, state.activeWorkspaceId);
+        return {
+          cache,
+          ...activeState,
+        };
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load history';
-      set({ error: message });
+      set((state) => ({
+        error: message,
+        cache: {
+          ...state.cache,
+          ...(state.activeWorkspaceId
+            ? {
+                [state.activeWorkspaceId]: {
+                  ...(state.cache[state.activeWorkspaceId] ?? defaultWorkspaceState),
+                  error: message,
+                },
+              }
+            : {}),
+        },
+      }));
     }
   },
 
@@ -108,7 +280,25 @@ export const useBcmStore = create<BcmState & BcmActions>()((set, get) => ({
   },
 
   markStale(reason) {
-    set({ status: 'stale', staleReason: reason });
+    set((state) => {
+      if (!state.activeWorkspaceId) {
+        return { status: 'stale', staleReason: reason };
+      }
+      const workspaceState = state.cache[state.activeWorkspaceId] ?? defaultWorkspaceState;
+      const nextWorkspaceState: WorkspaceCache = {
+        ...workspaceState,
+        status: 'stale',
+        staleReason: reason,
+      };
+      const cache = {
+        ...state.cache,
+        [state.activeWorkspaceId]: nextWorkspaceState,
+      };
+      return {
+        cache,
+        ...nextWorkspaceState,
+      };
+    });
   },
 
   reset() {

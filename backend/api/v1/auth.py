@@ -3,10 +3,10 @@ Authentication API endpoints
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, EmailStr, Field
 
 from ..core.auth import get_auth_context, get_current_user, get_workspace_id
 from ..core.models import AuthContext, User
@@ -18,12 +18,230 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 profile_service = ProfileService()
 
 
+class SignupRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
+    full_name: Optional[str] = None
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class ProfileResponse(BaseModel):
+    user_id: str
+    workspace_id: Optional[str]
+    subscription_plan: Optional[str]
+    subscription_status: Optional[str]
+
+
+def _extract_auth_user(auth_result: Any) -> Optional[Any]:
+    if isinstance(auth_result, dict):
+        return auth_result.get("user")
+    return getattr(auth_result, "user", None)
+
+
+def _extract_auth_session(auth_result: Any) -> Optional[Any]:
+    if isinstance(auth_result, dict):
+        return auth_result.get("session")
+    return getattr(auth_result, "session", None)
+
+
+def _get_user_metadata(user: Any) -> Dict[str, Any]:
+    if isinstance(user, dict):
+        return user.get("user_metadata") or {}
+    return getattr(user, "user_metadata", {}) or {}
+
+
 @router.get("/me")
 async def get_current_user_info(current_user: User = Depends(get_current_user)) -> User:
     """
     Get current user information
     """
     return current_user
+
+
+@router.post("/signup", status_code=status.HTTP_201_CREATED)
+async def signup(payload: SignupRequest) -> Dict[str, Any]:
+    """
+    Register a new user with Supabase Auth and create profile/workspace records.
+    """
+    supabase = get_supabase_client()
+    try:
+        sign_up_result = supabase.auth.sign_up(
+            {
+                "email": payload.email,
+                "password": payload.password,
+                "options": {"data": {"full_name": payload.full_name}},
+            }
+        )
+    except Exception as exc:
+        logger.error("Signup failed for %s: %s", payload.email, exc)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unable to complete signup",
+        ) from exc
+
+    user = _extract_auth_user(sign_up_result)
+    session = _extract_auth_session(sign_up_result)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Signup did not return a user record",
+        )
+
+    metadata = _get_user_metadata(user)
+    auth_user = User(
+        id=user["id"] if isinstance(user, dict) else user.id,
+        email=user["email"] if isinstance(user, dict) else user.email,
+        full_name=payload.full_name or metadata.get("full_name"),
+        avatar_url=metadata.get("avatar_url"),
+        subscription_tier="free",
+    )
+
+    try:
+        profile_result = profile_service.ensure_profile(auth_user)
+    except ProfileError as exc:
+        logger.error("Profile creation error for user %s: %s", auth_user.id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": exc.error_type, "message": str(exc), "context": exc.context},
+        ) from exc
+    except Exception as exc:
+        logger.error(
+            "Unexpected error creating profile for user %s: %s", auth_user.id, exc
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error while creating profile",
+        ) from exc
+
+    response = {
+        "user_id": profile_result["user_id"],
+        "workspace_id": profile_result["workspace_id"],
+        "subscription_plan": profile_result["subscription_plan"],
+        "subscription_status": profile_result["subscription_status"],
+    }
+
+    if session:
+        response.update(
+            {
+                "access_token": session["access_token"]
+                if isinstance(session, dict)
+                else session.access_token,
+                "refresh_token": session["refresh_token"]
+                if isinstance(session, dict)
+                else session.refresh_token,
+                "token_type": session["token_type"]
+                if isinstance(session, dict)
+                else session.token_type,
+                "expires_in": session["expires_in"]
+                if isinstance(session, dict)
+                else session.expires_in,
+            }
+        )
+
+    return response
+
+
+@router.post("/register", status_code=status.HTTP_201_CREATED)
+async def register(payload: SignupRequest) -> Dict[str, Any]:
+    """Alias for signup endpoint."""
+    return await signup(payload)
+
+
+@router.post("/login")
+async def login(payload: LoginRequest) -> Dict[str, Any]:
+    """
+    Authenticate user with Supabase Auth and ensure profile/workspace records exist.
+    """
+    supabase = get_supabase_client()
+    try:
+        sign_in_result = supabase.auth.sign_in_with_password(
+            {"email": payload.email, "password": payload.password}
+        )
+    except Exception as exc:
+        logger.warning("Login failed for %s: %s", payload.email, exc)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        ) from exc
+
+    user = _extract_auth_user(sign_in_result)
+    session = _extract_auth_session(sign_in_result)
+    if not user or not session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid login response",
+        )
+
+    metadata = _get_user_metadata(user)
+    auth_user = User(
+        id=user["id"] if isinstance(user, dict) else user.id,
+        email=user["email"] if isinstance(user, dict) else user.email,
+        full_name=metadata.get("full_name"),
+        avatar_url=metadata.get("avatar_url"),
+        subscription_tier="free",
+    )
+    try:
+        profile_result = profile_service.ensure_profile(auth_user)
+    except ProfileError as exc:
+        logger.error("Profile creation error for user %s: %s", auth_user.id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": exc.error_type, "message": str(exc), "context": exc.context},
+        ) from exc
+    except Exception as exc:
+        logger.error(
+            "Unexpected error creating profile for user %s: %s", auth_user.id, exc
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error while creating profile",
+        ) from exc
+
+    return {
+        "access_token": session["access_token"]
+        if isinstance(session, dict)
+        else session.access_token,
+        "refresh_token": session["refresh_token"]
+        if isinstance(session, dict)
+        else session.refresh_token,
+        "token_type": session["token_type"] if isinstance(session, dict) else session.token_type,
+        "expires_in": session["expires_in"] if isinstance(session, dict) else session.expires_in,
+        "user_id": profile_result["user_id"],
+        "workspace_id": profile_result["workspace_id"],
+        "subscription_plan": profile_result["subscription_plan"],
+        "subscription_status": profile_result["subscription_status"],
+    }
+
+
+@router.post("/profile", response_model=ProfileResponse)
+async def create_profile(current_user: User = Depends(get_current_user)):
+    """Create profile/workspace records for an authenticated user."""
+    try:
+        result = profile_service.ensure_profile(current_user)
+        return {
+            "user_id": result["user_id"],
+            "workspace_id": result["workspace_id"],
+            "subscription_plan": result["subscription_plan"],
+            "subscription_status": result["subscription_status"],
+        }
+    except ProfileError as exc:
+        logger.error("Profile creation error for user %s: %s", current_user.id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": exc.error_type, "message": str(exc), "context": exc.context},
+        ) from exc
+    except Exception as exc:
+        logger.error(
+            "Unexpected error creating profile for user %s: %s", current_user.id, exc
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error while creating profile",
+        ) from exc
 
 
 @router.get("/me/workspace")
@@ -55,6 +273,7 @@ async def ensure_profile(current_user: User = Depends(get_current_user)):
             result.get("workspace_id"),
         )
         return {
+            "user_id": result["user_id"],
             "workspace_id": result["workspace_id"],
             "subscription_plan": result["subscription_plan"],
             "subscription_status": result["subscription_status"],
