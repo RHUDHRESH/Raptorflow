@@ -23,6 +23,7 @@ from backend.api.v1.minimal_routers import (
     ocr,
     users,
 )
+from backend.api.v1 import ai_inference
 from backend.config_clean import get_settings
 from backend.database import close_database, init_database
 from backend.redis_client import redis_manager
@@ -125,6 +126,7 @@ app.include_router(moves.router, prefix="/api/v1/moves", tags=["moves"])
 app.include_router(blackbox.router, prefix="/api/v1/blackbox", tags=["blackbox"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
 app.include_router(ocr.router, prefix="/api/v1/ocr", tags=["ocr"])
+app.include_router(ai_inference.router, prefix="/api/v1", tags=["AI Inference"])
 
 if __name__ == "__main__":
     import uvicorn
