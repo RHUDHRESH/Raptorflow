@@ -1,5 +1,6 @@
 import { createServerSupabaseClient, createServiceSupabaseClient, getProfileByAuthUserId } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
+import crypto from 'crypto'
 
 // PhonePe 2026 API Configuration
 const PHONEPE_BASE_URL = process.env.PHONEPE_ENV === 'PRODUCTION'
@@ -10,12 +11,52 @@ const PHONEPE_MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID!
 const PHONEPE_CLIENT_ID = process.env.PHONEPE_CLIENT_ID!
 const PHONEPE_CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET!
 const PHONEPE_CLIENT_VERSION = process.env.PHONEPE_CLIENT_VERSION || '1'
+const PHONEPE_SALT_KEY = process.env.PHONEPE_SALT_KEY
+const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || '1'
 
 // Hardcoded plan pricing for reliability
 const PLAN_PRICING: Record<string, { monthly: number; yearly: number; name: string }> = {
   'ascent': { monthly: 500000, yearly: 5000000, name: 'Ascent' },
   'glide': { monthly: 700000, yearly: 7000000, name: 'Glide' },
   'soar': { monthly: 1000000, yearly: 10000000, name: 'Soar' }
+}
+
+function buildPhonePePayload(params: {
+  merchantId: string
+  transactionId: string
+  userId: string
+  amount: number
+  redirectUrl: string
+  callbackUrl: string
+}) {
+  return {
+    merchantId: params.merchantId,
+    merchantTransactionId: params.transactionId,
+    merchantUserId: params.userId,
+    amount: params.amount,
+    redirectUrl: params.redirectUrl,
+    redirectMode: 'REDIRECT',
+    callbackUrl: params.callbackUrl,
+    paymentInstrument: {
+      type: 'PAY_PAGE'
+    }
+  }
+}
+
+function buildPhonePeRequestBody(payload: Record<string, unknown>) {
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64')
+  return { encodedPayload, requestBody: { request: encodedPayload } }
+}
+
+function buildPhonePeSignature(encodedPayload: string) {
+  if (!PHONEPE_SALT_KEY) {
+    return null
+  }
+  const signature = crypto
+    .createHash('sha256')
+    .update(`${encodedPayload}/pg/v1/pay${PHONEPE_SALT_KEY}`)
+    .digest('hex')
+  return `${signature}###${PHONEPE_SALT_INDEX}`
 }
 
 export async function POST(request: Request) {
@@ -111,6 +152,24 @@ export async function POST(request: Request) {
       // Continue anyway - payment is more important
     }
 
+    // Store payment in payments table for status transitions
+    const { error: paymentInsertError } = await serviceClient
+      .from('payments')
+      .insert({
+        user_id: profile.id,
+        transaction_id: transactionId,
+        plan_id: planId,
+        amount: amount,
+        currency: 'INR',
+        status: 'initiated',
+        payment_method: 'phonepe',
+        created_at: new Date().toISOString()
+      })
+
+    if (paymentInsertError) {
+      console.error('Payments insert error:', paymentInsertError)
+    }
+
     // Store transaction reference
     const { error: txnError } = await serviceClient
       .from('payment_transactions')
@@ -153,19 +212,16 @@ export async function POST(request: Request) {
     const tokenData = await tokenResponse.json()
     const accessToken = tokenData.access_token
 
-    // Prepare PhonePe 2026 payload
-    const payload = {
+    const payload = buildPhonePePayload({
       merchantId: PHONEPE_MERCHANT_ID,
-      merchantTransactionId: transactionId,
-      merchantUserId: profile.id,
-      amount: amount, // In paise
+      transactionId,
+      userId: profile.id,
+      amount,
       redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding/payment/status?transactionId=${transactionId}`,
-      redirectMode: 'REDIRECT',
-      callbackUrl: `${process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL}/api/payments/webhook`,
-      paymentInstrument: {
-        type: 'PAY_PAGE'
-      }
-    }
+      callbackUrl: `${process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL}/api/payments/webhook`
+    })
+    const { encodedPayload, requestBody } = buildPhonePeRequestBody(payload)
+    const xVerify = buildPhonePeSignature(encodedPayload)
 
     // Call PhonePe 2026 API with OAuth token
     const response = await fetch(`${PHONEPE_BASE_URL}/pg/v1/pay`, {
@@ -174,13 +230,23 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
         'X-MERCHANT-ID': PHONEPE_MERCHANT_ID,
+        ...(xVerify ? { 'X-VERIFY': xVerify } : {}),
       },
-      body: JSON.stringify({ request: Buffer.from(JSON.stringify(payload)).toString('base64') }),
+      body: JSON.stringify(requestBody),
     })
 
     const data = await response.json()
 
     if (data.success && data.data?.instrumentResponse?.redirectInfo?.url) {
+      await serviceClient
+        .from('payments')
+        .update({
+          status: 'pending',
+          phonepe_transaction_id: data.data.merchantTransactionId || null,
+          verified_at: new Date().toISOString()
+        })
+        .eq('transaction_id', transactionId)
+
       return NextResponse.json({
         redirectUrl: data.data.instrumentResponse.redirectInfo.url,
         transactionId,
@@ -188,6 +254,14 @@ export async function POST(request: Request) {
     }
 
     console.error('PhonePe error:', data)
+    await serviceClient
+      .from('payments')
+      .update({
+        status: 'failed',
+        verified_at: new Date().toISOString()
+      })
+      .eq('transaction_id', transactionId)
+
     return NextResponse.json(
       { error: 'Failed to initiate payment' },
       { status: 500 }
