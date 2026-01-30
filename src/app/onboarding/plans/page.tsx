@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { Check, Zap, Star, Shield, Loader2, Sparkles, ArrowRight, Crown } from 'lucide-react'
 import { clientAuth } from '@/lib/auth-service'
@@ -106,7 +106,14 @@ export default function ChoosePlan() {
   const [error, setError] = useState('')
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userName, setUserName] = useState<string>('there')
+  const [paymentNotice, setPaymentNotice] = useState<{
+    tone: 'info' | 'error'
+    title: string
+    message: string
+    status: string
+  } | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     fetchPlans()
@@ -123,9 +130,43 @@ export default function ChoosePlan() {
       if (user) {
         setEmail(user.email)
         setName(user.fullName || user.email.split('@')[0] || 'there')
+        setPaymentNoticeFromStatus(user.subscriptionStatus ?? null)
       }
     } catch (err) {
       console.warn('Failed to load user for greeting', err)
+    }
+  }
+
+  useEffect(() => {
+    const status = searchParams.get('paymentStatus')
+    if (status) {
+      setPaymentNoticeFromStatus(status)
+    }
+  }, [searchParams])
+
+  function setPaymentNoticeFromStatus(status: string | null) {
+    if (!status) {
+      return
+    }
+
+    const normalized = status.toLowerCase()
+    if (normalized === 'pending') {
+      setPaymentNotice({
+        tone: 'info',
+        status: normalized,
+        title: 'Payment pending',
+        message: 'We are still waiting for confirmation from your bank. Keep this page open or check back in a few minutes.',
+      })
+      return
+    }
+
+    if (['failed', 'cancelled', 'expired', 'suspended'].includes(normalized)) {
+      setPaymentNotice({
+        tone: 'error',
+        status: normalized,
+        title: 'Payment failed',
+        message: 'We could not confirm your payment. Please try again or use a different method.',
+      })
     }
   }
 
@@ -281,6 +322,29 @@ export default function ChoosePlan() {
             Select the plan that fits your needs. All plans include a 30-day money-back guarantee.
           </p>
         </motion.div>
+
+        {paymentNotice && (
+          <motion.div
+            className={`mb-10 rounded-2xl border px-6 py-4 text-left ${
+              paymentNotice.tone === 'info'
+                ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-100'
+                : 'border-rose-500/40 bg-rose-500/10 text-rose-100'
+            }`}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`mt-1 h-2 w-2 rounded-full ${
+                paymentNotice.tone === 'info' ? 'bg-indigo-400' : 'bg-rose-400'
+              }`} />
+              <div>
+                <h2 className="text-lg font-semibold">{paymentNotice.title}</h2>
+                <p className="text-sm opacity-90">{paymentNotice.message}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Plans Grid */}
         <motion.div

@@ -47,13 +47,13 @@ export default function PaymentCallbackPage() {
             }, 2000);
           } else if (result.status === "failed") {
             setStatus("error");
-            setMessage("Payment failed. Please try again.");
+            setMessage("Payment failed. Please try again or use a different method.");
             setTimeout(() => {
-              router.push("/onboarding/plans");
+              router.push("/onboarding/plans?paymentStatus=failed");
             }, 3000);
           } else {
             setStatus("loading");
-            setMessage("Payment is processing. Please wait...");
+            setMessage("Payment is still pending. We are waiting for confirmation.");
 
             // Poll for status updates
             const pollInterval = setInterval(async () => {
@@ -69,9 +69,9 @@ export default function PaymentCallbackPage() {
                   }, 2000);
                 } else {
                   setStatus("error");
-                  setMessage("Payment failed. Please try again.");
+                  setMessage("Payment failed. Please try again or use a different method.");
                   setTimeout(() => {
-                    router.push("/onboarding/plans");
+                    router.push("/onboarding/plans?paymentStatus=failed");
                   }, 3000);
                 }
               }
@@ -82,18 +82,18 @@ export default function PaymentCallbackPage() {
               clearInterval(pollInterval);
               if (status === "loading") {
                 setStatus("error");
-                setMessage("Payment verification timed out. Please contact support.");
+                setMessage("Payment is still pending. Please check again in a few minutes.");
                 setTimeout(() => {
-                  router.push("/onboarding/plans");
+                  router.push("/onboarding/plans?paymentStatus=pending");
                 }, 3000);
               }
             }, 300000);
           }
         } else {
           setStatus("error");
-          setMessage(result.error || "Failed to verify payment status");
+          setMessage(result.error || "Payment verification failed. Please try again.");
           setTimeout(() => {
-            router.push("/onboarding/plans");
+            router.push("/onboarding/plans?paymentStatus=failed");
           }, 3000);
         }
       } catch (error) {
@@ -101,7 +101,7 @@ export default function PaymentCallbackPage() {
         setStatus("error");
         setMessage("An error occurred while processing your payment.");
         setTimeout(() => {
-          router.push("/onboarding/plans");
+          router.push("/onboarding/plans?paymentStatus=failed");
         }, 3000);
       }
     };
@@ -139,10 +139,20 @@ export default function PaymentCallbackPage() {
         </h1>
 
         <p className="text-gray-600 mb-8">{message}</p>
-
+        {status === "loading" && (
+          <p className="text-sm text-gray-500 mb-6">
+            Keep this tab open while we confirm your payment. You can safely return to plans if it stays pending.
+          </p>
+        )}
         {status === "error" && (
+          <p className="text-sm text-gray-500 mb-6">
+            If you believe this is a mistake, please retry or contact support with your order ID.
+          </p>
+        )}
+
+        {(status === "error" || status === "loading") && (
           <button
-            onClick={() => router.push("/onboarding/plans")}
+            onClick={() => router.push("/onboarding/plans?paymentStatus=" + (status === "loading" ? "pending" : "failed"))}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             Back to Plans

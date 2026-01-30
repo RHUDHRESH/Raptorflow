@@ -29,6 +29,12 @@ export default function OnboardingPage() {
         return;
       }
 
+      if (user.subscriptionStatus !== 'active') {
+        const status = user.subscriptionStatus ?? 'inactive';
+        router.push(`/onboarding/plans?paymentStatus=${status}`);
+        return;
+      }
+
       // Initialize session if not exists and redirect to first step
       if (!session?.sessionId) {
         initSession(sessionIdParam || `session-${Date.now()}`, "New Client");

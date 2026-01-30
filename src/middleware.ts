@@ -374,11 +374,15 @@ export async function middleware(request: NextRequest) {
     }
 
     if (isAuth && profileStatus && requiresProfile) {
+      const hasActiveSubscription = user?.subscription_status === 'active'
+
       if (!profileStatus.profile_exists || !profileStatus.workspace_exists) {
-        return NextResponse.redirect(new URL('/onboarding/start', request.url))
+        return NextResponse.redirect(
+          new URL(hasActiveSubscription ? '/onboarding/start' : '/onboarding/plans', request.url)
+        )
       }
 
-      if (profileStatus.needs_payment) {
+      if (profileStatus.needs_payment || !hasActiveSubscription) {
         return NextResponse.redirect(new URL('/onboarding/plans', request.url))
       }
     }

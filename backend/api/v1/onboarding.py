@@ -8,11 +8,11 @@ Reddit research, perceptual mapping, neuroscience copywriting, and channel strat
 import asyncio
 import logging
 import os
-import sys
 import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from core.supabase_mgr import get_supabase_admin
 from db.repositories.onboarding import OnboardingRepository
 from db.repositories.onboarding_steps import OnboardingStepsRepository
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
@@ -25,7 +25,6 @@ from schemas.onboarding_schema import (
     extract_business_context_from_steps,
     validate_step_data,
 )
-from core.supabase_mgr import get_supabase_admin
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -54,12 +53,15 @@ from ..agents.specialists.proof_point_validator import ProofPointValidator
 from ..agents.specialists.reddit_researcher import RedditResearcher
 from ..agents.specialists.soundbites_generator import SoundbitesGenerator
 from ..agents.specialists.truth_sheet_generator import TruthSheetGenerator
+from ..core.auth import get_current_user
+from ..core.models import User
 
 # Redis session management
 from ..redis.session_manager import get_onboarding_session_manager
 
 # Core system imports
 from ..services.ocr_service import OCRService
+from ..services.profile_service import ProfileService
 from ..services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
 from ..services.storage import get_enhanced_storage_service
 from ..services.vertex_ai_service import vertex_ai_service
@@ -84,6 +86,21 @@ onboarding_steps_repo = OnboardingStepsRepository()
 
 # Initialize Redis session manager
 session_manager = get_onboarding_session_manager()
+profile_service = ProfileService()
+
+
+def _ensure_active_subscription(profile: Dict[str, Any]) -> None:
+    subscription_status = profile.get("subscription_status")
+    if subscription_status != "active":
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "error": "SUBSCRIPTION_REQUIRED",
+                "message": "An active subscription is required to start onboarding.",
+                "subscription_status": subscription_status,
+            },
+        )
+
 
 # Initialize AI agents
 evidence_classifier = EvidenceClassifier()
@@ -151,7 +168,9 @@ def _get_phase_number(step_number: int) -> int:
     return 6
 
 
-def _build_next_step_guidance(step_number: int, completed: bool = False) -> Dict[str, Any]:
+def _build_next_step_guidance(
+    step_number: int, completed: bool = False
+) -> Dict[str, Any]:
     if completed or step_number >= TOTAL_ONBOARDING_STEPS:
         return {
             "next_step": None,
@@ -459,7 +478,10 @@ async def create_onboarding_session(request: SessionCreateRequest):
         }
 
         result = (
-            await supabase.table("onboarding_sessions").insert(payload).single().execute()
+            await supabase.table("onboarding_sessions")
+            .insert(payload)
+            .single()
+            .execute()
         )
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to create session")
@@ -555,8 +577,9 @@ async def save_onboarding_step(session_id: str, request: StepSaveRequest):
                 )
 
         started_at = (
-            request.started_at
-            or existing_step.get("started_at") if existing_step else None
+            request.started_at or existing_step.get("started_at")
+            if existing_step
+            else None
         )
         if not started_at and request.status in {"in-progress", "complete"}:
             started_at = datetime.utcnow()
