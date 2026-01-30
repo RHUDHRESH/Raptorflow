@@ -9,7 +9,7 @@ from ..agents.universal.agent import UniversalAgent
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/onboarding-universal", tags=["onboarding-universal"])
+router = APIRouter(prefix="/onboarding-universal", tags=["onboarding-universal"])
 
 # Repositories
 onboarding_repo = OnboardingRepository()

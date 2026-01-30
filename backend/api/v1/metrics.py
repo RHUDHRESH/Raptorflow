@@ -48,7 +48,7 @@ from ..core.resources import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/metrics", tags=["metrics"])
+router = APIRouter(prefix="/metrics", tags=["metrics"])
 
 
 @router.get("/global")

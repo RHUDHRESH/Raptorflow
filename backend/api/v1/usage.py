@@ -14,7 +14,7 @@ except ImportError:
     vertex_ai_client = None
 from ..core.auth import get_current_user
 
-router = APIRouter(prefix="/api/v1/usage", tags=["usage"])
+router = APIRouter(prefix="/usage", tags=["usage"])
 
 from ..core.supabase_mgr import get_supabase_client
 

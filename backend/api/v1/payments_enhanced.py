@@ -43,7 +43,7 @@ from ..redis_core.client import get_redis
 logger = logging.getLogger(__name__)
 
 # Create router
-router = APIRouter(prefix="/api/v1/payments", tags=["payments_enhanced"])
+router = APIRouter(prefix="/payments", tags=["payments_enhanced"])
 
 # Security
 security = HTTPBearer(auto_error=False)

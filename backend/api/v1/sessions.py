@@ -23,7 +23,7 @@ from ..core.sessions import get_session_manager as get_redis_session_manager
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/sessions", tags=["sessions"])
+router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 
 # Dependency for authentication

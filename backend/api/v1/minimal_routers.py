@@ -8,14 +8,14 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException
 
 # Create minimal routers
-health = APIRouter()
-auth = APIRouter()
-users = APIRouter()
-campaigns = APIRouter()
-moves = APIRouter()
-blackbox = APIRouter()
-analytics = APIRouter()
-ocr = APIRouter()
+health = APIRouter(prefix="/health")
+auth = APIRouter(prefix="/auth")
+users = APIRouter(prefix="/users")
+campaigns = APIRouter(prefix="/campaigns")
+moves = APIRouter(prefix="/moves")
+blackbox = APIRouter(prefix="/blackbox")
+analytics = APIRouter(prefix="/analytics")
+ocr = APIRouter(prefix="/ocr")
 
 
 @health.get("/")

@@ -88,7 +88,7 @@ class SystemStatusResponse(BaseModel):
 
 
 # Router setup
-router = APIRouter(prefix="/api/v1/ocr", tags=["OCR"])
+router = APIRouter(prefix="/ocr", tags=["OCR"])
 logger = logging.getLogger(__name__)
 
 # Global service instance

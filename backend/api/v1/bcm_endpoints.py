@@ -88,7 +88,7 @@ class BCMCleanupResponse(BaseModel):
 
 
 # Create router
-router = APIRouter(prefix="/api/v1/bcm", tags=["bcm"])
+router = APIRouter(prefix="/bcm", tags=["bcm"])
 
 # Global service instance (in production, use dependency injection)
 bcm_service: Optional[BCMStorageOrchestrator] = None
