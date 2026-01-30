@@ -1,4 +1,4 @@
-﻿"""
+"""
 Feature flags management for Raptorflow backend.
 """
 
@@ -7,8 +7,6 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
-
-from redis.client import RedisClient
 
 from .settings import get_settings
 
@@ -110,10 +108,18 @@ class FeatureFlags:
     """Feature flags management system."""
 
     def __init__(self):
-        self.redis_client = RedisClient()
+        self._redis_client = None
         self.settings = get_settings()
         self._cache: Dict[str, FeatureFlag] = {}
         self._cache_ttl = 300  # 5 minutes
+
+    @property
+    def redis_client(self):
+        """Lazy load redis client"""
+        if self._redis_client is None:
+            from ..redis_client import redis_manager
+            self._redis_client = redis_manager.client
+        return self._redis_client
 
     async def is_enabled(
         self, flag_name: str, user_id: str = None, workspace_id: str = None
@@ -351,3 +357,9 @@ async def disable_feature_flag(flag_name: str) -> bool:
     """Disable a feature flag."""
     flags = get_feature_flags()
     return await flags.disable_flag(flag_name)
+
+async def disable_feature_flag(flag_name: str) -> bool:
+    """Disable a feature flag."""
+    flags = get_feature_flags()
+    return await flags.disable_flag(flag_name)
+

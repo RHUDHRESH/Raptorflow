@@ -13,9 +13,16 @@ import redis.asyncio as redis
 from redis.asyncio import ConnectionPool, Redis
 from redis.exceptions import ConnectionError, RedisError
 
-from ..config_clean import get_settings
+# Lazy load settings to avoid circular imports
+_settings = None
 
-settings = get_settings()
+def _get_settings():
+    """Lazy load settings"""
+    global _settings
+    if _settings is None:
+        from ..config_clean import get_settings
+        _settings = get_settings()
+    return _settings
 
 
 class RedisManager:
@@ -155,3 +162,34 @@ class RedisCache:
 
 # Global cache instance
 cache = RedisCache()
+
+
+# Global cache instance
+cache = RedisCache()
+
+
+
+        except RedisError:
+            return False
+
+
+# Global cache instance
+cache = RedisCache()
+
+
+# Global cache instance
+cache = RedisCache()
+
+
+
+
+
+# Global cache instance
+cache = RedisCache()
+
+
+# Global cache instance
+cache = RedisCache()
+
+
+

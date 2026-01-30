@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from memory import AgentMemoryManager
+from backend.memory import AgentMemoryManager
 
 from ..base import BaseAgent
 from ..config import ModelTier

@@ -14,6 +14,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Environment(str, Enum):
     DEVELOPMENT = "development"
     PRODUCTION = "production"
+    DEV = "dev"
 
 
 class Settings(BaseSettings):
@@ -52,3 +53,4 @@ settings = Settings()
 def get_settings() -> Settings:
     """Get application settings"""
     return settings
+

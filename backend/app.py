@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 # Import routers in a clean way
-from api.v1.minimal_routers import (
+from backend.api.v1.minimal_routers import (
     analytics,
     auth,
     blackbox,
@@ -19,13 +19,13 @@ from api.v1.minimal_routers import (
     ocr,
     users,
 )
-from database import close_database, init_database
+from backend.database import close_database, init_database
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from redis_client import redis_manager
+from backend.redis_client import redis_manager
 
-from ..config_clean import get_settings
+from backend.config_clean import get_settings
 
 settings = get_settings()
 logger = logging.getLogger(__name__)

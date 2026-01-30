@@ -1,0 +1,116 @@
+# Runtime Import Error Documentation
+
+**Checkpoint:** b88b72f23e590d86c96fc9ff1c02f84a4d13d0c  
+**Timestamp:** 2026-01-30T05:42:14.040Z
+
+## Error Traceback
+
+```
+ImportError: cannot import name 'get_redis' from 'redis.client'
+
+File "C:\Users\hp\OneDrive\Desktop\Raptorflow\backend\llm.py", line 717, in __init__
+    from redis.client import get_redis
+ImportError: cannot import name 'get_redis' from 'redis.client'
+```
+
+## Root Cause Analysis
+
+The `redis` library version mismatch. The `get_redis` function was previously available in `redis.client` but has been moved or renamed in newer versions of the `redis` library.
+
+## Import Chain
+
+```
+backend/app.py:12
+    └── backend/api/__init__.py:5
+        └── backend/api/dependencies.py:18
+            └── backend/agents/__init__.py:13
+                └── backend/agents/dispatcher.py:20
+                    └── backend/agents/specialists/__init__.py:61
+                        └── backend/agents/specialists/onboarding_orchestrator.py:32
+                            └── backend/llm.py:717
+                                └── from redis.client import get_redis  # ERROR
+```
+
+## Affected Files
+
+1. `backend/llm.py` - Line 717: `from redis.client import get_redis`
+
+## Solution
+
+Update the import in `backend/llm.py` to use the correct redis client import:
+
+```python
+# Old (broken):
+from redis.client import get_redis
+
+# New (correct):
+from backend.redis_client import get_redis
+```
+
+Or use the redis library's native async client:
+
+```python
+import redis.asyncio as redis
+```
+
+## Status
+
+This error is blocking backend startup. The file `docs/BACKEND_DEEP_AUDIT.md` was generated but the user's edits are reverting all import fixes.
+
+**Checkpoint:** b88b72f23e590d86c96fc9ff1c02f84a4d13d0c  
+**Timestamp:** 2026-01-30T05:42:14.040Z
+
+## Error Traceback
+
+```
+ImportError: cannot import name 'get_redis' from 'redis.client'
+
+File "C:\Users\hp\OneDrive\Desktop\Raptorflow\backend\llm.py", line 717, in __init__
+    from redis.client import get_redis
+ImportError: cannot import name 'get_redis' from 'redis.client'
+```
+
+## Root Cause Analysis
+
+The `redis` library version mismatch. The `get_redis` function was previously available in `redis.client` but has been moved or renamed in newer versions of the `redis` library.
+
+## Import Chain
+
+```
+backend/app.py:12
+    └── backend/api/__init__.py:5
+        └── backend/api/dependencies.py:18
+            └── backend/agents/__init__.py:13
+                └── backend/agents/dispatcher.py:20
+                    └── backend/agents/specialists/__init__.py:61
+                        └── backend/agents/specialists/onboarding_orchestrator.py:32
+                            └── backend/llm.py:717
+                                └── from redis.client import get_redis  # ERROR
+```
+
+## Affected Files
+
+1. `backend/llm.py` - Line 717: `from redis.client import get_redis`
+
+## Solution
+
+Update the import in `backend/llm.py` to use the correct redis client import:
+
+```python
+# Old (broken):
+from redis.client import get_redis
+
+# New (correct):
+from backend.redis_client import get_redis
+```
+
+Or use the redis library's native async client:
+
+```python
+import redis.asyncio as redis
+```
+
+## Status
+
+This error is blocking backend startup. The file `docs/BACKEND_DEEP_AUDIT.md` was generated but the user's edits are reverting all import fixes.
+

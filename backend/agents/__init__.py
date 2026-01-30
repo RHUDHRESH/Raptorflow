@@ -4,7 +4,7 @@ Package initialization for Raptorflow agents.
 
 import os
 
-from config.agent_config import AgentConfig
+from backend.config.agent_config import AgentConfig
 
 from .base import BaseAgent
 from .config import ModelTier, SimplifiedConfig, estimate_cost, get_config
