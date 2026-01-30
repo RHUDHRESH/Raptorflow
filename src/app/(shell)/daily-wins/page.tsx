@@ -115,14 +115,14 @@ export default function DailyWinsPage() {
         gsap.fromTo(pageRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
     }, [mounted]);
 
-    const { user, profile, session } = useAuth();
+    const { user, session } = useAuth();
 
     const generateWin = async (surprise: boolean = false) => {
         setIsGenerating(true);
         setIsSurprising(surprise);
 
         try {
-            const workspaceId = profile?.workspace_id;
+            const workspaceId = user?.workspaceId;
             if (!workspaceId) {
                 throw new Error("No workspace ID");
             }

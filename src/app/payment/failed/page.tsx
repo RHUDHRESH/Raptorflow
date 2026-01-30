@@ -65,7 +65,7 @@ export default function PaymentFailedPage() {
           {/* Action Buttons */}
           <div className="space-y-3">
             <BlueprintButton
-              size="md"
+              size="default"
               className="w-full"
               onClick={handleRetryPayment}
             >
@@ -74,7 +74,7 @@ export default function PaymentFailedPage() {
             </BlueprintButton>
 
             <SecondaryButton
-              size="md"
+              size="default"
               className="w-full"
               onClick={handleGoHome}
             >

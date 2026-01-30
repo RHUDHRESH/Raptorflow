@@ -33,7 +33,7 @@ export interface SessionValidationResult {
 export class ServerAuthService {
   private supabase: any
 
-  constructor(request?: any) {
+  constructor(request?: any, response?: any) {
     // Create server client with proper cookie handling
     this.supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,12 +47,15 @@ export class ServerAuthService {
             return cookies().getAll()
           },
           setAll(cookiesToSet) {
+            if (response) {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                response.cookies.set(name, value, options)
+              })
+              return
+            }
+
             cookiesToSet.forEach(({ name, value, options }) => {
-              if (request) {
-                request.cookies.set(name, value)
-              } else {
-                cookies().set(name, value, options)
-              }
+              cookies().set(name, value, options)
             })
           },
         },
@@ -186,8 +189,8 @@ export class ServerAuthService {
 // FACTORY FUNCTION
 // =============================================================================
 
-export function createServerAuth(request?: any): ServerAuthService {
-  return new ServerAuthService(request)
+export function createServerAuth(request?: any, response?: any): ServerAuthService {
+  return new ServerAuthService(request, response)
 }
 
 // =============================================================================

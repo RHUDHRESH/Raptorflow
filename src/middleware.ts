@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server'
-import { createServerAuth } from './lib/auth-service'
+import { createServerAuth } from './lib/auth-server'
 import { getBaseUrl } from './lib/env-utils'
 
 // Type definitions for middleware
@@ -214,7 +214,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Create auth service instance
-    const serverAuth = createServerAuth(request)
+    const serverAuth = createServerAuth(request, response)
 
     // Validate session
     const sessionValidation = await serverAuth.validateSession()

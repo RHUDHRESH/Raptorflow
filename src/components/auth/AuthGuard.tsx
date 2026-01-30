@@ -62,15 +62,9 @@ export function AuthenticatedContent({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = createClient()
-      if (!supabase) {
-        setIsLoading(false)
-        return
-      }
-
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        const authenticated = !!session
+        const user = await clientAuth.getCurrentUser()
+        const authenticated = !!user
         setIsUserAuthenticated(authenticated);
 
         if (!authenticated) {

@@ -31,7 +31,7 @@ export async function GET() {
       email: {
         service: 'resend',
         status: 'active',
-        last_sent: await getLastEmailSent(supabase)
+        last_sent: await getLastEmailSent()
       },
       security: {
         rate_limit_active: true,
@@ -50,7 +50,7 @@ export async function GET() {
   } catch (error) {
     console.error('Monitoring dashboard error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to get monitoring data',
         timestamp: new Date().toISOString(),
         status: 'error'
@@ -95,7 +95,7 @@ async function getPasswordResets(supabase: any): Promise<number> {
       .from('password_reset_tokens')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-    
+
     return error ? 0 : count || 0;
   } catch {
     return 0;

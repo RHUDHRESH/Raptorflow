@@ -1,69 +1,75 @@
 import crypto from 'crypto'
 
-export class PhonePeService {
-    generateTransactionId(): string {
-        return 'MT' + Date.now() + crypto.randomBytes(4).toString('hex').substr(0, 4)
-    }
+export type PhonePeEnv = 'PRODUCTION' | 'SANDBOX'
 
-    /**
-     * Initiates payment by calling the backend SDK gateway
-     */
-    async initiatePayment(transactionId: string, amount: number, userId: string): Promise<{ url: string; error?: string }> {
-        try {
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            console.log('Initiating PhonePe payment via backend proxy:', { transactionId, amount, userId, apiBaseUrl });
-
-            const response = await fetch(`${apiBaseUrl}/api/v1/payments/v2/initiate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    amount: amount,
-                    merchant_order_id: transactionId,
-                    redirect_url: `${window.location.origin}/onboarding/payment/status`,
-                    callback_url: `${apiBaseUrl}/api/v1/payments/v2/webhook`,
-                    customer_info: {
-                        id: userId,
-                        name: 'User', // In production, get from profile
-                        email: 'user@example.com',
-                        mobile: '9999999999'
-                    }
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.checkout_url) {
-                return { url: data.checkout_url };
-            }
-
-            console.error('PhonePe Backend Init Failed:', data);
-            return { url: '', error: data.error || 'Payment initialization failed' };
-        } catch (err) {
-            console.error('PhonePe Proxy Error:', err);
-            return { url: '', error: 'Failed to connect to payment gateway' };
-        }
-    }
-
-    /**
-     * Verifies payment status via backend
-     */
-    async checkStatus(transactionId: string): Promise<{ status: string; error?: string }> {
-        try {
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const response = await fetch(`${apiBaseUrl}/api/v1/payments/v2/status/${transactionId}`);
-            const data = await response.json();
-
-            if (response.ok) {
-                return { status: data.status };
-            }
-
-            return { status: 'ERROR', error: data.error };
-        } catch (err) {
-            return { status: 'ERROR', error: 'Failed to check status' };
-        }
-    }
+export interface PhonePeConfig {
+  merchantId: string
+  saltKey: string
+  saltIndex: string
+  baseUrl: string
 }
 
-export const phonePeService = new PhonePeService()
+export interface PhonePePayPayload {
+  merchantId: string
+  merchantTransactionId: string
+  merchantUserId: string
+  amount: number
+  redirectUrl: string
+  redirectMode: 'REDIRECT' | 'POST'
+  callbackUrl: string
+  paymentInstrument: {
+    type: 'PAY_PAGE'
+  }
+}
+
+export interface PhonePeStatusResponse {
+  success: boolean
+  code?: string
+  message?: string
+  data?: {
+    merchantId?: string
+    merchantTransactionId?: string
+    transactionId?: string
+    state?: string
+    amount?: number
+    paymentInstrument?: Record<string, unknown>
+    responseCode?: string
+    responseMessage?: string
+  }
+}
+
+export function getPhonePeConfig(): PhonePeConfig {
+  const merchantId = process.env.PHONEPE_MERCHANT_ID || ''
+  const saltKey = process.env.PHONEPE_SALT_KEY || ''
+  const saltIndex = process.env.PHONEPE_SALT_INDEX || '1'
+  const env = (process.env.PHONEPE_ENV || 'SANDBOX').toUpperCase() as PhonePeEnv
+  const baseUrl =
+    process.env.PHONEPE_BASE_URL ||
+    (env === 'PRODUCTION'
+      ? 'https://api.phonepe.com/apis/hermes'
+      : 'https://api-preprod.phonepe.com/apis/pg-sandbox')
+
+  return { merchantId, saltKey, saltIndex, baseUrl }
+}
+
+export function encodePayload(payload: Record<string, unknown>): string {
+  return Buffer.from(JSON.stringify(payload)).toString('base64')
+}
+
+export function createXVerify(payload: string, apiPath: string, saltKey: string, saltIndex: string): string {
+  const checksum = crypto.createHash('sha256').update(payload + apiPath + saltKey).digest('hex')
+  return `${checksum}###${saltIndex}`
+}
+
+export function createWebhookSignature(rawBody: string, saltKey: string, saltIndex: string): string {
+  const checksum = crypto.createHash('sha256').update(rawBody + saltKey).digest('hex')
+  return `${checksum}###${saltIndex}`
+}
+
+export function normalizeSignature(signature: string | null): string | null {
+  if (!signature) return null
+  if (signature.startsWith('X-VERIFY ')) {
+    return signature.slice('X-VERIFY '.length)
+  }
+  return signature
+}

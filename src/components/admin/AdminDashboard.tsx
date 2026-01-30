@@ -2,16 +2,16 @@
 
 import React, { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { BlueprintLoader } from '@/components/ui/BlueprintLoader'
-import { 
-  Users, 
-  Activity, 
-  Shield, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  Users,
+  Activity,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
   XCircle,
   TrendingUp,
   TrendingDown,
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
         fetchSecurityEvents(),
         fetchSystemMetrics()
       ])
-      
+
       setStats(statsData)
       setUsers(usersData)
       setSecurityEvents(eventsData)
@@ -119,26 +119,26 @@ export default function AdminDashboard() {
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, subscription_plan, subscription_status, last_sign_in, created_at')
-    
+
     const { data: workspaces } = await supabase
       .from('workspaces')
       .select('id, is_active, created_at')
-    
+
     const { data: sessions } = await supabase
       .from('user_sessions')
       .select('id, is_active, created_at')
-    
+
     const { data: mfaUsers } = await supabase
       .from('user_mfa')
       .select('user_id, totp_enabled')
-    
+
     const { count: securityCount } = await supabase
       .from('security_events')
       .select('id', { count: 'exact', head: true })
       .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
 
     const now = new Date()
-    const activeUsers = profiles?.filter(p => 
+    const activeUsers = profiles?.filter(p =>
       p.last_sign_in && new Date(p.last_sign_in) > new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     ).length || 0
 
@@ -223,7 +223,7 @@ export default function AdminDashboard() {
           .from('profiles')
           .update({ updated_at: new Date().toISOString() })
           .eq('id', userId)
-        
+
         await fetchUsers()
       }
     } catch (error) {
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = filterStatus === 'all' || 
+    const matchesStatus = filterStatus === 'all' ||
                          (filterStatus === 'active' && user.is_active) ||
                          (filterStatus === 'inactive' && !user.is_active)
     return matchesSearch && matchesStatus

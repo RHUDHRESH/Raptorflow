@@ -80,7 +80,7 @@ export default function BlackBoxPage() {
     const [createdMoveId, setCreatedMoveId] = useState<string | null>(null);
 
     // Auth Integration
-    const { user, profile } = useAuth();
+    const { user } = useAuth();
     const { createMoveFromBlackBox } = useMovesStore();
     const { messaging } = useFoundationStore();
 
@@ -106,7 +106,7 @@ export default function BlackBoxPage() {
         setStep("processing");
 
         try {
-            const workspaceId = profile?.workspace_id;
+            const workspaceId = user?.workspaceId;
             if (!workspaceId) {
                 console.error("No workspace ID found");
                 alert("Please complete onboarding setup first (Workspace ID missing)");
@@ -183,7 +183,7 @@ export default function BlackBoxPage() {
 
     const handleCreateMove = async () => {
         if (!selectedOutcome || !generatedStrategy || !user?.id) return;
-        const workspaceId = profile?.workspace_id;
+        const workspaceId = user?.workspaceId;
 
         // Create move using the store
         const moveId = await createMoveFromBlackBox({

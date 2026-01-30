@@ -141,7 +141,7 @@ export default function ChoosePlan() {
             ...plan,
             description: plan.description || config?.description,
             features: plan.features?.length ? plan.features : config?.features,
-            popular: plan.popular ?? config?.popular
+            popular: (plan as any).popular ?? (config as any)?.popular ?? false
           }
         })
         setPlans(mergedPlans)

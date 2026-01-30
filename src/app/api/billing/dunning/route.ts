@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
 // Dunning configuration
 const DUNNING_RULES = [
@@ -257,12 +258,11 @@ async function logDunningAction(supabase: any, subscriptionId: string, action: s
     })
 }
 
-// Manual retry endpoint for users
 export async function PATCH(request: Request) {
   try {
     const { subscriptionId } = await request.json()
 
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createServerSupabaseClient()
 
     // Get current user
     const { data: { session } } = await supabase.auth.getSession()
@@ -271,14 +271,23 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get user ID from auth
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_user_id', session.user.id)
+      .single()
+
+    if (!userData) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     // Get subscription
     const { data: subscription } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('id', subscriptionId)
-      .eq('user_id', (
-        supabase.from('users').select('id').eq('auth_user_id', session.user.id).single()
-      ))
+      .eq('user_id', userData.id)
       .single()
 
     if (!subscription) {
@@ -290,20 +299,39 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Subscription is not past due' }, { status: 400 })
     }
 
-    // Create new payment attempt
-    const { data: paymentIntent } = await supabase.functions.invoke('create-payment-intent', {
-      body: {
-        subscriptionId,
-        amount: subscription.billing_cycle === 'yearly'
-          ? subscription.price_yearly_paise
-          : subscription.price_monthly_paise,
-        currency: 'inr'
-      }
+    // Create new payment attempt using PhonePe
+    const paymentData = {
+      merchantUserId: userData.id,
+      merchantTransactionId: `retry_${subscriptionId}_${Date.now()}`,
+      amount: subscription.billing_cycle === 'yearly'
+        ? subscription.price_yearly_paise
+        : subscription.price_monthly_paise,
+      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
+      callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/webhook`
+    }
+
+    // Create hash for PhonePe API
+    const encoder = new TextEncoder()
+    const data = encoder.encode(JSON.stringify(paymentData) + process.env.PHONEPE_SALT_KEY)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+    // Call PhonePe API
+    const phonepeResponse = await fetch('https://api.phonepe.com/v1/transaction/initiate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-VERIFY': `${hashHex}###${process.env.PHONEPE_SALT_INDEX}`
+      },
+      body: JSON.stringify(paymentData)
     })
 
-    if (!paymentIntent.clientSecret) {
+    if (!phonepeResponse.ok) {
       return NextResponse.json({ error: 'Failed to create payment intent' }, { status: 500 })
     }
+
+    const paymentResult = await phonepeResponse.json()
 
     // Clear previous dunning actions
     await supabase
@@ -312,8 +340,9 @@ export async function PATCH(request: Request) {
       .eq('subscription_id', subscriptionId)
 
     return NextResponse.json({
-      clientSecret: paymentIntent.clientSecret,
-      message: 'Payment intent created successfully'
+      paymentUrl: paymentResult.data.instrumentResponse.redirectInfo.url,
+      transactionId: paymentData.merchantTransactionId,
+      message: 'Payment retry initiated successfully'
     })
 
   } catch (error) {

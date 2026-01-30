@@ -85,10 +85,7 @@ export async function POST(request: Request) {
 }
 
 async function processDataExport(requestId: string, userId: string, format: string) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const supabase = await createServerSupabaseClient()
 
   try {
     // Fetch all user data
@@ -290,7 +287,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const requestId = searchParams.get('requestId')
 
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createServerSupabaseClient()
 
     // Get current user
     const { data: { session } } = await supabase.auth.getSession()

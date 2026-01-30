@@ -13,17 +13,17 @@ export const runtime = 'edge';
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
-  const { refreshProfile } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const refreshAndRedirect = async () => {
-      await refreshProfile();
+      // TODO: Implement profile refresh if needed
       setLoading(false);
     };
 
     refreshAndRedirect();
-  }, [refreshProfile]);
+  }, []);
 
   const handleGoToWorkspace = () => {
     router.push('/workspace');

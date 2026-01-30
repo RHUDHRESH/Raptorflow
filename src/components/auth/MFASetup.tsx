@@ -1,16 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import type { 
-  setupTOTP, 
-  setupSMS, 
-  toggleMFAMethod, 
+import {
+  setupTOTP,
+  setupSMS,
+  toggleMFAMethod,
   getUserMFAStatus,
-  TOTPSetupResult,
-  MFASetup as MFASetupType,
-  MFAConfig,
-  MFAError,
-  MFAErrors
+  type TOTPSetupResult,
+  type MFASetup as MFASetupType,
+  type MFAConfig,
+  type MFAError,
+  type MFAErrors
 } from '@/lib/mfa'
 
 interface MFASetupProps {
@@ -164,8 +164,8 @@ export default function MFASetup({ onSuccess, onCancel }: MFASetupProps) {
                   {mfa.is_primary && ' (Primary)'}
                 </span>
                 <span className={`text-xs px-2 py-1 rounded-full ${
-                  mfa.is_enabled 
-                    ? 'bg-green-100 text-green-800' 
+                  mfa.is_enabled
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
                   {mfa.is_enabled ? 'Enabled' : 'Disabled'}

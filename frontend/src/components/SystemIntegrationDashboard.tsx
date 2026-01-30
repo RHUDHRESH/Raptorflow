@@ -10,7 +10,7 @@ import { useBCMStore } from '../stores/bcmStore';
 import { useToolsStore } from '../stores/toolsStore';
 import { useAgentsStore } from '../stores/agentsStore';
 import { useAnalyticsStore } from '../stores/analyticsStore';
-import { getCurrentWorkspaceId, getCurrentUserId } from '../lib/auth-helpers';
+import { getCurrentWorkspaceId, getCurrentUserId, logout } from '../lib/auth-helpers';
 import BusinessContextForm from './BusinessContextForm';
 
 interface SystemStatus {
@@ -47,8 +47,8 @@ export default function SystemIntegrationDashboard() {
 
       if (!workspaceId || !userId) {
         console.error('Authentication required for system initialization');
-        setInitError('Authentication required. Please sign in to load system status.');
-        setIsInitializing(false);
+        // Redirect to login page instead of showing error
+        window.location.href = '/login';
         return;
       }
 
@@ -135,7 +135,8 @@ export default function SystemIntegrationDashboard() {
     const userId = getCurrentUserId();
 
     if (!workspaceId || !userId) {
-      setTestError('Please authenticate first.');
+      // Redirect to login page instead of showing error
+      window.location.href = '/login';
       return;
     }
 
@@ -433,6 +434,12 @@ export default function SystemIntegrationDashboard() {
           >
             🔄 Refresh Systems
           </button>
+          <button
+            onClick={logout}
+            className="bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
+          >
+            🚪 Logout
+          </button>
         </div>
 
         {/* System Health Summary */}
@@ -459,6 +466,15 @@ export default function SystemIntegrationDashboard() {
                 <span className="text-sm text-gray-600 ml-1">Errors</span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
           </div>
         </div>
       </div>

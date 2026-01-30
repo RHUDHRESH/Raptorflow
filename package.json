@@ -23,6 +23,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:ci": "vitest run --coverage --reporter=json",
+    "smoke": "node scripts/smoke_test.js",
+    "auth:smoke": "node scripts/auth_smoke_test.js",
     "health-check": "node scripts/quick_check.js",
     "health-check:json": "node scripts/quick_check.js --json"
   },

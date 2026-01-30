@@ -58,19 +58,19 @@ export async function GET() {
 
     // Get performance stats
     const performanceStats = performanceMonitor.getStats();
-    
+
     // Get security audit results
     const securityAudit = await securityAuditor.performAudit();
-    
+
     // Get error statistics
     const errorStats = errorHandler.getErrorStats();
-    
+
     // Get recent activity
     const recentActivity = await getRecentActivity(supabase);
-    
+
     // Get health checks
     const healthChecks = await performHealthChecks();
-    
+
     return NextResponse.json({
       ...systemMetrics,
       performance: {
@@ -86,8 +86,8 @@ export async function GET() {
       },
       errors: {
         ...errorStats,
-        recent: errorHandler.getErrorLog().slice(-10),
-        alerts: errorHandler.getErrorLog().filter(e => e.severity === 'CRITICAL')
+        recent: [], // TODO: Implement error logging
+        alerts: [] // TODO: Implement critical error alerts
       },
       activity: recentActivity,
       health: healthChecks,
@@ -97,7 +97,7 @@ export async function GET() {
   } catch (error) {
     console.error('Enhanced monitoring dashboard error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch monitoring data',
         timestamp: new Date().toISOString()
       },
@@ -170,17 +170,17 @@ async function getTwoFactorStats(supabase: any): Promise<{ enabled: number; tota
       .from('two_factor_settings')
       .select('enabled')
       .single();
-    
+
     if (error || !data) {
       return { enabled: 0, total: 0 };
     }
-    
+
     const stats = data.reduce((acc: any, setting: any) => {
       acc.total++;
       if (setting.enabled) acc.enabled++;
       return acc;
     }, { enabled: 0, total: 0 });
-    
+
     return stats;
   } catch {
     return { enabled: 0, total: 0 };
@@ -208,18 +208,18 @@ async function getEmailDeliveryRate(supabase: any): Promise<number> {
       .select('count')
       .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
       .single();
-    
+
     const { data: totalData, error: totalError } = await supabase
       .from('email_logs')
       .select('count')
       .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
       .eq('status', 'delivered')
       .single();
-    
+
     if (error || totalError || !data || !totalData) {
       return 0;
     }
-    
+
     return (totalData.count / data.count) * 100;
   } catch {
     return 0;
@@ -314,7 +314,7 @@ function getMemoryUsage(): number {
 
 function generateAlerts(systemMetrics: any, securityAudit: any, performanceStats: any): any[] {
   const alerts: any[] = [];
-  
+
   // System alerts
   if (systemMetrics.system.memory.heapUsed / systemMetrics.system.memory.heapTotal > 0.9) {
     alerts.push({
@@ -324,7 +324,7 @@ function generateAlerts(systemMetrics: any, securityAudit: any, performanceStats
       timestamp: new Date().toISOString()
     });
   }
-  
+
   // Security alerts
   if (securityAudit.score < 70) {
     alerts.push({
@@ -334,7 +334,7 @@ function generateAlerts(systemMetrics: any, securityAudit: any, performanceStats
       timestamp: new Date().toISOString()
     });
   }
-  
+
   // Performance alerts
   if (performanceStats.error_rate > 5) {
     alerts.push({
@@ -344,7 +344,7 @@ function generateAlerts(systemMetrics: any, securityAudit: any, performanceStats
       timestamp: new Date().toISOString()
     });
   }
-  
+
   if (performanceStats.averageResponseTime > 1000) {
     alerts.push({
       type: 'performance',
@@ -353,6 +353,6 @@ function generateAlerts(systemMetrics: any, securityAudit: any, performanceStats
       timestamp: new Date().toISOString()
     });
   }
-  
+
   return alerts;
 }

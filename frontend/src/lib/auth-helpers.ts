@@ -139,3 +139,145 @@ export function clearAuthContext(): void {
     console.error('Failed to clear auth context:', error);
   }
 }
+
+/**
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+/**
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+/**
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+/**
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+
+/**
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+/**
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+/**
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+/**
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+
+
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}
+
+ * Logout user and redirect to login
+ */
+export function logout(): void {
+  clearAuthContext();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+}

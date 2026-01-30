@@ -280,7 +280,7 @@ export default function AgentManagement() {
     return matchesSearch && matchesCategory && matchesStatus
   })
 
-  const categories = [...new Set(agents.map(agent => agent.category))]
+  const categories = Array.from(new Set(agents.map(agent => agent.category)))
 
   if (loading) {
     return (
