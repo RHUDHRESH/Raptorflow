@@ -195,9 +195,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const verifyData = await verifyResponse.json();
+        const hasActiveSubscription = verifyData.subscription_status === 'active';
         const isReady = Boolean(
           verifyData.profile_exists &&
           verifyData.workspace_exists &&
+          hasActiveSubscription &&
           !verifyData.needs_payment
         );
 
@@ -240,12 +242,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Smart redirects with state tracking to prevent loops
-        const redirectKey = `${verifyData.profile_exists}-${verifyData.workspace_exists}-${verifyData.needs_payment}`;
+        const redirectKey = `${verifyData.profile_exists}-${verifyData.workspace_exists}-${verifyData.needs_payment}-${hasActiveSubscription}`;
 
         if (!verifyData.workspace_exists && !redirectStateRef.current.has('no-workspace')) {
           redirectStateRef.current.add('no-workspace');
-          router.replace('/onboarding/start');
-        } else if (verifyData.needs_payment && !redirectStateRef.current.has('needs-payment')) {
+          router.replace(hasActiveSubscription ? '/onboarding/start' : '/onboarding/plans');
+        } else if ((verifyData.needs_payment || !hasActiveSubscription) && !redirectStateRef.current.has('needs-payment')) {
           redirectStateRef.current.add('needs-payment');
           router.replace('/onboarding/plans');
         } else if (isReady && pathname?.startsWith('/onboarding/plans') && !redirectStateRef.current.has('ready')) {

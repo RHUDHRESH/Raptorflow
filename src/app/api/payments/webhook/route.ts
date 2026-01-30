@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server'
 import { sendWelcomeEmail, sendPaymentConfirmationEmail } from '@/lib/email'
 
 // PhonePe 2026 Webhook Configuration
-const PHONEPE_WEBHOOK_USERNAME = process.env.PHONEPE_WEBHOOK_USERNAME
-const PHONEPE_WEBHOOK_PASSWORD = process.env.PHONEPE_WEBHOOK_PASSWORD
+const PHONEPE_SALT_KEY = process.env.PHONEPE_SALT_KEY
+const PHONEPE_SALT_INDEX = process.env.PHONEPE_SALT_INDEX || '1'
 
 // Plan name mapping
 const PLAN_NAMES: Record<string, string> = {
@@ -17,13 +17,35 @@ export async function POST(request: Request) {
   try {
     const body = await request.text()
     const signature = request.headers.get('x-verify')
-    const authHeader = request.headers.get('authorization')
 
     // Basic webhook validation for 2026 API
-    if (!authHeader || !signature) {
-      console.error('Missing webhook headers')
+    if (!signature) {
+      console.error('Missing webhook signature header')
       return NextResponse.json(
         { error: 'Missing required headers' },
+        { status: 401 }
+      )
+    }
+
+    if (!PHONEPE_SALT_KEY) {
+      console.error('Missing PhonePe salt key')
+      return NextResponse.json(
+        { error: 'Webhook verification not configured' },
+        { status: 500 }
+      )
+    }
+
+    const expectedSignature = crypto
+      .createHash('sha256')
+      .update(body + PHONEPE_SALT_KEY)
+      .digest('hex')
+    const normalizedSignature = signature.replace(/^sha256:/, '')
+    const expectedWithIndex = `${expectedSignature}###${PHONEPE_SALT_INDEX}`
+
+    if (normalizedSignature !== expectedWithIndex) {
+      console.error('Webhook signature mismatch')
+      return NextResponse.json(
+        { error: 'Invalid webhook signature' },
         { status: 401 }
       )
     }
@@ -99,7 +121,17 @@ async function handlePaymentSuccess(webhookData: any, supabaseClient: any) {
         phonepe_transaction_id: transactionId,
         payment_method: paymentInstrument?.type || 'UNKNOWN',
         payment_instrument: paymentInstrument,
+        phonepe_response: webhookData,
         completed_at: new Date().toISOString(),
+      })
+      .eq('transaction_id', merchantTransactionId)
+
+    await supabaseClient
+      .from('payments')
+      .update({
+        status: 'completed',
+        phonepe_transaction_id: transactionId,
+        verified_at: new Date().toISOString(),
       })
       .eq('transaction_id', merchantTransactionId)
 
@@ -129,7 +161,7 @@ async function handlePaymentSuccess(webhookData: any, supabaseClient: any) {
           plan_name: planName,
           billing_cycle: transaction.billing_cycle,
           status: 'active',
-          current_period_start: nowIso,
+current_period_start: nowIso,
           current_period_end: periodEnd,
           updated_at: nowIso,
         }, {
@@ -272,9 +304,34 @@ async function handlePaymentFailure(webhookData: any, supabaseClient: any) {
         status: 'failed',
         error_code: responseCode,
         error_message: data.responseMessage,
+        phonepe_response: webhookData,
         updated_at: new Date().toISOString(),
       })
       .eq('transaction_id', merchantTransactionId)
+
+    await supabaseClient
+      .from('payments')
+      .update({
+        status: 'failed',
+        verified_at: new Date().toISOString(),
+      })
+      .eq('transaction_id', merchantTransactionId)
+
+    const { data: transaction } = await supabaseClient
+      .from('payment_transactions')
+      .select('user_id')
+      .eq('transaction_id', merchantTransactionId)
+      .single()
+
+    if (transaction?.user_id) {
+      await supabaseClient
+        .from('subscriptions')
+        .update({
+          status: 'past_due',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', transaction.user_id)
+    }
 
   } catch (error) {
     console.error('Error handling payment failure:', error)
