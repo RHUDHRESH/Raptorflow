@@ -25,7 +25,7 @@ from ..core.supabase_mgr import get_supabase_admin
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/api/v1/context", tags=["context"], dependencies=[Depends(get_current_user)]
+    prefix="/context", tags=["context"], dependencies=[Depends(get_current_user)]
 )
 
 

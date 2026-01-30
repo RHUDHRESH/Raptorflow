@@ -117,14 +117,14 @@ async def health_check():
 
 
 # Include API routers
-app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
-app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["campaigns"])
-app.include_router(moves.router, prefix="/api/v1/moves", tags=["moves"])
-app.include_router(blackbox.router, prefix="/api/v1/blackbox", tags=["blackbox"])
-app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
-app.include_router(ocr.router, prefix="/api/v1/ocr", tags=["ocr"])
+app.include_router(health.router, prefix="/api/v1", tags=["health"])
+app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
+app.include_router(users.router, prefix="/api/v1", tags=["users"])
+app.include_router(campaigns.router, prefix="/api/v1", tags=["campaigns"])
+app.include_router(moves.router, prefix="/api/v1", tags=["moves"])
+app.include_router(blackbox.router, prefix="/api/v1", tags=["blackbox"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["analytics"])
+app.include_router(ocr.router, prefix="/api/v1", tags=["ocr"])
 
 if __name__ == "__main__":
     import uvicorn

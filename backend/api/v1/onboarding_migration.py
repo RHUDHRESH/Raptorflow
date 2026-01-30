@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Create router
-router = APIRouter(prefix="/api/v1/onboarding/migration", tags=["onboarding-migration"])
+router = APIRouter(prefix="/onboarding/migration", tags=["onboarding-migration"])
 
 # Initialize services
 migration_service = OnboardingMigrationService()

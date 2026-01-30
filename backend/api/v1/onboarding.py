@@ -76,7 +76,7 @@ MAX_RETRIES = 3
 RETRY_BASE_DELAY = 1
 
 # Create router
-router = APIRouter(prefix="/api/v1/onboarding", tags=["onboarding"])
+router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 
 # Initialize industrial services
 ocr_service = OCRService()

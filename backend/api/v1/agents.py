@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 # Router
-router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
+router = APIRouter(prefix="/agents", tags=["agents"])
 
 # Global instances - lazy initialized to avoid import-time blocking
 _dispatcher = None

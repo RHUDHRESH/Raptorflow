@@ -13,7 +13,7 @@ from ..core.rate_limiter import get_rate_limit_stats, get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/rate-limit", tags=["rate-limiting"])
+router = APIRouter(prefix="/rate-limit", tags=["rate-limiting"])
 
 
 @router.get("/status")

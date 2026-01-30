@@ -26,7 +26,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Create router
-router = APIRouter(prefix="/api/v1/onboarding", tags=["onboarding-finalize"])
+router = APIRouter(prefix="/onboarding", tags=["onboarding-finalize"])
 
 # Initialize services
 session_manager = get_onboarding_session_manager()

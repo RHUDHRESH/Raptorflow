@@ -67,7 +67,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Create router
-router = APIRouter(prefix="/api/v1/onboarding", tags=["onboarding-enhanced"])
+router = APIRouter(prefix="/onboarding", tags=["onboarding-enhanced"])
 
 # Initialize services
 ocr_service = OCRService()

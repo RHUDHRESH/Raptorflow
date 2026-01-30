@@ -345,34 +345,34 @@ if os.getenv("ENABLE_RATE_LIMITING", "true").lower() == "true":
     app.add_middleware(rate_limit_middleware)
 
 # Include all API routers
-app.include_router(agents.router, prefix="/api/v1/agents", tags=["agents"])
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-app.include_router(workspaces.router, prefix="/api/v1/workspaces", tags=["workspaces"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
-app.include_router(foundation.router, prefix="/api/v1/foundation", tags=["foundation"])
-app.include_router(icps.router, prefix="/api/v1/icps", tags=["icps"])
-app.include_router(council.router, prefix="/api/v1/council", tags=["council"])
-app.include_router(moves.router, prefix="/api/v1/moves", tags=["moves"])
+app.include_router(agents.router, prefix="/api/v1", tags=["agents"])
+app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
+app.include_router(workspaces.router, prefix="/api/v1", tags=["workspaces"])
+app.include_router(users.router, prefix="/api/v1", tags=["users"])
+app.include_router(foundation.router, prefix="/api/v1", tags=["foundation"])
+app.include_router(icps.router, prefix="/api/v1", tags=["icps"])
+app.include_router(council.router, prefix="/api/v1", tags=["council"])
+app.include_router(moves.router, prefix="/api/v1", tags=["moves"])
 app.include_router(muse_vertex_ai.router, prefix="/api/v1", tags=["muse"])
-app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["onboarding"])
+app.include_router(onboarding.router, prefix="/api/v1", tags=["onboarding"])
 app.include_router(onboarding_v2.router, prefix="/api/v1", tags=["onboarding-v2"])
 app.include_router(
     onboarding_universal.router,
-    prefix="/api/v1/onboarding-universal",
+    prefix="/api/v1",
     tags=["onboarding-universal"],
 )
-app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["analytics"])
 app.include_router(
-    analytics_v2.router, prefix="/api/v1/analytics-v2", tags=["analytics"]
+    analytics_v2.router, prefix="/api/v1", tags=["analytics"]
 )
-app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])
-app.include_router(graph.router, prefix="/api/v1/graph", tags=["graph"])
-app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["sessions"])
+app.include_router(memory.router, prefix="/api/v1", tags=["memory"])
+app.include_router(graph.router, prefix="/api/v1", tags=["graph"])
+app.include_router(sessions.router, prefix="/api/v1", tags=["sessions"])
 # app.include_router(episodes.router, prefix="/api/v1/episodes", tags=["episodes"])
-app.include_router(approvals.router, prefix="/api/v1/approvals", tags=["approvals"])
-app.include_router(metrics.router, prefix="/api/v1/metrics", tags=["metrics"])
+app.include_router(approvals.router, prefix="/api/v1", tags=["approvals"])
+app.include_router(metrics.router, prefix="/api/v1", tags=["metrics"])
 app.include_router(
-    health_comprehensive.router, prefix="/api/v1/health", tags=["health"]
+    health_comprehensive.router, prefix="/api/v1", tags=["health"]
 )
 # Add configuration management router
 app.include_router(config.router, prefix="/api/v1", tags=["configuration"])
@@ -392,20 +392,20 @@ app.include_router(payments_v2.router, tags=["payments-v2"])  # Official PhonePe
 # Add AI proxy router
 app.include_router(ai_proxy.router, prefix="/api/v1", tags=["ai-proxy"])
 # Add usage tracking router
-app.include_router(usage.router, tags=["usage"])
+app.include_router(usage.router, prefix="/api/v1", tags=["usage"])
 # Add enhanced storage management router
 app.include_router(storage.router, prefix="/api/v1", tags=["storage"])
 app.include_router(
-    context.router, prefix="/api/v1/context", tags=["context"]
+    context.router, prefix="/api/v1", tags=["context"]
 )  # New context router
-app.include_router(evolution.router, prefix="/api/v1/evolution", tags=["evolution"])
+app.include_router(evolution.router, prefix="/api/v1", tags=["evolution"])
 app.include_router(ocr.router, prefix="/api/v1", tags=["ocr"])
-app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
-app.include_router(titan.router, prefix="/api/v1/titan", tags=["titan"])
+app.include_router(search.router, prefix="/api/v1", tags=["search"])
+app.include_router(titan.router, prefix="/api/v1", tags=["titan"])
 # Add missing system routers
-app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["campaigns"])
-app.include_router(daily_wins.router, prefix="/api/v1/daily_wins", tags=["daily_wins"])
-app.include_router(blackbox.router, prefix="/api/v1/blackbox", tags=["blackbox"])
+app.include_router(campaigns.router, prefix="/api/v1", tags=["campaigns"])
+app.include_router(daily_wins.router, prefix="/api/v1", tags=["daily_wins"])
+app.include_router(blackbox.router, prefix="/api/v1", tags=["blackbox"])
 app.include_router(
     business_contexts.router,
     prefix="/api/v1",
