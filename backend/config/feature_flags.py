@@ -118,6 +118,7 @@ class FeatureFlags:
         """Lazy load redis client"""
         if self._redis_client is None:
             from ..redis_client import redis_manager
+
             self._redis_client = redis_manager.client
         return self._redis_client
 
@@ -358,8 +359,8 @@ async def disable_feature_flag(flag_name: str) -> bool:
     flags = get_feature_flags()
     return await flags.disable_flag(flag_name)
 
+
 async def disable_feature_flag(flag_name: str) -> bool:
     """Disable a feature flag."""
     flags = get_feature_flags()
     return await flags.disable_flag(flag_name)
-

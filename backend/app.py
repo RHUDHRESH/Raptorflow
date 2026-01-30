@@ -8,6 +8,10 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 # Import routers in a clean way
 from backend.api.v1.minimal_routers import (
     analytics,
@@ -19,13 +23,9 @@ from backend.api.v1.minimal_routers import (
     ocr,
     users,
 )
-from backend.database import close_database, init_database
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from backend.redis_client import redis_manager
-
 from backend.config_clean import get_settings
+from backend.database import close_database, init_database
+from backend.redis_client import redis_manager
 
 settings = get_settings()
 logger = logging.getLogger(__name__)

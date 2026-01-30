@@ -19,6 +19,7 @@ settings = get_settings()
 def get_feature_flags():
     """Get FeatureFlags instance (lazy import to avoid circular imports)."""
     from .feature_flags import FeatureFlags
+
     return FeatureFlags()
 
 
@@ -30,6 +31,7 @@ def get_config():
 def get_rate_limiter():
     """Get rate limiter instance (backward compatibility)."""
     from core.rate_limiter import get_rate_limiter as get_core_rate_limiter
+
     return get_core_rate_limiter()
 
 

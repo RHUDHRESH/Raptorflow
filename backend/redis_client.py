@@ -190,6 +190,3 @@ cache = RedisCache()
 
 # Global cache instance
 cache = RedisCache()
-
-
-

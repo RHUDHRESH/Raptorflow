@@ -2,37 +2,39 @@
 """Generate comprehensive backend audit report."""
 
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 # Load existing audit data
-with open('docs/route_audit_output.json') as f:
+with open("docs/route_audit_output.json") as f:
     data = json.load(f)
 
-structure = data.get('structure', {})
-endpoints = data.get('endpoints', [])
-dirs = structure.get('directories', {})
+structure = data.get("structure", {})
+endpoints = data.get("endpoints", [])
+dirs = structure.get("directories", {})
 
 # Count endpoints by method
 method_counts = {}
 for ep in endpoints:
-    m = ep.get('method', 'UNKNOWN')
+    m = ep.get("method", "UNKNOWN")
     method_counts[m] = method_counts.get(m, 0) + 1
 
 # Count endpoints by file
 file_counts = {}
 for ep in endpoints:
-    f = ep.get('file', 'UNKNOWN')
+    f = ep.get("file", "UNKNOWN")
     file_counts[f] = file_counts.get(f, 0) + 1
 
 # Sort directories by file count
-sorted_dirs = sorted(dirs.items(), key=lambda x: x[1].get('python_files', 0), reverse=True)
+sorted_dirs = sorted(
+    dirs.items(), key=lambda x: x[1].get("python_files", 0), reverse=True
+)
 
 # Build the report
 report = f"""# Raptorflow Backend Deep Audit Report
 
-**Generated:** {datetime.now().isoformat()}  
-**Scope:** Complete FastAPI backend codebase analysis  
+**Generated:** {datetime.now().isoformat()}
+**Scope:** Complete FastAPI backend codebase analysis
 **Audit Method:** Static AST analysis (runtime import failed)
 
 ---
@@ -72,7 +74,8 @@ for f, c in sorted(file_counts.items(), key=lambda x: -x[1])[:10]:
     fn = Path(f).name
     report += f"| {c} | {fn} |\n"
 
-report += """
+report += (
+    """
 ---
 
 ## B. Exact Metrics (Command Evidence)
@@ -93,7 +96,9 @@ ls backend/api/v1/*.py | wc -l
 ```bash
 python scripts/audit/scan_endpoints.py backend
 ```
-**Result:** """ + str(len(endpoints)) + """ endpoints extracted
+**Result:** """
+    + str(len(endpoints))
+    + """ endpoints extracted
 
 ---
 
@@ -102,11 +107,12 @@ python scripts/audit/scan_endpoints.py backend
 ### C.1 Endpoints Grouped by Router File
 
 """
+)
 
 # Group endpoints by file
 by_file = {}
 for ep in endpoints:
-    f = ep.get('file', 'UNKNOWN')
+    f = ep.get("file", "UNKNOWN")
     if f not in by_file:
         by_file[f] = []
     by_file[f].append(ep)
@@ -122,9 +128,9 @@ for f in sorted(by_file.keys()):
 |--------|------|------|
 """
     for ep in eps:
-        m = ep.get('method', '')
-        p = ep.get('path', '')
-        t = ep.get('type', '')
+        m = ep.get("method", "")
+        p = ep.get("path", "")
+        t = ep.get("type", "")
         report += f"| {m} | `{p}` | {t} |\n"
 
 report += """
@@ -138,14 +144,14 @@ report += """
 
 # Add router file analysis
 router_files = [
-    ('backend/api/v1/auth.py', 'Authentication endpoints'),
-    ('backend/api/v1/users.py', 'User management'),
-    ('backend/api/v1/workspaces.py', 'Workspace management'),
-    ('backend/api/v1/campaigns.py', 'Campaign management'),
-    ('backend/api/v1/payments.py', 'Payment processing'),
-    ('backend/api/v1/onboarding.py', 'User onboarding'),
-    ('backend/api/v1/cognitive.py', 'Cognitive engine'),
-    ('backend/api/v1/health.py', 'Health checks'),
+    ("backend/api/v1/auth.py", "Authentication endpoints"),
+    ("backend/api/v1/users.py", "User management"),
+    ("backend/api/v1/workspaces.py", "Workspace management"),
+    ("backend/api/v1/campaigns.py", "Campaign management"),
+    ("backend/api/v1/payments.py", "Payment processing"),
+    ("backend/api/v1/onboarding.py", "User onboarding"),
+    ("backend/api/v1/cognitive.py", "Cognitive engine"),
+    ("backend/api/v1/health.py", "Health checks"),
 ]
 
 for fp, purpose in router_files:
@@ -177,8 +183,8 @@ report += """
 """
 
 for dir_name, info in sorted_dirs[:20]:
-    pf = info.get('python_files', 0)
-    path = info.get('path', '')[:60]
+    pf = info.get("python_files", 0)
+    path = info.get("path", "")[:60]
     report += f"| {dir_name} | {pf} | {path}... |\n"
 
 report += """
@@ -287,7 +293,7 @@ python scripts/audit/dump_openapi.py
 """
 
 # Save the report
-with open('docs/BACKEND_DEEP_AUDIT.md', 'w', encoding='utf-8') as f:
+with open("docs/BACKEND_DEEP_AUDIT.md", "w", encoding="utf-8") as f:
     f.write(report)
 
 print(f"Report saved: {len(report)} characters")
@@ -296,16 +302,18 @@ print(f"Report saved: {len(report)} characters")
 index = {
     "generated": datetime.now().isoformat(),
     "metrics": {
-        "total_python_files": structure.get('total_python_files', 0),
-        "router_count": structure.get('router_count', 0),
+        "total_python_files": structure.get("total_python_files", 0),
+        "router_count": structure.get("router_count", 0),
         "total_endpoints": len(endpoints),
-        "method_counts": method_counts
+        "method_counts": method_counts,
     },
-    "top_files_by_endpoints": list(sorted(file_counts.items(), key=lambda x: -x[1])[:10]),
-    "directories": {k: v for k, v in sorted_dirs[:20]}
+    "top_files_by_endpoints": list(
+        sorted(file_counts.items(), key=lambda x: -x[1])[:10]
+    ),
+    "directories": {k: v for k, v in sorted_dirs[:20]},
 }
 
-with open('docs/BACKEND_DEEP_AUDIT_INDEX.json', 'w') as f:
+with open("docs/BACKEND_DEEP_AUDIT_INDEX.json", "w") as f:
     json.dump(index, f, indent=2)
 
 print("Index saved: docs/BACKEND_DEEP_AUDIT_INDEX.json")
@@ -379,44 +387,46 @@ Since runtime import failed, the audit relied on static AST analysis:
 - Recommend fixing imports before next audit cycle
 """
 
-with open('docs/REPAIR_LOG.md', 'w', encoding='utf-8') as f:
+with open("docs/REPAIR_LOG.md", "w", encoding="utf-8") as f:
     f.write(repair_log)
 
 print("Repair log saved: docs/REPAIR_LOG.md")
 """Generate comprehensive backend audit report."""
 
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 # Load existing audit data
-with open('docs/route_audit_output.json') as f:
+with open("docs/route_audit_output.json") as f:
     data = json.load(f)
 
-structure = data.get('structure', {})
-endpoints = data.get('endpoints', [])
-dirs = structure.get('directories', {})
+structure = data.get("structure", {})
+endpoints = data.get("endpoints", [])
+dirs = structure.get("directories", {})
 
 # Count endpoints by method
 method_counts = {}
 for ep in endpoints:
-    m = ep.get('method', 'UNKNOWN')
+    m = ep.get("method", "UNKNOWN")
     method_counts[m] = method_counts.get(m, 0) + 1
 
 # Count endpoints by file
 file_counts = {}
 for ep in endpoints:
-    f = ep.get('file', 'UNKNOWN')
+    f = ep.get("file", "UNKNOWN")
     file_counts[f] = file_counts.get(f, 0) + 1
 
 # Sort directories by file count
-sorted_dirs = sorted(dirs.items(), key=lambda x: x[1].get('python_files', 0), reverse=True)
+sorted_dirs = sorted(
+    dirs.items(), key=lambda x: x[1].get("python_files", 0), reverse=True
+)
 
 # Build the report
 report = f"""# Raptorflow Backend Deep Audit Report
 
-**Generated:** {datetime.now().isoformat()}  
-**Scope:** Complete FastAPI backend codebase analysis  
+**Generated:** {datetime.now().isoformat()}
+**Scope:** Complete FastAPI backend codebase analysis
 **Audit Method:** Static AST analysis (runtime import failed)
 
 ---
@@ -456,7 +466,8 @@ for f, c in sorted(file_counts.items(), key=lambda x: -x[1])[:10]:
     fn = Path(f).name
     report += f"| {c} | {fn} |\n"
 
-report += """
+report += (
+    """
 ---
 
 ## B. Exact Metrics (Command Evidence)
@@ -477,7 +488,9 @@ ls backend/api/v1/*.py | wc -l
 ```bash
 python scripts/audit/scan_endpoints.py backend
 ```
-**Result:** """ + str(len(endpoints)) + """ endpoints extracted
+**Result:** """
+    + str(len(endpoints))
+    + """ endpoints extracted
 
 ---
 
@@ -486,11 +499,12 @@ python scripts/audit/scan_endpoints.py backend
 ### C.1 Endpoints Grouped by Router File
 
 """
+)
 
 # Group endpoints by file
 by_file = {}
 for ep in endpoints:
-    f = ep.get('file', 'UNKNOWN')
+    f = ep.get("file", "UNKNOWN")
     if f not in by_file:
         by_file[f] = []
     by_file[f].append(ep)
@@ -506,9 +520,9 @@ for f in sorted(by_file.keys()):
 |--------|------|------|
 """
     for ep in eps:
-        m = ep.get('method', '')
-        p = ep.get('path', '')
-        t = ep.get('type', '')
+        m = ep.get("method", "")
+        p = ep.get("path", "")
+        t = ep.get("type", "")
         report += f"| {m} | `{p}` | {t} |\n"
 
 report += """
@@ -522,14 +536,14 @@ report += """
 
 # Add router file analysis
 router_files = [
-    ('backend/api/v1/auth.py', 'Authentication endpoints'),
-    ('backend/api/v1/users.py', 'User management'),
-    ('backend/api/v1/workspaces.py', 'Workspace management'),
-    ('backend/api/v1/campaigns.py', 'Campaign management'),
-    ('backend/api/v1/payments.py', 'Payment processing'),
-    ('backend/api/v1/onboarding.py', 'User onboarding'),
-    ('backend/api/v1/cognitive.py', 'Cognitive engine'),
-    ('backend/api/v1/health.py', 'Health checks'),
+    ("backend/api/v1/auth.py", "Authentication endpoints"),
+    ("backend/api/v1/users.py", "User management"),
+    ("backend/api/v1/workspaces.py", "Workspace management"),
+    ("backend/api/v1/campaigns.py", "Campaign management"),
+    ("backend/api/v1/payments.py", "Payment processing"),
+    ("backend/api/v1/onboarding.py", "User onboarding"),
+    ("backend/api/v1/cognitive.py", "Cognitive engine"),
+    ("backend/api/v1/health.py", "Health checks"),
 ]
 
 for fp, purpose in router_files:
@@ -561,8 +575,8 @@ report += """
 """
 
 for dir_name, info in sorted_dirs[:20]:
-    pf = info.get('python_files', 0)
-    path = info.get('path', '')[:60]
+    pf = info.get("python_files", 0)
+    path = info.get("path", "")[:60]
     report += f"| {dir_name} | {pf} | {path}... |\n"
 
 report += """
@@ -671,7 +685,7 @@ python scripts/audit/dump_openapi.py
 """
 
 # Save the report
-with open('docs/BACKEND_DEEP_AUDIT.md', 'w', encoding='utf-8') as f:
+with open("docs/BACKEND_DEEP_AUDIT.md", "w", encoding="utf-8") as f:
     f.write(report)
 
 print(f"Report saved: {len(report)} characters")
@@ -680,16 +694,18 @@ print(f"Report saved: {len(report)} characters")
 index = {
     "generated": datetime.now().isoformat(),
     "metrics": {
-        "total_python_files": structure.get('total_python_files', 0),
-        "router_count": structure.get('router_count', 0),
+        "total_python_files": structure.get("total_python_files", 0),
+        "router_count": structure.get("router_count", 0),
         "total_endpoints": len(endpoints),
-        "method_counts": method_counts
+        "method_counts": method_counts,
     },
-    "top_files_by_endpoints": list(sorted(file_counts.items(), key=lambda x: -x[1])[:10]),
-    "directories": {k: v for k, v in sorted_dirs[:20]}
+    "top_files_by_endpoints": list(
+        sorted(file_counts.items(), key=lambda x: -x[1])[:10]
+    ),
+    "directories": {k: v for k, v in sorted_dirs[:20]},
 }
 
-with open('docs/BACKEND_DEEP_AUDIT_INDEX.json', 'w') as f:
+with open("docs/BACKEND_DEEP_AUDIT_INDEX.json", "w") as f:
     json.dump(index, f, indent=2)
 
 print("Index saved: docs/BACKEND_DEEP_AUDIT_INDEX.json")
@@ -763,8 +779,7 @@ Since runtime import failed, the audit relied on static AST analysis:
 - Recommend fixing imports before next audit cycle
 """
 
-with open('docs/REPAIR_LOG.md', 'w', encoding='utf-8') as f:
+with open("docs/REPAIR_LOG.md", "w", encoding="utf-8") as f:
     f.write(repair_log)
 
 print("Repair log saved: docs/REPAIR_LOG.md")
-
