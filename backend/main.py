@@ -24,6 +24,7 @@ import vertexai
 from api.v1 import (  # episodes,
     admin,
     agents,
+    ai_inference,
     ai_proxy,
     analytics,
     analytics_v2,
@@ -391,6 +392,7 @@ app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 app.include_router(payments_v2.router, tags=["payments-v2"])  # Official PhonePe SDK
 # Add AI proxy router
 app.include_router(ai_proxy.router, prefix="/api/v1", tags=["ai-proxy"])
+app.include_router(ai_inference.router, prefix="/api/v1", tags=["AI Inference"])
 # Add usage tracking router
 app.include_router(usage.router, tags=["usage"])
 # Add enhanced storage management router

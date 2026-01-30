@@ -19,7 +19,7 @@ The AI Inference API provides a comprehensive, production-ready interface for AI
 ## Base URL
 
 ```
-https://api.raptorflow.ai/v1/ai-inference
+https://api.raptorflow.ai/api/v1/ai-inference
 ```
 
 ## Authentication
@@ -169,7 +169,7 @@ Stream inference results for long-running tasks.
 
 **Connection**:
 ```javascript
-const ws = new WebSocket('wss://api.raptorflow.ai/v1/ai-inference/stream/req_abc123');
+const ws = new WebSocket('wss://api.raptorflow.ai/api/v1/ai-inference/stream/req_abc123');
 
 ws.onmessage = function(event) {
   const data = JSON.parse(event.data);
@@ -528,7 +528,7 @@ import asyncio
 class RaptorflowClient:
     def __init__(self, api_key):
         self.api_key = api_key
-        self.base_url = "https://api.raptorflow.ai/v1/ai-inference"
+        self.base_url = "https://api.raptorflow.ai/api/v1/ai-inference"
         self.headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -578,7 +578,7 @@ print(result["response"])
 class RaptorflowClient {
     constructor(apiKey) {
         this.apiKey = apiKey;
-        this.baseUrl = 'https://api.raptorflow.ai/v1/ai-inference';
+        this.baseUrl = 'https://api.raptorflow.ai/api/v1/ai-inference';
         this.headers = {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
