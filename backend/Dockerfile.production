@@ -1,8 +1,8 @@
-﻿# RaptorFlow Backend Production Dockerfile
+# RaptorFlow Backend Production Dockerfile
 # Optimized for speed and size
 
 # Base image
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
