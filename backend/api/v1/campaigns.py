@@ -6,12 +6,8 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from db.campaigns import CampaignRepository
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
-
-from ..core.auth import get_auth_context, get_current_user, get_workspace_id
-from ..core.models import AuthContext, User
-from ..core.supabase_mgr import get_supabase_client
 
 # Import Vertex AI client for AI processing
 try:
@@ -49,7 +45,7 @@ class CampaignUpdate(BaseModel):
 
 @router.get("/")
 async def list_campaigns(
-    auth_context: AuthContext = Depends(get_auth_context),
+    workspace_id: str = Query(..., description="Workspace ID"),
     page: int = 0,
     page_size: int = 20,
     status: Optional[str] = None,
@@ -89,7 +85,7 @@ async def list_campaigns(
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_campaign(
-    campaign_data: CampaignCreate, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_data: CampaignCreate, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Create a new campaign
@@ -197,7 +193,7 @@ async def create_campaign(
 
 @router.get("/{campaign_id}")
 async def get_campaign(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Get a specific campaign with its moves
@@ -224,7 +220,7 @@ async def get_campaign(
 async def update_campaign(
     campaign_id: str,
     campaign_data: CampaignUpdate,
-    auth_context: AuthContext = Depends(get_auth_context),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Update a campaign
@@ -302,7 +298,7 @@ async def update_campaign(
 
 @router.delete("/{campaign_id}")
 async def delete_campaign(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Delete a campaign
@@ -338,7 +334,7 @@ async def delete_campaign(
 
 @router.get("/{campaign_id}/moves")
 async def get_campaign_moves(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Get all moves for a campaign
@@ -371,7 +367,7 @@ async def get_campaign_moves(
 async def add_move_to_campaign(
     campaign_id: str,
     move_id: str,
-    auth_context: AuthContext = Depends(get_auth_context),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Add a move to a campaign
@@ -420,7 +416,7 @@ async def add_move_to_campaign(
 
 @router.post("/{campaign_id}/launch")
 async def launch_campaign(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Launch a campaign
@@ -449,7 +445,7 @@ async def launch_campaign(
 
 @router.post("/{campaign_id}/pause")
 async def pause_campaign(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Pause a campaign
@@ -478,7 +474,7 @@ async def pause_campaign(
 
 @router.post("/{campaign_id}/complete")
 async def complete_campaign(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Complete a campaign
@@ -507,7 +503,7 @@ async def complete_campaign(
 
 @router.get("/{campaign_id}/stats")
 async def get_campaign_stats(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Get campaign statistics
@@ -529,7 +525,7 @@ async def get_campaign_stats(
 
 @router.get("/{campaign_id}/roi")
 async def get_campaign_roi(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Get campaign ROI analysis
@@ -551,7 +547,7 @@ async def get_campaign_roi(
 
 @router.get("/{campaign_id}/timeline")
 async def get_campaign_timeline(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Get campaign timeline
@@ -575,7 +571,7 @@ async def get_campaign_timeline(
 async def duplicate_campaign(
     campaign_id: str,
     new_name: str,
-    auth_context: AuthContext = Depends(get_auth_context),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Duplicate a campaign
@@ -607,7 +603,7 @@ async def duplicate_campaign(
 
 @router.post("/{campaign_id}/archive")
 async def archive_campaign(
-    campaign_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Archive a campaign
@@ -635,7 +631,7 @@ async def archive_campaign(
 
 @router.get("/calendar/events")
 async def get_campaign_calendar(
-    auth_context: AuthContext = Depends(get_auth_context),
+    workspace_id: str = Query(..., description="Workspace ID"),
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
 ):

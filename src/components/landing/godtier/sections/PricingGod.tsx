@@ -13,50 +13,50 @@ import { MagneticButton } from "../effects/MagneticButton";
 
 const plans = [
   {
-    name: "Starter",
+    name: "Ascent",
     description: "For solo founders just getting started",
-    price: 49,
+    price: 5000,
     period: "/month",
     features: [
-      "1 brand voice",
-      "50 AI-generated posts/month",
-      "Basic analytics",
-      "LinkedIn & Twitter",
+      "Foundation setup (ICP + Positioning)",
+      "Weekly Moves (3 per week)",
+      "Basic Muse AI generation",
+      "Matrix analytics dashboard",
       "Email support",
     ],
-    cta: "Start free trial",
+    cta: "Start Now",
     popular: false,
   },
   {
-    name: "Growth",
+    name: "Glide",
     description: "For serious founders ready to scale",
-    price: 99,
+    price: 7000,
     period: "/month",
     features: [
-      "3 brand voices",
-      "Unlimited AI posts",
-      "Advanced analytics",
-      "All social platforms",
+      "Everything in Ascent",
+      "Unlimited Moves",
+      "Advanced Muse (voice training)",
+      "Cohort segmentation",
+      "Campaign planning tools",
       "Priority support",
-      "Strategy templates",
-      "Weekly insights",
+      "Blackbox learnings vault",
     ],
-    cta: "Start free trial",
+    cta: "Start Now",
     popular: true,
   },
   {
-    name: "Scale",
+    name: "Soar",
     description: "For teams managing multiple brands",
-    price: 249,
+    price: 10000,
     period: "/month",
     features: [
-      "Unlimited brand voices",
-      "Unlimited everything",
-      "Custom integrations",
-      "Dedicated account manager",
-      "White-label options",
+      "Everything in Glide",
+      "Team seats (up to 5)",
+      "White-label exports",
+      "Custom AI training",
       "API access",
-      "SLA guarantee",
+      "Dedicated success manager",
+      "Custom integrations",
     ],
     cta: "Contact sales",
     popular: false,
@@ -128,7 +128,7 @@ export function PricingGod() {
 
               {/* Price */}
               <div className="mb-8">
-                <span className="text-5xl font-editorial">${plan.price}</span>
+                <span className="text-5xl font-editorial">₹{plan.price.toLocaleString()}</span>
                 <span className={plan.popular ? "text-[var(--muted)]" : "text-[var(--secondary)]"}>
                   {plan.period}
                 </span>

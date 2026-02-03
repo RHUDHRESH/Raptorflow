@@ -10,8 +10,6 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import AuthContext, User
 from ..services.payment_analytics import (
     PaymentAnalyticsService,
     payment_analytics_service,
@@ -26,8 +24,7 @@ security = HTTPBearer()
 async def get_payment_analytics_overview(
     days: int = Query(default=30, ge=1, le=365),
     plan_filter: Optional[str] = Query(None),
-    current_user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ) -> Dict[str, Any]:
     """
     Get comprehensive payment analytics overview.
@@ -92,8 +89,7 @@ async def get_payment_analytics_overview(
 @router.get("/conversion-rates")
 async def get_conversion_rates(
     days: int = Query(default=30, ge=1, le=365),
-    current_user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ) -> Dict[str, Any]:
     """
     Get payment conversion rates by plan.
@@ -133,8 +129,7 @@ async def get_conversion_rates(
 @router.get("/failure-reasons")
 async def get_failure_reasons(
     days: int = Query(default=30, ge=1, le=365),
-    current_user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ) -> Dict[str, Any]:
     """
     Get payment failure reasons breakdown.
@@ -180,8 +175,7 @@ async def get_failure_reasons(
 @router.get("/revenue")
 async def get_revenue_metrics(
     days: int = Query(default=30, ge=1, le=365),
-    current_user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ) -> Dict[str, Any]:
     """
     Get revenue metrics.
@@ -221,8 +215,7 @@ async def get_revenue_metrics(
 @router.get("/dashboard")
 async def get_payment_dashboard(
     days: int = Query(default=30, ge=1, le=365),
-    current_user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ) -> Dict[str, Any]:
     """
     Get payment dashboard data (combined analytics for admin dashboard).
@@ -283,8 +276,7 @@ async def get_payment_dashboard(
 @router.post("/track-event")
 async def track_payment_event(
     event_data: Dict[str, Any],
-    current_user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ) -> Dict[str, Any]:
     """
     Track a payment event for analytics.

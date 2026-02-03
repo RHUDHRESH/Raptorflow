@@ -8,8 +8,6 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User
 from ..services.titan.orchestrator import TitanMode, TitanOrchestrator
 
 router = APIRouter(prefix="/titan", tags=["titan"])
@@ -56,7 +54,7 @@ def get_titan_orchestrator() -> TitanOrchestrator:
 @router.post("/research", response_model=TitanResearchResponse)
 async def execute_research(
     request: TitanResearchRequest,
-    user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     orchestrator: TitanOrchestrator = Depends(get_titan_orchestrator),
 ):
     """
@@ -92,7 +90,7 @@ async def execute_research(
 
 
 @router.get("/status/{request_id}")
-async def get_research_status(request_id: str, user: User = Depends(get_current_user)):
+async def get_research_status(request_id: str, user_id: str = Query(..., description="User ID")):
     """
     Get status of a long-running DEEP research task.
     (Placeholder for async implementation)

@@ -329,7 +329,7 @@ async def get_metrics():
 
 @app.post("/api/v1/cognitive/process", response_model=CognitiveResponse)
 async def process_cognitive(
-    request: CognitiveRequest, user: Dict[str, Any] = Depends(get_current_user)
+    request: CognitiveRequest, user_id: str = Query(..., description="User ID")
 ):
     """Process text through cognitive engine."""
     request_id = str(uuid.uuid4())
@@ -431,7 +431,7 @@ async def process_cognitive(
 async def process_perception(
     text: str,
     context: Optional[Dict[str, Any]] = None,
-    user: Dict[str, Any] = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Process text through perception module only."""
     try:
@@ -455,7 +455,7 @@ async def process_planning(
     text: str,
     perceived_input: Optional[Dict[str, Any]] = None,
     context: Optional[Dict[str, Any]] = None,
-    user: Dict[str, Any] = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Process text through planning module only."""
     try:
@@ -486,7 +486,7 @@ async def process_reflection(
     output: str,
     goal: str,
     context: Optional[Dict[str, Any]] = None,
-    user: Dict[str, Any] = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Process output through reflection module only."""
     try:
@@ -511,7 +511,7 @@ async def process_reflection(
 async def process_critic(
     content: str,
     context: Optional[Dict[str, Any]] = None,
-    user: Dict[str, Any] = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Process content through critic module only."""
     try:
@@ -533,7 +533,7 @@ async def process_critic(
 
 
 @app.post("/api/v1/cognitive/approvals", response_model=Dict[str, Any])
-async def get_pending_approvals(user: Dict[str, Any] = Depends(get_current_user)):
+async def get_pending_approvals(user_id: str = Query(..., description="User ID")):
     """Get pending approval requests."""
     try:
         # Get pending approvals from approval gate
@@ -573,7 +573,7 @@ async def respond_approval(
     approval_id: str,
     approved: bool,
     feedback: Optional[str] = None,
-    user: Dict[str, Any] = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Respond to an approval request."""
     try:

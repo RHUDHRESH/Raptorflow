@@ -123,9 +123,14 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
       case 3:
         return campaignData.name && campaignData.description;
       case 4:
-        return campaignData.targetAudience?.name;
+        return typeof campaignData.targetAudience === 'string' 
+          ? campaignData.targetAudience 
+          : campaignData.targetAudience?.name;
       case 5:
-        return campaignData.budget?.total && campaignData.timeline?.startDate;
+        const budgetTotal = typeof campaignData.budget === 'number' 
+          ? campaignData.budget 
+          : campaignData.budget?.total;
+        return budgetTotal && campaignData.timeline?.startDate;
       default:
         return false;
     }
@@ -235,7 +240,7 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
                     <div className="ml-4">
                       <div className="text-xs text-[var(--ink-muted)] mb-1">Phases</div>
                       <div className="text-sm font-medium text-[var(--ink)]">
-                        {template.structure.phases.length}
+                        {template.structure?.phases.length ?? 0}
                       </div>
                     </div>
                   </div>
@@ -300,10 +305,10 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
               </label>
               <input
                 type="text"
-                value={campaignData.targetAudience?.name || ''}
+                value={(typeof campaignData.targetAudience === 'object' ? campaignData.targetAudience?.name : campaignData.targetAudience) || ''}
                 onChange={(e) => updateData('targetAudience', {
-                  ...campaignData.targetAudience,
-                  name: e.target.value
+                  name: e.target.value,
+                  criteria: {}
                 })}
                 placeholder="e.g. B2B Decision Makers"
                 className="w-full px-3 py-2 text-sm bg-[var(--paper)] border border-[var(--structure-subtle)] rounded-[var(--radius)] focus:outline-none focus:border-[var(--blueprint)]"
@@ -370,9 +375,10 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
               </label>
               <input
                 type="number"
-                value={campaignData.targetAudience?.estimatedReach || ''}
+                value={(typeof campaignData.targetAudience === 'object' ? campaignData.targetAudience?.estimatedReach : '') || ''}
                 onChange={(e) => updateData('targetAudience', {
-                  ...campaignData.targetAudience,
+                  name: '',
+                  criteria: {},
                   estimatedReach: parseInt(e.target.value) || 0
                 })}
                 placeholder="e.g. 10000"
@@ -393,10 +399,10 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
                 <DollarSign size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--ink-ghost)]" />
                 <input
                   type="number"
-                  value={campaignData.budget?.total || ''}
+                  value={(typeof campaignData.budget === 'object' ? campaignData.budget?.total : campaignData.budget) || ''}
                   onChange={(e) => updateData('budget', {
-                    ...campaignData.budget,
-                    total: parseInt(e.target.value) || 0
+                    total: parseInt(e.target.value) || 0,
+                    currency: 'USD'
                   })}
                   placeholder="10000"
                   className="w-full pl-10 pr-3 py-2 text-sm bg-[var(--paper)] border border-[var(--structure-subtle)] rounded-[var(--radius)] focus:outline-none focus:border-[var(--blueprint)]"
@@ -409,9 +415,9 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
                 Currency
               </label>
               <select
-                value={campaignData.budget?.currency || 'USD'}
+                value={(typeof campaignData.budget === 'object' ? campaignData.budget?.currency : 'USD') || 'USD'}
                 onChange={(e) => updateData('budget', {
-                  ...campaignData.budget,
+                  total: 0,
                   currency: e.target.value
                 })}
                 className="w-full px-3 py-2 text-sm bg-[var(--paper)] border border-[var(--structure-subtle)] rounded-[var(--radius)] focus:outline-none focus:border-[var(--blueprint)]"

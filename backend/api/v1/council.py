@@ -6,11 +6,9 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from db.council import CouncilRepository
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User
 from ..services.expert_council import create_swarm_session, get_expert_council_swarm
 from ..services.foundation import FoundationService
 
@@ -41,8 +39,7 @@ class CouncilResponse(BaseModel):
 @router.post("/execute", response_model=CouncilResponse)
 async def execute_council(
     request: CouncilRequest,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Triggers an Expert Council Swarm session and persists it.

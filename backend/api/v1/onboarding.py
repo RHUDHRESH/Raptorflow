@@ -53,10 +53,6 @@ from ..agents.specialists.proof_point_validator import ProofPointValidator
 from ..agents.specialists.reddit_researcher import RedditResearcher
 from ..agents.specialists.soundbites_generator import SoundbitesGenerator
 from ..agents.specialists.truth_sheet_generator import TruthSheetGenerator
-from ..core.auth import get_current_user
-from ..core.models import User
-
-# Redis session management
 from ..redis.session_manager import get_onboarding_session_manager
 
 # Core system imports

@@ -6,10 +6,10 @@ import {
   setupSMS,
   toggleMFAMethod,
   getUserMFAStatus,
+  MFAConfig,
+  MFAError,
   type TOTPSetupResult,
   type MFASetup as MFASetupType,
-  type MFAConfig,
-  type MFAError,
   type MFAErrors
 } from '@/lib/mfa'
 

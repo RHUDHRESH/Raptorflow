@@ -7,12 +7,8 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-
-from ..core.auth import get_auth_context
-from ..core.models import AuthContext
-from ..core.supabase_mgr import get_supabase_client
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 logger = logging.getLogger(__name__)
@@ -29,7 +25,7 @@ class DashboardSummaryResponse(BaseModel):
 
 
 @router.get("/summary", response_model=DashboardSummaryResponse)
-async def get_dashboard_summary(auth: AuthContext = Depends(get_auth_context)):
+async def get_dashboard_summary(workspace_id: str = Query(..., description="Workspace ID")):
     """
     Aggregates data from across the ecosystem for the main dashboard view.
     """

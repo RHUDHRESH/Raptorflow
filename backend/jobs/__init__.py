@@ -5,8 +5,8 @@ Provides job scheduling, execution, and management
 with support for retries, timeouts, and monitoring.
 """
 
-from decorators import job
-from scheduler import JobScheduler
+from .decorators import job
+from .scheduler import JobScheduler
 
 from .models import JobResult, JobStatus
 

@@ -5,9 +5,8 @@ Analytics API endpoints for usage, performance, and cost tracking.
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from core.auth import get_current_user
 from core.database import get_db
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from redis.cache import cached
 
@@ -92,7 +91,7 @@ async def get_usage_stats(
     workspace_id: Optional[str] = None,
     days: int = 30,
     agent: Optional[str] = None,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -199,7 +198,7 @@ async def get_performance_metrics(
     workspace_id: Optional[str] = None,
     days: int = 30,
     agent: Optional[str] = None,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -327,7 +326,7 @@ async def get_cost_breakdown(
     workspace_id: Optional[str] = None,
     days: int = 30,
     agent: Optional[str] = None,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -475,7 +474,7 @@ async def get_campaign_performance(
     campaign_id: str,
     workspace_id: str,
     days: int = 30,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -639,7 +638,7 @@ async def get_campaign_performance(
 async def get_workspace_analytics(
     workspace_id: str,
     days: int = 30,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -812,7 +811,7 @@ async def get_workspace_analytics(
 async def get_dashboard_analytics(
     workspace_id: Optional[str] = None,
     days: int = 7,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """

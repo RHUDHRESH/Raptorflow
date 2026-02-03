@@ -14,8 +14,7 @@ from memory.controller import MemoryController
 from memory.models import MemoryChunk, MemoryType
 from pydantic import BaseModel, Field
 
-from ..core.auth import get_current_user
-from ..core.models import User, Workspace
+from fastapi import Query, Workspace
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +79,7 @@ async def get_memory_controller() -> MemoryController:
 @router.post("/search", response_model=List[MemoryChunkResponse])
 async def search_memory(
     request: MemorySearchRequest,
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     memory_controller: MemoryController = Depends(get_memory_controller),
 ):
     """
@@ -138,7 +137,7 @@ async def search_memory(
 @router.post("/store", response_model=MemoryChunkResponse)
 async def store_memory(
     request: MemoryStoreRequest,
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     memory_controller: MemoryController = Depends(get_memory_controller),
 ):
     """
@@ -199,7 +198,7 @@ async def store_memory(
 async def get_memory_chunk(
     chunk_id: str,
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     memory_controller: MemoryController = Depends(get_memory_controller),
 ):
     """
@@ -248,7 +247,7 @@ async def get_memory_chunk(
 async def update_memory_chunk(
     chunk_id: str,
     request: MemoryUpdateRequest,
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     memory_controller: MemoryController = Depends(get_memory_controller),
 ):
     """
@@ -312,7 +311,7 @@ async def update_memory_chunk(
 async def delete_memory_chunk(
     chunk_id: str,
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     memory_controller: MemoryController = Depends(get_memory_controller),
 ):
     """
@@ -349,7 +348,7 @@ async def delete_memory_chunk(
 @router.get("/stats", response_model=MemoryStatsResponse)
 async def get_memory_stats(
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     memory_controller: MemoryController = Depends(get_memory_controller),
 ):
     """
@@ -385,7 +384,7 @@ async def get_memory_stats(
 
 
 @router.get("/types", response_model=List[str])
-async def get_memory_types(current_user: User = Depends(get_current_user)):
+async def get_memory_types(user_id: str = Query(..., description="User ID")):
     """
     Get available memory types.
 
@@ -405,7 +404,7 @@ async def get_memory_types(current_user: User = Depends(get_current_user)):
 @router.post("/context")
 async def get_memory_context(
     request: MemorySearchRequest,
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     memory_controller: MemoryController = Depends(get_memory_controller),
 ):
     """
@@ -443,7 +442,7 @@ async def get_memory_context(
 async def clear_workspace_memory(
     workspace_id: str = Query(..., description="Workspace ID"),
     memory_type: Optional[str] = Query(None, description="Memory type to clear"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     memory_controller: MemoryController = Depends(get_memory_controller),
 ):
     """

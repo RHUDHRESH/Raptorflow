@@ -14,8 +14,8 @@ from cognitive import CognitiveEngine
 
 from ..agents.dispatcher import AgentDispatcher
 from ..agents.specialists.blackbox_strategist import BlackboxStrategist
-from ..core.auth import get_current_user
 from ..core.database import get_db
+from fastapi import Query
 from ..dependencies import (
     get_agent_dispatcher,
     get_cognitive_engine,
@@ -102,7 +102,7 @@ blackbox_strategist = BlackboxStrategist()
 async def generate_strategy(
     request: StrategyGenerationRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
     memory_controller: MemoryController = Depends(get_memory_controller),
     cognitive_engine: CognitiveEngine = Depends(get_cognitive_engine),
@@ -205,7 +205,7 @@ async def list_strategies(
     offset: int = 0,
     focus_area: Optional[str] = None,
     status: Optional[str] = None,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -265,7 +265,7 @@ async def list_strategies(
 async def get_strategy(
     strategy_id: str,
     workspace_id: str,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -295,7 +295,7 @@ async def accept_strategy(
     strategy_id: str,
     request: StrategyAcceptRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
     memory_controller: MemoryController = Depends(get_memory_controller),
     cognitive_engine: CognitiveEngine = Depends(get_cognitive_engine),
@@ -358,7 +358,7 @@ async def reject_strategy(
     strategy_id: str,
     workspace_id: str,
     reason: str = "",
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -396,11 +396,11 @@ async def reject_strategy(
 async def delete_strategy(
     strategy_id: str,
     workspace_id: str,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
-    Delete a Blackbox strategy.
+    Delete a blackbox strategy.
     """
     try:
         # Check if strategy exists

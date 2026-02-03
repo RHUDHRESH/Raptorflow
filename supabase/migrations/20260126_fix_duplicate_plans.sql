@@ -1,31 +1,24 @@
 -- =================================================================
 -- FIX DUPLICATE PLANS AND INFINITE RECURSION
 -- Issue: Plans displayed twice, infinite recursion in users policy
+-- Note: This migration now only drops policies and fixes plans table
+-- Properly scoped policies are created in later migrations
 -- =================================================================
 
--- Remove recursive policies from workspaces that caused duplicate returns
+-- Drop recursive/permissive policies from workspaces
 DROP POLICY IF EXISTS "workspaces_select_consolidated" ON public.workspaces;
 DROP POLICY IF EXISTS "workspaces_update_consolidated" ON public.workspaces;
+DROP POLICY IF EXISTS "workspaces_select_simple" ON public.workspaces;
+DROP POLICY IF EXISTS "workspaces_update_simple" ON public.workspaces;
+DROP POLICY IF EXISTS "workspaces_insert_simple" ON public.workspaces;
 
--- Create simple workspace policies without nested profile queries
-CREATE POLICY "workspaces_select_simple" ON public.workspaces
-    FOR SELECT USING (auth.role() = 'authenticated');
-
-CREATE POLICY "workspaces_update_simple" ON public.workspaces
-    FOR UPDATE USING (auth.role() = 'authenticated');
-
-CREATE POLICY "workspaces_insert_simple" ON public.workspaces
-    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-
--- Fix subscription policies to avoid recursion
+-- Drop recursive/permissive subscription policies
 DROP POLICY IF EXISTS "subscriptions_select_consolidated" ON public.subscriptions;
-CREATE POLICY "subscriptions_select_simple" ON public.subscriptions
-    FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "subscriptions_select_simple" ON public.subscriptions;
 
--- Fix payment_transactions policies to avoid recursion
+-- Drop recursive/permissive payment_transactions policies
 DROP POLICY IF EXISTS "payment_transactions_select_consolidated" ON public.payment_transactions;
-CREATE POLICY "payment_transactions_select_simple" ON public.payment_transactions
-    FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "payment_transactions_select_simple" ON public.payment_transactions;
 
 -- Remove any duplicate plans (keep only one of each)
 DELETE FROM public.plans p1
@@ -38,3 +31,6 @@ WHERE p1.ctid > (
 -- Ensure plans table has no duplicate constraints
 ALTER TABLE public.plans DROP CONSTRAINT IF EXISTS plans_pkey CASCADE;
 ALTER TABLE public.plans ADD PRIMARY KEY (id);
+
+-- NOTE: Properly scoped RLS policies are created in:
+-- - 20260130_fix_duplicate_subscription_plans.sql

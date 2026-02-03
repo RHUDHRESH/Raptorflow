@@ -1,11 +1,9 @@
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 
-from core.auth import get_auth_context
-from core.supabase_mgr import get_supabase_admin
 from schemas.business_context_input import BusinessContextInput
 from validators.business_context_validator import (
     BusinessContextValidationError,
@@ -26,7 +24,7 @@ class BusinessContextResponse(BaseModel):
 
 @router.post("", response_model=BusinessContextResponse, status_code=status.HTTP_201_CREATED)
 async def create_business_context(
-    request: BusinessContextInput, auth_context=Depends(get_auth_context)
+    request: BusinessContextInput, workspace_id: str = Query(..., description="Workspace ID")
 ):
     try:
         context = request.to_business_context(

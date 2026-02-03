@@ -16,16 +16,15 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
+from fastapi import Query
 from pydantic import BaseModel
 
-from ..core.auth import get_current_user
 from ..services.bcm_manifest_service import BCMManifestService
-from ..core.supabase_mgr import get_supabase_admin
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/context", tags=["context"], dependencies=[Depends(get_current_user)]
+    prefix="/context", tags=["context"]
 )
 
 

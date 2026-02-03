@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from ..agents.dispatcher import AgentDispatcher
 from ..agents.routing.pipeline import RoutingPipeline
-from ..core.auth import get_current_user
+from fastapi import Query
 from ..core.database import get_db
 
 router = APIRouter(prefix="/agents", tags=["agents"])
@@ -125,11 +125,11 @@ async def generate_sse_events(
 async def execute_agent_stream(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
-    Execute an agent with streaming response.
+    Execute agent with streaming response.
 
     This endpoint provides real-time updates during agent execution
     using Server-Sent Events (SSE).
@@ -142,12 +142,12 @@ async def execute_agent_stream(
 
         # Log execution start (async background task)
         background_tasks.add_task(
-            log_agent_execution, request=request, current_user=current_user, db=db
+            log_agent_execution, request=request, user_id=user_id, db=db
         )
 
         # Return streaming response
         return StreamingResponse(
-            generate_sse_events(request, current_user, db),
+            generate_sse_events(request, user_id, db),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -169,11 +169,11 @@ async def execute_agent_stream(
 async def execute_agent(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
-    Execute an agent without streaming.
+    Execute agent without streaming.
 
     This endpoint provides the same functionality as the streaming endpoint
     but returns a single response after completion.
@@ -240,7 +240,7 @@ async def execute_agent(
 async def get_session_status(
     session_id: str,
     workspace_id: str,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -297,7 +297,7 @@ async def list_sessions(
     limit: int = Query(default=50, description="Maximum sessions to return"),
     status: Optional[str] = None,
     agent: Optional[str] = None,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -342,7 +342,7 @@ async def cancel_session(
     session_id: str,
     workspace_id: str,
     reason: str = "",
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -383,7 +383,7 @@ async def cancel_session(
 
 
 @router.get("/agents", response_model=Dict[str, Any])
-async def list_available_agents(current_user: Dict = Depends(get_current_user)):
+async def list_available_agents(user_id: str = Query(..., description="User ID")):
     """
     List all available agents and their capabilities.
     """
@@ -411,7 +411,7 @@ async def list_available_agents(current_user: Dict = Depends(get_current_user)):
 
 
 @router.get("/health", response_model=Dict[str, Any])
-async def get_agent_health(current_user: Dict = Depends(get_current_user)):
+async def get_agent_health(user_id: str = Query(..., description="User ID")):
     """
     Get health status of agent system components.
     """

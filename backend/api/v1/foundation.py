@@ -5,12 +5,10 @@ Handles HTTP requests for foundation operations
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
 from schemas import RICP, MessagingStrategy
 
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User
 from ..services.foundation import FoundationService
 
 router = APIRouter(prefix="/foundation", tags=["foundation"])
@@ -70,8 +68,7 @@ def get_foundation_service() -> FoundationService:
 
 @router.get("/", response_model=FoundationResponse)
 async def get_foundation(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     foundation_service: FoundationService = Depends(get_foundation_service),
 ):
     """Get foundation for workspace"""
@@ -86,8 +83,7 @@ async def get_foundation(
 @router.put("/", response_model=FoundationResponse)
 async def update_foundation(
     foundation_data: FoundationUpdate,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     foundation_service: FoundationService = Depends(get_foundation_service),
 ):
     """Update foundation"""
@@ -102,8 +98,7 @@ async def update_foundation(
 
 @router.post("/generate-summary")
 async def generate_summary(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     foundation_service: FoundationService = Depends(get_foundation_service),
 ):
     """Generate AI-powered summary for foundation"""
@@ -117,8 +112,8 @@ async def generate_summary(
 @router.get("/export/{format}")
 async def export_foundation(
     format: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
     foundation_service: FoundationService = Depends(get_foundation_service),
 ):
     """Export foundation data"""
@@ -134,8 +129,8 @@ async def export_foundation(
 
 @router.delete("/")
 async def delete_foundation(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
     foundation_service: FoundationService = Depends(get_foundation_service),
 ):
     """Delete foundation"""

@@ -108,7 +108,7 @@ async def list_episodes(
     episode_type: Optional[str] = Query(None, description="Filter by episode type"),
     limit: int = Query(50, description="Maximum number of results"),
     offset: int = Query(0, description="Offset for pagination"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
@@ -173,7 +173,7 @@ async def list_episodes(
 @router.post("/", response_model=EpisodeResponse)
 async def create_episode(
     request: EpisodeCreateRequest,
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
@@ -236,11 +236,11 @@ async def create_episode(
 async def get_episode(
     episode_id: str,
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
-    Get a specific episode by ID.
+    Get episode by ID.
 
     Args:
         episode_id: Episode ID
@@ -294,11 +294,11 @@ async def get_episode(
 async def end_episode(
     episode_id: str,
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
-    End an episode.
+    End an active episode.
 
     Args:
         episode_id: Episode ID
@@ -334,7 +334,7 @@ async def get_episode_turns(
     workspace_id: str = Query(..., description="Workspace ID"),
     limit: int = Query(100, description="Maximum number of turns"),
     offset: int = Query(0, description="Offset for pagination"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
@@ -388,7 +388,7 @@ async def get_episode_turns(
 async def add_turn(
     episode_id: str,
     request: TurnCreateRequest,
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
@@ -444,7 +444,7 @@ async def add_turn(
 async def get_episode_summary(
     episode_id: str,
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
@@ -492,11 +492,11 @@ async def get_episode_summary(
 async def replay_episode(
     episode_id: str,
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
-    Replay an episode (reconstruct conversation state).
+    Replay episode. (reconstruct conversation state).
 
     Args:
         episode_id: Episode ID
@@ -532,7 +532,7 @@ async def search_episodes(
     query: str = Query(..., description="Search query"),
     episode_type: Optional[str] = Query(None, description="Filter by episode type"),
     limit: int = Query(20, description="Maximum number of results"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
@@ -596,11 +596,11 @@ async def search_episodes(
 async def delete_episode(
     episode_id: str,
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     episodic_memory: EpisodicMemory = Depends(get_episodic_memory),
 ):
     """
-    Delete an episode.
+    Delete episode.
 
     Args:
         episode_id: Episode ID

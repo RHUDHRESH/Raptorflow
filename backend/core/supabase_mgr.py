@@ -1,101 +1,88 @@
-"""
-Supabase client singleton
-Manages database connections with proper configuration
+"""Supabase manager.
+
+Provides a single, canonical way to create and access Supabase clients.
 """
 
+import logging
 import os
 from typing import Optional
 
-from dotenv import load_dotenv
-
 from supabase import Client, create_client
 
-# Load environment variables
-load_dotenv()
+logger = logging.getLogger(__name__)
+
+_supabase_client: Optional[Client] = None
+_supabase_admin: Optional[Client] = None
 
 
-class SupabaseClient:
-    """Singleton Supabase client manager"""
-
-    _instance: Optional["SupabaseClient"] = None
-    _client: Optional[Client] = None
-    _admin_client: Optional[Client] = None
-
-    def __new__(cls) -> "SupabaseClient":
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        if self._client is None:
-            self._initialize_clients()
-
-    def _initialize_clients(self):
-        """Initialize Supabase clients"""
-        self.url = os.getenv("SUPABASE_URL")
-        self.anon_key = os.getenv("SUPABASE_ANON_KEY")
-        self.service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-
-        if not self.url or not self.anon_key:
-            raise ValueError("SUPABASE_URL and SUPABASE_ANON_KEY must be set")
-
-        # Anonymous client (for user operations)
-        self._client = create_client(self.url, self.anon_key)
-
-        # Admin client (for system operations)
-        if self.service_key:
-            self._admin_client = create_client(self.url, self.service_key)
-
-    @property
-    def client(self) -> Client:
-        """Get the anonymous client"""
-        if self._client is None:
-            raise RuntimeError("Supabase client not initialized")
-        return self._client
-
-    @property
-    def admin(self) -> Client:
-        """Get the admin client (service role)"""
-        if self._admin_client is None:
-            raise RuntimeError(
-                "Supabase admin client not available - set SUPABASE_SERVICE_ROLE_KEY"
-            )
-        return self._admin_client
-
-    def get_client(self, use_admin: bool = False) -> Client:
-        """Get client with option for admin access"""
-        if use_admin:
-            return self.admin
-        return self.client
-
-    def get_admin_client(self) -> Client:
-        """Get the admin client (service role)"""
-        return self.admin
-
-    def health_check(self) -> bool:
-        """Check if Supabase is accessible"""
-        try:
-            result = self.client.table("users").select("count", count="exact").execute()
-            return hasattr(result, "data")
-        except Exception:
-            return False
+def _get_supabase_url() -> str:
+    return (
+        os.getenv("SUPABASE_URL")
+        or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+        or os.getenv("DATABASE_URL")
+        or ""
+    )
 
 
-# Global instance
-_supabase_client: Optional[SupabaseClient] = None
+def _get_supabase_anon_key() -> str:
+    return os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY") or os.getenv("SUPABASE_ANON_KEY") or ""
+
+
+def _get_supabase_service_role_key() -> str:
+    return (
+        os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        or os.getenv("SUPABASE_SERVICE_KEY")
+        or os.getenv("SERVICE_ROLE_KEY")
+        or ""
+    )
 
 
 def get_supabase_client() -> Client:
-    """Get Supabase client (singleton pattern)"""
+    """Get a Supabase client suitable for server-side calls.
+
+    Prefers service-role key if available, otherwise falls back to anon key.
+    """
+
     global _supabase_client
-    if _supabase_client is None:
-        _supabase_client = SupabaseClient()
-    return _supabase_client.client
+
+    if _supabase_client is not None:
+        return _supabase_client
+
+    url = _get_supabase_url()
+    key = _get_supabase_service_role_key() or _get_supabase_anon_key()
+
+    if not url or not key:
+        raise ValueError(
+            "Supabase credentials not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY)."
+        )
+
+    _supabase_client = create_client(url, key)
+    return _supabase_client
 
 
 def get_supabase_admin() -> Client:
-    """Get Supabase admin client"""
-    global _supabase_client
-    if _supabase_client is None:
-        _supabase_client = SupabaseClient()
-    return _supabase_client.admin
+    """Get an admin Supabase client (service role)."""
+
+    global _supabase_admin
+
+    if _supabase_admin is not None:
+        return _supabase_admin
+
+    url = _get_supabase_url()
+    key = _get_supabase_service_role_key()
+
+    if not url or not key:
+        raise ValueError(
+            "Supabase admin credentials not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+        )
+
+    _supabase_admin = create_client(url, key)
+    return _supabase_admin
+
+
+def reset_supabase_clients() -> None:
+    """Reset cached clients (useful for tests)."""
+
+    global _supabase_client, _supabase_admin
+    _supabase_client = None
+    _supabase_admin = None

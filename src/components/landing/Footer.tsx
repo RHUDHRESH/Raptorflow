@@ -1,50 +1,125 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import { CompassLogo } from "@/components/ui/CompassLogo";
+import { useRouter } from "next/navigation";
+import { CompassLogo } from "@/components/compass/CompassLogo";
+import { Github, Twitter, Linkedin } from "lucide-react";
+
+const FOOTER_LINKS = {
+  Product: [
+    { label: "Features", href: "#features" },
+    { label: "Pricing", href: "#pricing" },
+    { label: "Integrations", href: "#" },
+    { label: "Changelog", href: "#" },
+  ],
+  Resources: [
+    { label: "Documentation", href: "#" },
+    { label: "Blog", href: "#" },
+    { label: "Guides", href: "#" },
+    { label: "Help Center", href: "#" },
+  ],
+  Company: [
+    { label: "About", href: "#" },
+    { label: "Careers", href: "#" },
+    { label: "Contact", href: "#" },
+    { label: "Press", href: "#" },
+  ],
+  Legal: [
+    { label: "Privacy", href: "#" },
+    { label: "Terms", href: "#" },
+    { label: "Security", href: "#" },
+  ],
+};
+
+const SOCIAL_LINKS = [
+  { icon: Twitter, href: "#", label: "Twitter" },
+  { icon: Linkedin, href: "#", label: "LinkedIn" },
+  { icon: Github, href: "#", label: "GitHub" },
+];
 
 export function Footer() {
-    return (
-        <footer className="bg-[var(--canvas)] border-t border-[var(--border)] py-12">
-            <div className="max-w-7xl mx-auto px-6">
+  const router = useRouter();
 
-                <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-                    {/* Brand */}
-                    <div className="space-y-3">
-                        <Link href="/" className="flex items-center gap-2">
-                            <CompassLogo size={24} className="text-[var(--ink)]" />
-                            <span className="font-editorial font-bold text-lg text-[var(--ink)]">RaptorFlow</span>
-                        </Link>
-                        <p className="text-sm text-[var(--secondary)] max-w-xs">
-                            The operating system for founder-led marketing.
-                        </p>
-                    </div>
+  const handleNavClick = (href: string) => {
+    if (href.startsWith("#")) {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      router.push(href);
+    }
+  };
 
-                    {/* Links */}
-                    <div className="flex gap-12">
-                        <div className="space-y-3">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Product</h4>
-                            <ul className="space-y-2 text-sm text-[var(--secondary)]">
-                                <li><Link href="#features" className="hover:text-[var(--ink)]">Features</Link></li>
-                                <li><Link href="#pricing" className="hover:text-[var(--ink)]">Pricing</Link></li>
-                                <li><Link href="/signin" className="hover:text-[var(--ink)]">Log In</Link></li>
-                            </ul>
-                        </div>
-                        <div className="space-y-3">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Legal</h4>
-                            <ul className="space-y-2 text-sm text-[var(--secondary)]">
-                                <li><Link href="/legal/privacy" className="hover:text-[var(--ink)]">Privacy</Link></li>
-                                <li><Link href="/legal/terms" className="hover:text-[var(--ink)]">Terms</Link></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <footer className="relative bg-[var(--bg-secondary)] border-t border-[var(--border)]">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 lg:gap-12">
+          {/* Brand Column */}
+          <div className="col-span-2">
+            <button
+              onClick={() => router.push("/")}
+              className="flex items-center gap-3 mb-6 group"
+            >
+              <CompassLogo size={36} variant="minimal" animate={false} />
+              <span className="font-display text-xl font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+                RaptorFlow
+              </span>
+            </button>
+            <p className="text-sm text-[var(--text-muted)] mb-6 max-w-xs">
+              The artisanal marketing operating system for founders who demand
+              precision.
+            </p>
 
-                <div className="mt-12 pt-6 border-t border-[var(--border)] flex justify-between text-xs text-[var(--muted)]">
-                    <p>© {new Date().getFullYear()} RaptorFlow</p>
-                </div>
+            {/* Social Links */}
+            <div className="flex items-center gap-3">
+              {SOCIAL_LINKS.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  aria-label={social.label}
+                  className="w-10 h-10 rounded-full bg-[var(--bg-primary)] border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-colors"
+                >
+                  <social.icon size={18} />
+                </a>
+              ))}
             </div>
-        </footer>
-    );
+          </div>
+
+          {/* Link Columns */}
+          {Object.entries(FOOTER_LINKS).map(([category, links]) => (
+            <div key={category}>
+              <h4 className="font-display text-sm font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-4">
+                {category}
+              </h4>
+              <ul className="space-y-3">
+                {links.map((link) => (
+                  <li key={link.label}>
+                    <button
+                      onClick={() => handleNavClick(link.href)}
+                      className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
+                    >
+                      {link.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="mt-16 pt-8 border-t border-[var(--border)] flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-[var(--text-muted)]">
+            © {new Date().getFullYear()} RaptorFlow. All rights reserved.
+          </p>
+          <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+            <span>Made with precision in</span>
+            <span className="font-medium text-[var(--accent)]">India</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 }
+
+export default Footer;

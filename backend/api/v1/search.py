@@ -8,8 +8,6 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User
 from ..services.search.orchestrator import SOTASearchOrchestrator
 
 router = APIRouter(prefix="/search", tags=["search"])
@@ -50,7 +48,7 @@ async def sync_search(
     q: str = Query(..., description="Search query"),
     limit: int = Query(10, description="Result limit"),
     site: Optional[str] = Query(None, description="Site filter"),
-    user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     orchestrator: SOTASearchOrchestrator = Depends(get_search_orchestrator),
 ):
     """
@@ -68,8 +66,8 @@ async def sync_search(
 @router.post("/async")
 async def async_search_trigger(
     request: SearchRequest,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Triggers an asynchronous search task (Deep Research).

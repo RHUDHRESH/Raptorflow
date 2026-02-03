@@ -5,11 +5,9 @@ Handles HTTP requests for move operations
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User
 from ..services.move import MoveService
 
 router = APIRouter(prefix="/moves", tags=["moves"])
@@ -68,8 +66,7 @@ def get_move_service() -> MoveService:
 
 @router.get("/", response_model=List[MoveResponse])
 async def list_moves(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """List all moves for workspace"""
@@ -80,8 +77,7 @@ async def list_moves(
 @router.post("/", response_model=MoveResponse)
 async def create_move(
     move_data: MoveCreate,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Create new move"""
@@ -95,8 +91,7 @@ async def create_move(
 @router.get("/{move_id}", response_model=MoveResponse)
 async def get_move(
     move_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Get move by ID with details"""
@@ -112,8 +107,7 @@ async def get_move(
 async def update_move(
     move_id: str,
     move_data: MoveUpdate,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Update move"""
@@ -133,8 +127,7 @@ async def update_move(
 @router.delete("/{move_id}")
 async def delete_move(
     move_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Delete move"""
@@ -152,8 +145,7 @@ async def delete_move(
 @router.post("/{move_id}/start", response_model=MoveResponse)
 async def start_move(
     move_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Start a move"""
@@ -171,8 +163,7 @@ async def start_move(
 @router.post("/{move_id}/pause", response_model=MoveResponse)
 async def pause_move(
     move_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Pause a move"""
@@ -191,8 +182,7 @@ async def pause_move(
 async def complete_move(
     move_id: str,
     results: Optional[dict] = None,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Complete a move"""
@@ -210,8 +200,7 @@ async def complete_move(
 @router.post("/{move_id}/generate-tasks")
 async def generate_tasks(
     move_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Generate tasks for a move"""
@@ -225,8 +214,7 @@ async def generate_tasks(
 @router.get("/{move_id}/tasks")
 async def get_move_tasks(
     move_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Get tasks for a move"""
@@ -243,8 +231,7 @@ async def get_move_tasks(
 
 @router.get("/analytics")
 async def get_move_analytics(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Get move analytics"""
@@ -257,8 +244,7 @@ async def get_move_analytics(
 
 @router.get("/active", response_model=List[MoveResponse])
 async def get_active_moves(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     move_service: MoveService = Depends(get_move_service),
 ):
     """Get all active moves"""
@@ -271,7 +257,7 @@ async def get_active_moves(
 
 @router.get("/calendar/events")
 async def get_moves_calendar(
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
 ):

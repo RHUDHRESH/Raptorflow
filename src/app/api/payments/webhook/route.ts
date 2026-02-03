@@ -1,6 +1,7 @@
 import { createServerSupabaseClient, getProfileByAnyId, updateProfileRecord } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
 import { sendWelcomeEmail, sendPaymentConfirmationEmail } from '@/lib/email'
+import crypto from 'crypto'
 
 // PhonePe 2026 Webhook Configuration
 const PHONEPE_SALT_KEY = process.env.PHONEPE_SALT_KEY

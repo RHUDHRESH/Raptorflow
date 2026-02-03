@@ -69,7 +69,7 @@ class WebhookResponse(BaseModel):
 @router.post("/initiate", response_model=InitiatePaymentResponse)
 async def initiate_payment(
     request: InitiatePaymentRequest,
-    auth_context: AuthContext = Depends(get_auth_context),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Initiate a payment for subscription plan
@@ -129,7 +129,7 @@ async def initiate_payment(
 
 @router.get("/status/{merchant_order_id}", response_model=StatusResponse)
 async def get_payment_status(
-    merchant_order_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    merchant_order_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Check payment status and subscription information

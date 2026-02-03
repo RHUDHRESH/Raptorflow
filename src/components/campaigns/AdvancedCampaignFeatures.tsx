@@ -242,48 +242,19 @@ export function AdvancedCampaignFeatures() {
       const campaignId = await createCampaign({
         name: `${template.name} - ${format(new Date(), 'MMM d, yyyy')}`,
         description: template.description,
-        objective: template.objective as any,
         targetAudience: {
-          id: 'audience-1',
           name: template.targetAudience,
-          criteria: {},
-          size: 1000,
-          estimatedReach: 5000,
-          customProperties: {}
+          criteria: {}
         },
         budget: {
           total: template.budget.max,
-          currency: template.budget.currency,
-          allocated: {},
-          spent: 0,
-          remaining: template.budget.max
+          currency: template.budget.currency
         },
         timeline: {
           startDate: new Date(),
-          endDate: new Date(Date.now() + (6 * 7 * 24 * 60 * 60 * 1000)), // 6 weeks
-          phases: [],
-          milestones: []
-        },
-        // moves: [],
-        // plays: [],
-        // analytics: ...,
-        // team: ...,
-        settings: {
-          autoOptimization: true,
-          abTesting: false,
-          notifications: {
-            email: true,
-            push: false,
-            slack: false,
-            frequency: 'daily',
-            events: []
-          },
-          integrations: {},
-          branding: {} as any
+          endDate: new Date(Date.now() + (6 * 7 * 24 * 60 * 60 * 1000)) // 6 weeks
         }
-        // tags: template.tags,
-        // createdBy: 'current-user'
-      });
+      } as any);
 
       console.log('Campaign created from template:', campaignId);
       setShowPreview(false);

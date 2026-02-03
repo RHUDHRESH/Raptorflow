@@ -9,8 +9,7 @@ import os
 from contextlib import asynccontextmanager
 from typing import Any, Optional, Union
 
-import redis.asyncio as redis
-from redis.asyncio import ConnectionPool, Redis
+from redis.client import RedisClient, get_redis
 from redis.exceptions import ConnectionError, RedisError
 
 # Lazy load settings to avoid circular imports
@@ -158,34 +157,6 @@ class RedisCache:
             return True
         except RedisError:
             return False
-
-
-# Global cache instance
-cache = RedisCache()
-
-
-# Global cache instance
-cache = RedisCache()
-
-
-
-        except RedisError:
-            return False
-
-
-# Global cache instance
-cache = RedisCache()
-
-
-# Global cache instance
-cache = RedisCache()
-
-
-
-
-
-# Global cache instance
-cache = RedisCache()
 
 
 # Global cache instance

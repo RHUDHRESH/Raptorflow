@@ -50,24 +50,24 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8000, env="PORT")
 
     # Security
-    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+    SECRET_KEY: str = Field(default="", env="SECRET_KEY")
     JWT_ALGORITHM: str = Field(default="HS256", env="JWT_ALGORITHM")
     JWT_EXPIRE_MINUTES: int = Field(default=30, env="JWT_EXPIRE_MINUTES")
 
     # Database
-    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+    DATABASE_URL: str = Field(default="", env="DATABASE_URL")
     DATABASE_POOL_SIZE: int = Field(default=10, env="DATABASE_POOL_SIZE")
     DATABASE_MAX_OVERFLOW: int = Field(default=20, env="DATABASE_MAX_OVERFLOW")
 
     # Redis
-    UPSTASH_REDIS_URL: str = Field(..., env="UPSTASH_REDIS_URL")
-    UPSTASH_REDIS_TOKEN: str = Field(..., env="UPSTASH_REDIS_TOKEN")
+    UPSTASH_REDIS_URL: str = Field(default="", env="UPSTASH_REDIS_URL")
+    UPSTASH_REDIS_TOKEN: str = Field(default="", env="UPSTASH_REDIS_TOKEN")
     REDIS_KEY_PREFIX: str = Field(default="raptorflow:", env="REDIS_KEY_PREFIX")
     REDIS_DEFAULT_TTL: int = Field(default=3600, env="REDIS_DEFAULT_TTL")
     REDIS_MAX_CONNECTIONS: int = Field(default=10, env="REDIS_MAX_CONNECTIONS")
 
     # AI/ML Services
-    VERTEX_AI_PROJECT_ID: str = Field(..., env="VERTEX_AI_PROJECT_ID")
+    VERTEX_AI_PROJECT_ID: str = Field(default="", env="VERTEX_AI_PROJECT_ID")
     VERTEX_AI_LOCATION: str = Field(default="us-central1", env="VERTEX_AI_LOCATION")
     VERTEX_AI_MODEL: str = Field(default="gemini-2.0-flash-exp", env="VERTEX_AI_MODEL")
     VERTEX_AI_CREDENTIALS_PATH: Optional[str] = Field(
@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = Field(default="gpt-4", env="OPENAI_MODEL")
 
     # Google Cloud Platform
-    GCP_PROJECT_ID: str = Field(..., env="GCP_PROJECT_ID")
+    GCP_PROJECT_ID: str = Field(default="", env="GCP_PROJECT_ID")
     GCP_REGION: str = Field(default="us-central1", env="GCP_REGION")
     GCP_CREDENTIALS_PATH: Optional[str] = Field(
         default=None, env="GCP_CREDENTIALS_PATH"
@@ -112,7 +112,7 @@ class Settings(BaseSettings):
     EMAIL_FROM: Optional[str] = Field(default=None, env="EMAIL_FROM")
 
     # Webhooks
-    WEBHOOK_SECRET: str = Field(..., env="WEBHOOK_SECRET")
+    WEBHOOK_SECRET: str = Field(default="", env="WEBHOOK_SECRET")
     SUPABASE_WEBHOOK_SECRET: Optional[str] = Field(
         default=None, env="SUPABASE_WEBHOOK_SECRET"
     )

@@ -19,8 +19,8 @@ from memory import (
 )
 from memory.chunker import ContentChunker
 from memory.embeddings import get_embedding_model
+from fastapi import Query
 
-from ..core.auth import get_current_user
 from ..core.database import get_database_service, get_supabase_client
 
 router = APIRouter(prefix="/memory", tags=["memory"])
@@ -61,7 +61,7 @@ async def memory_health_check():
 @router.post("/store")
 async def store_memory(
     request: Dict[str, Any],
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     supabase=Depends(get_supabase_client),
 ):
     """Store memory chunk with embedding."""
@@ -135,7 +135,7 @@ async def search_memory(
     memory_types: Optional[List[str]] = Query(None),
     limit: int = Query(10, ge=1, le=100),
     min_similarity: float = Query(0.5, ge=0.0, le=1.0),
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     supabase=Depends(get_supabase_client),
 ):
     """Search memory using semantic similarity."""
@@ -206,7 +206,7 @@ async def search_memory(
 @router.get("/stats")
 async def get_memory_stats(
     workspace_id: str,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     supabase=Depends(get_supabase_client),
 ):
     """Get memory statistics for workspace."""
@@ -246,7 +246,7 @@ async def get_memory_stats(
 async def delete_memory(
     chunk_id: str,
     workspace_id: str,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     supabase=Depends(get_supabase_client),
 ):
     """Delete memory chunk using new database service"""
@@ -279,7 +279,7 @@ async def delete_memory(
 
 @router.post("/chunk")
 async def chunk_content(
-    request: Dict[str, Any], current_user: Dict = Depends(get_current_user)
+    request: Dict[str, Any], user_id: str = Query(..., description="User ID")
 ):
     """Chunk content into smaller pieces."""
     try:
@@ -307,7 +307,7 @@ async def chunk_content(
 
 @router.post("/embed")
 async def generate_embeddings(
-    request: Dict[str, Any], current_user: Dict = Depends(get_current_user)
+    request: Dict[str, Any], user_id: str = Query(..., description="User ID")
 ):
     """Generate embeddings for text."""
     try:
@@ -346,7 +346,7 @@ async def get_graph_entities(
     workspace_id: str,
     entity_type: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     supabase=Depends(get_supabase_client),
 ):
     """Get graph entities for workspace."""
@@ -370,7 +370,7 @@ async def get_graph_entities(
 @router.post("/graph/entities")
 async def create_graph_entity(
     request: Dict[str, Any],
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     supabase=Depends(get_supabase_client),
 ):
     """Create graph entity."""
@@ -411,7 +411,7 @@ async def get_graph_relationships(
     entity_id: Optional[str] = Query(None),
     relationship_type: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     supabase=Depends(get_supabase_client),
 ):
     """Get graph relationships."""
@@ -440,7 +440,7 @@ async def get_graph_relationships(
 
 @router.get("/sessions")
 async def get_active_sessions(
-    workspace_id: str, current_user: Dict = Depends(get_current_user)
+    workspace_id: str, user_id: str = Query(..., description="User ID")
 ):
     """Get active working memory sessions."""
     try:
@@ -462,7 +462,7 @@ async def get_active_sessions(
 
 @router.post("/sessions")
 async def create_session(
-    request: Dict[str, Any], current_user: Dict = Depends(get_current_user)
+    request: Dict[str, Any], user_id: str = Query(..., description="User ID")
 ):
     """Create working memory session."""
     try:
@@ -489,7 +489,7 @@ async def create_session(
 
 
 @router.get("/sessions/{session_id}")
-async def get_session(session_id: str, current_user: Dict = Depends(get_current_user)):
+async def get_session(session_id: str, user_id: str = Query(..., description="User ID")):
     """Get working memory session details."""
     try:
         working_memory = WorkingMemory()
@@ -512,7 +512,7 @@ async def get_session(session_id: str, current_user: Dict = Depends(get_current_
 
 
 @router.delete("/sessions/{session_id}")
-async def end_session(session_id: str, current_user: Dict = Depends(get_current_user)):
+async def end_session(session_id: str, user_id: str = Query(..., description="User ID")):
     """End working memory session."""
     try:
         working_memory = WorkingMemory()

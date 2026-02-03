@@ -24,8 +24,6 @@ from ...memory.graph_models import (
 )
 from ...memory.graph_query import GraphPattern, GraphQueryEngine
 from ...memory.vector_store import VectorMemory
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +96,6 @@ async def get_entities(
     entity_type: Optional[str] = Query(None, description="Filter by entity type"),
     name_pattern: Optional[str] = Query(None, description="Filter by name pattern"),
     limit: int = Query(50, description="Maximum number of results"),
-    current_user: User = Depends(get_current_user),
     graph_memory: GraphMemory = Depends(get_graph_memory),
 ):
     """
@@ -156,7 +153,6 @@ async def get_entities(
 @router.post("/entities", response_model=GraphEntityResponse)
 async def create_entity(
     request: GraphEntityRequest,
-    current_user: User = Depends(get_current_user),
     graph_memory: GraphMemory = Depends(get_graph_memory),
 ):
     """
@@ -206,7 +202,7 @@ async def create_entity(
 async def get_entity(
     entity_id: str,
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     graph_memory: GraphMemory = Depends(get_graph_memory),
 ):
     """
@@ -252,7 +248,6 @@ async def get_entity(
 async def update_entity(
     entity_id: str,
     request: GraphEntityRequest,
-    current_user: User = Depends(get_current_user),
     graph_memory: GraphMemory = Depends(get_graph_memory),
 ):
     """
@@ -300,7 +295,6 @@ async def update_entity(
 async def delete_entity(
     entity_id: str,
     workspace_id: str = Query(..., description="Workspace ID"),
-    current_user: User = Depends(get_current_user),
     graph_memory: GraphMemory = Depends(get_graph_memory),
 ):
     """
@@ -344,7 +338,6 @@ async def get_entity_relationships(
     direction: str = Query(
         "both", description="Relationship direction (incoming, outgoing, both)"
     ),
-    current_user: User = Depends(get_current_user),
     graph_memory: GraphMemory = Depends(get_graph_memory),
 ):
     """
@@ -395,7 +388,6 @@ async def get_entity_relationships(
 @router.post("/relationships", response_model=GraphRelationshipResponse)
 async def create_relationship(
     request: GraphRelationshipRequest,
-    current_user: User = Depends(get_current_user),
     graph_memory: GraphMemory = Depends(get_graph_memory),
 ):
     """
@@ -454,7 +446,6 @@ async def get_subgraph(
     center_entity: str = Query(..., description="Center entity ID"),
     depth: int = Query(2, description="Graph depth"),
     limit: int = Query(50, description="Maximum number of entities"),
-    current_user: User = Depends(get_current_user),
     graph_memory: GraphMemory = Depends(get_graph_memory),
 ):
     """
@@ -523,7 +514,6 @@ async def get_subgraph(
 @router.post("/query", response_model=SubGraphResponse)
 async def query_graph(
     request: GraphQueryRequest,
-    current_user: User = Depends(get_current_user),
     graph_memory: GraphMemory = Depends(get_graph_memory),
 ):
     """
@@ -586,7 +576,7 @@ async def query_graph(
 
 
 @router.get("/types", response_model=List[str])
-async def get_entity_types(current_user: User = Depends(get_current_user)):
+async def get_entity_types():
     """
     Get available entity types.
 
@@ -604,7 +594,7 @@ async def get_entity_types(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/relationship-types", response_model=List[str])
-async def get_relationship_types(current_user: User = Depends(get_current_user)):
+async def get_relationship_types():
     """
     Get available relationship types.
 
@@ -626,8 +616,7 @@ async def get_relationship_types(current_user: User = Depends(get_current_user))
 
 @router.get("/graph/entities")
 async def get_graph_entities(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     entity_type: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=1000),
     search: Optional[str] = Query(None),
@@ -693,8 +682,7 @@ async def get_graph_entities(
 @router.get("/graph/entity/{entity_id}")
 async def get_graph_entity(
     entity_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Get detailed information about a specific graph entity.
@@ -747,8 +735,7 @@ async def get_graph_entity(
 
 @router.get("/graph/subgraph")
 async def get_subgraph(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     center_entity: str = Query(...),
     depth: int = Query(2, ge=1, le=5),
     max_entities: int = Query(100, ge=10, le=500),
@@ -812,8 +799,7 @@ async def get_subgraph(
 
 @router.get("/graph/path")
 async def find_path(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     from_entity: str = Query(...),
     to_entity: str = Query(...),
     max_depth: int = Query(5, ge=1, le=10),
@@ -882,8 +868,7 @@ async def find_path(
 @router.post("/graph/pattern/search")
 async def search_pattern(
     pattern_data: dict,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     limit: int = Query(10, ge=1, le=50),
 ):
     """
@@ -976,8 +961,7 @@ async def search_pattern(
 
 @router.get("/graph/analytics")
 async def get_graph_analytics(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Get analytics about the knowledge graph.
@@ -1021,8 +1005,7 @@ async def get_graph_analytics(
 
 @router.get("/graph/visualize/d3")
 async def get_d3_visualization(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     center_entity: str = Query(...),
     depth: int = Query(2, ge=1, le=5),
     max_entities: int = Query(100, ge=10, le=500),
@@ -1061,8 +1044,7 @@ async def get_d3_visualization(
 
 @router.get("/graph/visualize/cytoscape")
 async def get_cytoscape_visualization(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     center_entity: str = Query(...),
     depth: int = Query(2, ge=1, le=5),
     max_entities: int = Query(100, ge=10, le=500),
@@ -1102,8 +1084,7 @@ async def get_cytoscape_visualization(
 
 @router.get("/graph/export")
 async def export_graph_data(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     format: str = Query("json", pattern="^(json|csv|graphml)$"),
     include_embeddings: bool = Query(False),
 ):

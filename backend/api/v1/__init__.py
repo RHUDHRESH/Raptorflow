@@ -34,7 +34,6 @@
 # from . import onboarding_v2
 # from . import payments
 # from . import payments_enhanced
-from . import daily_wins, payments_v2
 
 # from . import rate_limit
 # from . import redis_metrics

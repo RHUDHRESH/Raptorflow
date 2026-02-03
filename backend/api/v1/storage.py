@@ -12,8 +12,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from infrastructure.storage import FileCategory, get_cloud_storage
 from pydantic import BaseModel, Field
+from fastapi import Query
 
-from ..core.auth import get_current_user
 from ..services.storage import get_enhanced_storage_service
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class FileInfoRequest(BaseModel):
 
 @router.post("/storage/upload-url")
 async def generate_upload_url(
-    request: UploadURLRequest, current_user: Dict[str, Any] = Depends(get_current_user)
+    request: UploadURLRequest, user_id: str = Query(..., description="User ID")
 ):
     """Generate signed upload URL for file upload"""
     try:
@@ -98,7 +98,7 @@ async def generate_upload_url(
 @router.post("/storage/download-url")
 async def generate_download_url(
     request: DownloadURLRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Generate signed download URL for file download"""
     try:
@@ -144,7 +144,7 @@ async def generate_download_url(
 
 @router.post("/storage/file-info")
 async def get_file_info(
-    request: FileInfoRequest, current_user: Dict[str, Any] = Depends(get_current_user)
+    request: FileInfoRequest, user_id: str = Query(..., description="User ID")
 ):
     """Get file information"""
     try:
@@ -196,7 +196,7 @@ async def get_file_info(
 
 @router.delete("/storage/file")
 async def delete_file(
-    request: FileInfoRequest, current_user: Dict[str, Any] = Depends(get_current_user)
+    request: FileInfoRequest, user_id: str = Query(..., description="User ID")
 ):
     """Delete a file"""
     try:
@@ -241,7 +241,7 @@ async def delete_file(
 
 @router.get("/storage/usage/{user_id}")
 async def get_storage_usage(
-    user_id: str, current_user: Dict[str, Any] = Depends(get_current_user)
+    user_id: str
 ):
     """Get storage usage statistics for user"""
     try:
@@ -280,7 +280,7 @@ async def get_storage_usage(
 
 @router.post("/storage/cleanup")
 async def cleanup_storage_files(
-    days_old: int = 30, current_user: Dict[str, Any] = Depends(get_current_user)
+    days_old: int = 30, user_id: str = Query(..., description="User ID")
 ):
     """Clean up old files from storage"""
     try:
@@ -306,7 +306,7 @@ async def cleanup_storage_files(
 
 @router.delete("/storage/files/{storage_path:path}")
 async def delete_storage_file(
-    storage_path: str, current_user: Dict[str, Any] = Depends(get_current_user)
+    storage_path: str, user_id: str = Query(..., description="User ID")
 ):
     """Delete file from storage"""
     try:
@@ -340,7 +340,7 @@ async def delete_storage_file(
 
 @router.get("/storage/workspace/{workspace_id}/usage")
 async def get_workspace_storage_usage(
-    workspace_id: str, current_user: Dict[str, Any] = Depends(get_current_user)
+    workspace_id: str
 ):
     """Get detailed storage usage for workspace"""
     try:

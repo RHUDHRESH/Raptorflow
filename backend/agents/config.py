@@ -9,13 +9,13 @@ from typing import Dict, Optional
 
 from pydantic import BaseModel, Field
 
-from backend.config import ModelTier
+from config import ModelTier
 
 logger = logging.getLogger(__name__)
 
 # Import timeout types with fallback for when running as a package
 try:
-    from backend.core.timeouts import OperationType, TimeoutConfig
+    from core.timeouts import OperationType, TimeoutConfig
 except ImportError:
     # Define minimal fallback for OperationType when core.timeouts is not available
     class OperationType(str, Enum):

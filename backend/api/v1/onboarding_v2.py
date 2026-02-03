@@ -14,8 +14,7 @@ from pydantic import BaseModel
 from ...infrastructure.storage import FileCategory, upload_file
 from ...utils.ucid import UCIDGenerator
 from ..agents.graphs.onboarding_v2 import OnboardingGraphV2, OnboardingStateV2
-from ..core.auth import get_current_user
-from ..core.models import User
+from fastapi import Query
 from ..services.profile_service import ProfileService
 
 router = APIRouter(prefix="/onboarding/v2", tags=["onboarding-v2"])
@@ -73,7 +72,7 @@ async def run_onboarding_step(
 @router.post("/start", response_model=Dict[str, Any])
 async def start_onboarding_v2(
     request: StartSessionRequest,
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Initialize a new 23-step onboarding session."""
     profile = profile_service.verify_profile(current_user)

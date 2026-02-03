@@ -12,7 +12,7 @@ try:
     vertex_ai_client = get_vertex_ai_client()
 except ImportError:
     vertex_ai_client = None
-from ..core.auth import get_current_user
+from fastapi import Query
 
 router = APIRouter(prefix="/usage", tags=["usage"])
 
@@ -23,7 +23,7 @@ from ..core.supabase_mgr import get_supabase_client
 async def get_ai_costs(
     workspace_id: str,
     days: int = Query(default=30, description="Number of days to look back"),
-    current_user=Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Get AI usage costs for workspace"""
     try:
@@ -98,7 +98,7 @@ async def get_ai_costs(
 async def get_usage_summary(
     workspace_id: str,
     days: int = Query(default=7, description="Number of days to summarize"),
-    current_user=Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Get a summary of AI usage for a workspace"""
     try:

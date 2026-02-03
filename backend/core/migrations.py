@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from supabase import Client
 
-from .core.supabase_mgr import get_supabase_client
+from core.supabase_mgr import get_supabase_client
 
 
 def get_migration_health() -> Dict[str, Any]:
@@ -151,7 +151,7 @@ class MigrationRunner:
 
             migration.applied_at = datetime.utcnow()
             logger.info(f"Successfully applied migration {migration.version}")
-            return result
+            return True
 
         except Exception as e:
             logger.error(f"Failed to apply migration {migration.version}: {e}")

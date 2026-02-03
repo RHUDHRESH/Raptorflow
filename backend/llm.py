@@ -130,7 +130,7 @@ except ImportError:
 
 
 # Local imports
-from backend.config import LLMProvider, settings
+from config import LLMProvider, settings
 
 logger = structlog.get_logger(__name__)
 
@@ -714,7 +714,7 @@ class LLMManager:
     """Main LLM manager with provider abstraction and caching."""
 
     def __init__(self):
-        from backend.redis_client import get_redis
+        from redis_client import get_redis
 
         self.providers = {}
         self.default_provider = None

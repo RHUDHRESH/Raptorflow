@@ -9,11 +9,10 @@ Handles blueprints, agenda aggregation, and fluid task status updates.
 from datetime import UTC, datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from synapse import brain
 
-from ..core.auth import get_auth_context
 from ..core.models import AuthContext
 from ..core.supabase_mgr import get_supabase_client
 from ..services.macm import get_context_assembler
@@ -33,7 +32,7 @@ class TaskStatusUpdate(BaseModel):
 
 @router.post("/blueprint", status_code=status.HTTP_201_CREATED)
 async def create_blueprint(
-    request: BlueprintRequest, auth: AuthContext = Depends(get_auth_context)
+    request: BlueprintRequest, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Creates a Strategic Blueprint using multi-vector context (DCM/MacM).
@@ -67,7 +66,7 @@ async def create_blueprint(
 
 
 @router.get("/agenda")
-async def get_hierarchical_agenda(auth: AuthContext = Depends(get_auth_context)):
+async def get_hierarchical_agenda(workspace_id: str = Query(..., description="Workspace ID")):
     """
     Aggregates active moves and their tasks, grouped by campaign milestones.
     Hierarchical management for concurrent moves.
@@ -112,7 +111,7 @@ async def get_hierarchical_agenda(auth: AuthContext = Depends(get_auth_context))
 
 
 @router.get("/agenda/daily")
-async def get_daily_agenda(auth: AuthContext = Depends(get_auth_context)):
+async def get_daily_agenda(workspace_id: str = Query(..., description="Workspace ID")):
     """
     Aggregates prioritized tasks from all active moves for 'Today'.
     """
@@ -140,7 +139,7 @@ async def get_daily_agenda(auth: AuthContext = Depends(get_auth_context)):
 async def update_task_status(
     task_id: str,
     update: TaskStatusUpdate,
-    auth: AuthContext = Depends(get_auth_context),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Updates task status and triggers fluid rescheduling if needed.
@@ -178,7 +177,7 @@ async def update_task_status(
 
 @router.get("/reasoning/{entity_id}")
 async def get_expert_reasoning(
-    entity_id: str, auth: AuthContext = Depends(get_auth_context)
+    entity_id: str, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Returns the full expert reasoning trace for a move or campaign.
@@ -197,7 +196,7 @@ async def get_expert_reasoning(
 
 
 @router.post("/moves/{move_id}/conclude")
-async def conclude_move(move_id: str, auth: AuthContext = Depends(get_auth_context)):
+async def conclude_move(move_id: str, workspace_id: str = Query(..., description="Workspace ID")):
     """
     Finalizes a move, performs a post-mortem, and decides if it should be Archived or Extended.
     Transition logic for move lifecycle management.

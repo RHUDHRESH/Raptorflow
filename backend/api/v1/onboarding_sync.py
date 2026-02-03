@@ -18,14 +18,14 @@ from workflows.onboarding import OnboardingWorkflow
 from cognitive import CognitiveEngine
 
 from ..agents.dispatcher import AgentDispatcher
-from ..core.auth import get_current_user
+from fastapi import Query
 from ..services.onboarding_state_service import OnboardingStateService, StepStatus
 from ..services.upstash_client import UpstashClient
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/onboarding", tags=["onboarding"], dependencies=[Depends(get_current_user)]
+    prefix="/onboarding", tags=["onboarding"]
 )
 
 
@@ -116,7 +116,7 @@ def get_workflow_components():
 
 @router.post("/step", response_model=StepResponse)
 async def execute_step(
-    request: StepRequest, workspace_id: str, current_user=Depends(get_current_user)
+    request: StepRequest, workspace_id: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Execute an onboarding step with full synchronization.
@@ -157,7 +157,7 @@ async def execute_step(
 
 @router.get("/status", response_model=StatusResponse)
 async def get_onboarding_status(
-    workspace_id: str, current_user=Depends(get_current_user)
+    workspace_id: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Get comprehensive onboarding status.
@@ -180,7 +180,7 @@ async def get_onboarding_status(
 
 
 @router.post("/resume")
-async def resume_onboarding(workspace_id: str, current_user=Depends(get_current_user)):
+async def resume_onboarding(workspace_id: str, user_id: str = Query(..., description="User ID")):
     """
     Resume onboarding from current state.
     """
@@ -202,7 +202,7 @@ async def resume_onboarding(workspace_id: str, current_user=Depends(get_current_
 
 
 @router.get("/next-step")
-async def get_next_step(workspace_id: str, current_user=Depends(get_current_user)):
+async def get_next_step(workspace_id: str, user_id: str = Query(..., description="User ID")):
     """
     Get the next available step for execution.
     """
@@ -232,7 +232,7 @@ async def get_next_step(workspace_id: str, current_user=Depends(get_current_user
 
 @router.get("/step-data/{step_id}")
 async def get_step_data(
-    step_id: str, workspace_id: str, current_user=Depends(get_current_user)
+    step_id: str, workspace_id: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Get data for a specific step (if completed).
@@ -268,7 +268,7 @@ async def get_step_data(
 
 @router.post("/reset-step")
 async def reset_step(
-    step_id: str, workspace_id: str, current_user=Depends(get_current_user)
+    step_id: str, workspace_id: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Reset a step to NOT_STARTED status (for debugging/retry).
@@ -332,7 +332,7 @@ async def websocket_endpoint(websocket: WebSocket, workspace_id: str):
 
 
 @router.get("/sync-check")
-async def sync_check(workspace_id: str, current_user=Depends(get_current_user)):
+async def sync_check(workspace_id: str, user_id: str = Query(..., description="User ID")):
     """
     Check synchronization status and fix inconsistencies.
     """

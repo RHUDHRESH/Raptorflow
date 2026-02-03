@@ -8,11 +8,9 @@ Handles strategic refinement, ledger projection, and semantic compression.
 
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 
-from ..core.auth import get_auth_context
-from ..core.models import AuthContext
 from ..services.bcm_projector import BCMProjector
 from ..services.bcm_service import BCMService
 from ..services.bcm_sweeper import BCMSweeper
@@ -31,7 +29,7 @@ class EvolutionStateResponse(BaseModel):
 
 @router.post("/refine", status_code=status.HTTP_200_OK)
 async def refine_strategic_context(
-    request: RefineRequest, auth: AuthContext = Depends(get_auth_context)
+    request: RefineRequest, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Analyzes recent history and refines the current business context.
@@ -50,7 +48,7 @@ async def refine_strategic_context(
 
 
 @router.get("/state/{ucid}", response_model=EvolutionStateResponse)
-async def get_projected_state(ucid: str, auth: AuthContext = Depends(get_auth_context)):
+async def get_projected_state(ucid: str, workspace_id: str = Query(..., description="Workspace ID")):
     """
     Returns the 'Everything' projected state for a given UCID.
     """
@@ -69,7 +67,7 @@ async def get_projected_state(ucid: str, auth: AuthContext = Depends(get_auth_co
 
 @router.post("/sweep", status_code=status.HTTP_200_OK)
 async def trigger_semantic_sweep(
-    request: RefineRequest, auth: AuthContext = Depends(get_auth_context)
+    request: RefineRequest, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Triggers semantic compression of old events into summaries.
@@ -89,7 +87,7 @@ async def trigger_semantic_sweep(
 
 @router.post("/analyze", status_code=status.HTTP_200_OK)
 async def analyze_and_sync_evolution(
-    request: RefineRequest, auth: AuthContext = Depends(get_auth_context)
+    request: RefineRequest, workspace_id: str = Query(..., description="Workspace ID")
 ):
     """
     Recalculates the Evolution Index and syncs it to the workspace profile.

@@ -24,7 +24,7 @@ export function BCMRebuildDialog({ workspaceId, children, className }: BCMRebuil
   const handleRebuild = async () => {
     setIsRebuilding(true);
     try {
-      await rebuild(workspaceId, forceRebuild);
+      await rebuild(forceRebuild);
       setIsOpen(false);
       setForceRebuild(false);
     } catch (error) {

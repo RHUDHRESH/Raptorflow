@@ -1,59 +1,45 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, Crimson_Pro, JetBrains_Mono } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/components/auth/AuthProvider";
-import { ProfileGate } from "@/components/auth/ProfileGate";
-import { BCMBootstrapper } from "@/components/bcm/BCMBootstrapper";
 import "./globals.css";
-
-const inter = Inter({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700"],
-    variable: "--font-inter",
-    display: "swap",
-});
-
-const playfair = Playfair_Display({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700"],
-    variable: "--font-playfair",
-    display: "swap",
-});
-
-const crimson = Crimson_Pro({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700"],
-    variable: "--font-crimson",
-    display: "swap",
-});
-
-const jetbrains = JetBrains_Mono({
-    subsets: ["latin"],
-    variable: "--font-jetbrains",
-    display: "swap",
-});
+import { CustomCursor } from "@/components/effects/CustomCursor";
+import { GrainEffect } from "@/components/effects/GrainEffect";
+import { SmoothScrollProvider } from "@/components/effects/SmoothScroll";
 
 export const metadata: Metadata = {
-    title: "RaptorFlow | Marketing Operating System",
-    description: "The Founder Marketing Operating System. Clear positioning, 90-day war plans, weekly execution moves.",
+  title: "RaptorFlow - Navigate Your Marketing",
+  description: "The artisanal marketing operating system for founders who demand precision. AI-powered strategy, content, and campaign execution.",
+  keywords: ["marketing", "AI", "founders", "SaaS", "strategy", "content generation"],
+  authors: [{ name: "RaptorFlow" }],
+  openGraph: {
+    title: "RaptorFlow - Navigate Your Marketing",
+    description: "The artisanal marketing operating system for founders who demand precision.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return (
-        <html lang="en" className={`${inter.variable} ${playfair.variable} ${crimson.variable} ${jetbrains.variable}`} suppressHydrationWarning>
-            <body className={inter.className} suppressHydrationWarning>
-                <AuthProvider>
-                    <BCMBootstrapper />
-                    <ProfileGate>
-                        {children}
-                    </ProfileGate>
-                </AuthProvider>
-                <Toaster position="bottom-right" />
-            </body>
-        </html>
-    );
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/compass/compass-favicon.svg" />
+      </head>
+      <body className="min-h-screen">
+        <SmoothScrollProvider>
+          {/* Custom cursor for desktop */}
+          <CustomCursor />
+          
+          {/* Animated grain overlay */}
+          <GrainEffect />
+          
+          {/* Static grain overlay fallback */}
+          <div className="grain-overlay" aria-hidden="true" />
+          
+          {children}
+        </SmoothScrollProvider>
+      </body>
+    </html>
+  );
 }

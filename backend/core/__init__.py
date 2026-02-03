@@ -1,16 +1,26 @@
-﻿# Core module exports
-from .auth import AuthenticatedUser, get_current_user, get_workspace_id
-from .middleware import AuthMiddleware
-from .models import AuthContext, User, Workspace
-from .supabase_mgr import get_supabase_client
+# Core module exports
+from .unified_inference_engine import (
+    UnifiedInferenceEngine,
+    UnifiedRequest,
+    UnifiedResponse,
+    InferenceMode,
+    InferenceContext,
+    ResponseStyle,
+    BaseInferenceEngine,
+    SimulatedInferenceEngine,
+    RealInferenceEngine,
+    get_inference_engine,
+)
 
 __all__ = [
-    "get_current_user",
-    "get_workspace_id",
-    "AuthenticatedUser",
-    "AuthMiddleware",
-    "get_supabase_client",
-    "User",
-    "Workspace",
-    "AuthContext",
+    "UnifiedInferenceEngine",
+    "UnifiedRequest",
+    "UnifiedResponse",
+    "InferenceMode",
+    "InferenceContext",
+    "ResponseStyle",
+    "BaseInferenceEngine",
+    "SimulatedInferenceEngine",
+    "RealInferenceEngine",
+    "get_inference_engine",
 ]

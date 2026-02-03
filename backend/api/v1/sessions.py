@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..core.metrics import get_analytics_manager
@@ -47,7 +47,7 @@ async def get_current_user_id(
 
 @router.post("/")
 async def create_session(
-    request_data: Dict[str, Any], user_id: str = Depends(get_current_user_id)
+    request_data: Dict[str, Any], user_id: str = Query(..., description="User ID")
 ):
     """Create a new enhanced session."""
     try:
@@ -104,7 +104,7 @@ async def create_session(
 
 
 @router.get("/{session_id}")
-async def get_session(session_id: str, user_id: str = Depends(get_current_user_id)):
+async def get_session(session_id: str, user_id: str = Query(..., description="User ID")):
     """Get session details."""
     try:
         session_manager = get_session_manager()
@@ -139,7 +139,7 @@ async def get_session(session_id: str, user_id: str = Depends(get_current_user_i
 async def update_session(
     session_id: str,
     update_data: Dict[str, Any],
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Update session context."""
     try:
@@ -184,7 +184,7 @@ async def update_session(
 @router.delete("/{session_id}")
 async def terminate_session(
     session_id: str,
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Query(..., description="User ID"),
     reason: str = "User request",
 ):
     """Terminate a session."""
@@ -325,7 +325,7 @@ async def get_dashboard_analytics(
 async def get_user_analytics(
     user_id: str,
     days: int = Query(30, ge=1, le=365),
-    current_user_id: str = Depends(get_current_user_id),
+    current_user_id: str = Query(..., description="Current User ID"),
 ):
     """Get user behavior analytics."""
     try:
@@ -374,7 +374,7 @@ async def get_performance_analytics(
     agent_name: Optional[str] = Query(None),
     workspace_id: Optional[str] = Query(None),
     hours: int = Query(24, ge=1, le=168),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Get performance analytics."""
     try:
@@ -400,7 +400,7 @@ async def get_performance_analytics(
 
 @router.get("/analytics/trends")
 async def get_resource_trends(
-    hours: int = Query(24, ge=1, le=168), user_id: str = Depends(get_current_user_id)
+    hours: int = Query(24, ge=1, le=168), user_id: str = Query(..., description="User ID")
 ):
     """Get resource usage trends."""
     try:

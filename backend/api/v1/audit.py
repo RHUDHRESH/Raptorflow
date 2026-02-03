@@ -9,16 +9,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..core.audit import get_audit_logger
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User
+from fastapi import Query
 
 router = APIRouter()
 
 
 @router.get("/audit/trail")
 async def get_audit_trail(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     action: Optional[str] = Query(None),
@@ -88,8 +87,8 @@ async def get_audit_trail(
 @router.get("/audit/user/{user_id}")
 async def get_user_audit_trail(
     user_id: str,
-    current_user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    auth_user_id: str = Query(..., description="Auth User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ):
@@ -125,8 +124,8 @@ async def get_user_audit_trail(
 
 @router.get("/audit/stats")
 async def get_audit_statistics(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
     days: int = Query(30, ge=1, le=365),
 ):
     """
@@ -215,8 +214,8 @@ async def get_audit_statistics(
 
 @router.get("/audit/compliance")
 async def get_compliance_report(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
     report_type: str = Query("summary", regex="^(summary|detailed|export)$"),
     format: str = Query("json", regex="^(json|csv)$"),
 ):
@@ -368,8 +367,8 @@ async def get_compliance_report(
 
 @router.post("/audit/export")
 async def export_audit_data(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
     start_date: datetime = Query(...),
     end_date: datetime = Query(...),
     include_sensitive: bool = Query(False),

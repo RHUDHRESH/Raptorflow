@@ -51,72 +51,68 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Blueprint colors - Technical, Muted, "Architectural Blue"
-        blueprint: {
-          DEFAULT: "#3B82F6", // Keeping default for safety, but favouring 600/700 in usage
-          50: "#F0F5FA",
-          100: "#E1E8F0",
-          200: "#C4D5E5",
-          300: "#9FB6D0",
-          400: "#64748B", // Slate-400 equivalent
-          500: "#475569", // Slate-600
-          600: "#334155", // Slate-700
-          700: "#2C3E50", // Muted Technical Blue
-          800: "#1E293B",
-          900: "#0F172A",
+        // ═══════════════════════════════════════════════════════════════
+        // ARTISANAL LUXURY PALETTE - Coffeehouse Aesthetic
+        // ═══════════════════════════════════════════════════════════════
+        
+        // Mine Shaft - Deep charcoal, our dark anchor
+        shaft: {
+          DEFAULT: "#2D2D2D",
+          50: "#E8E8E8",
+          100: "#D4D4D4",
+          200: "#AAAAAA",
+          300: "#7A7A7A",
+          400: "#525252",
+          500: "#2D2D2D",
+          600: "#262626",
+          700: "#1F1F1F",
+          800: "#171717",
+          900: "#0F0F0F",
         },
-        // RaptorFlow "Ink" - Rich Gunmetal (Not Grey)
-        ink: {
-          DEFAULT: "#2D3538", // The Core Ink Token
-          50: "#F7F8F7",
-          100: "#E8EAE9",
-          200: "#D3D6D4",
-          300: "#B0B5B2",
-          400: "#8A918E",
-          500: "#5B5F61", // Secondary Text
-          600: "#464C4E",
-          700: "#2D3538", // Primary Ink
-          800: "#141A1C", // Surface Dark
-          900: "#0E1112", // Canvas Dark
+        
+        // Akaroa - Warm beige, our signature warmth
+        akaroa: {
+          DEFAULT: "#D7C9AE",
+          50: "#FBF9F6",
+          100: "#F5F2EC",
+          200: "#EBE5DB",
+          300: "#E0D6C6",
+          400: "#D7C9AE",
+          500: "#C9B794",
+          600: "#B8A27A",
+          700: "#9C8560",
+          800: "#7D6B4D",
+          900: "#5C4F39",
         },
-        paper: {
-          DEFAULT: "#FFFFFF",
-          50: "#FFFFFF",
-          100: "#FFFFFF",
-          200: "#FFFFFF",
-          300: "#FFFFFF",
-          400: "#FFFFFF",
-          500: "#FFFFFF",
-          600: "#FFFFFF",
-          700: "#FFFFFF",
-          800: "#FFFFFF",
-          900: "#FFFFFF",
+        
+        // Barley Corn - Rich tan, our accent gold
+        barley: {
+          DEFAULT: "#A68763",
+          50: "#F5F1EC",
+          100: "#EBE3D9",
+          200: "#D9CBB8",
+          300: "#C7B397",
+          400: "#A68763",
+          500: "#967553",
+          600: "#856347",
+          700: "#6E513B",
+          800: "#58412F",
+          900: "#423125",
         },
-        canvas: {
-          DEFAULT: "#F3F4EE",
-          50: "#F9FAFB",
-          100: "#F3F4F6",
-          200: "#E5E7EB",
-          300: "#D1D5DB",
-          400: "#9CA3AF",
-          500: "#6B7280",
-          600: "#4B5563",
-          700: "#374151",
-          800: "#1F2937",
-          900: "#111827",
-        },
-        structure: {
-          DEFAULT: "#C0C1BE",
-          50: "#F9FAFB",
-          100: "#F3F4F6",
-          200: "#E5E7EB",
-          300: "#D1D5DB",
-          400: "#9CA3AF",
-          500: "#6B7280",
-          600: "#4B5563",
-          700: "#374151",
-          800: "#1F2937",
-          900: "#111827",
+        
+        // White Rock - Soft cream, our light canvas
+        rock: {
+          DEFAULT: "#EAE0D2",
+          50: "#FDFCFA",
+          100: "#FAF8F5",
+          200: "#F5F1EB",
+          300: "#F0E9E0",
+          400: "#EAE0D2",
+          500: "#DCCFB8",
+          600: "#CEBD9E",
+          700: "#C0AB84",
+          800: "#B2996A",
+          900: "#A08750",
         },
       },
       borderRadius: {
@@ -125,9 +121,15 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        technical: ['JetBrains Mono', 'Fira Code', 'Monaco', 'monospace'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        serif: ['Playfair Display', 'Georgia', 'serif'],
+        // Artisanal Luxury Typography
+        display: ['var(--font-cormorant)', 'Cormorant Garamond', 'Playfair Display', 'Georgia', 'serif'],
+        body: ['var(--font-dm-sans)', 'Inter', 'DM Sans', 'system-ui', 'sans-serif'],
+        accent: ['var(--font-space-grotesk)', 'Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-jetbrains)', 'JetBrains Mono', 'Fira Code', 'monospace'],
+        // Legacy fallbacks
+        technical: ['var(--font-jetbrains)', 'JetBrains Mono', 'Fira Code', 'Monaco', 'monospace'],
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-cormorant)', 'Cormorant Garamond', 'Playfair Display', 'Georgia', 'serif'],
       },
       spacing: {
         'xxs': '2px',
@@ -155,6 +157,14 @@ module.exports = {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(30px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in-scale": {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
         "slide-in-from-top": {
           "0%": { transform: "translateY(-100%)" },
           "100%": { transform: "translateY(0)" },
@@ -163,13 +173,43 @@ module.exports = {
           "0%": { transform: "translateY(100%)" },
           "100%": { transform: "translateY(0)" },
         },
+        "slide-in-right": {
+          "0%": { transform: "translateX(-30px)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
+        },
+        "grain": {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "10%": { transform: "translate(-5%, -10%)" },
+          "20%": { transform: "translate(-15%, 5%)" },
+          "30%": { transform: "translate(7%, -25%)" },
+          "40%": { transform: "translate(-5%, 25%)" },
+          "50%": { transform: "translate(-15%, 10%)" },
+          "60%": { transform: "translate(15%, 0%)" },
+          "70%": { transform: "translate(0%, 15%)" },
+          "80%": { transform: "translate(3%, 35%)" },
+          "90%": { transform: "translate(-10%, 10%)" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-20px)" },
+        },
+        "pulse-subtle": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out",
+        "fade-in-up": "fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "fade-in-scale": "fade-in-scale 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "slide-in-from-top": "slide-in-from-top 0.3s ease-out",
         "slide-in-from-bottom": "slide-in-from-bottom 0.3s ease-out",
+        "slide-in-right": "slide-in-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "grain": "grain 8s steps(10) infinite",
+        "float": "float 6s ease-in-out infinite",
+        "pulse-subtle": "pulse-subtle 3s ease-in-out infinite",
       },
     },
   },

@@ -118,14 +118,7 @@ export function BCMIndicator({
                 </span>
               </div>
 
-              {manifest.checksum && (
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Checksum:</span>
-                  <span className="font-mono text-xs">
-                    {manifest.checksum.slice(0, 8)}...
-                  </span>
-                </div>
-              )}
+
             </>
           )}
 

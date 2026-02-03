@@ -119,7 +119,7 @@ export function CampaignAnalytics({ campaignId }: CampaignAnalyticsProps) {
   const metrics: MetricCard[] = [
     {
       title: 'Total Reach',
-      value: campaign.analytics.overview.totalReach,
+      value: campaign.analytics?.overview?.totalReach ?? 0,
       change: 15.3,
       changeType: 'increase',
       icon: Users,
@@ -127,7 +127,7 @@ export function CampaignAnalytics({ campaignId }: CampaignAnalyticsProps) {
     },
     {
       title: 'Engagement',
-      value: campaign.analytics.overview.totalEngagement,
+      value: campaign.analytics?.overview?.totalEngagement ?? 0,
       change: 8.7,
       changeType: 'increase',
       icon: Activity,
@@ -135,7 +135,7 @@ export function CampaignAnalytics({ campaignId }: CampaignAnalyticsProps) {
     },
     {
       title: 'Conversions',
-      value: campaign.analytics.overview.totalConversions,
+      value: campaign.analytics?.overview?.totalConversions ?? 0,
       change: -2.4,
       changeType: 'decrease',
       icon: Target,
@@ -143,7 +143,7 @@ export function CampaignAnalytics({ campaignId }: CampaignAnalyticsProps) {
     },
     {
       title: 'Revenue',
-      value: campaign.analytics.overview.totalRevenue,
+      value: campaign.analytics?.overview?.totalRevenue ?? 0,
       change: 23.1,
       changeType: 'increase',
       icon: DollarSign,
@@ -151,7 +151,7 @@ export function CampaignAnalytics({ campaignId }: CampaignAnalyticsProps) {
     },
     {
       title: 'ROI',
-      value: campaign.analytics.overview.roi,
+      value: campaign.analytics?.overview?.roi ?? 0,
       change: 5.2,
       changeType: 'increase',
       icon: TrendingUp,
@@ -159,7 +159,7 @@ export function CampaignAnalytics({ campaignId }: CampaignAnalyticsProps) {
     },
     {
       title: 'Cost per Acquisition',
-      value: campaign.analytics.roi.cac || 45,
+      value: campaign.analytics?.roi?.cac ?? 45,
       change: -8.3,
       changeType: 'increase', // Lower CPA is good
       icon: DollarSign,

@@ -5,12 +5,10 @@ Handles HTTP requests for ICP operations
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from schemas import RICP
 
-from ..core.auth import get_current_user, get_workspace_id
-from ..core.models import User
 from ..services.icp import ICPService
 
 router = APIRouter(prefix="/icps", tags=["icps"])
@@ -29,8 +27,7 @@ class CohortDerivationRequest(BaseModel):
 @router.post("/derive-trinity", response_model=RICP)
 async def derive_cohort_trinity(
     request: CohortDerivationRequest,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """
@@ -104,8 +101,7 @@ def get_icp_service() -> ICPService:
 
 @router.get("/", response_model=List[ICPResponse])
 async def list_icps(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """List all ICPs for workspace"""
@@ -116,8 +112,7 @@ async def list_icps(
 @router.post("/", response_model=ICPResponse)
 async def create_icp(
     icp_data: ICPCreate,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """Create new ICP"""
@@ -131,8 +126,7 @@ async def create_icp(
 @router.get("/{icp_id}", response_model=ICPResponse)
 async def get_icp(
     icp_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """Get ICP by ID"""
@@ -148,8 +142,7 @@ async def get_icp(
 async def update_icp(
     icp_id: str,
     icp_data: ICPUpdate,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """Update ICP"""
@@ -169,8 +162,7 @@ async def update_icp(
 @router.delete("/{icp_id}")
 async def delete_icp(
     icp_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """Delete ICP"""
@@ -188,8 +180,7 @@ async def delete_icp(
 @router.post("/{icp_id}/set-primary")
 async def set_primary_icp(
     icp_id: str,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """Set ICP as primary"""
@@ -206,8 +197,7 @@ async def set_primary_icp(
 
 @router.get("/primary", response_model=Optional[ICPResponse])
 async def get_primary_icp(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """Get primary ICP"""
@@ -216,8 +206,7 @@ async def get_primary_icp(
 
 @router.post("/generate-from-foundation")
 async def generate_from_foundation(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """Generate ICPs from foundation data"""
@@ -230,8 +219,7 @@ async def generate_from_foundation(
 
 @router.get("/analytics")
 async def get_icp_analytics(
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    workspace_id: str = Query(..., description="Workspace ID"),
     icp_service: ICPService = Depends(get_icp_service),
 ):
     """Get ICP performance analytics"""

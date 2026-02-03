@@ -177,7 +177,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
             <TrendingUp size={16} className="text-[var(--ink-ghost)]" />
           </div>
           <p className="text-lg font-semibold text-[var(--ink)]">
-            {campaign.analytics.overview.roi}%
+            {campaign.analytics?.overview?.roi ?? 0}%
           </p>
           <p className="text-xs text-[var(--success)]">
             +12% vs target
@@ -496,7 +496,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
             <Users size={16} className="text-[var(--ink-ghost)]" />
           </div>
           <p className="text-lg font-semibold text-[var(--ink)]">
-            {campaign.analytics.overview.totalReach.toLocaleString()}
+            {(campaign.analytics?.overview?.totalReach ?? 0).toLocaleString()}
           </p>
           <p className="text-xs text-[var(--success)]">+15% vs last week</p>
         </BlueprintCard>
@@ -507,7 +507,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
             <BarChart3 size={16} className="text-[var(--ink-ghost)]" />
           </div>
           <p className="text-lg font-semibold text-[var(--ink)]">
-            {campaign.analytics.overview.totalEngagement.toLocaleString()}
+            {(campaign.analytics?.overview?.totalEngagement ?? 0).toLocaleString()}
           </p>
           <p className="text-xs text-[var(--success)]">+8% vs last week</p>
         </BlueprintCard>
@@ -518,7 +518,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
             <Target size={16} className="text-[var(--ink-ghost)]" />
           </div>
           <p className="text-lg font-semibold text-[var(--ink)]">
-            {campaign.analytics.overview.totalConversions.toLocaleString()}
+            {(campaign.analytics?.overview?.totalConversions ?? 0).toLocaleString()}
           </p>
           <p className="text-xs text-[var(--success)]">+12% vs last week</p>
         </BlueprintCard>
@@ -529,7 +529,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
             <DollarSign size={16} className="text-[var(--ink-ghost)]" />
           </div>
           <p className="text-lg font-semibold text-[var(--ink)]">
-            ${campaign.analytics.overview.totalRevenue.toLocaleString()}
+            ${(campaign.analytics?.overview?.totalRevenue ?? 0).toLocaleString()}
           </p>
           <p className="text-xs text-[var(--success)]">+20% vs last week</p>
         </BlueprintCard>

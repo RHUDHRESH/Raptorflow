@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from api.dependencies import get_auth_context, get_current_user
+from api.dependencies import Query
 from core.audit_logger import EventType, LogLevel, audit_logger
 from core.input_validator import input_validator
 from core.models import AuthContext, User
@@ -105,8 +105,8 @@ async def initiate_payment(
     request: SecurePaymentInitiateRequest,
     background_tasks: BackgroundTasks,
     request_obj: Request,
-    current_user: User = Depends(get_current_user),
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Initiate payment with comprehensive security measures
@@ -249,8 +249,8 @@ async def initiate_payment(
 async def get_payment_status(
     merchant_order_id: str,
     request_obj: Request,
-    current_user: User = Depends(get_current_user),
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Get payment status with security validation
@@ -318,8 +318,8 @@ async def process_refund(
     request: SecureRefundRequest,
     background_tasks: BackgroundTasks,
     request_obj: Request,
-    current_user: User = Depends(get_current_user),
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Process refund with comprehensive security validation
@@ -582,8 +582,8 @@ async def health_check():
 
 @router.get("/security-stats")
 async def get_security_statistics(
-    current_user: User = Depends(get_current_user),
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Get security statistics (admin only)

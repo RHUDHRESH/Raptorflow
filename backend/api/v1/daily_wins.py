@@ -10,9 +10,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from agents.graphs.daily_wins import DailyWinsGraph
-from core.auth import get_current_user
 from core.database import get_db
-from core.supabase_mgr import get_supabase_client
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
@@ -82,7 +80,7 @@ class MarkPostedRequest(BaseModel):
 
 @router.post("/generate", response_model=DailyWinsResponse)
 async def generate_daily_win(
-    request: DailyWinsRequest, current_user: Dict = Depends(get_current_user)
+    request: DailyWinsRequest, user_id: str = Query(..., description="User ID")
 ):
     """
     The Unified SURPRISE Engine.
@@ -219,7 +217,7 @@ async def list_daily_wins(
     workspace_id: str,
     date: Optional[str] = None,
     platform: Optional[str] = None,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """List daily wins for a workspace."""
     try:
@@ -261,7 +259,7 @@ async def list_daily_wins(
 async def mark_win_as_posted(
     win_id: str,
     request: MarkPostedRequest,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Mark a daily win as posted and increment workspace streak."""
     try:
@@ -307,7 +305,7 @@ async def mark_win_as_posted(
 
 @router.get("/analytics")
 async def get_daily_wins_analytics(
-    workspace_id: str, days: int = 30, current_user: Dict = Depends(get_current_user)
+    workspace_id: str, days: int = 30, user_id: str = Query(..., description="User ID")
 ):
     """Get analytics for daily wins performance."""
     try:

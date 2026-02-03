@@ -53,7 +53,7 @@ export function CampaignDashboard({
   // Filter campaigns
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      campaign.description.toLowerCase().includes(searchQuery.toLowerCase());
+      campaign.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || campaign.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -61,10 +61,10 @@ export function CampaignDashboard({
   // Calculate metrics
   const totalCampaigns = campaigns.length;
   const activeCampaigns = campaigns.filter(c => c.status === CampaignStatus.ACTIVE).length;
-  const totalBudget = campaigns.reduce((sum, c) => sum + c.budget.total, 0);
-  const totalSpent = campaigns.reduce((sum, c) => sum + c.budget.spent, 0);
-  const totalConversions = campaigns.reduce((sum, c) => sum + c.analytics.overview.totalConversions, 0);
-  const totalRevenue = campaigns.reduce((sum, c) => sum + c.analytics.overview.totalRevenue, 0);
+  const totalBudget = campaigns.reduce((sum, c) => sum + ((c.budget as any)?.total) || 0, 0);
+  const totalSpent = campaigns.reduce((sum, c) => sum + ((c.budget as any)?.spent) || 0, 0);
+  const totalConversions = campaigns.reduce((sum, c) => sum + ((c.analytics as any)?.overview?.totalConversions) || 0, 0);
+  const totalRevenue = campaigns.reduce((sum, c) => sum + ((c.analytics as any)?.overview?.totalRevenue) || 0, 0);
 
   // Status configuration
   const statusConfig = {
@@ -366,7 +366,7 @@ export function CampaignDashboard({
                         <BlueprintBadge variant="default" size="sm">
                           {campaign.status}
                         </BlueprintBadge>
-                        {campaign.tags.map(tag => (
+                        {campaign.tags?.map(tag => (
                           <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-[var(--surface)] text-[var(--ink-muted)] rounded">
                             {tag}
                           </span>
@@ -387,10 +387,10 @@ export function CampaignDashboard({
 
                     <div className="w-32">
                       <p className="text-sm font-medium text-[var(--ink)]">
-                        ${campaign.budget.total.toLocaleString()}
+                        ${((campaign.budget as any)?.total || 0).toLocaleString()}
                       </p>
                       <p className="text-xs text-[var(--ink-muted)]">
-                        ${campaign.budget.spent.toLocaleString()} spent
+                        ${((campaign.budget as any)?.spent || 0).toLocaleString()} spent
                       </p>
                     </div>
 
@@ -398,25 +398,25 @@ export function CampaignDashboard({
                       <div className="flex items-center gap-2 text-xs">
                         <span className="text-[var(--ink-muted)]">Conversions:</span>
                         <span className="font-medium text-[var(--ink)]">
-                          {campaign.analytics.overview.totalConversions}
+                          {campaign.analytics?.overview?.totalConversions ?? 0}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs mt-1">
                         <span className="text-[var(--ink-muted)]">Revenue:</span>
                         <span className="font-medium text-[var(--success)]">
-                          ${campaign.analytics.overview.totalRevenue.toLocaleString()}
+                          ${(campaign.analytics?.overview?.totalRevenue ?? 0).toLocaleString()}
                         </span>
                       </div>
                     </div>
 
                     <div className="w-24">
                       <p className="text-sm font-medium text-[var(--ink)]">
-                        {campaign.analytics.overview.roi}%
+                        {campaign.analytics?.overview?.roi ?? 0}%
                       </p>
                       <div className="w-full bg-[var(--surface)] rounded-full h-1 mt-1">
                         <div
                           className="bg-[var(--success)] h-1 rounded-full"
-                          style={{ width: `${Math.min(campaign.analytics.overview.roi / 5, 100)}%` }}
+                          style={{ width: `${Math.min((campaign.analytics?.overview?.roi ?? 0) / 5, 100)}%` }}
                         />
                       </div>
                     </div>

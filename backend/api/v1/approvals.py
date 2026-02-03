@@ -6,11 +6,9 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ..agents.graphs.hitl import HITLGraph
-from ..core.auth import get_current_user
 from ..core.database import get_db
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
@@ -103,7 +101,7 @@ async def list_pending_approvals(
     approval_type: Optional[str] = None,
     limit: int = Query(default=50, description="Maximum approvals to return"),
     offset: int = 0,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -155,7 +153,7 @@ async def approve_request(
     gate_id: str,
     request: ApprovalDecisionRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -220,7 +218,7 @@ async def reject_request(
     gate_id: str,
     request: ApprovalDecisionRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -287,7 +285,7 @@ async def reject_request(
 async def get_approval_status(
     gate_id: str,
     workspace_id: str,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -340,7 +338,7 @@ async def get_approval_status(
 async def create_approval_gate(
     request: ApprovalCreateRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -408,7 +406,7 @@ async def get_approval_history(
     days: int = 30,
     status: Optional[str] = None,
     risk_level: Optional[str] = None,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -473,7 +471,7 @@ async def get_approval_history(
 async def get_approval_analytics(
     workspace_id: str,
     days: int = 30,
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """
@@ -546,7 +544,7 @@ async def cancel_approval(
     gate_id: str,
     workspace_id: str,
     reason: str = "",
-    current_user: Dict = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
 ):
     """

@@ -29,7 +29,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import structlog
 
 # Import Vertex AI service
-from backend.llm import llm_manager
+from llm import llm_manager
 
 # Local imports
 from ..base import BaseAgent

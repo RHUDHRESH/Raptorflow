@@ -4,11 +4,9 @@ Workspaces API endpoints
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel, EmailStr
 
-from ..core.auth import get_auth_context, get_current_user, get_workspace_id
-from ..core.models import AuthContext, User
 from ..core.supabase_mgr import get_supabase_client
 from ..core.workspace import get_workspace_for_user
 
@@ -39,7 +37,7 @@ class WorkspaceResponse(BaseModel):
 
 
 @router.get("/", response_model=List[WorkspaceResponse])
-async def list_workspaces(current_user: User = Depends(get_current_user)):
+async def list_workspaces(user_id: str = Query(..., description="User ID")):
     """
     List all workspaces for the authenticated user
     """
@@ -58,7 +56,7 @@ async def list_workspaces(current_user: User = Depends(get_current_user)):
 
 @router.post("/", response_model=WorkspaceResponse, status_code=status.HTTP_201_CREATED)
 async def create_workspace(
-    workspace_data: WorkspaceCreate, current_user: User = Depends(get_current_user)
+    workspace_data: WorkspaceCreate, user_id: str = Query(..., description="User ID")
 ):
     """
     Create a new workspace
@@ -123,7 +121,7 @@ async def create_workspace(
 
 @router.get("/{workspace_id}", response_model=WorkspaceResponse)
 async def get_workspace(
-    workspace_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    workspace_id: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Get a specific workspace by ID
@@ -141,7 +139,7 @@ async def get_workspace(
 async def update_workspace(
     workspace_id: str,
     workspace_data: WorkspaceUpdate,
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
 ):
     """
     Update a workspace
@@ -187,7 +185,7 @@ async def update_workspace(
 
 @router.delete("/{workspace_id}")
 async def delete_workspace(
-    workspace_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    workspace_id: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Delete a workspace and all associated data
@@ -219,7 +217,7 @@ async def delete_workspace(
 
 @router.get("/{workspace_id}/settings")
 async def get_workspace_settings(
-    workspace_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    workspace_id: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Get workspace settings
@@ -237,7 +235,7 @@ async def get_workspace_settings(
 async def update_workspace_settings(
     workspace_id: str,
     settings: Dict[str, Any],
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
 ):
     """
     Update workspace settings
@@ -268,7 +266,7 @@ async def update_workspace_settings(
 
 @router.get("/{workspace_id}/stats")
 async def get_workspace_stats(
-    workspace_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    workspace_id: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Get workspace statistics
@@ -291,7 +289,7 @@ async def get_workspace_stats(
 
 @router.post("/{workspace_id}/duplicate")
 async def duplicate_workspace(
-    workspace_id: str, new_name: str, current_user: User = Depends(get_current_user)
+    workspace_id: str, new_name: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Duplicate a workspace (structure only, not the data)
@@ -373,7 +371,7 @@ async def duplicate_workspace(
 async def export_workspace_data(
     workspace_id: str,
     format: str = "json",
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
 ):
     """
     Export all workspace data
@@ -407,7 +405,7 @@ async def export_workspace_data(
 async def get_workspace_activity(
     workspace_id: str,
     days: int = 30,
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
 ):
     """
     Get recent workspace activity

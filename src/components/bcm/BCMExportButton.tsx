@@ -149,17 +149,12 @@ export function BCMExportButton({
 ## Company Information
 - **Name:** ${manifest?.company?.name || 'N/A'}
 - **Industry:** ${manifest?.company?.industry || 'N/A'}
-- **Stage:** ${manifest?.company?.stage || 'N/A'}
 
 ## Ideal Customer Profiles
 ${manifest?.icps ?
   manifest.icps.map((icp, i) => `### ICP ${i + 1}
 - **Name:** ${icp.name || 'N/A'}
-- **Description:** ${icp.description || 'N/A'}
 `).join('\n') : 'No ICPs defined'}
-
-## Value Proposition
-${manifest?.value_prop?.primary || 'No value proposition defined'}
 
 ---
 *Export generated on ${new Date().toLocaleString()}*`

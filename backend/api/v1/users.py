@@ -7,10 +7,6 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr
 
-from ..core.auth import get_auth_context, get_current_user
-from ..core.models import AuthContext, User
-from ..core.supabase_mgr import get_supabase_client
-
 router = APIRouter(prefix="/users", tags=["users"])
 
 
@@ -35,7 +31,7 @@ class UserResponse(BaseModel):
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_user_profile(current_user: User = Depends(get_current_user)):
+async def get_user_profile(user_id: str = Query(..., description="User ID")):
     """
     Get current user's profile
     """
@@ -44,7 +40,7 @@ async def get_user_profile(current_user: User = Depends(get_current_user)):
 
 @router.put("/me", response_model=UserResponse)
 async def update_user_profile(
-    user_data: UserUpdate, current_user: User = Depends(get_current_user)
+    user_data: UserUpdate, user_id: str = Query(..., description="User ID")
 ):
     """
     Update current user's profile
@@ -81,7 +77,7 @@ async def update_user_profile(
 
 @router.delete("/me")
 async def delete_user_account(
-    confirmation: str, current_user: User = Depends(get_current_user)
+    confirmation: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Delete user account and all associated data
@@ -118,7 +114,7 @@ async def delete_user_account(
 
 @router.get("/me/usage")
 async def get_user_usage(
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
 ) -> Dict[str, Any]:
     """
     Get current user's usage statistics
@@ -190,7 +186,7 @@ async def get_user_usage(
 
 @router.get("/me/billing")
 async def get_user_billing(
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
 ) -> Dict[str, Any]:
     """
     Get user's billing information
@@ -252,7 +248,7 @@ async def get_user_billing(
 
 @router.post("/me/upgrade-plan")
 async def upgrade_subscription_plan(
-    new_plan: str, current_user: User = Depends(get_current_user)
+    new_plan: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Upgrade user's subscription plan
@@ -318,7 +314,7 @@ async def upgrade_subscription_plan(
 
 
 @router.get("/me/preferences")
-async def get_user_preferences(current_user: User = Depends(get_current_user)):
+async def get_user_preferences(user_id: str = Query(..., description="User ID")):
     """
     Get user preferences
     """
@@ -327,7 +323,7 @@ async def get_user_preferences(current_user: User = Depends(get_current_user)):
 
 @router.put("/me/preferences")
 async def update_user_preferences(
-    preferences: Dict[str, Any], current_user: User = Depends(get_current_user)
+    preferences: Dict[str, Any], user_id: str = Query(..., description="User ID")
 ):
     """
     Update user preferences
@@ -351,7 +347,7 @@ async def update_user_preferences(
 
 
 @router.post("/me/complete-onboarding")
-async def complete_onboarding(current_user: User = Depends(get_current_user)):
+async def complete_onboarding(user_id: str = Query(..., description="User ID")):
     """
     Mark user onboarding as completed
     """
@@ -378,7 +374,7 @@ async def complete_onboarding(current_user: User = Depends(get_current_user)):
 
 @router.get("/me/notifications")
 async def get_user_notifications(
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
     limit: int = Query(default=20, description="Maximum notifications to return"),
 ):
     """
@@ -412,7 +408,7 @@ async def get_user_notifications(
 @router.post("/me/mark-notifications-read")
 async def mark_notifications_read(
     notification_ids: Optional[list] = None,
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ):
     """
     Mark notifications as read
@@ -425,7 +421,7 @@ async def mark_notifications_read(
 
 
 @router.get("/me/api-keys")
-async def get_user_api_keys(auth_context: AuthContext = Depends(get_auth_context)):
+async def get_user_api_keys(user_id: str = Query(..., description="User ID")):
     """
     Get user's API keys
     """
@@ -466,7 +462,7 @@ async def create_api_key(
     name: str,
     permissions: Dict[str, Any],
     expires_at: Optional[str] = None,
-    auth_context: AuthContext = Depends(get_auth_context),
+    user_id: str = Query(..., description="User ID"),
 ):
     """
     Create a new API key
@@ -504,7 +500,7 @@ async def create_api_key(
 
 @router.delete("/me/api-keys/{key_id}")
 async def revoke_api_key(
-    key_id: str, auth_context: AuthContext = Depends(get_auth_context)
+    key_id: str, user_id: str = Query(..., description="User ID")
 ):
     """
     Revoke an API key
@@ -525,7 +521,7 @@ async def revoke_api_key(
 
 @router.get("/me/activity")
 async def get_user_activity(
-    current_user: User = Depends(get_current_user), days: int = 30
+    user_id: str = Query(..., description="User ID"), days: int = 30
 ):
     """
     Get user's recent activity

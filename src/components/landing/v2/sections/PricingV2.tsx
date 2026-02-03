@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CheckmarkCircle02Icon } from "hugeicons-react";
+import { CheckCircle } from "lucide-react";
 
 import { SectionWrapper, SectionHeader, ContentContainer } from "../shared/SectionWrapper";
 import { fadeUp } from "../animations/presets";
@@ -15,7 +15,7 @@ import { fadeUp } from "../animations/presets";
 const PLANS = [
     {
         tier: "Ascent",
-        price: "$29",
+        price: "₹5,000",
         desc: "For founders getting started",
         features: [
             "Foundation setup",
@@ -27,7 +27,7 @@ const PLANS = [
     },
     {
         tier: "Glide",
-        price: "$79",
+        price: "₹7,000",
         desc: "For founders scaling up",
         features: [
             "Everything in Ascent",
@@ -41,7 +41,7 @@ const PLANS = [
     },
     {
         tier: "Soar",
-        price: "$199",
+        price: "₹10,000",
         desc: "For teams",
         features: [
             "Everything in Glide",
@@ -110,10 +110,9 @@ export function PricingV2() {
                             <ul className="space-y-3 mb-8">
                                 {plan.features.map((feature, j) => (
                                     <li key={j} className="flex items-start gap-2 text-sm">
-                                        {React.createElement(CheckmarkCircle02Icon as any, {
-                                            className:
-                                                "w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5",
-                                        })}
+                                        <CheckCircle
+                                            className="w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5"
+                                        />
                                         <span className="text-[var(--ink)]">{feature}</span>
                                     </li>
                                 ))}

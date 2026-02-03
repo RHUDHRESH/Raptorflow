@@ -58,8 +58,7 @@ from ..services.ocr_service import OCRService
 from ..services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
 from ..services.storage import get_enhanced_storage_service
 from ..services.vertex_ai_service import vertex_ai_service
-from ..core.auth import get_current_user
-from ..core.models import User
+from fastapi import Query
 from ..services.profile_service import ProfileService
 
 # Configure logging
@@ -334,7 +333,7 @@ async def execute_ai_agent_with_timeout(
 async def create_or_get_session_enhanced(
     workspace_id: str,
     user_id: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    auth_user_id: str = Query(..., description="User ID"),
 ):
     """Create or retrieve onboarding session with enhanced validation"""
     try:

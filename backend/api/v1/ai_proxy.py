@@ -8,9 +8,7 @@ import os
 from typing import Any, Dict, Optional
 
 import httpx
-from core.auth import get_current_user
-from core.models import User
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 router = APIRouter(prefix="/ai", tags=["ai-proxy"])
 logger = logging.getLogger(__name__)
@@ -25,7 +23,7 @@ if not VERTEX_AI_API_KEY:
 
 @router.post("/generate")
 async def generate_content(
-    request: Dict[str, Any], current_user: User = Depends(get_current_user)
+    request: Dict[str, Any], user_id: str = Query(..., description="User ID")
 ) -> Dict[str, Any]:
     """
     Proxy for Vertex AI generateContent API
@@ -111,7 +109,7 @@ async def generate_content(
 
 
 @router.get("/models")
-async def list_models(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+async def list_models(user_id: str = Query(..., description="User ID")) -> Dict[str, Any]:
     """
     List available AI models
     """
@@ -130,7 +128,7 @@ async def list_models(current_user: User = Depends(get_current_user)) -> Dict[st
 
 @router.get("/usage")
 async def get_usage_stats(
-    current_user: User = Depends(get_current_user),
+    user_id: str = Query(..., description="User ID"),
 ) -> Dict[str, Any]:
     """
     Get AI usage statistics for current user

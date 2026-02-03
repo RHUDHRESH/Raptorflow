@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # Import routers in a clean way
-from backend.api.v1.minimal_routers import (
+from api.v1.minimal_routers import (
     analytics,
     auth,
     blackbox,
@@ -23,9 +23,9 @@ from backend.api.v1.minimal_routers import (
     ocr,
     users,
 )
-from backend.config_clean import get_settings
-from backend.database import close_database, init_database
-from backend.redis_client import redis_manager
+from config_clean import get_settings
+from database import close_database, init_database
+from redis_client import redis_manager
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
