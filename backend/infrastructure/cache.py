@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class CacheConfig(BaseModel):
     """Cache/Redis configuration settings"""
+
     rest_url: str
     rest_token: str
     url: str
@@ -243,7 +244,9 @@ class CacheClient:
             }
 
     # Session Management
-    async def create_session(self, session_id: str, user_data: Dict[str, Any], ttl: int = 3600) -> bool:
+    async def create_session(
+        self, session_id: str, user_data: Dict[str, Any], ttl: int = 3600
+    ) -> bool:
         """Create a new session"""
         try:
             session_data = {

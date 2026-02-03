@@ -70,7 +70,7 @@ export function AnimatedCompass() {
       const rect = compassRef.current!.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      
+
       const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
       const degrees = angle * (180 / Math.PI) + 90;
 
@@ -153,7 +153,7 @@ export function AnimatedCompass() {
         {/* Decorative circles */}
         <div className="absolute inset-4 rounded-full border border-white/5" />
         <div className="absolute inset-8 rounded-full border border-white/5" />
-        
+
         {/* Center pivot */}
         <div className="absolute w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 shadow-lg shadow-purple-500/50 z-20">
           <div className="absolute inset-1 rounded-full bg-white/20" />
@@ -176,7 +176,7 @@ export function AnimatedCompass() {
           className="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-4 h-[35%] bg-gradient-to-b from-white/80 to-white/40 rounded-full"
           style={{ clipPath: "polygon(50% 100%, 0% 0%, 100% 0%)" }}
         />
-        
+
         {/* Needle shine effect */}
         <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-1 h-[25%] bg-gradient-to-t from-transparent via-white/30 to-transparent" />
       </div>

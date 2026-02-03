@@ -15,7 +15,6 @@ from cognitive import CognitiveEngine
 from ..agents.dispatcher import AgentDispatcher
 from ..agents.specialists.blackbox_strategist import BlackboxStrategist
 from ..core.database import get_db
-from fastapi import Query
 from ..dependencies import (
     get_agent_dispatcher,
     get_cognitive_engine,

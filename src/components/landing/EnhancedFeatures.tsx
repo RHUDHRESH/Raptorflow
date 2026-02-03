@@ -140,7 +140,7 @@ export function EnhancedFeatures() {
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent" />
-                
+
                 {/* Icon badge */}
                 <div className="absolute top-4 left-4 w-14 h-14 bg-[var(--bg-primary)]/90 backdrop-blur-sm rounded-xl flex items-center justify-center border border-[var(--border)] group-hover:border-[var(--accent)] transition-colors duration-300">
                   <feature.icon size={28} style={{ color: "var(--accent)" }} />

@@ -95,22 +95,22 @@ After running all migrations, verify the setup:
 
 ```sql
 -- Check tables exist
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
 ORDER BY table_name;
 
 -- Check RLS is enabled
-SELECT tablename, rowsecurity FROM pg_tables 
-WHERE schemaname = 'public' 
+SELECT tablename, rowsecurity FROM pg_tables
+WHERE schemaname = 'public'
 ORDER BY tablename;
 
 -- Check subscription plans
-SELECT name, slug, price_monthly, price_annual FROM subscription_plans 
+SELECT name, slug, price_monthly, price_annual FROM subscription_plans
 ORDER BY sort_order;
 
 -- Check policies
-SELECT tablename, policyname FROM pg_policies 
-WHERE schemaname = 'public' 
+SELECT tablename, policyname FROM pg_policies
+WHERE schemaname = 'public'
 ORDER BY tablename, policyname;
 ```
 

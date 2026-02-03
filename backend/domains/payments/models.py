@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 class PaymentStatus(str, Enum):
     """Payment status"""
+
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
@@ -22,6 +23,7 @@ class PaymentStatus(str, Enum):
 
 class SubscriptionStatus(str, Enum):
     """Subscription status"""
+
     ACTIVE = "active"
     CANCELLED = "cancelled"
     EXPIRED = "expired"
@@ -30,6 +32,7 @@ class SubscriptionStatus(str, Enum):
 
 class Payment(BaseModel):
     """Payment model"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     workspace_id: str
     merchant_order_id: str
@@ -49,6 +52,7 @@ class Payment(BaseModel):
 
 class Subscription(BaseModel):
     """Subscription model"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     workspace_id: str
     payment_id: str
@@ -66,6 +70,7 @@ class Subscription(BaseModel):
 
 class Refund(BaseModel):
     """Refund model"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     payment_id: str
     workspace_id: str

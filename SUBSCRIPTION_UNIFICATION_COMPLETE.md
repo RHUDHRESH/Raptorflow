@@ -77,11 +77,11 @@ psql -d your_database -f supabase/migrations/20250130_subscription_cleanup.sql
 -- Check subscription plans
 SELECT * FROM subscription_plans ORDER BY sort_order;
 
--- Check consistency report  
+-- Check consistency report
 SELECT * FROM subscription_consistency_report;
 
 -- Verify pricing in rupees
-SELECT name, slug, price_monthly/100 as monthly_rupees, price_annual/100 as annual_rupees 
+SELECT name, slug, price_monthly/100 as monthly_rupees, price_annual/100 as annual_rupees
 FROM subscription_plans ORDER BY sort_order;
 ```
 

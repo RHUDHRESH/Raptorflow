@@ -1,7 +1,8 @@
 """Agents Domain"""
-from .models import AgentTask, AgentResult, AgentStatus, AgentType
-from .service import AgentService, get_agent_service
+
+from .models import AgentResult, AgentStatus, AgentTask, AgentType
 from .router import router
+from .service import AgentService, get_agent_service
 
 __all__ = [
     "AgentTask",

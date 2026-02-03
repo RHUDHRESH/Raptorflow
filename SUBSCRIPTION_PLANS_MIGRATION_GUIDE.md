@@ -555,4 +555,3 @@ For issues or questions:
 - [Supabase Migration Guide](https://supabase.com/docs/guides/database/migrations)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [RLS Policies](https://supabase.com/docs/guides/auth/row-level-security)
-

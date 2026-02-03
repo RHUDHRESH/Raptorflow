@@ -3,10 +3,10 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { 
-  Compass, 
-  Brain, 
-  PenTool, 
+import {
+  Compass,
+  Brain,
+  PenTool,
   Target,
   ArrowRight
 } from "lucide-react";
@@ -66,7 +66,7 @@ export function Features() {
     if (!cardsRef.current) return;
 
     const cards = cardsRef.current.querySelectorAll(".feature-card");
-    
+
     const ctx = gsap.context(() => {
       cards.forEach((card, index) => {
         gsap.fromTo(
@@ -129,7 +129,7 @@ export function Features() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent" />
-                
+
                 {/* Icon badge */}
                 <div className="absolute top-4 left-4 w-12 h-12 bg-[var(--bg-primary)]/90 backdrop-blur-sm rounded-xl flex items-center justify-center border border-[var(--border)]">
                   <feature.icon size={24} style={{ color: feature.color }} />

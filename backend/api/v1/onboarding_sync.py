@@ -10,7 +10,14 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from db.supabase import get_supabase_client
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from memory.controller import MemoryController
 from pydantic import BaseModel
 from workflows.onboarding import OnboardingWorkflow
@@ -18,15 +25,12 @@ from workflows.onboarding import OnboardingWorkflow
 from cognitive import CognitiveEngine
 
 from ..agents.dispatcher import AgentDispatcher
-from fastapi import Query
 from ..services.onboarding_state_service import OnboardingStateService, StepStatus
 from ..services.upstash_client import UpstashClient
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/onboarding", tags=["onboarding"]
-)
+router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 
 
 # WebSocket connection manager
@@ -116,7 +120,9 @@ def get_workflow_components():
 
 @router.post("/step", response_model=StepResponse)
 async def execute_step(
-    request: StepRequest, workspace_id: str, user_id: str = Query(..., description="User ID")
+    request: StepRequest,
+    workspace_id: str,
+    user_id: str = Query(..., description="User ID"),
 ):
     """
     Execute an onboarding step with full synchronization.
@@ -180,7 +186,9 @@ async def get_onboarding_status(
 
 
 @router.post("/resume")
-async def resume_onboarding(workspace_id: str, user_id: str = Query(..., description="User ID")):
+async def resume_onboarding(
+    workspace_id: str, user_id: str = Query(..., description="User ID")
+):
     """
     Resume onboarding from current state.
     """
@@ -202,7 +210,9 @@ async def resume_onboarding(workspace_id: str, user_id: str = Query(..., descrip
 
 
 @router.get("/next-step")
-async def get_next_step(workspace_id: str, user_id: str = Query(..., description="User ID")):
+async def get_next_step(
+    workspace_id: str, user_id: str = Query(..., description="User ID")
+):
     """
     Get the next available step for execution.
     """
@@ -332,7 +342,9 @@ async def websocket_endpoint(websocket: WebSocket, workspace_id: str):
 
 
 @router.get("/sync-check")
-async def sync_check(workspace_id: str, user_id: str = Query(..., description="User ID")):
+async def sync_check(
+    workspace_id: str, user_id: str = Query(..., description="User ID")
+):
     """
     Check synchronization status and fix inconsistencies.
     """

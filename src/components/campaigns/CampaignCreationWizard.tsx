@@ -123,12 +123,12 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
       case 3:
         return campaignData.name && campaignData.description;
       case 4:
-        return typeof campaignData.targetAudience === 'string' 
-          ? campaignData.targetAudience 
+        return typeof campaignData.targetAudience === 'string'
+          ? campaignData.targetAudience
           : campaignData.targetAudience?.name;
       case 5:
-        const budgetTotal = typeof campaignData.budget === 'number' 
-          ? campaignData.budget 
+        const budgetTotal = typeof campaignData.budget === 'number'
+          ? campaignData.budget
           : campaignData.budget?.total;
         return budgetTotal && campaignData.timeline?.startDate;
       default:

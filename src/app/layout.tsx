@@ -30,13 +30,13 @@ export default function RootLayout({
         <SmoothScrollProvider>
           {/* Custom cursor for desktop */}
           <CustomCursor />
-          
+
           {/* Animated grain overlay */}
           <GrainEffect />
-          
+
           {/* Static grain overlay fallback */}
           <div className="grain-overlay" aria-hidden="true" />
-          
+
           {children}
         </SmoothScrollProvider>
       </body>

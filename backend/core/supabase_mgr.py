@@ -25,7 +25,11 @@ def _get_supabase_url() -> str:
 
 
 def _get_supabase_anon_key() -> str:
-    return os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY") or os.getenv("SUPABASE_ANON_KEY") or ""
+    return (
+        os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+        or os.getenv("SUPABASE_ANON_KEY")
+        or ""
+    )
 
 
 def _get_supabase_service_role_key() -> str:

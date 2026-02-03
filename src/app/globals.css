@@ -43,16 +43,16 @@
   * {
     @apply border-[var(--border)];
   }
-  
+
   html {
     scroll-behavior: smooth;
   }
-  
+
   body {
     @apply bg-[var(--bg-primary)] text-[var(--text-primary)] font-body antialiased;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
   }
@@ -70,82 +70,82 @@
     background-repeat: repeat;
     mix-blend-mode: multiply;
   }
-  
+
   .dark .grain-overlay {
     mix-blend-mode: overlay;
   }
-  
+
   /* Magnetic Button Effect */
   .magnetic-button {
     @apply relative inline-flex items-center justify-center overflow-hidden;
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  
+
   .magnetic-button:hover {
     transform: translateY(-2px);
   }
-  
+
   /* Artisanal Card */
   .artisanal-card {
     @apply relative bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl p-8;
     box-shadow: 0 4px 24px var(--shadow-color);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  
+
   .artisanal-card:hover {
     box-shadow: 0 8px 40px var(--shadow-color);
     transform: translateY(-4px);
     border-color: var(--border-strong);
   }
-  
+
   /* Section divider with compass */
   .section-divider {
     @apply relative flex items-center justify-center py-16;
   }
-  
+
   .section-divider::before {
     content: '';
     @apply absolute w-full h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent;
   }
-  
+
   /* Animated underline */
   .animated-underline {
     @apply relative;
   }
-  
+
   .animated-underline::after {
     content: '';
     @apply absolute bottom-0 left-0 w-0 h-px bg-[var(--accent)];
     transition: width 0.3s ease;
   }
-  
+
   .animated-underline:hover::after {
     @apply w-full;
   }
-  
+
   /* Glow effect for featured elements */
   .glow-accent {
     box-shadow: 0 0 40px rgba(150, 117, 83, 0.15);
   }
-  
+
   .dark .glow-accent {
     box-shadow: 0 0 40px rgba(201, 183, 148, 0.1);
   }
-  
+
   /* Smooth scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: var(--bg-secondary);
   }
-  
+
   ::-webkit-scrollbar-thumb {
     background: var(--border-strong);
     border-radius: 4px;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     background: var(--accent);
   }
@@ -155,30 +155,30 @@
   .font-display {
     font-family: 'Cormorant Garamond', Georgia, serif;
   }
-  
+
   .font-body {
     font-family: 'DM Sans', system-ui, sans-serif;
   }
-  
+
   .font-accent {
     font-family: 'Space Grotesk', system-ui, sans-serif;
   }
-  
+
   /* Text gradient */
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
   }
-  
+
   /* Animation utilities */
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
-  
+
   .animate-pulse-subtle {
     animation: pulse-subtle 3s ease-in-out infinite;
   }
-  
+
   .animate-grain {
     animation: grain 8s steps(10) infinite;
   }

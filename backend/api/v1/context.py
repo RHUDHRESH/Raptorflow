@@ -16,16 +16,13 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from fastapi import Query
 from pydantic import BaseModel
 
 from ..services.bcm_manifest_service import BCMManifestService
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/context", tags=["context"]
-)
+router = APIRouter(prefix="/context", tags=["context"])
 
 
 class RebuildRequest(BaseModel):

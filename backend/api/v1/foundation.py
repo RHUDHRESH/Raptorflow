@@ -5,7 +5,7 @@ Handles HTTP requests for foundation operations
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from schemas import RICP, MessagingStrategy
 

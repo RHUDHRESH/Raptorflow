@@ -4,11 +4,11 @@ import { useEffect, useState, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
-  CoffeeBean01Icon, 
-  Menu01Icon, 
+import {
+  CoffeeBean01Icon,
+  Menu01Icon,
   Cancel01Icon,
-  ArrowRight01Icon 
+  ArrowRight01Icon
 } from "@hugeicons/core-free-icons";
 
 const navLinks = [
@@ -59,23 +59,23 @@ export function Navigation() {
       <nav
         ref={navRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500
-          ${isScrolled 
-            ? "bg-shaft-500/95 backdrop-blur-md py-4 shadow-lg shadow-black/10" 
+          ${isScrolled
+            ? "bg-shaft-500/95 backdrop-blur-md py-4 shadow-lg shadow-black/10"
             : "bg-transparent py-6"
           }
         `}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
           {/* Logo */}
-          <a 
-            href="#" 
+          <a
+            href="#"
             className="flex items-center gap-2 group"
             data-cursor-hover
           >
             <div className="relative">
-              <HugeiconsIcon 
+              <HugeiconsIcon
                 icon={CoffeeBeansIcon}
-                className="w-8 h-8 text-barley transition-transform duration-500 group-hover:rotate-12" 
+                className="w-8 h-8 text-barley transition-transform duration-500 group-hover:rotate-12"
               />
               <div className="absolute inset-0 bg-barley/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             </div>
@@ -101,7 +101,7 @@ export function Navigation() {
 
           {/* CTA Button */}
           <div className="hidden md:flex items-center gap-4">
-            <button 
+            <button
               className="group relative px-6 py-2.5 bg-barley text-shaft-500 font-medium text-sm rounded-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-barley/25"
               data-cursor-hover
             >
@@ -140,7 +140,7 @@ export function Navigation() {
               key={link.label}
               onClick={() => scrollToSection(link.href)}
               className="text-rock text-3xl font-display hover:text-barley transition-colors duration-300"
-              style={{ 
+              style={{
                 transitionDelay: isMobileMenuOpen ? `${index * 100}ms` : "0ms",
                 opacity: isMobileMenuOpen ? 1 : 0,
                 transform: isMobileMenuOpen ? "translateY(0)" : "translateY(20px)"
@@ -149,7 +149,7 @@ export function Navigation() {
               {link.label}
             </button>
           ))}
-          <button 
+          <button
             className="mt-8 px-8 py-3 bg-barley text-shaft-500 font-medium rounded-full"
             onClick={() => setIsMobileMenuOpen(false)}
           >

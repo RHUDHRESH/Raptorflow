@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from infrastructure.database import get_supabase
 from infrastructure.llm import get_llm
+
 from .models import FoundationData, ICPProfile, OnboardingState
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,9 @@ class OnboardingService:
     async def get_state(self, workspace_id: str) -> Optional[OnboardingState]:
         """Get onboarding state for workspace"""
         try:
-            result = await self.db.select("onboarding_states", {"workspace_id": workspace_id})
+            result = await self.db.select(
+                "onboarding_states", {"workspace_id": workspace_id}
+            )
             if result.data:
                 return OnboardingState(**result.data[0])
 
@@ -64,7 +67,7 @@ class OnboardingService:
                     "current_step": "icp",
                     "completed_steps": ["foundation"],
                 },
-                {"workspace_id": workspace_id}
+                {"workspace_id": workspace_id},
             )
 
             return FoundationData(**result.data[0])
@@ -75,7 +78,9 @@ class OnboardingService:
     async def get_foundation(self, workspace_id: str) -> Optional[FoundationData]:
         """Get foundation data"""
         try:
-            result = await self.db.select("foundation_data", {"workspace_id": workspace_id})
+            result = await self.db.select(
+                "foundation_data", {"workspace_id": workspace_id}
+            )
             if result.data:
                 return FoundationData(**result.data[0])
             return None
@@ -117,6 +122,7 @@ class OnboardingService:
 
             # Parse response
             import json
+
             try:
                 icps_data = json.loads(response)
             except json.JSONDecodeError:
@@ -145,7 +151,7 @@ class OnboardingService:
                     "current_step": "complete",
                     "completed_steps": ["foundation", "icp"],
                 },
-                {"workspace_id": workspace_id}
+                {"workspace_id": workspace_id},
             )
 
             return created_icps
@@ -156,7 +162,9 @@ class OnboardingService:
     async def get_icps(self, workspace_id: str) -> List[ICPProfile]:
         """Get ICPs for workspace"""
         try:
-            result = await self.db.select("icp_profiles", {"workspace_id": workspace_id})
+            result = await self.db.select(
+                "icp_profiles", {"workspace_id": workspace_id}
+            )
             return [ICPProfile(**item) for item in result.data] if result.data else []
         except Exception as e:
             logger.error(f"Failed to get ICPs: {e}")

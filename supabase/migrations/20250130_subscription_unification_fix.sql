@@ -46,10 +46,10 @@ INSERT INTO subscription_plans (name, slug, display_name, description, price_mon
  3);
 
 -- 3. UPDATE subscriptions TABLE TO USE NEW PLAN SLUGS
-UPDATE subscriptions 
-SET plan = CASE 
+UPDATE subscriptions
+SET plan = CASE
     WHEN plan = 'starter' THEN 'ascent'
-    WHEN plan = 'growth' THEN 'glide' 
+    WHEN plan = 'growth' THEN 'glide'
     WHEN plan = 'enterprise' THEN 'soar'
     WHEN plan IN ('free', 'trial') THEN plan
     ELSE 'ascent' -- Default fallback

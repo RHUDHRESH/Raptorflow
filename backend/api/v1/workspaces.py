@@ -4,7 +4,7 @@ Workspaces API endpoints
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr
 
 from ..core.supabase_mgr import get_supabase_client

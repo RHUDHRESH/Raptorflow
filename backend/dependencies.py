@@ -6,12 +6,12 @@ Provides database, Redis, memory, and cognitive engine instances.
 from functools import lru_cache
 from typing import Generator, Optional
 
-from fastapi import Depends, HTTPException, status
-
 from agents.dispatcher import AgentDispatcher
-from cognitive import CognitiveEngine
 from core.redis import get_redis_client
+from fastapi import Depends, HTTPException, status
 from memory.controller import MemoryController
+
+from cognitive import CognitiveEngine
 from supabase import Client
 
 
@@ -28,8 +28,10 @@ def get_db() -> Client:
     # TODO: Update to use direct Supabase client initialization
     # For now, this will fail if get_supabase_client was in auth module
     try:
-        from supabase import create_client
         import os
+
+        from supabase import create_client
+
         url = os.getenv("SUPABASE_URL")
         key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
         if url and key:
@@ -420,14 +422,14 @@ __all__ = [
 # ==========================================
 
 from typing import Optional
-from fastapi import Header, HTTPException, Request, status, Depends
 
-from domains.auth.service import AuthService, get_auth_service
-from domains.payments.service import PaymentService, get_payment_service
-from domains.onboarding.service import OnboardingService, get_onboarding_service
-from domains.agents.service import AgentService, get_agent_service
 from app.auth_middleware import get_current_user_id as _get_current_user_id
 from app.auth_middleware import require_auth as _require_auth
+from domains.agents.service import AgentService, get_agent_service
+from domains.auth.service import AuthService, get_auth_service
+from domains.onboarding.service import OnboardingService, get_onboarding_service
+from domains.payments.service import PaymentService, get_payment_service
+from fastapi import Depends, Header, HTTPException, Request, status
 
 
 def get_current_user_id(request: Request = None) -> Optional[str]:
@@ -446,30 +448,27 @@ def require_auth(request: Request = None) -> str:
 
 
 async def get_current_workspace_id(
-    request: Request,
-    x_workspace_id: Optional[str] = Header(None)
+    request: Request, x_workspace_id: Optional[str] = Header(None)
 ) -> Optional[str]:
     """Extract workspace ID from header or request state"""
     if x_workspace_id:
         request.state.workspace_id = x_workspace_id
         return x_workspace_id
-    
+
     if hasattr(request.state, "workspace_id"):
         return request.state.workspace_id
-    
+
     return None
 
 
 async def require_workspace_id(
-    request: Request,
-    x_workspace_id: Optional[str] = Header(None)
+    request: Request, x_workspace_id: Optional[str] = Header(None)
 ) -> str:
     """Require workspace ID, raise 401 if missing"""
     workspace_id = await get_current_workspace_id(request, x_workspace_id)
     if not workspace_id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Workspace ID required"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Workspace ID required"
         )
     return workspace_id
 

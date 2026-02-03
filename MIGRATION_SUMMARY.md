@@ -139,24 +139,24 @@ After running all migrations, verify the setup:
 
 ```sql
 -- Check all tables exist
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
 ORDER BY table_name;
 
 -- Verify RLS is enabled
-SELECT tablename, rowsecurity FROM pg_tables 
+SELECT tablename, rowsecurity FROM pg_tables
 WHERE schemaname = 'public' AND rowsecurity = true
 ORDER BY tablename;
 
 -- Check subscription plans
-SELECT name, slug, price_monthly, price_annual, is_active 
-FROM subscription_plans 
+SELECT name, slug, price_monthly, price_annual, is_active
+FROM subscription_plans
 ORDER BY sort_order;
 
 -- Count RLS policies
 SELECT tablename, COUNT(*) as policy_count
-FROM pg_policies 
-WHERE schemaname = 'public' 
+FROM pg_policies
+WHERE schemaname = 'public'
 GROUP BY tablename
 ORDER BY tablename;
 ```

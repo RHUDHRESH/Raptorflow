@@ -5,15 +5,10 @@ API routes for payments and subscriptions
 
 from typing import Any, Dict, List
 
+from dependencies import PaymentService, get_payments, require_workspace_id
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
-
-from dependencies import (
-    get_payments,
-    require_workspace_id,
-    PaymentService,
-)
 from infrastructure.database import get_supabase
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -41,7 +36,7 @@ class PaymentResponse(BaseModel):
 async def create_payment(
     data: CreatePaymentRequest,
     workspace_id: str = Depends(require_workspace_id),
-    service: PaymentService = Depends(get_payments)
+    service: PaymentService = Depends(get_payments),
 ):
     """Create a new payment"""
     payment = await service.create_payment(
@@ -68,8 +63,7 @@ async def create_payment(
 
 @router.get("/status/{merchant_order_id}")
 async def check_payment_status(
-    merchant_order_id: str,
-    service: PaymentService = Depends(get_payments)
+    merchant_order_id: str, service: PaymentService = Depends(get_payments)
 ):
     """Check payment status"""
     payment = await service.verify_payment(merchant_order_id)
@@ -86,8 +80,7 @@ async def check_payment_status(
 
 @router.post("/webhook")
 async def payment_webhook(
-    request: Request,
-    service: PaymentService = Depends(get_payments)
+    request: Request, service: PaymentService = Depends(get_payments)
 ):
     """Handle PhonePe webhook"""
     payload = await request.json()
@@ -117,9 +110,7 @@ async def get_subscription(
     """Get current subscription"""
     db = get_supabase()
     result = await db.select(
-        "subscriptions",
-        {"workspace_id": workspace_id, "status": "active"},
-        limit=1
+        "subscriptions", {"workspace_id": workspace_id, "status": "active"}, limit=1
     )
 
     if result.data:

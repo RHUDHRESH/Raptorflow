@@ -4,7 +4,7 @@
 
 ### Core Deletions (5 files)
 - ✅ Deleted `core/middleware.py` (12,335 bytes)
-- ✅ Deleted `services/session_service.py` (24,506 bytes)  
+- ✅ Deleted `services/session_service.py` (24,506 bytes)
 - ✅ Deleted `tests/api/test_auth_endpoints.py`
 - ✅ Deleted `tests/redis/test_session.py`
 - ✅ Deleted `tests/security_testing.py`

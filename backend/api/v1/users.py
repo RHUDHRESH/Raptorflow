@@ -499,9 +499,7 @@ async def create_api_key(
 
 
 @router.delete("/me/api-keys/{key_id}")
-async def revoke_api_key(
-    key_id: str, user_id: str = Query(..., description="User ID")
-):
+async def revoke_api_key(key_id: str, user_id: str = Query(..., description="User ID")):
     """
     Revoke an API key
     """

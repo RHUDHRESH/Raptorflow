@@ -12,14 +12,14 @@ export function Navigation() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Show/hide based on scroll direction
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false);
       } else {
         setIsVisible(true);
       }
-      
+
       // Add background when scrolled
       setIsScrolled(currentScrollY > 50);
       setLastScrollY(currentScrollY);

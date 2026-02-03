@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
+import {
   PlusSignIcon,
   MinusSignIcon,
   HelpCircleIcon
@@ -137,7 +137,7 @@ export function FAQ() {
                   )}
                 </div>
               </button>
-              
+
               <div
                 className={`overflow-hidden transition-all duration-500 ease-out ${
                   openIndex === index ? "max-h-96" : "max-h-0"
@@ -156,7 +156,7 @@ export function FAQ() {
         {/* Contact CTA */}
         <div className="mt-16 text-center p-8 rounded-2xl bg-barley/5 border border-barley/10">
           <p className="text-rock mb-4">Still have questions?</p>
-          <button 
+          <button
             className="text-barley font-medium hover:underline"
             data-cursor-hover
           >

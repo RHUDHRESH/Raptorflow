@@ -25,7 +25,9 @@ class DashboardSummaryResponse(BaseModel):
 
 
 @router.get("/summary", response_model=DashboardSummaryResponse)
-async def get_dashboard_summary(workspace_id: str = Query(..., description="Workspace ID")):
+async def get_dashboard_summary(
+    workspace_id: str = Query(..., description="Workspace ID")
+):
     """
     Aggregates data from across the ecosystem for the main dashboard view.
     """

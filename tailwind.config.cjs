@@ -54,7 +54,7 @@ module.exports = {
         // ═══════════════════════════════════════════════════════════════
         // ARTISANAL LUXURY PALETTE - Coffeehouse Aesthetic
         // ═══════════════════════════════════════════════════════════════
-        
+
         // Mine Shaft - Deep charcoal, our dark anchor
         shaft: {
           DEFAULT: "#2D2D2D",
@@ -69,7 +69,7 @@ module.exports = {
           800: "#171717",
           900: "#0F0F0F",
         },
-        
+
         // Akaroa - Warm beige, our signature warmth
         akaroa: {
           DEFAULT: "#D7C9AE",
@@ -84,7 +84,7 @@ module.exports = {
           800: "#7D6B4D",
           900: "#5C4F39",
         },
-        
+
         // Barley Corn - Rich tan, our accent gold
         barley: {
           DEFAULT: "#A68763",
@@ -99,7 +99,7 @@ module.exports = {
           800: "#58412F",
           900: "#423125",
         },
-        
+
         // White Rock - Soft cream, our light canvas
         rock: {
           DEFAULT: "#EAE0D2",

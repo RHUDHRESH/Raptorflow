@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 class AgentStatus(str, Enum):
     """Agent execution status"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -22,6 +23,7 @@ class AgentStatus(str, Enum):
 
 class AgentType(str, Enum):
     """Agent types"""
+
     ICP_ARCHITECT = "icp_architect"
     STRATEGIST = "strategist"
     RESEARCHER = "researcher"
@@ -31,6 +33,7 @@ class AgentType(str, Enum):
 
 class AgentTask(BaseModel):
     """Agent task/execution"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     workspace_id: str
     agent_type: AgentType
@@ -45,6 +48,7 @@ class AgentTask(BaseModel):
 
 class AgentResult(BaseModel):
     """Agent execution result"""
+
     task_id: str
     status: AgentStatus
     output: Dict[str, Any]

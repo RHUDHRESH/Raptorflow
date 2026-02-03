@@ -12,6 +12,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 class Profile(BaseModel):
     """User profile (matches profiles table)"""
+
     id: str  # UUID from auth.users
     email: EmailStr
     full_name: Optional[str] = None
@@ -28,6 +29,7 @@ class Profile(BaseModel):
 
 class Workspace(BaseModel):
     """Workspace (matches workspaces table)"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     owner_id: str
     name: str
@@ -41,6 +43,7 @@ class Workspace(BaseModel):
 
 class WorkspaceMember(BaseModel):
     """Workspace membership (matches workspace_members table)"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     workspace_id: str
     user_id: str
@@ -52,6 +55,7 @@ class WorkspaceMember(BaseModel):
 
 class UserSession(BaseModel):
     """User session (matches user_sessions table)"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     user_id: str
     token: str
@@ -64,6 +68,7 @@ class UserSession(BaseModel):
 
 class AuthUser(BaseModel):
     """Supabase Auth user (from auth.users)"""
+
     id: str
     email: EmailStr
     created_at: datetime

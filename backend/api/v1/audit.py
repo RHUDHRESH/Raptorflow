@@ -9,7 +9,6 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..core.audit import get_audit_logger
-from fastapi import Query
 
 router = APIRouter()
 

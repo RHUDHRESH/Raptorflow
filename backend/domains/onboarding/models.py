@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 class OnboardingState(BaseModel):
     """Onboarding progress state"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     workspace_id: str
     current_step: str = "foundation"  # foundation, icp, complete
@@ -23,6 +24,7 @@ class OnboardingState(BaseModel):
 
 class FoundationData(BaseModel):
     """Business foundation data"""
+
     workspace_id: str
     company_name: str
     industry: str
@@ -39,6 +41,7 @@ class FoundationData(BaseModel):
 
 class ICPProfile(BaseModel):
     """Ideal Customer Profile"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     workspace_id: str
     name: str
@@ -54,6 +57,7 @@ class ICPProfile(BaseModel):
 
 class Cohort(BaseModel):
     """Customer cohort/segment"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     workspace_id: str
     icp_id: str

@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
-
 from schemas.business_context_input import BusinessContextInput
 from validators.business_context_validator import (
     BusinessContextValidationError,
@@ -22,9 +21,12 @@ class BusinessContextResponse(BaseModel):
     message: Optional[str] = None
 
 
-@router.post("", response_model=BusinessContextResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=BusinessContextResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_business_context(
-    request: BusinessContextInput, workspace_id: str = Query(..., description="Workspace ID")
+    request: BusinessContextInput,
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     try:
         context = request.to_business_context(

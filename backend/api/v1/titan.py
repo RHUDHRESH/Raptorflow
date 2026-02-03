@@ -90,7 +90,9 @@ async def execute_research(
 
 
 @router.get("/status/{request_id}")
-async def get_research_status(request_id: str, user_id: str = Query(..., description="User ID")):
+async def get_research_status(
+    request_id: str, user_id: str = Query(..., description="User ID")
+):
     """
     Get status of a long-running DEEP research task.
     (Placeholder for async implementation)

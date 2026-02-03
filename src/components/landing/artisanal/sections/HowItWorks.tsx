@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
+import {
   Coffee01Icon,
   Settings02Icon,
   Rocket01Icon,
@@ -48,12 +48,12 @@ export function HowItWorks() {
       if (stepElements) {
         stepElements.forEach((step, index) => {
           const isEven = index % 2 === 0;
-          
+
           gsap.fromTo(
             step,
-            { 
-              x: isEven ? -60 : 60, 
-              opacity: 0 
+            {
+              x: isEven ? -60 : 60,
+              opacity: 0
             },
             {
               x: 0,
@@ -113,7 +113,7 @@ export function HowItWorks() {
             <span className="text-barley italic"> Brilliant</span>
           </h2>
           <p className="text-shaft-400/70 text-lg leading-relaxed">
-            Our three-step process is as refined as a pour-over ritual. 
+            Our three-step process is as refined as a pour-over ritual.
             Simple, deliberate, and exceptionally effective.
           </p>
         </div>
@@ -129,7 +129,7 @@ export function HowItWorks() {
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isEven = index % 2 === 0;
-              
+
               return (
                 <div
                   key={step.number}
@@ -147,11 +147,11 @@ export function HowItWorks() {
                         <HugeiconsIcon icon={Icon} className="w-6 h-6 text-barley" />
                       </div>
                     </div>
-                    
+
                     <h3 className="font-display text-3xl sm:text-4xl font-semibold text-shaft-500 mb-4">
                       {step.title}
                     </h3>
-                    
+
                     <p className="text-shaft-400/70 text-lg leading-relaxed mb-6">
                       {step.description}
                     </p>
@@ -171,7 +171,7 @@ export function HowItWorks() {
                     <div className="relative aspect-square max-w-md mx-auto">
                       {/* Background Circle */}
                       <div className="absolute inset-0 rounded-full bg-barley/5 border border-barley/10" />
-                      
+
                       {/* Inner Content */}
                       <div className="absolute inset-8 rounded-full bg-gradient-to-br from-shaft-500 to-shaft-600 flex items-center justify-center shadow-2xl">
                         <HugeiconsIcon icon={Icon} className="w-20 h-20 text-barley/80" />
@@ -194,7 +194,7 @@ export function HowItWorks() {
 
         {/* CTA */}
         <div className="mt-20 text-center">
-          <button 
+          <button
             className="group inline-flex items-center gap-2 px-8 py-4 bg-barley text-shaft-500 font-semibold rounded-full transition-all duration-300 hover:shadow-xl hover:shadow-barley/20"
             data-cursor-hover
           >

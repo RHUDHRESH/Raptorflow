@@ -48,7 +48,7 @@ CREATE TRIGGER subscription_plans_updated_at
 
 -- Insert default plans
 INSERT INTO public.subscription_plans (name, slug, display_name, description, price_monthly, price_annual, features, limits, sort_order)
-VALUES 
+VALUES
     (
         'Ascent',
         'ascent',
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS public.user_subscriptions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     metadata JSONB DEFAULT '{}',
-    
+
     CONSTRAINT user_subscriptions_workspace_unique UNIQUE (workspace_id),
     CONSTRAINT user_subscriptions_period_check CHECK (
         (current_period_start IS NULL AND current_period_end IS NULL) OR

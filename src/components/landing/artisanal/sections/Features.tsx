@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
+import {
   WorkflowCircle03Icon,
   AiBrain01Icon,
   ZapIcon,
@@ -112,7 +112,7 @@ export function Features() {
     >
       {/* Background Texture */}
       <div className="absolute inset-0 opacity-30">
-        <div 
+        <div
           className="absolute inset-0"
           style={{
             backgroundImage: `radial-gradient(circle at 25% 25%, rgba(166, 135, 99, 0.1) 0%, transparent 50%),
@@ -132,7 +132,7 @@ export function Features() {
             <span className="text-barley italic"> Brew Success</span>
           </h2>
           <p className="text-akaroa-200/60 text-lg leading-relaxed">
-            Like a carefully curated selection of single-origin beans, 
+            Like a carefully curated selection of single-origin beans,
             each feature is crafted to deliver an exceptional experience.
           </p>
         </div>
@@ -149,7 +149,7 @@ export function Features() {
               >
                 {/* Hover Glow */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-barley/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
+
                 {/* Icon */}
                 <div className={`relative w-14 h-14 rounded-xl bg-${feature.color}/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
                   <HugeiconsIcon icon={Icon} className={`w-7 h-7 text-${feature.color}`} />

@@ -7,10 +7,9 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from fastapi import Query
 from ..core.supabase_mgr import get_supabase_client
 
 router = APIRouter(prefix="/analytics-v2", tags=["analytics"])
@@ -25,7 +24,9 @@ class ModulePerformance(BaseModel):
 
 
 @router.get("/moves", response_model=ModulePerformance)
-async def get_moves_performance(workspace_id: str = Query(..., description="Workspace ID")):
+async def get_moves_performance(
+    workspace_id: str = Query(..., description="Workspace ID")
+):
     """Detailed analytics for Moves execution."""
     try:
         supabase = get_supabase_client()
@@ -64,7 +65,9 @@ async def get_moves_performance(workspace_id: str = Query(..., description="Work
 
 
 @router.get("/muse", response_model=ModulePerformance)
-async def get_muse_performance(workspace_id: str = Query(..., description="Workspace ID")):
+async def get_muse_performance(
+    workspace_id: str = Query(..., description="Workspace ID")
+):
     """Detailed analytics for Muse content generation."""
     try:
         supabase = get_supabase_client()

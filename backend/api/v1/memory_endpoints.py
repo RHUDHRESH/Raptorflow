@@ -19,7 +19,6 @@ from memory import (
 )
 from memory.chunker import ContentChunker
 from memory.embeddings import get_embedding_model
-from fastapi import Query
 
 from ..core.database import get_database_service, get_supabase_client
 
@@ -489,7 +488,9 @@ async def create_session(
 
 
 @router.get("/sessions/{session_id}")
-async def get_session(session_id: str, user_id: str = Query(..., description="User ID")):
+async def get_session(
+    session_id: str, user_id: str = Query(..., description="User ID")
+):
     """Get working memory session details."""
     try:
         working_memory = WorkingMemory()
@@ -512,7 +513,9 @@ async def get_session(session_id: str, user_id: str = Query(..., description="Us
 
 
 @router.delete("/sessions/{session_id}")
-async def end_session(session_id: str, user_id: str = Query(..., description="User ID")):
+async def end_session(
+    session_id: str, user_id: str = Query(..., description="User ID")
+):
     """End working memory session."""
     try:
         working_memory = WorkingMemory()

@@ -116,7 +116,7 @@ SUPABASE_JWT_SECRET=your-jwt-secret
    ```bash
    # Using Supabase CLI
    supabase db push
-   
+
    # Or run SQL directly in Supabase SQL Editor
    ```
 
@@ -126,12 +126,12 @@ SUPABASE_JWT_SECRET=your-jwt-secret
    curl -X POST http://localhost:8000/api/v2/auth/signup \
      -H "Content-Type: application/json" \
      -d '{"email":"test@example.com","password":"password123","full_name":"Test User"}'
-   
+
    # Login
    curl -X POST http://localhost:8000/api/v2/auth/login \
      -H "Content-Type: application/json" \
      -d '{"email":"test@example.com","password":"password123"}'
-   
+
    # Get profile (with token)
    curl http://localhost:8000/api/v2/auth/me \
      -H "Authorization: Bearer <access_token>"

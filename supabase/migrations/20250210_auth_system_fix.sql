@@ -12,9 +12,9 @@ DECLARE
     profiles_count INT;
     workspaces_count INT;
 BEGIN
-    SELECT COUNT(*) INTO profiles_count FROM information_schema.tables 
+    SELECT COUNT(*) INTO profiles_count FROM information_schema.tables
     WHERE table_schema = 'public' AND table_name = 'profiles';
-    
+
     IF profiles_count > 0 THEN
         SELECT COUNT(*) INTO profiles_count FROM public.profiles;
         IF profiles_count > 0 THEN
@@ -148,14 +148,14 @@ DROP POLICY IF EXISTS "profiles_select_own" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
 -- DROP POLICY IF EXISTS "profiles_insert_own" ON public.profiles;
 
-CREATE POLICY "profiles_select_own" ON public.profiles 
+CREATE POLICY "profiles_select_own" ON public.profiles
     FOR SELECT USING (auth.uid() = id);
 
-CREATE POLICY "profiles_update_own" ON public.profiles 
+CREATE POLICY "profiles_update_own" ON public.profiles
     FOR UPDATE USING (auth.uid() = id);
 
 -- Allow insert via trigger function
-CREATE POLICY "profiles_insert_trigger" ON public.profiles 
+CREATE POLICY "profiles_insert_trigger" ON public.profiles
     FOR INSERT WITH CHECK (true);
 
 -- 10. RLS POLICIES FOR WORKSPACES
@@ -163,13 +163,13 @@ DROP POLICY IF EXISTS "workspaces_owner_all" ON public.workspaces;
 DROP POLICY IF EXISTS "workspaces_member_view" ON public.workspaces;
 DROP POLICY IF EXISTS "workspaces_owner_insert" ON public.workspaces;
 
-CREATE POLICY "workspaces_owner_all" ON public.workspaces 
+CREATE POLICY "workspaces_owner_all" ON public.workspaces
     FOR ALL USING (auth.uid() = owner_id);
 
-CREATE POLICY "workspaces_member_view" ON public.workspaces 
+CREATE POLICY "workspaces_member_view" ON public.workspaces
     FOR SELECT USING (
         auth.uid() IN (
-            SELECT user_id FROM public.workspace_members 
+            SELECT user_id FROM public.workspace_members
             WHERE workspace_id = workspaces.id AND is_active = true
         )
     );
@@ -178,26 +178,26 @@ CREATE POLICY "workspaces_member_view" ON public.workspaces
 DROP POLICY IF EXISTS "workspace_members_select" ON public.workspace_members;
 DROP POLICY IF EXISTS "workspace_members_owner_manage" ON public.workspace_members;
 
-CREATE POLICY "workspace_members_select" ON public.workspace_members 
+CREATE POLICY "workspace_members_select" ON public.workspace_members
     FOR SELECT USING (
-        auth.uid() = user_id OR 
+        auth.uid() = user_id OR
         auth.uid() IN (
-            SELECT owner_id FROM public.workspaces 
+            SELECT owner_id FROM public.workspaces
             WHERE id = workspace_members.workspace_id
         )
     );
 
-CREATE POLICY "workspace_members_owner_manage" ON public.workspace_members 
+CREATE POLICY "workspace_members_owner_manage" ON public.workspace_members
     FOR ALL USING (
         auth.uid() IN (
-            SELECT owner_id FROM public.workspaces 
+            SELECT owner_id FROM public.workspaces
             WHERE id = workspace_members.workspace_id
         )
     );
 
 -- 12. RLS POLICIES FOR USER SESSIONS
 DROP POLICY IF EXISTS "user_sessions_own" ON public.user_sessions;
-CREATE POLICY "user_sessions_own" ON public.user_sessions 
+CREATE POLICY "user_sessions_own" ON public.user_sessions
     FOR ALL USING (auth.uid() = user_id);
 
 -- 13. UPDATED_AT TRIGGER FUNCTION
@@ -211,18 +211,18 @@ $$ LANGUAGE plpgsql;
 
 -- 14. ATTACH TRIGGERS
 DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
-CREATE TRIGGER update_profiles_updated_at 
-    BEFORE UPDATE ON public.profiles 
+CREATE TRIGGER update_profiles_updated_at
+    BEFORE UPDATE ON public.profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 DROP TRIGGER IF EXISTS update_workspaces_updated_at ON public.workspaces;
-CREATE TRIGGER update_workspaces_updated_at 
-    BEFORE UPDATE ON public.workspaces 
+CREATE TRIGGER update_workspaces_updated_at
+    BEFORE UPDATE ON public.workspaces
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 DROP TRIGGER IF EXISTS update_workspace_members_updated_at ON public.workspace_members;
-CREATE TRIGGER update_workspace_members_updated_at 
-    BEFORE UPDATE ON public.workspace_members 
+CREATE TRIGGER update_workspace_members_updated_at
+    BEFORE UPDATE ON public.workspace_members
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- 15. HANDLE NEW USER (aligns with users-based model)
@@ -278,7 +278,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- BACKFILL: Migrate any existing auth.users without profiles
 INSERT INTO public.profiles (id, email, full_name, avatar_url)
-SELECT 
+SELECT
     u.id,
     u.email,
     COALESCE(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name', ''),

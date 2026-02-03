@@ -692,4 +692,3 @@ CREATE POLICY "payment_security_events_view_admin" ON public.payment_security_ev
 
 -- This is informational only - queries current policies
 -- SELECT tablename, policyname FROM pg_policies WHERE schemaname = 'public' ORDER BY tablename, policyname;
-

@@ -8,7 +8,7 @@ export const UNSPLASH_IMAGES = {
     warmLight: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1920&q=80",
     compassDetail: "https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?w=1920&q=80",
   },
-  
+
   // Feature section images
   features: {
     foundation: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&q=80",
@@ -16,14 +16,14 @@ export const UNSPLASH_IMAGES = {
     muse: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80",
     campaigns: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
   },
-  
+
   // How it works section
   process: {
     onboard: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&q=80",
     generate: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&q=80",
     execute: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&q=80",
   },
-  
+
   // Decorative textures
   textures: {
     paper: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&q=80",

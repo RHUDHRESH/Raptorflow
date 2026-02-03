@@ -5,15 +5,10 @@ API routes for agent execution
 
 from typing import Any, Dict
 
+from dependencies import AgentService, get_agents, require_workspace_id
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-
-from dependencies import (
-    get_agents,
-    require_workspace_id,
-    AgentService,
-)
 from infrastructure.database import get_supabase
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -35,30 +30,23 @@ class TaskResponse(BaseModel):
 async def create_task(
     data: CreateTaskRequest,
     workspace_id: str = Depends(require_workspace_id),
-    service: AgentService = Depends(get_agents)
+    service: AgentService = Depends(get_agents),
 ):
     """Create a new agent task"""
     task = await service.create_task(
         workspace_id=workspace_id,
         agent_type=data.agent_type,
-        input_data=data.input_data
+        input_data=data.input_data,
     )
 
     if not task:
         raise HTTPException(status_code=400, detail="Failed to create task")
 
-    return TaskResponse(
-        id=task.id,
-        status=task.status,
-        agent_type=task.agent_type
-    )
+    return TaskResponse(id=task.id, status=task.status, agent_type=task.agent_type)
 
 
 @router.get("/tasks/{task_id}")
-async def get_task(
-    task_id: str,
-    service: AgentService = Depends(get_agents)
-):
+async def get_task(task_id: str, service: AgentService = Depends(get_agents)):
     """Get task status and result"""
     task = await service.get_task(task_id)
     if not task:
@@ -77,10 +65,7 @@ async def get_task(
 
 
 @router.post("/tasks/{task_id}/execute")
-async def execute_task(
-    task_id: str,
-    service: AgentService = Depends(get_agents)
-):
+async def execute_task(task_id: str, service: AgentService = Depends(get_agents)):
     """Execute a pending task"""
     result = await service.execute_task(task_id)
 

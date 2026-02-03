@@ -73,7 +73,7 @@ export function ParticleField() {
         // Draw connections to nearby particles
         particlesRef.current.forEach((otherParticle) => {
           if (particle === otherParticle) return;
-          
+
           const dx = particle.x - otherParticle.x;
           const dy = particle.y - otherParticle.y;
           const distance = Math.sqrt(dx * dx + dy * dy);

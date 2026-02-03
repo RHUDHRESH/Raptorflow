@@ -1,4 +1,5 @@
 """Application Layer"""
-from .lifespan import lifespan, startup, shutdown
+
+from .lifespan import lifespan, shutdown, startup
 
 __all__ = ["lifespan", "startup", "shutdown"]

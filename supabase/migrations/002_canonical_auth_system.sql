@@ -51,9 +51,9 @@ BEGIN
     END IF;
 
     -- Check if workspace already exists
-    SELECT id INTO existing_workspace_id 
-    FROM public.workspaces 
-    WHERE owner_id = new_user_id 
+    SELECT id INTO existing_workspace_id
+    FROM public.workspaces
+    WHERE owner_id = new_user_id
     LIMIT 1;
 
     -- Create workspace if doesn't exist

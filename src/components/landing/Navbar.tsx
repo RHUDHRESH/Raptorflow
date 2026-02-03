@@ -76,14 +76,14 @@ export function Navbar() {
             {/* Actions */}
             <div className="flex items-center gap-4">
               <ThemeToggle />
-              
+
               <button
                 onClick={() => router.push("/signin")}
                 className="hidden md:block text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
                 Sign In
               </button>
-              
+
               <button
                 onClick={() => router.push("/signup")}
                 className="magnetic-button px-5 py-2.5 bg-[var(--accent)] text-white text-sm font-medium rounded-full hover:bg-[var(--accent-dark)] transition-colors"

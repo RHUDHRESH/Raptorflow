@@ -109,7 +109,9 @@ async def generate_content(
 
 
 @router.get("/models")
-async def list_models(user_id: str = Query(..., description="User ID")) -> Dict[str, Any]:
+async def list_models(
+    user_id: str = Query(..., description="User ID")
+) -> Dict[str, Any]:
     """
     List available AI models
     """

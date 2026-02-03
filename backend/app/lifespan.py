@@ -7,11 +7,11 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-
-from infrastructure.database import get_supabase
 from infrastructure.cache import get_cache
-from infrastructure.llm import get_llm
+from infrastructure.database import get_supabase
 from infrastructure.email import get_email
+from infrastructure.llm import get_llm
+
 from config import settings
 
 logger = logging.getLogger(__name__)

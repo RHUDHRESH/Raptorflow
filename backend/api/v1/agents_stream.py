@@ -8,13 +8,12 @@ import uuid
 from datetime import datetime
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..agents.dispatcher import AgentDispatcher
 from ..agents.routing.pipeline import RoutingPipeline
-from fastapi import Query
 from ..core.database import get_db
 
 router = APIRouter(prefix="/agents", tags=["agents"])

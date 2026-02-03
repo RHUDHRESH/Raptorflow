@@ -191,7 +191,7 @@ export function Hero() {
               ref={subtitleRef}
               className="text-lg sm:text-xl text-white/60 max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed"
             >
-              Stop drowning in tool chaos. RaptorFlow is your strategic compass—guiding 
+              Stop drowning in tool chaos. RaptorFlow is your strategic compass—guiding
               every marketing decision from first impression to loyal customer.
             </p>
 

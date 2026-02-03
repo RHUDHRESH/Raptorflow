@@ -18,7 +18,7 @@
   - Configurable strength (0.1 - 1.0)
   - Elastic snap-back on mouse leave
   - Content moves slightly less than button for depth
-- **Usage**: 
+- **Usage**:
   ```tsx
   <MagneticButton strength={0.3} onClick={handleClick} className="...">
     Click Me
@@ -159,7 +159,7 @@
 
 ### Pricing Section (`Pricing.tsx`)
 1. **Card Reveal**: Staggered fade-up
-2. **Popular Card**: 
+2. **Popular Card**:
    - Scaled up slightly
    - Accent border
    - Badge bounces in

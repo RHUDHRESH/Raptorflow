@@ -1,7 +1,8 @@
 """Auth Domain"""
-from .models import Profile, Workspace, WorkspaceMember, UserSession, AuthUser
-from .service import AuthService, get_auth_service
+
+from .models import AuthUser, Profile, UserSession, Workspace, WorkspaceMember
 from .router import router
+from .service import AuthService, get_auth_service
 
 __all__ = [
     "Profile",

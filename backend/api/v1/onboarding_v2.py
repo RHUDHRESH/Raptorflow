@@ -7,14 +7,21 @@ import logging
 import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+)
 from pydantic import BaseModel
 
 # Local imports
 from ...infrastructure.storage import FileCategory, upload_file
 from ...utils.ucid import UCIDGenerator
 from ..agents.graphs.onboarding_v2 import OnboardingGraphV2, OnboardingStateV2
-from fastapi import Query
 from ..services.profile_service import ProfileService
 
 router = APIRouter(prefix="/onboarding/v2", tags=["onboarding-v2"])

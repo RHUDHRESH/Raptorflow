@@ -11,7 +11,7 @@ export function CustomCursor() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
+
     // Check if touch device
     if (window.matchMedia("(pointer: coarse)").matches) {
       return;

@@ -6,9 +6,8 @@ with support for retries, timeouts, and monitoring.
 """
 
 from .decorators import job
-from .scheduler import JobScheduler
-
 from .models import JobResult, JobStatus
+from .scheduler import JobScheduler
 
 # Job implementations will be imported here
 # from memory_jobs import *

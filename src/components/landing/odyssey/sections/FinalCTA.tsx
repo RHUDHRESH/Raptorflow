@@ -63,7 +63,7 @@ export function FinalCTA() {
 
           {/* Subtitle */}
           <p className="text-xl text-white/60 max-w-2xl mx-auto mb-10">
-            Join 500+ founders who stopped guessing and started growing. 
+            Join 500+ founders who stopped guessing and started growing.
             Your marketing compass awaits.
           </p>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
+import {
   CoffeeBean01Icon,
   TwitterIcon,
   Linkedin01Icon,
@@ -55,19 +55,19 @@ export function Footer() {
           {/* Brand Column */}
           <div className="col-span-2">
             <a href="#" className="flex items-center gap-2 mb-6 group">
-              <HugeiconsIcon 
+              <HugeiconsIcon
                 icon={CoffeeBeansIcon}
-                className="w-8 h-8 text-barley transition-transform duration-500 group-hover:rotate-12" 
+                className="w-8 h-8 text-barley transition-transform duration-500 group-hover:rotate-12"
               />
               <span className="font-display text-2xl font-semibold text-rock tracking-tight">
                 Raptor<span className="text-barley">Flow</span>
               </span>
             </a>
             <p className="text-akaroa-200/50 text-sm leading-relaxed mb-6 max-w-xs">
-              Crafted with care for teams who appreciate the art of automation. 
+              Crafted with care for teams who appreciate the art of automation.
               Brew better workflows.
             </p>
-            
+
             {/* Social Links */}
             <div className="flex gap-3">
               {socialLinks.map((social) => {
@@ -93,7 +93,7 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.label}>
-                  <a 
+                  <a
                     href={link.href}
                     className="text-akaroa-200/50 text-sm hover:text-barley transition-colors duration-300"
                     data-cursor-hover
@@ -110,7 +110,7 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.label}>
-                  <a 
+                  <a
                     href={link.href}
                     className="text-akaroa-200/50 text-sm hover:text-barley transition-colors duration-300"
                     data-cursor-hover
@@ -127,7 +127,7 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.resources.map((link) => (
                 <li key={link.label}>
-                  <a 
+                  <a
                     href={link.href}
                     className="text-akaroa-200/50 text-sm hover:text-barley transition-colors duration-300"
                     data-cursor-hover
@@ -144,7 +144,7 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.label}>
-                  <a 
+                  <a
                     href={link.href}
                     className="text-akaroa-200/50 text-sm hover:text-barley transition-colors duration-300"
                     data-cursor-hover

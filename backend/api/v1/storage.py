@@ -8,11 +8,10 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from infrastructure.storage import FileCategory, get_cloud_storage
 from pydantic import BaseModel, Field
-from fastapi import Query
 
 from ..services.storage import get_enhanced_storage_service
 
@@ -240,9 +239,7 @@ async def delete_file(
 
 
 @router.get("/storage/usage/{user_id}")
-async def get_storage_usage(
-    user_id: str
-):
+async def get_storage_usage(user_id: str):
     """Get storage usage statistics for user"""
     try:
         # Validate user access
@@ -339,9 +336,7 @@ async def delete_storage_file(
 
 
 @router.get("/storage/workspace/{workspace_id}/usage")
-async def get_workspace_storage_usage(
-    workspace_id: str
-):
+async def get_workspace_storage_usage(workspace_id: str):
     """Get detailed storage usage for workspace"""
     try:
         # Validate user access to workspace

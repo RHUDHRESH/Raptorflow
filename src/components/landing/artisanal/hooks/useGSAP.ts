@@ -114,9 +114,9 @@ export function useTextReveal<T extends HTMLElement>() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ref.current,
-        { 
+        {
           clipPath: "inset(0 100% 0 0)",
-          opacity: 0 
+          opacity: 0
         },
         {
           clipPath: "inset(0 0% 0 0)",

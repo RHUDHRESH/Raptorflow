@@ -14,13 +14,13 @@ Clean, modular FastAPI application
 
 import logging
 
+from app.auth_middleware import JWTAuthMiddleware, WorkspaceContextMiddleware
+from app.lifespan import lifespan
+from app.middleware import add_middleware
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.lifespan import lifespan
-from app.middleware import add_middleware
-from app.auth_middleware import JWTAuthMiddleware, WorkspaceContextMiddleware
 from config import settings
 
 load_dotenv()
@@ -80,20 +80,48 @@ async def health_check():
 
 # Import and register API routers
 from api.v1 import (
-    admin, agents, ai_proxy, analytics, approvals, blackbox,
-    business_contexts, campaigns, config as config_router, context,
-    council, daily_wins, dashboard, evolution, foundation, graph,
-    health_comprehensive, icps, memory, metrics, moves, muse,
-    ocr, onboarding, payments, search, sessions, storage,
-    titan, usage, users, workspaces,
-    infra_health,
+    admin,
+    agents,
+    ai_proxy,
+    analytics,
+    approvals,
+    blackbox,
+    business_contexts,
+    campaigns,
 )
+from api.v1 import config as config_router
+from api.v1 import (
+    context,
+    council,
+    daily_wins,
+    dashboard,
+    evolution,
+    foundation,
+    graph,
+    health_comprehensive,
+    icps,
+    infra_health,
+    memory,
+    metrics,
+    moves,
+    muse,
+    ocr,
+    onboarding,
+    payments,
+    search,
+    sessions,
+    storage,
+    titan,
+    usage,
+    users,
+    workspaces,
+)
+from domains.agents.router import router as agents_router_new
 
 # Import new domain routers
 from domains.auth.router import router as auth_router
-from domains.payments.router import router as payments_router_new
 from domains.onboarding.router import router as onboarding_router_new
-from domains.agents.router import router as agents_router_new
+from domains.payments.router import router as payments_router_new
 
 # Legacy routers
 legacy_routers = [

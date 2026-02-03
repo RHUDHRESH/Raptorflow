@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class LLMConfig(BaseModel):
     """Configuration settings for GenAI"""
+
     project_id: str
     location: str
     model: str
@@ -107,7 +108,9 @@ class LLMClient:
             logger.error(f"Inference failure: {e}")
             return None
 
-    async def generate_with_context(self, prompt: str, context: str, model: Optional[str] = None) -> Optional[str]:
+    async def generate_with_context(
+        self, prompt: str, context: str, model: Optional[str] = None
+    ) -> Optional[str]:
         """Generate text with context."""
         try:
             full_prompt = f"CONTEXT:\n{context}\n\nUSER REQUEST: {prompt}"
@@ -116,7 +119,9 @@ class LLMClient:
             logger.error(f"Failed to generate text with context: {e}")
             return None
 
-    async def analyze(self, text: str, analysis_type: str = "sentiment") -> Optional[Dict[str, Any]]:
+    async def analyze(
+        self, text: str, analysis_type: str = "sentiment"
+    ) -> Optional[Dict[str, Any]]:
         """Analyze text and return structured JSON."""
         try:
             prompt = f"Analyze for {analysis_type}:\n\n{text}\n\nReturn JSON only."

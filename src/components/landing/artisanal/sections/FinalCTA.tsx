@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
+import {
   Rocket01Icon,
   ArrowRight01Icon
 } from "@hugeicons/core-free-icons";
@@ -64,13 +64,13 @@ export function FinalCTA() {
 
           {/* Description */}
           <p className="text-shaft-400/70 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            Join thousands of teams who've discovered the art of effortless automation. 
+            Join thousands of teams who've discovered the art of effortless automation.
             Your first workflow is just minutes away.
           </p>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
+            <button
               className="group relative px-10 py-5 bg-barley text-shaft-500 font-semibold rounded-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-barley/20"
               data-cursor-hover
             >
@@ -80,8 +80,8 @@ export function FinalCTA() {
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-barley to-akaroa-400 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0" />
             </button>
-            
-            <button 
+
+            <button
               className="px-10 py-5 border-2 border-shaft-200 text-shaft-500 rounded-full font-medium transition-all duration-300 hover:bg-shaft-500 hover:text-rock hover:border-shaft-500"
               data-cursor-hover
             >

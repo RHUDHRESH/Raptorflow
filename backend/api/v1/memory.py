@@ -8,13 +8,11 @@ memory systems in the Raptorflow backend.
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Workspace
 from fastapi.responses import JSONResponse
 from memory.controller import MemoryController
 from memory.models import MemoryChunk, MemoryType
 from pydantic import BaseModel, Field
-
-from fastapi import Query, Workspace
 
 logger = logging.getLogger(__name__)
 

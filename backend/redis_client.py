@@ -15,11 +15,13 @@ from redis.exceptions import ConnectionError, RedisError
 # Lazy load settings to avoid circular imports
 _settings = None
 
+
 def _get_settings():
     """Lazy load settings"""
     global _settings
     if _settings is None:
         from ..config_clean import get_settings
+
         _settings = get_settings()
     return _settings
 

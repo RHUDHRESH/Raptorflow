@@ -7,9 +7,9 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
-from supabase import Client, create_client
-
 from domains.auth.models import Profile, Workspace, WorkspaceMember
+
+from supabase import Client, create_client
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,9 @@ class AuthService:
         """Get Supabase client with service role for admin operations"""
         if not self._client:
             if not self.url or not self.service_role_key:
-                raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set")
+                raise ValueError(
+                    "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set"
+                )
             self._client = create_client(self.url, self.service_role_key)
         return self._client
 
@@ -41,7 +43,13 @@ class AuthService:
         """Get profile by user ID"""
         try:
             client = self._get_client()
-            result = client.table("profiles").select("*").eq("id", user_id).single().execute()
+            result = (
+                client.table("profiles")
+                .select("*")
+                .eq("id", user_id)
+                .single()
+                .execute()
+            )
             if result.data:
                 return Profile(**result.data)
             return None
@@ -49,15 +57,19 @@ class AuthService:
             logger.error(f"Failed to get profile: {e}")
             return None
 
-    async def sign_up(self, email: str, password: str, user_metadata: Optional[Dict] = None) -> Dict[str, Any]:
+    async def sign_up(
+        self, email: str, password: str, user_metadata: Optional[Dict] = None
+    ) -> Dict[str, Any]:
         """Sign up new user with Supabase Auth"""
         try:
             client = self._get_anon_client()
-            result = client.auth.sign_up({
-                "email": email,
-                "password": password,
-                "options": {"data": user_metadata or {}}
-            })
+            result = client.auth.sign_up(
+                {
+                    "email": email,
+                    "password": password,
+                    "options": {"data": user_metadata or {}},
+                }
+            )
             if result.user:
                 return {"success": True, "user": result.user, "session": result.session}
             return {"success": False, "error": "Signup failed"}
@@ -69,10 +81,9 @@ class AuthService:
         """Sign in user with Supabase Auth"""
         try:
             client = self._get_anon_client()
-            result = client.auth.sign_in_with_password({
-                "email": email,
-                "password": password
-            })
+            result = client.auth.sign_in_with_password(
+                {"email": email, "password": password}
+            )
             if result.user and result.session:
                 return {
                     "success": True,
@@ -80,8 +91,8 @@ class AuthService:
                     "session": {
                         "access_token": result.session.access_token,
                         "refresh_token": result.session.refresh_token,
-                        "expires_at": result.session.expires_at
-                    }
+                        "expires_at": result.session.expires_at,
+                    },
                 }
             return {"success": False, "error": "Invalid credentials"}
         except Exception as e:
@@ -93,7 +104,9 @@ class AuthService:
         try:
             client = self._get_client()
             workspaces = []
-            owned = client.table("workspaces").select("*").eq("owner_id", user_id).execute()
+            owned = (
+                client.table("workspaces").select("*").eq("owner_id", user_id).execute()
+            )
             if owned.data:
                 workspaces.extend([Workspace(**w) for w in owned.data])
             return workspaces
@@ -103,6 +116,7 @@ class AuthService:
 
 
 _auth_service: Optional[AuthService] = None
+
 
 def get_auth_service() -> AuthService:
     global _auth_service

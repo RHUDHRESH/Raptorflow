@@ -165,12 +165,12 @@ class InferenceContext:
 ```python
 async def stream_response():
     engine = get_inference_engine()
-    
+
     request = UnifiedRequest(
         prompt="Tell me about AI",
         stream=True,
     )
-    
+
     async for chunk in engine.generate_stream(request):
         print(chunk, end="", flush=True)
 ```
@@ -180,7 +180,7 @@ async def stream_response():
 ```python
 async def with_context():
     engine = get_inference_engine()
-    
+
     context = InferenceContext(
         request_id="req-123",
         workspace_id="ws-456",
@@ -188,12 +188,12 @@ async def with_context():
         session_id="sess-abc",
         metadata={"workspace": "Marketing", "user": "Admin"},
     )
-    
+
     request = UnifiedRequest(
         prompt="Generate a marketing plan",
         context=context,
     )
-    
+
     response = await engine.generate(request)
 ```
 
@@ -202,15 +202,15 @@ async def with_context():
 ```python
 async def switch_modes():
     engine = get_inference_engine()
-    
+
     # Check current mode
     status = engine.get_status()
     print(f"Current mode: {status['mode']}")
     print(f"Real available: {status['real_available']}")
-    
+
     # Switch to real mode
     engine.set_mode(InferenceMode.REAL)
-    
+
     # Generate request
     request = UnifiedRequest(prompt="Hello")
     response = await engine.generate(request)
@@ -269,14 +269,14 @@ from backend.core.unified_inference_engine import get_inference_engine, UnifiedR
 
 async def main():
     engine = get_inference_engine()
-    
+
     request = UnifiedRequest(
         prompt="What is the capital of France?",
         model="gemini-1.5-pro",
     )
-    
+
     response = await engine.generate(request)
-    
+
     print(f"Response: {response.content}")
     print(f"Mode: {response.mode}")
     print(f"Tokens: {response.tokens_used}")
@@ -290,14 +290,14 @@ from backend.core.unified_inference_engine import get_inference_engine, UnifiedR
 
 async def with_system_prompt():
     engine = get_inference_engine()
-    
+
     request = UnifiedRequest(
         prompt="Summarize this text",
         system_prompt="You are a helpful assistant. Be concise.",
         model="gemini-1.5-pro",
         style=ResponseStyle.CONCISE,
     )
-    
+
     response = await engine.generate(request)
     return response.content
 ```
@@ -309,13 +309,13 @@ from backend.core.unified_inference_engine import get_inference_engine, UnifiedR
 
 async def streaming_example():
     engine = get_inference_engine()
-    
+
     request = UnifiedRequest(
         prompt="Write a short story",
         stream=True,
         style=ResponseStyle.CREATIVE,
     )
-    
+
     print("Streaming response:")
     async for chunk in engine.generate_stream(request):
         print(chunk, end="", flush=True)
@@ -328,9 +328,9 @@ from backend.core.unified_inference_engine import get_inference_engine
 
 async def check_status():
     engine = get_inference_engine()
-    
+
     status = engine.get_status()
-    
+
     print(f"Mode: {status['mode']}")
     print(f"Real Available: {status['real_available']}")
     print(f"Providers: {status['providers_available']}")
@@ -525,12 +525,12 @@ class InferenceContext:
 ```python
 async def stream_response():
     engine = get_inference_engine()
-    
+
     request = UnifiedRequest(
         prompt="Tell me about AI",
         stream=True,
     )
-    
+
     async for chunk in engine.generate_stream(request):
         print(chunk, end="", flush=True)
 ```
@@ -540,7 +540,7 @@ async def stream_response():
 ```python
 async def with_context():
     engine = get_inference_engine()
-    
+
     context = InferenceContext(
         request_id="req-123",
         workspace_id="ws-456",
@@ -548,12 +548,12 @@ async def with_context():
         session_id="sess-abc",
         metadata={"workspace": "Marketing", "user": "Admin"},
     )
-    
+
     request = UnifiedRequest(
         prompt="Generate a marketing plan",
         context=context,
     )
-    
+
     response = await engine.generate(request)
 ```
 
@@ -562,15 +562,15 @@ async def with_context():
 ```python
 async def switch_modes():
     engine = get_inference_engine()
-    
+
     # Check current mode
     status = engine.get_status()
     print(f"Current mode: {status['mode']}")
     print(f"Real available: {status['real_available']}")
-    
+
     # Switch to real mode
     engine.set_mode(InferenceMode.REAL)
-    
+
     # Generate request
     request = UnifiedRequest(prompt="Hello")
     response = await engine.generate(request)
@@ -629,14 +629,14 @@ from backend.core.unified_inference_engine import get_inference_engine, UnifiedR
 
 async def main():
     engine = get_inference_engine()
-    
+
     request = UnifiedRequest(
         prompt="What is the capital of France?",
         model="gemini-1.5-pro",
     )
-    
+
     response = await engine.generate(request)
-    
+
     print(f"Response: {response.content}")
     print(f"Mode: {response.mode}")
     print(f"Tokens: {response.tokens_used}")
@@ -650,14 +650,14 @@ from backend.core.unified_inference_engine import get_inference_engine, UnifiedR
 
 async def with_system_prompt():
     engine = get_inference_engine()
-    
+
     request = UnifiedRequest(
         prompt="Summarize this text",
         system_prompt="You are a helpful assistant. Be concise.",
         model="gemini-1.5-pro",
         style=ResponseStyle.CONCISE,
     )
-    
+
     response = await engine.generate(request)
     return response.content
 ```
@@ -669,13 +669,13 @@ from backend.core.unified_inference_engine import get_inference_engine, UnifiedR
 
 async def streaming_example():
     engine = get_inference_engine()
-    
+
     request = UnifiedRequest(
         prompt="Write a short story",
         stream=True,
         style=ResponseStyle.CREATIVE,
     )
-    
+
     print("Streaming response:")
     async for chunk in engine.generate_stream(request):
         print(chunk, end="", flush=True)
@@ -688,9 +688,9 @@ from backend.core.unified_inference_engine import get_inference_engine
 
 async def check_status():
     engine = get_inference_engine()
-    
+
     status = engine.get_status()
-    
+
     print(f"Mode: {status['mode']}")
     print(f"Real Available: {status['real_available']}")
     print(f"Providers: {status['providers_available']}")
@@ -719,4 +719,3 @@ For issues or questions:
 2. Verify environment variables are set correctly
 3. Review the [`UnifiedInferenceEngine`](backend/core/unified_inference_engine.py) source code
 4. Check API key configuration in [`backend/config.py`](backend/config.py)
-

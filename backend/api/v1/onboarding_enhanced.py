@@ -55,11 +55,10 @@ from ..redis.session_manager import get_onboarding_session_manager
 
 # Core system imports
 from ..services.ocr_service import OCRService
+from ..services.profile_service import ProfileService
 from ..services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
 from ..services.storage import get_enhanced_storage_service
 from ..services.vertex_ai_service import vertex_ai_service
-from fastapi import Query
-from ..services.profile_service import ProfileService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -86,6 +85,7 @@ def _ensure_active_subscription(profile: Dict[str, Any]) -> None:
                 "subscription_status": subscription_status,
             },
         )
+
 
 # Initialize AI agents with timeout configuration
 AI_AGENT_TIMEOUT = 30  # 30 seconds max per agent

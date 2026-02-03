@@ -10,7 +10,6 @@ from datetime import datetime
 from typing import Any, Dict
 
 from fastapi import APIRouter
-
 from infrastructure.cache import get_cache
 from infrastructure.database import get_supabase
 from infrastructure.email import get_email

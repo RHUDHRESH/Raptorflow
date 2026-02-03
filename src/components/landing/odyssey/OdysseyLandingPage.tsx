@@ -51,7 +51,7 @@ export default function OdysseyLandingPage() {
           <div className="absolute top-1/4 -left-32 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[150px] animate-pulse" />
           <div className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: "0.5s" }} />
         </div>
-        
+
         <div className="relative z-10 text-center">
           {/* Animated Compass Loader */}
           <div className="relative w-24 h-24 mx-auto mb-6">
@@ -67,7 +67,7 @@ export default function OdysseyLandingPage() {
             {/* Center dot */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg shadow-purple-500/50" />
           </div>
-          
+
           <p className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 text-sm font-medium tracking-[0.3em] uppercase animate-pulse">
             Charting Your Course...
           </p>
@@ -81,7 +81,7 @@ export default function OdysseyLandingPage() {
       {/* Global Background Effects */}
       <GradientOrbs />
       <ParticleField />
-      
+
       {/* Navigation */}
       <Navigation />
 

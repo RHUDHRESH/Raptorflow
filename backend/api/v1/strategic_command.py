@@ -32,7 +32,8 @@ class TaskStatusUpdate(BaseModel):
 
 @router.post("/blueprint", status_code=status.HTTP_201_CREATED)
 async def create_blueprint(
-    request: BlueprintRequest, workspace_id: str = Query(..., description="Workspace ID")
+    request: BlueprintRequest,
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Creates a Strategic Blueprint using multi-vector context (DCM/MacM).
@@ -66,7 +67,9 @@ async def create_blueprint(
 
 
 @router.get("/agenda")
-async def get_hierarchical_agenda(workspace_id: str = Query(..., description="Workspace ID")):
+async def get_hierarchical_agenda(
+    workspace_id: str = Query(..., description="Workspace ID")
+):
     """
     Aggregates active moves and their tasks, grouped by campaign milestones.
     Hierarchical management for concurrent moves.
@@ -196,7 +199,9 @@ async def get_expert_reasoning(
 
 
 @router.post("/moves/{move_id}/conclude")
-async def conclude_move(move_id: str, workspace_id: str = Query(..., description="Workspace ID")):
+async def conclude_move(
+    move_id: str, workspace_id: str = Query(..., description="Workspace ID")
+):
     """
     Finalizes a move, performs a post-mortem, and decides if it should be Archived or Extended.
     Transition logic for move lifecycle management.

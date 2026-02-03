@@ -11,8 +11,8 @@ import os
 from typing import Any, Dict, Optional
 
 import httpx
-
 from infrastructure.database import get_supabase
+
 from .models import Payment, PaymentStatus, Subscription, SubscriptionStatus
 
 logger = logging.getLogger(__name__)
@@ -103,13 +103,13 @@ class PaymentService:
                 if response.status_code == 200:
                     data = response.json()
                     if data.get("success"):
-                        payment_url = data["data"]["instrumentResponse"]["redirectInfo"]["url"]
+                        payment_url = data["data"]["instrumentResponse"][
+                            "redirectInfo"
+                        ]["url"]
 
                         # Update payment with URL
                         await self.db.update(
-                            "payments",
-                            {"payment_url": payment_url},
-                            {"id": payment.id}
+                            "payments", {"payment_url": payment_url}, {"id": payment.id}
                         )
                         payment.payment_url = payment_url
 
@@ -125,7 +125,9 @@ class PaymentService:
         """Verify payment status with PhonePe"""
         try:
             # Get payment from database
-            result = await self.db.select("payments", {"merchant_order_id": merchant_order_id})
+            result = await self.db.select(
+                "payments", {"merchant_order_id": merchant_order_id}
+            )
             if not result.data:
                 return None
 
@@ -133,9 +135,7 @@ class PaymentService:
 
             # Check status with PhonePe
             endpoint = f"/pg/v1/status/{self.merchant_id}/{merchant_order_id}"
-            checksum = hashlib.sha256(
-                (endpoint + self.salt_key).encode()
-            ).hexdigest()
+            checksum = hashlib.sha256((endpoint + self.salt_key).encode()).hexdigest()
 
             headers = {
                 "Content-Type": "application/json",
@@ -162,9 +162,7 @@ class PaymentService:
 
                         # Update in database
                         await self.db.update(
-                            "payments",
-                            {"status": payment.status},
-                            {"id": payment.id}
+                            "payments", {"status": payment.status}, {"id": payment.id}
                         )
 
             return payment
@@ -180,7 +178,9 @@ class PaymentService:
             status = payload.get("status")
 
             # Find payment
-            result = await self.db.select("payments", {"merchant_order_id": merchant_order_id})
+            result = await self.db.select(
+                "payments", {"merchant_order_id": merchant_order_id}
+            )
             if not result.data:
                 return False
 
@@ -193,9 +193,7 @@ class PaymentService:
                 payment.status = PaymentStatus.FAILED
 
             await self.db.update(
-                "payments",
-                {"status": payment.status},
-                {"id": payment.id}
+                "payments", {"status": payment.status}, {"id": payment.id}
             )
 
             # Create subscription if payment successful
@@ -213,6 +211,7 @@ class PaymentService:
         try:
             # Calculate period end
             from datetime import datetime, timedelta
+
             current_period_end = datetime.utcnow() + timedelta(days=30)
 
             subscription_data = {

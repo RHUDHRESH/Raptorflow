@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
+import {
   Quote01Icon,
   StarIcon,
   ArrowLeft01Icon,
@@ -165,7 +165,7 @@ export function Testimonials() {
         {/* Mobile Carousel */}
         <div className="lg:hidden">
           <div className="relative overflow-hidden">
-            <div 
+            <div
               className="flex transition-transform duration-500 ease-out"
               style={{ transform: `translateX(-${activeIndex * 100}%)` }}
             >
@@ -210,7 +210,7 @@ export function Testimonials() {
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} className="w-5 h-5" />
             </button>
-            
+
             <div className="flex gap-2">
               {testimonials.map((_, index) => (
                 <button

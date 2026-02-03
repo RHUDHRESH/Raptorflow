@@ -38,16 +38,16 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import structlog
 
-from .inference_cache import get_inference_cache
+from ..config import settings
 from ..llm import (
+    CostCalculator,
     LLMManager,
     LLMMessage,
     LLMRequest,
     LLMRole,
     TokenCounter,
-    CostCalculator,
 )
-from ..config import settings
+from .inference_cache import get_inference_cache
 
 logger = structlog.get_logger(__name__)
 
@@ -1409,4 +1409,3 @@ __all__ = [
     "RealInferenceEngine",
     "get_inference_engine",
 ]
-

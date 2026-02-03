@@ -1,9 +1,9 @@
 # RAPTORFLOW BACKEND COMPLETE AUDIT
-**Generated:** 2025-01-XX  
-**Total Files Analyzed:** 250+  
-**Total Lines of Code:** ~500,000+  
-**Auth Components Identified:** 284 usages across 34 files  
-**Dead Code Files:** TBD  
+**Generated:** 2025-01-XX
+**Total Files Analyzed:** 250+
+**Total Lines of Code:** ~500,000+
+**Auth Components Identified:** 284 usages across 34 files
+**Dead Code Files:** TBD
 **API Endpoints:** 506 across 61 files
 
 ---
@@ -34,10 +34,10 @@ This comprehensive audit catalogues the entire RaptorFlow backend infrastructure
 
 ## 1. API ENDPOINTS AUDIT (api/v1/)
 
-**Total Files:** 65  
-**Total Endpoints:** 506  
-**Auth-Protected Endpoints:** ~284 (estimated)  
-**Open Endpoints:** ~222  
+**Total Files:** 65
+**Total Endpoints:** 506
+**Auth-Protected Endpoints:** ~284 (estimated)
+**Open Endpoints:** ~222
 
 ### 1.1 admin.py - Admin Panel Endpoints
 - **File:** `backend/api/v1/admin.py`
@@ -56,11 +56,11 @@ This comprehensive audit catalogues the entire RaptorFlow backend infrastructure
   - POST `/admin/cache/clear` - Clear cache
   - GET `/admin/system/health` - System health
 
-- **Auth Dependencies:** 
+- **Auth Dependencies:**
   - Line 22-32: Custom `verify_admin_access()` function (NOT using standard auth)
   - Uses `Depends(verify_admin_access)` on all endpoints
   - Does NOT use `get_current_user` or `get_workspace_id`
-  
+
 - **Database Operations:**
   - No direct database access
   - Uses RedisClient, JobScheduler, MemoryController
@@ -79,7 +79,7 @@ This comprehensive audit catalogues the entire RaptorFlow backend infrastructure
 - **Status:** ✅ **WORKING**
   - Uses custom auth, not standard auth system
   - Will continue working after auth removal
-  
+
 - **Issues:** None
 
 - **Action for Auth Removal:** ✅ **NO ACTION NEEDED** - Uses custom admin verification
@@ -123,7 +123,7 @@ This comprehensive audit catalogues the entire RaptorFlow backend infrastructure
 - **Status:** ✅ **WORKING**
   - Does NOT use standard auth decorators
   - Expects user_id/workspace_id in request body
-  
+
 - **Issues:** None
 
 - **Action for Auth Removal:** ⚠️ **REVIEW NEEDED**
@@ -272,7 +272,7 @@ This comprehensive audit catalogues the entire RaptorFlow backend infrastructure
 - **Critical Endpoints:**
   - GET `/graph/entities` - Get entities from knowledge graph
   - POST `/graph/entities` - Create entity
-  - PUT `/graph/entities/{entity_id}` - Update entity  
+  - PUT `/graph/entities/{entity_id}` - Update entity
   - DELETE `/graph/entities/{entity_id}` - Delete entity
   - GET `/graph/relationships` - Get relationships
   - POST `/graph/relationships` - Create relationship
@@ -313,7 +313,7 @@ This comprehensive audit catalogues the entire RaptorFlow backend infrastructure
   - Heavy workspace isolation
   - Will expose ALL workspace graph data after auth removal
 
-- **Action for Auth Removal:** 
+- **Action for Auth Removal:**
   1. ❌ Remove Lines 27-28: auth and User imports
   2. ❌ Remove `current_user: User = Depends(get_current_user)` from all 20 endpoints
   3. ❌ Remove Line 120: `get_workspace_access()` validation
@@ -468,7 +468,7 @@ async def list_moves(
 ---
 
 ### 2.3 profile_service.py - User Profile Service ⚠️ **AUTH RELATED**
-- **File:** `backend/services/profile_service.py`  
+- **File:** `backend/services/profile_service.py`
 - **Size:** 14,360 bytes / ~400 lines (estimated)
 - **Purpose:** User profile CRUD operations
 
@@ -555,7 +555,7 @@ async def list_moves(
 
 - **Classes:**
   - ❌ `User` - User model (AUTH RELATED)
-  - ❌ `AuthContext` - Auth context (AUTH RELATED)  
+  - ❌ `AuthContext` - Auth context (AUTH RELATED)
   - ❌ `JWTPayload` - JWT payload (AUTH RELATED)
   - ✅ `Workspace` - Workspace model (MAY KEEP)
 
@@ -1230,7 +1230,7 @@ curl -X POST http://localhost:8000/api/v1/graph/entities -d '{...}'
    - NO tenant isolation
    - Complete loss of data privacy
 
-2. **Security Impact**: 
+2. **Security Impact**:
    - No authentication = anyone can use API
    - No authorization = anyone can modify/delete data
    - API becomes completely open
@@ -1303,4 +1303,3 @@ This comprehensive audit has catalogued the entire RaptorFlow backend infrastruc
 **END OF AUDIT**
 **Document Lines:** 1,100+
 **Audit Complete:** ✅
-

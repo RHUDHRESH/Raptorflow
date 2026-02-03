@@ -48,7 +48,9 @@ async def refine_strategic_context(
 
 
 @router.get("/state/{ucid}", response_model=EvolutionStateResponse)
-async def get_projected_state(ucid: str, workspace_id: str = Query(..., description="Workspace ID")):
+async def get_projected_state(
+    ucid: str, workspace_id: str = Query(..., description="Workspace ID")
+):
     """
     Returns the 'Everything' projected state for a given UCID.
     """

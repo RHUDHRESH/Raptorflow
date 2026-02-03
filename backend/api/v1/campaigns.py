@@ -85,7 +85,8 @@ async def list_campaigns(
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_campaign(
-    campaign_data: CampaignCreate, workspace_id: str = Query(..., description="Workspace ID")
+    campaign_data: CampaignCreate,
+    workspace_id: str = Query(..., description="Workspace ID"),
 ):
     """
     Create a new campaign

@@ -75,9 +75,9 @@ export function HowItWorks() {
       steps.forEach((step, index) => {
         gsap.fromTo(
           step,
-          { 
-            x: index % 2 === 0 ? -50 : 50, 
-            opacity: 0 
+          {
+            x: index % 2 === 0 ? -50 : 50,
+            opacity: 0
           },
           {
             x: 0,

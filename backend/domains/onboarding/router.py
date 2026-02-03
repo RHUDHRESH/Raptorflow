@@ -5,14 +5,9 @@ API routes for onboarding flow
 
 from typing import Any, Dict, List
 
+from dependencies import OnboardingService, get_onboarding, require_workspace_id
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-
-from dependencies import (
-    get_onboarding,
-    require_workspace_id,
-    OnboardingService,
-)
 
 router = APIRouter()
 
@@ -41,7 +36,7 @@ class ICPResponse(BaseModel):
 @router.get("/state")
 async def get_onboarding_state(
     workspace_id: str = Depends(require_workspace_id),
-    service: OnboardingService = Depends(get_onboarding)
+    service: OnboardingService = Depends(get_onboarding),
 ):
     """Get current onboarding state"""
     state = await service.get_state(workspace_id)
@@ -58,7 +53,7 @@ async def get_onboarding_state(
 async def save_foundation(
     data: SaveFoundationRequest,
     workspace_id: str = Depends(require_workspace_id),
-    service: OnboardingService = Depends(get_onboarding)
+    service: OnboardingService = Depends(get_onboarding),
 ):
     """Save foundation data"""
     foundation = await service.save_foundation(workspace_id, data.model_dump())
@@ -75,7 +70,7 @@ async def save_foundation(
 @router.get("/foundation")
 async def get_foundation(
     workspace_id: str = Depends(require_workspace_id),
-    service: OnboardingService = Depends(get_onboarding)
+    service: OnboardingService = Depends(get_onboarding),
 ):
     """Get foundation data"""
     foundation = await service.get_foundation(workspace_id)
@@ -88,7 +83,7 @@ async def get_foundation(
 @router.post("/icps/generate")
 async def generate_icps(
     workspace_id: str = Depends(require_workspace_id),
-    service: OnboardingService = Depends(get_onboarding)
+    service: OnboardingService = Depends(get_onboarding),
 ):
     """Generate ICPs from foundation data"""
     icps = await service.generate_icps(workspace_id)
@@ -104,7 +99,7 @@ async def generate_icps(
 @router.get("/icps", response_model=List[ICPResponse])
 async def get_icps(
     workspace_id: str = Depends(require_workspace_id),
-    service: OnboardingService = Depends(get_onboarding)
+    service: OnboardingService = Depends(get_onboarding),
 ):
     """Get all ICPs for workspace"""
     icps = await service.get_icps(workspace_id)

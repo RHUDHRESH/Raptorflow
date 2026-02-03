@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 
 from infrastructure.database import get_supabase
 from infrastructure.llm import get_llm
+
 from .models import AgentResult, AgentStatus, AgentTask, AgentType
 
 logger = logging.getLogger(__name__)
@@ -22,10 +23,7 @@ class AgentService:
         self.llm = get_llm()
 
     async def create_task(
-        self,
-        workspace_id: str,
-        agent_type: AgentType,
-        input_data: Dict[str, Any]
+        self, workspace_id: str, agent_type: AgentType, input_data: Dict[str, Any]
     ) -> Optional[AgentTask]:
         """Create a new agent task"""
         try:
@@ -65,14 +63,14 @@ class AgentService:
                 task_id=task_id,
                 status=AgentStatus.FAILED,
                 output={},
-                error="Task not found"
+                error="Task not found",
             )
 
         # Update status to running
         await self.db.update(
             "agent_tasks",
             {"status": AgentStatus.RUNNING, "started_at": "now()"},
-            {"id": task_id}
+            {"id": task_id},
         )
 
         try:
@@ -95,16 +93,16 @@ class AgentService:
                 {
                     "status": AgentStatus.COMPLETED,
                     "output_data": output,
-                    "completed_at": "now()"
+                    "completed_at": "now()",
                 },
-                {"id": task_id}
+                {"id": task_id},
             )
 
             return AgentResult(
                 task_id=task_id,
                 status=AgentStatus.COMPLETED,
                 output=output,
-                execution_time_ms=execution_time
+                execution_time_ms=execution_time,
             )
 
         except Exception as e:
@@ -112,14 +110,11 @@ class AgentService:
             await self.db.update(
                 "agent_tasks",
                 {"status": AgentStatus.FAILED, "error_message": str(e)},
-                {"id": task_id}
+                {"id": task_id},
             )
 
             return AgentResult(
-                task_id=task_id,
-                status=AgentStatus.FAILED,
-                output={},
-                error=str(e)
+                task_id=task_id, status=AgentStatus.FAILED, output={}, error=str(e)
             )
 
     async def _execute_icp_architect(self, task: AgentTask) -> Dict[str, Any]:

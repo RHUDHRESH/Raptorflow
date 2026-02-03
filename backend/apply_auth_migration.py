@@ -6,17 +6,18 @@ This script applies the auth system fix migration to your Supabase database.
 import os
 import sys
 
+
 def apply_migration():
     """Instructions for applying the migration"""
-    
+
     print("=" * 70)
     print("SUPABASE AUTH MIGRATION APPLICATOR")
     print("=" * 70)
     print()
-    
+
     # Check if SUPABASE_SERVICE_ROLE_KEY is available
     service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-    
+
     if not service_key:
         print("ERROR: SUPABASE_SERVICE_ROLE_KEY environment variable not set!")
         print()
@@ -32,44 +33,44 @@ def apply_migration():
         print()
         print("OR apply the migration manually via SQL Editor (see below)")
         return False
-    
+
     print(f"Service Role Key found: {service_key[:20]}...")
     print()
-    
+
     try:
         from supabase import create_client
-        
+
         url = "https://ywuokqopcfbqwtbzqvgj.supabase.co"
-        
+
         print(f"Connecting to: {url}")
         client = create_client(url, service_key)
         print("Connected successfully!")
         print()
-        
+
         # Read migration SQL
         migration_path = "../supabase/migrations/20250210_auth_system_fix.sql"
         if not os.path.exists(migration_path):
             migration_path = "supabase/migrations/20250210_auth_system_fix.sql"
-        
-        with open(migration_path, 'r') as f:
+
+        with open(migration_path, "r") as f:
             sql = f.read()
-        
+
         print(f"Migration file loaded: {len(sql)} characters")
         print()
-        
+
         # Apply migration
         print("Applying migration...")
         print("-" * 70)
-        
+
         # Split SQL into statements and execute
-        statements = [s.strip() for s in sql.split(';') if s.strip()]
+        statements = [s.strip() for s in sql.split(";") if s.strip()]
         total = len(statements)
-        
+
         for i, stmt in enumerate(statements, 1):
-            if stmt and not stmt.startswith('--'):
+            if stmt and not stmt.startswith("--"):
                 try:
                     # Execute via RPC
-                    result = client.rpc('exec_sql', {'sql': stmt + ';'}).execute()
+                    result = client.rpc("exec_sql", {"sql": stmt + ";"}).execute()
                     print(f"  [{i}/{total}] ✓ Executed")
                 except Exception as e:
                     error_msg = str(e)
@@ -77,7 +78,7 @@ def apply_migration():
                         print(f"  [{i}/{total}] ⚠ Skipped (already exists)")
                     else:
                         print(f"  [{i}/{total}] ✗ Error: {error_msg[:80]}")
-        
+
         print("-" * 70)
         print()
         print("✓ Migration applied successfully!")
@@ -90,9 +91,9 @@ def apply_migration():
         print()
         print("RLS policies enabled on all tables")
         print("Auth trigger configured for auto-profile creation")
-        
+
         return True
-        
+
     except ImportError:
         print("ERROR: supabase package not installed")
         print("Run: pip install supabase")
@@ -133,6 +134,6 @@ if __name__ == "__main__":
     success = apply_migration()
     if not success:
         print_manual_instructions()
-    
+
     print()
     input("Press Enter to exit...")

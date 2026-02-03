@@ -24,9 +24,9 @@ sbp_23be6405f8c238ea5e6218120f12262ac8d04a74
 
 4. **Verify Success**
    ```sql
-   SELECT table_name 
-   FROM information_schema.tables 
-   WHERE table_schema = 'public' 
+   SELECT table_name
+   FROM information_schema.tables
+   WHERE table_schema = 'public'
    AND table_name IN ('profiles', 'workspaces', 'workspace_members');
    ```
    Should return 3 rows.

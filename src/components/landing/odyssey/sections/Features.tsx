@@ -3,13 +3,13 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { 
-  Compass, 
-  Target, 
-  Zap, 
-  BarChart3, 
-  Users, 
-  Sparkles 
+import {
+  Compass,
+  Target,
+  Zap,
+  BarChart3,
+  Users,
+  Sparkles
 } from "lucide-react";
 
 const features = [
@@ -135,7 +135,7 @@ export function Features() {
             >
               {/* Hover glow effect */}
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
+
               {/* Icon */}
               <div className={`relative inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} mb-6 shadow-lg`}>
                 <feature.icon className="w-7 h-7 text-white" />

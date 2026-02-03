@@ -20,12 +20,12 @@ export { GrainOverlay } from "./effects/GrainOverlay";
 export { CursorFollower } from "./effects/CursorFollower";
 
 // Hooks
-export { 
-  useFadeInUp, 
-  useStaggerChildren, 
-  useParallax, 
+export {
+  useFadeInUp,
+  useStaggerChildren,
+  useParallax,
   useTextReveal,
   useScaleIn,
   gsap,
-  ScrollTrigger 
+  ScrollTrigger
 } from "./hooks/useGSAP";

@@ -4,9 +4,9 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
-  Rocket01Icon, 
-  SparklesIcon, 
+import {
+  Rocket01Icon,
+  SparklesIcon,
   ArrowDown01Icon,
   PlayIcon
 } from "@hugeicons/core-free-icons";
@@ -75,9 +75,9 @@ export function Hero() {
         {/* Gradient Orbs */}
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-barley/10 rounded-full blur-[128px] animate-pulse-subtle" />
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-akaroa/10 rounded-full blur-[128px] animate-pulse-subtle" style={{ animationDelay: "1.5s" }} />
-        
+
         {/* Grid Pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `linear-gradient(rgba(234, 224, 210, 0.5) 1px, transparent 1px),
@@ -111,13 +111,13 @@ export function Hero() {
               ref={subtitleRef}
               className="text-akaroa-200/70 text-lg sm:text-xl max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed"
             >
-              Like a master barista perfecting every cup, RaptorFlow orchestrates 
+              Like a master barista perfecting every cup, RaptorFlow orchestrates
               your business workflows with precision, warmth, and undeniable style.
             </p>
 
             {/* CTAs */}
             <div ref={ctaRef} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <button 
+              <button
                 className="group relative px-8 py-4 bg-barley text-shaft-500 font-semibold rounded-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-barley/20"
                 data-cursor-hover
               >
@@ -127,8 +127,8 @@ export function Hero() {
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-barley to-akaroa-400 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0" />
               </button>
-              
-              <button 
+
+              <button
                 className="group px-8 py-4 border border-rock/30 text-rock rounded-full font-medium transition-all duration-300 hover:bg-rock/5 hover:border-rock/50 flex items-center justify-center gap-2"
                 data-cursor-hover
               >
@@ -171,7 +171,7 @@ export function Hero() {
                       <div className="w-8 h-8 rounded-full bg-akaroa/20" />
                     </div>
                   </div>
-                  
+
                   {/* Stats Row */}
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     {[
@@ -197,8 +197,8 @@ export function Hero() {
                         <span className="text-rock/80 text-sm flex-1">{flow}</span>
                         <div className="flex gap-1">
                           {[...Array(3)].map((_, j) => (
-                            <div 
-                              key={j} 
+                            <div
+                              key={j}
                               className={`w-1.5 h-1.5 rounded-full ${j <= i ? "bg-barley" : "bg-rock/20"}`}
                             />
                           ))}
@@ -208,7 +208,7 @@ export function Hero() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Glow Effect */}
               <div className="absolute -inset-1 bg-gradient-to-r from-barley/20 via-akaroa/20 to-barley/20 rounded-2xl blur-xl opacity-50 -z-10" />
             </div>

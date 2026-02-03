@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel
 
 from ..core.metrics import get_analytics_manager
 from ..core.performance import get_performance_optimizer
@@ -104,7 +104,9 @@ async def create_session(
 
 
 @router.get("/{session_id}")
-async def get_session(session_id: str, user_id: str = Query(..., description="User ID")):
+async def get_session(
+    session_id: str, user_id: str = Query(..., description="User ID")
+):
     """Get session details."""
     try:
         session_manager = get_session_manager()
@@ -400,7 +402,8 @@ async def get_performance_analytics(
 
 @router.get("/analytics/trends")
 async def get_resource_trends(
-    hours: int = Query(24, ge=1, le=168), user_id: str = Query(..., description="User ID")
+    hours: int = Query(24, ge=1, le=168),
+    user_id: str = Query(..., description="User ID"),
 ):
     """Get resource usage trends."""
     try:

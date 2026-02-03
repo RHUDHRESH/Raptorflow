@@ -169,7 +169,9 @@ class ProjectRequest(BaseModel):
 
 @router.post("/generate", response_model=ContentResponse)
 async def generate_content(
-    request: ContentRequest, user_id: str = Query(..., description="User ID"), db=Depends(get_db)
+    request: ContentRequest,
+    user_id: str = Query(..., description="User ID"),
+    db=Depends(get_db),
 ):
     """Generate content using real Vertex AI inference and store in DB."""
     if not vertex_ai_service:
@@ -254,13 +256,17 @@ async def chat(request: ChatRequest, user_id: str = Query(..., description="User
 
 
 @router.get("/prospects")
-async def get_prospects(workspace_id: str = "default", user_id: str = Query(..., description="User ID")):
+async def get_prospects(
+    workspace_id: str = "default", user_id: str = Query(..., description="User ID")
+):
     """Fetch real prospects from DB (ICPs)."""
     return {"success": True, "prospects": await crm_service.get_prospects(workspace_id)}
 
 
 @router.post("/sync-prospect")
-async def sync_prospect(request: SyncProspectRequest, user_id: str = Query(..., description="User ID")):
+async def sync_prospect(
+    request: SyncProspectRequest, user_id: str = Query(..., description="User ID")
+):
     """Sync personalized content to prospect and log in DB."""
     return await crm_service.sync_content_to_prospect(
         "default-workspace",
@@ -272,7 +278,9 @@ async def sync_prospect(request: SyncProspectRequest, user_id: str = Query(..., 
 
 
 @router.post("/repurpose")
-async def repurpose(request: RepurposeRequest, user_id: str = Query(..., description="User ID")):
+async def repurpose(
+    request: RepurposeRequest, user_id: str = Query(..., description="User ID")
+):
     """Repurpose content via real AI inference."""
     platform = PlatformType(request.target_platform.lower())
     return await repurposing_service.repurpose_content(
@@ -281,7 +289,9 @@ async def repurpose(request: RepurposeRequest, user_id: str = Query(..., descrip
 
 
 @router.post("/comment")
-async def comment(request: CommentRequest, user_id: str = Query(..., description="User ID")):
+async def comment(
+    request: CommentRequest, user_id: str = Query(..., description="User ID")
+):
     """Add real persistent comment to DB."""
     return await collaboration_service.add_comment(
         request.asset_id, "default-workspace", user["id"], request.text
@@ -289,7 +299,9 @@ async def comment(request: CommentRequest, user_id: str = Query(..., description
 
 
 @router.post("/approve")
-async def approve(request: ApprovalRequest, user_id: str = Query(..., description="User ID")):
+async def approve(
+    request: ApprovalRequest, user_id: str = Query(..., description="User ID")
+):
     """Update real approval status in DB."""
     return await collaboration_service.update_approval_status(
         request.asset_id, ApprovalStatus(request.status.lower()), user["id"]
@@ -297,13 +309,17 @@ async def approve(request: ApprovalRequest, user_id: str = Query(..., descriptio
 
 
 @router.post("/analyze-voice")
-async def analyze_voice(request: VoiceAnalysisRequest, user_id: str = Query(..., description="User ID")):
+async def analyze_voice(
+    request: VoiceAnalysisRequest, user_id: str = Query(..., description="User ID")
+):
     """Extract brand voice profile via real AI inference."""
     return await brand_voice_service.analyze_brand_voice(request.samples, user["id"])
 
 
 @router.post("/distribute")
-async def distribute(request: DistributionRequest, user_id: str = Query(..., description="User ID")):
+async def distribute(
+    request: DistributionRequest, user_id: str = Query(..., description="User ID")
+):
     """Distribute content and log event in DB."""
     return await distribution_service.post_to_platform(
         "default-workspace",
@@ -314,19 +330,25 @@ async def distribute(request: DistributionRequest, user_id: str = Query(..., des
 
 
 @router.post("/audit")
-async def audit(request: AuditRequest, user_id: str = Query(..., description="User ID")):
+async def audit(
+    request: AuditRequest, user_id: str = Query(..., description="User ID")
+):
     """Perform real strategic audit via AI inference."""
     return await audit_service.audit_content_library(request.assets, request.gtm_goals)
 
 
 @router.post("/seo-optimize")
-async def seo_optimize(request: SEORequest, user_id: str = Query(..., description="User ID")):
+async def seo_optimize(
+    request: SEORequest, user_id: str = Query(..., description="User ID")
+):
     """Audit SEO via real AI inference."""
     return await seo_service.optimize_content(request.content, request.target_keywords)
 
 
 @router.post("/brief")
-async def brief(request: BriefRequest, user_id: str = Query(..., description="User ID")):
+async def brief(
+    request: BriefRequest, user_id: str = Query(..., description="User ID")
+):
     """Generate strategic brief via real AI inference."""
     return await brief_service.generate_brief(
         request.topic, request.icp_context, request.platform
@@ -334,7 +356,9 @@ async def brief(request: BriefRequest, user_id: str = Query(..., description="Us
 
 
 @router.post("/sequence")
-async def sequence(request: SequenceRequest, user_id: str = Query(..., description="User ID")):
+async def sequence(
+    request: SequenceRequest, user_id: str = Query(..., description="User ID")
+):
     """Generate automation sequence via real AI inference."""
     return await automation_service.create_content_sequence(
         request.goal, request.steps, request.tone
@@ -342,7 +366,9 @@ async def sequence(request: SequenceRequest, user_id: str = Query(..., descripti
 
 
 @router.post("/coach")
-async def coach(request: CoachingRequest, user_id: str = Query(..., description="User ID")):
+async def coach(
+    request: CoachingRequest, user_id: str = Query(..., description="User ID")
+):
     """Get strategic critique via real AI inference."""
     return await coaching_service.get_strategic_critique(
         request.content, request.bcm_context
@@ -367,7 +393,9 @@ async def insights(user_id: str = Query(..., description="User ID")):
 
 
 @router.post("/marketplace/project")
-async def marketplace_project(request: ProjectRequest, user_id: str = Query(..., description="User ID")):
+async def marketplace_project(
+    request: ProjectRequest, user_id: str = Query(..., description="User ID")
+):
     """Post real project to marketplace (Moves table)."""
     return await marketplace_service.post_project(
         "default-workspace",

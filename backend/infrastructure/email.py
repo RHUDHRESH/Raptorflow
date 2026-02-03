@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class EmailConfig(BaseModel):
     """Email configuration"""
+
     api_key: str
     from_email: str
     from_name: str = "RaptorFlow"
@@ -22,12 +23,14 @@ class EmailConfig(BaseModel):
 
 class EmailRecipient(BaseModel):
     """Email recipient"""
+
     email: EmailStr
     name: Optional[str] = None
 
 
 class EmailAttachment(BaseModel):
     """Email attachment"""
+
     filename: str
     content: str  # base64 encoded
     content_type: str
@@ -35,6 +38,7 @@ class EmailAttachment(BaseModel):
 
 class EmailMessage(BaseModel):
     """Email message"""
+
     to: List[EmailRecipient]
     subject: str
     html: Optional[str] = None
@@ -114,7 +118,9 @@ class EmailClient:
                 logger.info(f"Email sent successfully: {result.get('id')}")
                 return {"success": True, "id": result.get("id")}
             else:
-                logger.error(f"Email send failed: {response.status_code} - {response.text}")
+                logger.error(
+                    f"Email send failed: {response.status_code} - {response.text}"
+                )
                 return {"success": False, "error": response.text}
 
         except Exception as e:
@@ -152,7 +158,11 @@ class EmailClient:
 
             return {
                 "status": "healthy" if response.status_code == 200 else "unhealthy",
-                "message": "Email service OK" if response.status_code == 200 else f"Error: {response.status_code}",
+                "message": (
+                    "Email service OK"
+                    if response.status_code == 200
+                    else f"Error: {response.status_code}"
+                ),
             }
         except Exception as e:
             return {
