@@ -32,7 +32,7 @@ import structlog
 # External imports
 from pydantic import BaseModel, ValidationError
 
-from config import settings
+from backend.config import settings
 
 logger = structlog.get_logger(__name__)
 

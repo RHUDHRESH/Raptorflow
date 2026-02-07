@@ -4,6 +4,7 @@ Base agent class for all Raptorflow agents.
 
 import asyncio
 import logging
+import re
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -12,7 +13,14 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, TypedDict
 
 from .config import ModelTier, get_config, get_rate_limiter
-from .state import AgentState
+from .exceptions import (
+    DatabaseError,
+    LLMError,
+    RateLimitError,
+    ToolError,
+    ValidationError,
+)
+from .state import AgentState, add_message, update_state
 
 logger = logging.getLogger(__name__)
 
@@ -1214,10 +1222,12 @@ class BaseAgent(ABC):
 
             # Check memory availability
             try:
-                from memory.services import get_memory_manager
+                from memory_services import MemoryController
 
-                memory_manager = get_memory_manager()
-                if not memory_manager:
+                memory_manager = MemoryController()
+                if not memory_manager or not getattr(
+                    memory_manager, "initialized", False
+                ):
                     logger.warning(
                         f"Memory manager not available for agent '{self.name}'"
                     )

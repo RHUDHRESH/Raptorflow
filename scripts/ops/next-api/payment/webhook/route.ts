@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
-const SALT_KEY = process.env.NEXT_PUBLIC_PHONEPE_SALT_KEY || '099eb0cd-02cf-4e2a-8aca-3e6c6aff0399';
-const SALT_INDEX = '1';
+const SALT_KEY = process.env.PHONEPE_SALT_KEY || process.env.NEXT_PUBLIC_PHONEPE_SALT_KEY;
+const SALT_INDEX = process.env.PHONEPE_SALT_INDEX || '1';
 
 // Initialize Supabase
 const supabase = createClient(
@@ -13,6 +13,11 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    if (!SALT_KEY) {
+      console.error('Missing PHONEPE_SALT_KEY configuration');
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+    }
+
     const body = await request.text();
     const headers = request.headers;
 

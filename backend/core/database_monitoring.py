@@ -9,9 +9,9 @@ import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from connection_pool import get_connection_pool_health
-from database_config import DB_CONFIG
-from supabase_mgr import get_supabase_admin
+from .connection_pool import get_connection_pool_health
+from .database_config import DB_CONFIG
+from .supabase_mgr import get_supabase_admin
 
 logger = logging.getLogger(__name__)
 

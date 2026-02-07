@@ -6,9 +6,8 @@ Handles recording of discrete strategic and operational events to the ledger.
 import logging
 from typing import Any, Dict, Optional
 
+from core.supabase_mgr import get_supabase_client
 from schemas.bcm_evolution import EventType
-
-from .core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +49,7 @@ class BCMEventRecorder:
                 "ucid": ucid,
             }
 
-            result = await self.db.table(self.table_name).insert(event_data).execute()
+            result = self.db.table(self.table_name).insert(event_data).execute()
 
             if not result.data:
                 raise Exception("Failed to record event: No data returned from DB")

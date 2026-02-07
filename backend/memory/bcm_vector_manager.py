@@ -10,11 +10,10 @@ Handles vector operations specific to Business Context Manifest (BCM) system:
 import hashlib
 import json
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from memory.vector_store import VectorMemory
-
-from .services.upstash_client import get_upstash_client
+from services.upstash_client import get_upstash_client
 
 
 class BCMVectorManager:

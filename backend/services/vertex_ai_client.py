@@ -13,7 +13,10 @@ from dotenv import load_dotenv
 from google import genai
 from pydantic import BaseModel
 
-from .redis_core.cache import CacheService
+try:
+    from backend.redis.cache import CacheService
+except ImportError:
+    from redis.cache import CacheService
 
 # Load environment variables
 load_dotenv()
@@ -39,8 +42,12 @@ class VertexAIClient:
 
     def __init__(self, config: Optional[VertexAIConfig] = None):
         self.config = config or self._load_config()
-        self.client = genai.Client(api_key=self.config.api_key)
-        logger.info(f"GenAI Client initialized with model: {self.config.model}")
+        if self.config.api_key:
+            self.client = genai.Client(api_key=self.config.api_key)
+            logger.info(f"GenAI Client initialized with model: {self.config.model}")
+        else:
+            self.client = None
+            logger.error("Vertex AI API key missing; GenAI client disabled")
 
     def _load_config(self) -> VertexAIConfig:
         """Load configuration from environment variables"""
@@ -80,23 +87,29 @@ class VertexAIClient:
     ) -> Optional[str]:
         """Generate text using the unified GenAI SDK."""
         try:
+            if not self.client:
+                logger.error("GenAI client not initialized (missing API key)")
+                return None
+
             sanitized_prompt = self._sanitize_input(prompt)
             model_to_use = model or self.config.model
 
             # Check Cache
-            cache_service = CacheService()
+            cache_service = None
+            try:
+                cache_service = CacheService()
+            except Exception as e:
+                logger.warning(f"CacheService unavailable, skipping cache: {e}")
+
             cache_key = f"ai_res:{hashlib.md5(sanitized_prompt.encode()).hexdigest()}"
 
             # We use a global/system workspace ID for LLM results if not provided
             # or just bypass workspace isolation for pure prompt-based cache
-            cached_val = await cache_service.redis.get(cache_key)
-            if cached_val:
-                logger.info(f"AI Cache Hit: {cache_key}")
-                return (
-                    cached_val.decode("utf-8")
-                    if isinstance(cached_val, bytes)
-                    else cached_val
-                )
+            if cache_service:
+                cached_val = await cache_service.redis.get_json(cache_key)
+                if cached_val:
+                    logger.info(f"AI Cache Hit: {cache_key}")
+                    return cached_val
 
             # Using the new SDK's generate_content
             response = self.client.models.generate_content(
@@ -113,7 +126,8 @@ class VertexAIClient:
             if response and response.text:
                 result = response.text
                 # Set Cache (TTL: 24h)
-                await cache_service.redis.set(cache_key, result, ex=86400)
+                if cache_service:
+                    await cache_service.redis.set_json(cache_key, result, ex=86400)
                 return result
             return None
         except Exception as e:

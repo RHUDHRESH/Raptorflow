@@ -7,10 +7,10 @@ export async function POST(request: Request) {
 
     // Simulate payment processing
     await new Promise(resolve => setTimeout(resolve, 2000)) // 2 second processing
-    
+
     // Random success for demo (in real would verify with payment gateway)
     const isSuccess = Math.random() > 0.1 // 90% success rate
-    
+
     if (isSuccess) {
       return NextResponse.json({
         status: 'success',

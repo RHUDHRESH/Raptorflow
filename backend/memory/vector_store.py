@@ -13,8 +13,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from embeddings import get_embedding_model
-
+from .embeddings import get_embedding_model
 from .models import MemoryChunk, MemoryType
 
 logger = logging.getLogger(__name__)
@@ -574,13 +573,13 @@ class VectorMemory:
         query = f"""
             SELECT content FROM memory_vectors
             WHERE workspace_id = '{workspace_id}'
-            AND memory_type = 'bcm'
+            AND memory_type = 'bcm_section'
             AND metadata->>'section' = '{section}'
             ORDER BY created_at DESC
             LIMIT 1
         """
 
-        result = await self.supabase_client.rpc("query", {"query": query})
+        result = self.supabase_client.rpc("query", {"query": query}).execute()
         if result and result.data:
             return result.data[0].get("content")
         return None
@@ -595,14 +594,15 @@ class VectorMemory:
         Returns:
             Embedding vector
         """
-        return await self.embedding_model.embed(text)
+        embedding = self.embedding_model.encode_single(text)
+        return embedding.tolist() if hasattr(embedding, "tolist") else list(embedding)
 
     async def mark_section_dirty(self, workspace_id: str, section: str) -> bool:
         """Mark a BCM section as dirty (needs update)."""
         try:
             # Store in dirty_sections tracking table
             result = (
-                await self.supabase_client.table("dirty_sections")
+                self.supabase_client.table("dirty_sections")
                 .upsert(
                     {
                         "workspace_id": workspace_id,
@@ -624,7 +624,7 @@ class VectorMemory:
         """Get list of dirty sections needing update."""
         try:
             result = (
-                await self.supabase_client.table("dirty_sections")
+                self.supabase_client.table("dirty_sections")
                 .select("section")
                 .eq("workspace_id", workspace_id)
                 .eq("processed", False)
@@ -642,7 +642,7 @@ class VectorMemory:
         """Mark sections as processed/clean."""
         try:
             result = (
-                await self.supabase_client.table("dirty_sections")
+                self.supabase_client.table("dirty_sections")
                 .update({"processed": True})
                 .eq("workspace_id", workspace_id)
                 .in_("section", sections)
@@ -669,7 +669,7 @@ class VectorMemory:
             old_content = None
             if previous_version:
                 result = (
-                    await self.supabase_client.table("memory_vectors")
+                    self.supabase_client.table("memory_vectors")
                     .select("content")
                     .eq("workspace_id", workspace_id)
                     .eq("metadata->>section", section)
@@ -682,7 +682,7 @@ class VectorMemory:
                     old_content = result.data["content"]
 
             # Generate embedding
-            embedding = await self.embedding_model.encode_single(content)
+            embedding = self.embedding_model.encode_single(content)
 
             # Prepare metadata
             section_metadata = {
@@ -700,7 +700,7 @@ class VectorMemory:
 
             # Upsert the section
             result = (
-                await self.supabase_client.table("memory_vectors")
+                self.supabase_client.table("memory_vectors")
                 .upsert(
                     {
                         "id": str(uuid.uuid4()),
@@ -728,7 +728,7 @@ class VectorMemory:
         """Get version history for a section."""
         try:
             result = (
-                await self.supabase_client.table("memory_vectors")
+                self.supabase_client.table("memory_vectors")
                 .select("*")
                 .eq("workspace_id", workspace_id)
                 .eq("metadata->>section", section)

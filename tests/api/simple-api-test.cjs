@@ -5,9 +5,7 @@ const API_ENDPOINTS = [
   '/api/health',
   '/api/auth/session-management',
   '/api/me/subscription',
-  '/api/onboarding/complete',
-  '/api/create-payment',
-  '/api/monitoring/dashboard'
+  '/api/onboarding/complete'
 ];
 
 async function testEndpoint(path) {

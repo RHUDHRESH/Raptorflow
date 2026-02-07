@@ -11,18 +11,19 @@ from typing import Any, Dict, List, Optional
 from db.repositories.payment import PaymentRepository
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from pydantic import BaseModel, EmailStr
-
-from ..services.email import email_service
+from services.email import email_service
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
+from services.payment_service import PaymentService
+
 # Import official SDK gateway
-from ..services.phonepe_sdk_gateway import PaymentRequest as SDKPaymentRequest
-from ..services.phonepe_sdk_gateway import phonepe_sdk_gateway
+from services.phonepe_sdk_gateway import PaymentRequest as SDKPaymentRequest
+from services.phonepe_sdk_gateway import phonepe_sdk_gateway
 
 # Create router
-router = APIRouter(prefix="/api/payments", tags=["payments"])
+router = APIRouter(prefix="/payments", tags=["payments"])
 
 # Initialize repository
 payment_repo = PaymentRepository()
@@ -196,6 +197,27 @@ async def initiate_payment(
     except Exception as e:
         logger.error(f"Error in initiate_payment: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get("/plans")
+async def get_payment_plans():
+    """Get available payment plans (canonical)."""
+    try:
+        plans = [
+            {
+                "name": plan.name,
+                "amount": plan.amount,
+                "currency": plan.currency,
+                "interval": plan.interval,
+                "trial_days": plan.trial_days,
+                "display_amount": f"INR {plan.amount / 100:.0f}",
+            }
+            for plan in PaymentService.PLANS.values()
+        ]
+        return {"success": True, "plans": plans}
+    except Exception as exc:
+        logger.error(f"Get plans error: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to get payment plans")
 
 
 @router.get("/status/{merchant_order_id}", response_model=PaymentStatusResponse)

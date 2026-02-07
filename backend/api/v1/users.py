@@ -2,6 +2,12 @@
 Users API endpoints
 """
 
+import logging
+
+from api.dependencies import auth_context, current_user, get_supabase_client
+
+logger = logging.getLogger(__name__)
+
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -381,6 +387,7 @@ async def get_user_notifications(
     Get user notifications
     """
     try:
+        supabase = get_supabase_client()
         # Query notifications table
         result = (
             supabase.table("notifications")

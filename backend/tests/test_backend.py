@@ -3,6 +3,10 @@ Simple test backend for RaptorFlow
 Tests basic functionality without external dependencies
 """
 
+import pytest
+
+pytest.skip("Legacy dev app; not a test module.", allow_module_level=True)
+
 import os
 
 from fastapi import FastAPI

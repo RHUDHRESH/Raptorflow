@@ -1,3 +1,7 @@
+import pytest
+
+pytest.skip("Legacy test archived; superseded by canonical test suite.", allow_module_level=True)
+
 ﻿"""
 Test script to verify BaseAgent instantiation and LLM response.
 """

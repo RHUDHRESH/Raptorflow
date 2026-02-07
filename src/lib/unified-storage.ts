@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ≡ƒÜÇ UNIFIED STORAGE INTEGRATION LAYER
  *
  * This is the SINGLE source of truth for all file operations in Raptorflow.
@@ -352,7 +352,7 @@ export const uploadFile = (file: File, userId?: string) =>
  * ≡ƒôÑ QUICK DOWNLOAD - Get download URL
  */
 export const getDownloadUrl = (fileId: string, userId?: string) =>
-  unifiedStorage.getDownloadUrl(fileId, userId);
+  unifiedStorage.getDownloadUrl(fileId, userId || '');
 
 /**
  * ≡ƒùæ∩╕Å QUICK DELETE - Delete file

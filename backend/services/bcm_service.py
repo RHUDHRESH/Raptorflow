@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from ..integration.bcm_reducer import BCMReducer
 from ..redis.bcm_storage import BCMStorage
 from ..schemas.bcm_schema import BusinessContextManifest
+from ..services.bcm_vectorize_service import BCMVectorizeService
 from ..services.supabase_client import get_supabase_admin
 
 logger = logging.getLogger(__name__)
@@ -116,6 +117,21 @@ class BCMService:
 
             if redis_success and db_success:
                 logger.info(f"BCM stored successfully for workspace {workspace_id}")
+                # Best-effort: vectorize BCM for semantic memory
+                try:
+                    vectorizer = BCMVectorizeService()
+                    await vectorizer.vectorize_manifest(
+                        workspace_id=workspace_id,
+                        manifest=manifest,
+                        version=version,
+                        source="bcm_service",
+                    )
+                except Exception as e:
+                    logger.warning(
+                        "BCM vectorization failed for workspace %s: %s",
+                        workspace_id,
+                        e,
+                    )
                 return True
             else:
                 logger.warning(

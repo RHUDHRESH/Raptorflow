@@ -13,7 +13,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, R
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
-from config import validate_config
+from backend.config import validate_config
 
 logger = logging.getLogger(__name__)
 
@@ -256,6 +256,11 @@ async def execute_agent(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+@router.get("", response_model=List[str])
+async def list_agents_root(token: str = Depends(verify_token)):
+    return await list_agents(token)
+
+
 @router.get("/agents", response_model=List[str])
 async def list_agents(token: str = Depends(verify_token)):
     """List all available agents."""
@@ -266,6 +271,11 @@ async def list_agents(token: str = Depends(verify_token)):
     except Exception as e:
         logger.error(f"Failed to list agents: {e}")
         raise HTTPException(status_code=500, detail="Failed to list agents")
+
+
+@router.get("/{agent_name}", response_model=AgentInfoResponse)
+async def get_agent_info_root(agent_name: str, token: str = Depends(verify_token)):
+    return await get_agent_info(agent_name, token)
 
 
 @router.get("/agents/{agent_name}", response_model=AgentInfoResponse)

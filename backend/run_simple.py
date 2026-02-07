@@ -1,30 +1,20 @@
-"""
-Simple Backend Runner
-Clean startup script for the Raptorflow backend
+﻿"""
+Simple Backend Runner (canonical).
 """
 
 import uvicorn
 
-from ..config_clean import get_settings
+from backend.config import settings
 
 
-def main():
-    """Run the FastAPI application"""
-    settings = get_settings()
-
-    print(f"Starting {settings.app_name}")
-    print(f"Environment: {settings.environment}")
-    print(f"Debug: {settings.debug}")
-    print(f"Host: {settings.host}")
-    print(f"Port: {settings.port}")
-
+def main() -> None:
+    """Run the FastAPI application."""
     uvicorn.run(
-        "app:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.debug,
-        log_level="info" if not settings.debug else "debug",
-        app_dir=".",
+        "backend.main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.is_development,
+        log_level="info" if not settings.DEBUG else "debug",
     )
 
 

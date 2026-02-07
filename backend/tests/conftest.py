@@ -3,7 +3,10 @@ Pytest configuration and fixtures for Raptorflow backend tests.
 """
 
 import asyncio
+import json
+import sys
 from io import BytesIO
+from pathlib import Path
 from typing import AsyncGenerator, Generator
 from unittest.mock import AsyncMock, MagicMock
 
@@ -11,17 +14,78 @@ import pytest
 import pytest_asyncio
 from events.bus import EventBus
 from fastapi import UploadFile
+from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from infrastructure.storage import CloudStorage
 from jobs.scheduler import JobScheduler
 from webhooks.handler import WebhookHandler
 
-from .redis_core.cache import CacheService
-from .redis_core.client import RedisClient
-from .redis_core.queue import QueueService
-from .redis_core.rate_limit import RateLimitService
-from .redis_core.session import SessionService
-from .redis_core.session_models import SessionData
-from .redis_core.usage import UsageTracker
+from backend.app_factory import create_app
+from backend.config import reload_settings
+from backend.redis.cache import CacheService
+from backend.redis.client import RedisClient
+from backend.redis.queue import QueueService
+from backend.redis.rate_limit import RateLimitService
+from backend.redis.session import SessionService
+from backend.redis.session_models import SessionData
+from backend.redis.usage import UsageTracker
+
+# Ensure backend modules resolve cleanly in tests
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
+
+
+class FakeRedisClient:
+    """Test-friendly Redis client wrapper with async mock backend."""
+
+    def __init__(self, async_client: AsyncMock):
+        self._async_client = async_client
+
+    @property
+    def async_client(self) -> AsyncMock:
+        return self._async_client
+
+    async def get_json(self, key: str):
+        value = await self._async_client.get(key)
+        if value is None:
+            return None
+        try:
+            return json.loads(value)
+        except Exception:
+            return value
+
+    async def set_json(self, key: str, value, ex: int | None = None) -> bool:
+        payload = json.dumps(value, default=str)
+        await self._async_client.set(key, payload, ex=ex)
+        return True
+
+    async def delete(self, key: str) -> int:
+        return await self._async_client.delete(key)
+
+    async def exists(self, key: str) -> int:
+        return await self._async_client.exists(key)
+
+    async def expire(self, key: str, seconds: int) -> bool:
+        return await self._async_client.expire(key, seconds)
+
+    async def ttl(self, key: str) -> int:
+        return await self._async_client.ttl(key)
+
+    async def zadd(self, key: str, mapping: dict, *args, **kwargs) -> int:
+        return await self._async_client.zadd(key, mapping, *args, **kwargs)
+
+    async def zrange(self, key: str, start: int, end: int, *args, **kwargs) -> list:
+        return await self._async_client.zrange(key, start, end, *args, **kwargs)
+
+    async def zrem(self, key: str, *values) -> int:
+        return await self._async_client.zrem(key, *values)
+
+    async def zcard(self, key: str) -> int:
+        return await self._async_client.zcard(key)
+
+    async def ping(self) -> bool:
+        return await self._async_client.ping()
 
 
 @pytest.fixture
@@ -45,6 +109,42 @@ def event_loop() -> Generator:
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture(scope="session")
+def app(test_config):
+    """Create FastAPI app for tests."""
+    # Ensure settings are reloaded after test env vars are set
+    _ = reload_settings()
+    # Avoid importing legacy experimental modules during tests
+    return create_app(
+        enable_legacy_v1=True,
+        enable_legacy_paths=False,
+        enable_legacy_experimental=False,
+        enable_docs=True,
+    )
+
+
+@pytest.fixture
+def client(app) -> TestClient:
+    """Sync test client."""
+    return TestClient(app)
+
+
+@pytest_asyncio.fixture
+async def async_client(app) -> AsyncGenerator[AsyncClient, None]:
+    """Async test client."""
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def patch_redis_client(monkeypatch, mock_redis: AsyncMock):
+    """Patch Redis client singleton with a fake for all tests."""
+    fake = FakeRedisClient(mock_redis)
+    monkeypatch.setattr("backend.redis.client._redis_client", fake, raising=False)
+    monkeypatch.setattr("backend.redis.client.get_redis", lambda: fake, raising=False)
+    yield fake
 
 
 @pytest_asyncio.fixture
@@ -238,6 +338,15 @@ def test_config():
     os.environ["VERTEX_AI_PROJECT_ID"] = "test-project"
     os.environ["GCP_PROJECT_ID"] = "test-project"
     os.environ["WEBHOOK_SECRET"] = "test-webhook-secret"
+    os.environ["ENABLE_LEGACY_V1"] = "true"
+    os.environ["ENABLE_LEGACY_API_PATHS"] = "false"
+    os.environ["ENABLE_LEGACY_EXPERIMENTAL_ROUTES"] = "false"
+
+    # Reload settings after env changes
+    import backend.config as config_module
+
+    config_module.reload_settings()
+    config_module.settings = config_module.get_settings()
 
     yield
 
@@ -252,6 +361,9 @@ def test_config():
         "VERTEX_AI_PROJECT_ID",
         "GCP_PROJECT_ID",
         "WEBHOOK_SECRET",
+        "ENABLE_LEGACY_V1",
+        "ENABLE_LEGACY_API_PATHS",
+        "ENABLE_LEGACY_EXPERIMENTAL_ROUTES",
     ]
 
     for var in test_vars:
@@ -346,3 +458,19 @@ def error_scenarios():
         "rate_limit_error": Exception("Rate limit exceeded"),
         "validation_error": ValueError("Invalid input"),
     }
+
+
+def pytest_collection_modifyitems(config, items):
+    """Auto-tag tests by path/name to keep default runs lightweight."""
+    for item in items:
+        path = str(item.fspath).lower()
+        if "integration" in path:
+            item.add_marker(pytest.mark.integration)
+        if "e2e" in path:
+            item.add_marker(pytest.mark.e2e)
+        if "performance" in path or "load_test" in path:
+            item.add_marker(pytest.mark.performance)
+        if "security" in path or "penetration" in path:
+            item.add_marker(pytest.mark.security)
+        if "comprehensive_test" in path or "api_test_framework" in path:
+            item.add_marker(pytest.mark.manual)

@@ -34,6 +34,9 @@ yarn-error.log*
 Thumbs.db
 nul
 
+# Pre-commit cache
+.pre-commit-cache/
+
 # Google Credentials
 raptorflow-storage-key.json
 rhudhreshr_json/

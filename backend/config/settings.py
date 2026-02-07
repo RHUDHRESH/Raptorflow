@@ -13,8 +13,10 @@ class Environment(str, Enum):
     """Application environments."""
 
     DEV = "dev"
+    DEVELOPMENT = "development"
     STAGING = "staging"
     PROD = "prod"
+    PRODUCTION = "production"
 
 
 class ModelTier(str, Enum):
@@ -45,23 +47,38 @@ class Settings(BaseSettings):
     # Application
     APP_NAME: str = Field(default="Raptorflow Backend", env="APP_NAME")
     APP_VERSION: str = Field(default="1.0.0", env="APP_VERSION")
-    API_PREFIX: str = Field(default="/api/v1", env="API_PREFIX")
+    API_PREFIX: str = Field(default="/api", env="API_PREFIX")
     HOST: str = Field(default="0.0.0.0", env="HOST")
     PORT: int = Field(default=8000, env="PORT")
+    ENABLE_LEGACY_V1: bool = Field(default=False, env="ENABLE_LEGACY_V1")
+    ENABLE_LEGACY_API_PATHS: bool = Field(default=True, env="ENABLE_LEGACY_API_PATHS")
+    ENABLE_LEGACY_EXPERIMENTAL_ROUTES: bool = Field(
+        default=False, env="ENABLE_LEGACY_EXPERIMENTAL_ROUTES"
+    )
 
     # Security
     SECRET_KEY: str = Field(default="", env="SECRET_KEY")
     JWT_ALGORITHM: str = Field(default="HS256", env="JWT_ALGORITHM")
     JWT_EXPIRE_MINUTES: int = Field(default=30, env="JWT_EXPIRE_MINUTES")
+    ALLOW_HEADER_AUTH: bool = Field(default=False, env="ALLOW_HEADER_AUTH")
+    INTERNAL_API_TOKEN: Optional[str] = Field(default=None, env="INTERNAL_API_TOKEN")
 
     # Database
     DATABASE_URL: str = Field(default="", env="DATABASE_URL")
+    DATABASE_HOST: Optional[str] = Field(default=None, env="DATABASE_HOST")
+    DATABASE_NAME: Optional[str] = Field(default=None, env="DATABASE_NAME")
+    DATABASE_USER: Optional[str] = Field(default=None, env="DATABASE_USER")
+    DATABASE_PASSWORD: Optional[str] = Field(default=None, env="DATABASE_PASSWORD")
+    DATABASE_PORT: int = Field(default=5432, env="DATABASE_PORT")
     DATABASE_POOL_SIZE: int = Field(default=10, env="DATABASE_POOL_SIZE")
     DATABASE_MAX_OVERFLOW: int = Field(default=20, env="DATABASE_MAX_OVERFLOW")
 
     # Redis
     UPSTASH_REDIS_URL: str = Field(default="", env="UPSTASH_REDIS_URL")
     UPSTASH_REDIS_TOKEN: str = Field(default="", env="UPSTASH_REDIS_TOKEN")
+    UPSTASH_REDIS_REST_URL: str = Field(default="", env="UPSTASH_REDIS_REST_URL")
+    UPSTASH_REDIS_REST_TOKEN: str = Field(default="", env="UPSTASH_REDIS_REST_TOKEN")
+    REDIS_URL: str = Field(default="", env="REDIS_URL")
     REDIS_KEY_PREFIX: str = Field(default="raptorflow:", env="REDIS_KEY_PREFIX")
     REDIS_DEFAULT_TTL: int = Field(default=3600, env="REDIS_DEFAULT_TTL")
     REDIS_MAX_CONNECTIONS: int = Field(default=10, env="REDIS_MAX_CONNECTIONS")
@@ -84,11 +101,13 @@ class Settings(BaseSettings):
 
     # OpenAI (optional)
     OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
+    OPENAI_ORG_ID: Optional[str] = Field(default=None, env="OPENAI_ORG_ID")
     OPENAI_MODEL: str = Field(default="gpt-4", env="OPENAI_MODEL")
 
     # Google Cloud Platform
     GCP_PROJECT_ID: str = Field(default="", env="GCP_PROJECT_ID")
     GCP_REGION: str = Field(default="us-central1", env="GCP_REGION")
+    GCP_LOCATION: str = Field(default="us-central1", env="GCP_LOCATION")
     GCP_CREDENTIALS_PATH: Optional[str] = Field(
         default=None, env="GCP_CREDENTIALS_PATH"
     )
@@ -110,6 +129,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: Optional[str] = Field(default=None, env="SMTP_PASSWORD")
     SMTP_USE_TLS: bool = Field(default=True, env="SMTP_USE_TLS")
     EMAIL_FROM: Optional[str] = Field(default=None, env="EMAIL_FROM")
+    SLACK_WEBHOOK_URL: Optional[str] = Field(default=None, env="SLACK_WEBHOOK_URL")
 
     # Webhooks
     WEBHOOK_SECRET: str = Field(default="", env="WEBHOOK_SECRET")
@@ -170,6 +190,18 @@ class Settings(BaseSettings):
     # Search Cluster
     SEARXNG_URL: str = Field(default="http://localhost:8080", env="SEARXNG_URL")
 
+    # External Data APIs
+    ECONOMIC_INDICATORS_API_KEY: Optional[str] = Field(
+        default=None, env="ECONOMIC_INDICATORS_API_KEY"
+    )
+    FINANCIAL_DATA_API_KEY: Optional[str] = Field(
+        default=None, env="FINANCIAL_DATA_API_KEY"
+    )
+    MARKET_RESEARCH_API_KEY: Optional[str] = Field(
+        default=None, env="MARKET_RESEARCH_API_KEY"
+    )
+    NEWS_API_KEY: Optional[str] = Field(default=None, env="NEWS_API_KEY")
+
     # Document Service
     MAX_FILE_SIZE: int = Field(default=100 * 1024 * 1024, env="MAX_FILE_SIZE")  # 100MB
     DOCUMENT_UPLOAD_PATH: str = Field(
@@ -178,6 +210,16 @@ class Settings(BaseSettings):
     VIRUS_SCAN_ENABLED: bool = Field(default=False, env="VIRUS_SCAN_ENABLED")
     VIRUS_SCAN_PROVIDER: str = Field(default="gcp", env="VIRUS_SCAN_PROVIDER")
     CLAMAV_URL: str = Field(default="http://localhost:3310", env="CLAMAV_URL")
+
+    # Supabase
+    SUPABASE_URL: Optional[str] = Field(default=None, env="SUPABASE_URL")
+    SUPABASE_KEY: Optional[str] = Field(default=None, env="SUPABASE_KEY")
+    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = Field(
+        default=None, env="SUPABASE_SERVICE_ROLE_KEY"
+    )
+
+    # LLM Provider
+    LLM_PROVIDER: LLMProvider = Field(default=LLMProvider.GOOGLE, env="LLM_PROVIDER")
 
     # Validators (on the class, not inside Config)
     @validator("CORS_ORIGINS", pre=True)
@@ -222,7 +264,7 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         """Check if running in development environment."""
-        return self.ENVIRONMENT == Environment.DEV
+        return self.ENVIRONMENT in {Environment.DEV, Environment.DEVELOPMENT}
 
     @property
     def is_staging(self) -> bool:
@@ -232,7 +274,7 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         """Check if running in production environment."""
-        return self.ENVIRONMENT == Environment.PROD
+        return self.ENVIRONMENT in {Environment.PROD, Environment.PRODUCTION}
 
     @property
     def database_url_sync(self) -> str:
@@ -269,7 +311,7 @@ class Settings(BaseSettings):
         """Get LLM provider configuration."""
         import os
 
-        provider = os.getenv("LLM_PROVIDER", "google")
+        provider = os.getenv("LLM_PROVIDER", self.LLM_PROVIDER.value)
 
         if provider == "openai":
             return {
@@ -287,6 +329,60 @@ class Settings(BaseSettings):
                 "location": self.VERTEX_AI_LOCATION,
                 "model": self.VERTEX_AI_MODEL,
             }
+
+    # Compatibility properties for lower-case accessors used across the codebase
+    @property
+    def app_name(self) -> str:
+        return self.APP_NAME
+
+    @property
+    def app_version(self) -> str:
+        return self.APP_VERSION
+
+    @property
+    def environment(self) -> Environment:
+        return self.ENVIRONMENT
+
+    @property
+    def debug(self) -> bool:
+        return self.DEBUG
+
+    @property
+    def host(self) -> str:
+        return self.HOST
+
+    @property
+    def port(self) -> int:
+        return self.PORT
+
+    @property
+    def cors_origins(self) -> List[str]:
+        return self.CORS_ORIGINS
+
+    @property
+    def database_url(self) -> str:
+        return self.DATABASE_URL
+
+    @property
+    def redis_url(self) -> str:
+        return self.REDIS_URL or self.UPSTASH_REDIS_URL or self.UPSTASH_REDIS_REST_URL
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if hasattr(self, key):
+            return getattr(self, key)
+        upper_key = key.upper()
+        if hasattr(self, upper_key):
+            return getattr(self, upper_key)
+        return default
+
+    def update(self, values: Dict[str, Any]) -> None:
+        for key, value in values.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                upper_key = key.upper()
+                if hasattr(self, upper_key):
+                    setattr(self, upper_key, value)
 
 
 # Global settings instance

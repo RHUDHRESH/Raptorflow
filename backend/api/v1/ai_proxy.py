@@ -1,4 +1,4 @@
-"""
+﻿"""
 AI API Proxy - Secure backend proxy for external AI services
 Hides API keys and provides rate limiting for AI endpoints
 """
@@ -8,7 +8,8 @@ import os
 from typing import Any, Dict, Optional
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from api.dependencies import get_current_user
+from fastapi import APIRouter, Depends, HTTPException, status
 
 router = APIRouter(prefix="/ai", tags=["ai-proxy"])
 logger = logging.getLogger(__name__)
@@ -17,18 +18,21 @@ logger = logging.getLogger(__name__)
 VERTEX_AI_API_KEY = os.getenv("VERTEX_AI_API_KEY")
 VERTEX_AI_PROJECT_ID = os.getenv("VERTEX_AI_PROJECT_ID", "raptorflow-481505")
 
-if not VERTEX_AI_API_KEY:
-    raise ValueError("VERTEX_AI_API_KEY must be set in backend environment")
-
 
 @router.post("/generate")
 async def generate_content(
-    request: Dict[str, Any], user_id: str = Query(..., description="User ID")
+    request: Dict[str, Any], current_user=Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Proxy for Vertex AI generateContent API
     """
     try:
+        if not VERTEX_AI_API_KEY:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Vertex AI API key not configured",
+            )
+
         # Validate request
         prompt = request.get("prompt")
         if not prompt:
@@ -109,9 +113,7 @@ async def generate_content(
 
 
 @router.get("/models")
-async def list_models(
-    user_id: str = Query(..., description="User ID")
-) -> Dict[str, Any]:
+async def list_models(current_user=Depends(get_current_user)) -> Dict[str, Any]:
     """
     List available AI models
     """
@@ -129,9 +131,7 @@ async def list_models(
 
 
 @router.get("/usage")
-async def get_usage_stats(
-    user_id: str = Query(..., description="User ID"),
-) -> Dict[str, Any]:
+async def get_usage_stats(current_user=Depends(get_current_user)) -> Dict[str, Any]:
     """
     Get AI usage statistics for current user
     """

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Storage API endpoints for file operations
 Integrates with GCS service for upload/download functionality
 """
@@ -8,6 +8,7 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
+from api.dependencies import current_user
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from infrastructure.storage import FileCategory, get_cloud_storage

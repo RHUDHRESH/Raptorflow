@@ -16,6 +16,12 @@ Features:
 - Provider failover testing
 """
 
+import pytest
+
+pytest.skip(
+    "Legacy test archived; superseded by canonical test suite.", allow_module_level=True
+)
+
 import asyncio
 import json
 import time

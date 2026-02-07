@@ -9,7 +9,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from agents.graphs.daily_wins import DailyWinsGraph
+from api.dependencies import auth_context, current_user, get_supabase_client
 from core.database import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -132,6 +132,14 @@ async def generate_daily_win(
                 )
 
         # 2. Run the LangGraph engine
+        try:
+            from agents.graphs.daily_wins import DailyWinsGraph  # noqa: PLC0415
+        except ModuleNotFoundError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="DailyWinsGraph unavailable (missing dependency: langgraph)",
+            ) from exc
+
         graph_engine = DailyWinsGraph()
         result_state = await graph_engine.run(
             workspace_id=request.workspace_id,

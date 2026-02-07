@@ -120,20 +120,6 @@ CREATE POLICY "plans_service_all" ON public.plans
     USING (true)
     WITH CHECK (true);
 
--- FIX INFINITE RECURSION: Disable all problematic policies on users table
-DROP POLICY IF EXISTS "users_select_consolidated" ON public.users;
-DROP POLICY IF EXISTS "users_update_consolidated" ON public.users;
-DROP POLICY IF EXISTS "Users can view own profile" ON public.users;
-DROP POLICY IF EXISTS "Admins can view all users" ON public.users;
-DROP POLICY IF EXISTS "Users can update own profile" ON public.users;
-DROP POLICY IF EXISTS "Admins can update users" ON public.users;
-
--- Create simple non-recursive policy for users (service role access only)
-CREATE POLICY "users_service_all" ON public.users
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
-
 -- Grant full permissions to service_role
 GRANT ALL ON public.profiles TO service_role;
 GRANT ALL ON public.subscriptions TO service_role;

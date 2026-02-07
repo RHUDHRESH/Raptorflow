@@ -42,7 +42,7 @@ class EmbeddingModel:
         if hasattr(self, "_initialized"):
             return
 
-        self.model_name = os.getenv("MODEL_NAME")
+        self.model_name = os.getenv("MODEL_NAME", "all-MiniLM-L6-v2")
         self.embedding_dim = 384
         self._initialized = True
         self._load_model()

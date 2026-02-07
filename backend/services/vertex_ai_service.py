@@ -29,7 +29,10 @@ except ImportError:
 import google.cloud.aiplatform as aiplatform
 from google.api_core import exceptions as gcp_exceptions
 
-from .config.settings import get_settings
+try:
+    from backend.config.settings import get_settings
+except ImportError:
+    from config.settings import get_settings
 
 try:
     from core.logging_config import get_logger

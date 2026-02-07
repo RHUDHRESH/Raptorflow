@@ -22,7 +22,7 @@ from google.cloud.monitoring_v3 import (
     NotificationChannelServiceClient,
 )
 
-from gcp import get_gcp_client
+from .gcp import get_gcp_client
 
 logger = logging.getLogger(__name__)
 

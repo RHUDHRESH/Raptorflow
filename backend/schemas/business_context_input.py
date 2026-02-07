@@ -3,8 +3,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, validator
-
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 from schemas.business_context import (
     BrandIdentity,
     BusinessContext,
@@ -30,11 +29,12 @@ class ICPProfileInput(BaseModel):
     value_proposition: str = Field(..., min_length=10)
     priority: int = Field(1, ge=1, le=3)
 
-    @validator(
+    @field_validator(
         "geographic_focus",
         "pain_points",
-        pre=True,
+        mode="before",
     )
+    @classmethod
     def normalize_list_fields(cls, value):
         if value is None:
             return []
@@ -48,7 +48,8 @@ class ChannelStrategyInput(BaseModel):
     key_metrics: List[str] = Field(default_factory=list)
     tactics: List[str] = Field(default_factory=list)
 
-    @validator("key_metrics", "tactics", pre=True)
+    @field_validator("key_metrics", "tactics", mode="before")
+    @classmethod
     def normalize_list_fields(cls, value):
         if value is None:
             return []
@@ -93,7 +94,7 @@ class BusinessContextInput(BaseModel):
     icp_profiles: List[ICPProfileInput] = Field(default_factory=list)
     channel_strategies: List[ChannelStrategyInput] = Field(default_factory=list)
 
-    @validator(
+    @field_validator(
         "values",
         "tone_of_voice",
         "personality_traits",
@@ -110,23 +111,27 @@ class BusinessContextInput(BaseModel):
         "primary_competitors",
         "competitive_advantages",
         "competitive_differentiators",
-        pre=True,
+        mode="before",
     )
+    @classmethod
     def normalize_list_fields(cls, value):
         if value is None:
             return []
         return [item.strip() for item in value if item and item.strip()]
 
-    @validator("brand_name")
+    @field_validator("brand_name")
+    @classmethod
     def validate_brand_name(cls, value):
         if not re.match(r"^[a-zA-Z0-9 .,&'-]+$", value):
             raise ValueError("Brand name contains unsupported characters")
         return value.strip()
 
-    @validator("pain_points", "desires")
-    def validate_core_lists(cls, value, field):
+    @field_validator("pain_points", "desires")
+    @classmethod
+    def validate_core_lists(cls, value, info: ValidationInfo):
         if len(value) < 2:
-            raise ValueError(f"{field.name.replace('_', ' ').title()} must include at least 2 items")
+            field_name = (info.field_name or "field").replace("_", " ").title()
+            raise ValueError(f"{field_name} must include at least 2 items")
         return value
 
     def to_business_context(self, workspace_id: str, user_id: str) -> BusinessContext:

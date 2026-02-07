@@ -11,8 +11,9 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from ..integration.bcm_reducer import BCMReducer
 from ..core.supabase_mgr import get_supabase_admin
+from ..integration.bcm_reducer import BCMReducer
+from ..services.bcm_vectorize_service import BCMVectorizeService
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,22 @@ class BCMManifestService:
             generated_at=manifest_payload.get("generated_at"),
         )
 
+        # Best-effort: vectorize BCM for semantic memory
+        try:
+            vectorizer = BCMVectorizeService()
+            await vectorizer.vectorize_manifest(
+                workspace_id=workspace_id,
+                manifest=manifest_payload,
+                version=str(version),
+                source="bcm_manifest_service",
+            )
+        except Exception as e:
+            logger.warning(
+                "BCM vectorization failed for workspace %s: %s",
+                workspace_id,
+                e,
+            )
+
         return {
             "success": True,
             "manifest": manifest_payload,
@@ -95,7 +112,9 @@ class BCMManifestService:
             "generated_at": manifest_payload.get("generated_at"),
         }
 
-    async def get_latest_manifest_record(self, workspace_id: str) -> Optional[Dict[str, Any]]:
+    async def get_latest_manifest_record(
+        self, workspace_id: str
+    ) -> Optional[Dict[str, Any]]:
         """Fetch the latest manifest record for a workspace."""
         result = (
             self.db.table("bcm_manifests")
@@ -113,8 +132,8 @@ class BCMManifestService:
         self, workspace_id: str, version: Optional[int] = None
     ) -> Optional[Dict[str, Any]]:
         """Retrieve a manifest JSON for a workspace and optional version."""
-        query = self.db.table("bcm_manifests").select("*").eq(
-            "workspace_id", workspace_id
+        query = (
+            self.db.table("bcm_manifests").select("*").eq("workspace_id", workspace_id)
         )
         if version is not None:
             query = query.eq("version", version)
@@ -139,10 +158,14 @@ class BCMManifestService:
         )
         return result.data or []
 
-    async def _get_latest_onboarding_session(self, workspace_id: str) -> Optional[Dict[str, Any]]:
+    async def _get_latest_onboarding_session(
+        self, workspace_id: str
+    ) -> Optional[Dict[str, Any]]:
         result = (
             self.db.table("onboarding_sessions")
-            .select("id, session_id, user_id, workspace_id, session_data, metadata, updated_at")
+            .select(
+                "id, session_id, user_id, workspace_id, session_data, metadata, updated_at"
+            )
             .eq("workspace_id", workspace_id)
             .order("updated_at", desc=True)
             .limit(1)
@@ -162,7 +185,9 @@ class BCMManifestService:
         )
         return result.data or []
 
-    async def _get_business_context(self, workspace_id: str) -> Optional[Dict[str, Any]]:
+    async def _get_business_context(
+        self, workspace_id: str
+    ) -> Optional[Dict[str, Any]]:
         result = (
             self.db.table("business_contexts")
             .select("*")

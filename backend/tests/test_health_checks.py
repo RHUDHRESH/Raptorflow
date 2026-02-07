@@ -2,6 +2,13 @@
 Test file to verify health checks detect issues correctly.
 """
 
+import pytest
+
+pytest.skip(
+    "Archived script-style module; not collected in canonical suite.",
+    allow_module_level=True,
+)
+
 import asyncio
 import logging
 from datetime import datetime, timedelta

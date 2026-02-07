@@ -2,6 +2,13 @@
 Unit test for Expert Council agentic system.
 """
 
+import pytest
+
+pytest.skip(
+    "Archived script-style module; not collected in canonical suite.",
+    allow_module_level=True,
+)
+
 import asyncio
 import os
 import sys

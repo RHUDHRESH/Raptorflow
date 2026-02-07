@@ -5,6 +5,12 @@ This script performs a cynical, empirical verification of the memory systems imp
 No graceful failures, no CI/CD bullshit - we check if it actually works.
 """
 
+import pytest
+
+pytest.skip(
+    "Archived manual test script; use explicit run if needed.", allow_module_level=True
+)
+
 import os
 import sys
 

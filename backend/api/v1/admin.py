@@ -6,14 +6,23 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from config.settings import get_settings
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from jobs.scheduler import JobScheduler
 from memory import MemoryController
 from pydantic import BaseModel
-from redis.backup import BackupManager
-from redis.cleanup import RedisCleanup
-from redis.client import RedisClient
+
+from backend.config.settings import get_settings
+from backend.redis.client import RedisClient
+
+try:
+    from backend.redis.backup import BackupManager
+except Exception:  # pragma: no cover - optional/broken module
+    BackupManager = None
+
+try:
+    from backend.redis.cleanup import RedisCleanup
+except Exception:  # pragma: no cover - optional/broken module
+    RedisCleanup = None
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -57,17 +66,19 @@ async def get_system_stats(admin_verified: bool = Depends(verify_admin_access)):
         stats = {}
 
         # Redis stats
-        redis_client = RedisClient()
-        redis_metrics = await redis_client.info()
-        stats["redis"] = {
-            "connected_clients": redis_metrics.get("connected_clients", 0),
-            "used_memory": redis_metrics.get("used_memory", 0),
-            "total_commands_processed": redis_metrics.get(
-                "total_commands_processed", 0
-            ),
-            "keyspace_hits": redis_metrics.get("keyspace_hits", 0),
-            "keyspace_misses": redis_metrics.get("keyspace_misses", 0),
-        }
+        try:
+            redis_client = RedisClient()
+            ping_ok = await redis_client.ping()
+
+            dbsize: Optional[int] = None
+            try:
+                dbsize = await redis_client.async_client.dbsize()
+            except Exception:
+                dbsize = None
+
+            stats["redis"] = {"ping": ping_ok, "dbsize": dbsize}
+        except Exception as e:
+            stats["redis"] = {"error": str(e)}
 
         # Database stats (if available)
         try:
@@ -139,6 +150,12 @@ async def trigger_cleanup(
     Trigger system cleanup operations.
     """
     try:
+        if RedisCleanup is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Redis cleanup module not available",
+            )
+
         cleanup = RedisCleanup()
         results = {}
 
@@ -273,6 +290,8 @@ async def trigger_backup(
 
         if backup_type in ["redis", "all"]:
             try:
+                if BackupManager is None:
+                    raise RuntimeError("Redis backup module not available")
                 backup_manager = BackupManager()
                 # Simplified for now since we just need to fix imports
                 results["redis"] = {

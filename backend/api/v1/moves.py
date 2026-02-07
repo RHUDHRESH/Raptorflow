@@ -3,7 +3,7 @@ Moves API endpoints
 Handles HTTP requests for move operations
 """
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -57,6 +57,29 @@ class MoveResponse(BaseModel):
     results: dict
     created_at: str
     updated_at: str
+
+
+class MoveExecuteRequest(BaseModel):
+    move_name: str
+    context: Dict[str, Any] = {}
+    user_id: str
+    workspace_id: str
+    flow_id: str = "default"
+
+
+class MoveExecuteResponse(BaseModel):
+    success: bool
+    data: Dict[str, Any] = {}
+    error: str = ""
+
+
+def _get_synapse_brain():
+    try:
+        from ...synapse import brain
+
+        return brain
+    except Exception:
+        return None
 
 
 # Dependency injection
@@ -122,6 +145,46 @@ async def update_move(
         return move
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/execute", response_model=MoveExecuteResponse)
+async def execute_move(request: MoveExecuteRequest) -> MoveExecuteResponse:
+    """Execute a strategic move using the Synapse brain."""
+    brain = _get_synapse_brain()
+    if not brain:
+        raise HTTPException(status_code=503, detail="Synapse brain unavailable")
+
+    try:
+        context = {
+            "task": request.move_name,
+            **request.context,
+            "user_id": request.user_id,
+            "workspace_id": request.workspace_id,
+            "flow_id": request.flow_id,
+        }
+
+        result = await brain.run_move(request.move_name, context, request.flow_id)
+
+        return MoveExecuteResponse(
+            success=result.get("status") == "success",
+            data=result.get("data", {}),
+            error=result.get("error") or "",
+        )
+    except Exception as exc:
+        return MoveExecuteResponse(success=False, error=str(exc))
+
+
+@router.get("/available", response_model=Dict[str, List[str]])
+async def list_available_moves() -> Dict[str, List[str]]:
+    """List all available move sequences."""
+    return {
+        "moves": [
+            "market_research",
+            "content_creation",
+            "competitive_analysis",
+            "product_launch",
+        ]
+    }
 
 
 @router.delete("/{move_id}")

@@ -21,26 +21,14 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(backend_dir, ".env"))
 
-# Now import and run the app
+
+def main() -> None:
+    """Deprecated runner. Use backend.run_simple.main instead."""
+    from backend.run_simple import main as run_main
+
+    print("Deprecated: use backend.run_simple.py")
+    run_main()
+
+
 if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.environ.get("PORT", 8000))
-    host = os.environ.get("HOST", "127.0.0.1")
-    reload_enabled = os.environ.get("ENVIRONMENT", "dev").lower() in (
-        "dev",
-        "development",
-    )
-
-    print(f"🚀 Starting RaptorFlow Backend on {host}:{port}")
-    print(f"   Environment: {os.environ.get('ENVIRONMENT', 'development')}")
-    print(f"   Auto-reload: {reload_enabled}")
-    print(f"   Python path: {backend_dir}")
-
-    uvicorn.run(
-        "main:app",
-        host=host,
-        port=port,
-        reload=reload_enabled,
-        reload_dirs=[backend_dir] if reload_enabled else None,
-    )
+    main()

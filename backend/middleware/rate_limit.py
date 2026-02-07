@@ -109,7 +109,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         """Check if request should skip rate limiting"""
 
         # Skip health checks
-        if request.url.path in ["/", "/health", "/api/v1/health"]:
+        if request.url.path in ["/", "/health", "/api/health"]:
             return True
 
         # Skip static files and docs

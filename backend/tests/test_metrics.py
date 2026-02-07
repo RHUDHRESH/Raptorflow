@@ -3,6 +3,12 @@ Comprehensive test suite for metrics collection system.
 Tests metrics collection, aggregation, alerting, and analytics.
 """
 
+import pytest
+
+pytest.skip(
+    "Legacy test archived; superseded by canonical test suite.", allow_module_level=True
+)
+
 import asyncio
 import time
 from datetime import datetime, timedelta

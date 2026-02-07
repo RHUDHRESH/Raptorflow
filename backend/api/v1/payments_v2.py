@@ -24,7 +24,7 @@ from services.payment_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/payments/v2", tags=["payments-v2"])
+router = APIRouter(prefix="", tags=["payments-v2"])
 
 
 # Request/Response Models

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Payment Analytics API Endpoints
 Provides REST API endpoints for payment analytics and monitoring
 """
@@ -7,6 +7,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
+from api.dependencies import current_user
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 

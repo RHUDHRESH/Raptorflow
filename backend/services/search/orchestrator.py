@@ -4,10 +4,11 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from config.settings import get_settings
 from services.search.reddit_native import RedditNativeScraper
 from services.search.searxng import SearXNGClient
 from upstash_redis import Redis
+
+from backend.config.settings import get_settings
 
 logger = logging.getLogger("raptorflow.services.search.orchestrator")
 

@@ -5,6 +5,8 @@ Coordinates BCM generation, storage, and retrieval operations across
 Redis cache and Supabase database with intelligent fallback and error handling.
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -26,8 +28,13 @@ class BCMStorageOrchestrator:
     with intelligent caching, fallback, and comprehensive error handling.
     """
 
-    def __init__(self, redis_url: str = None, supabase_url: str = None,
-                 supabase_key: str = None, max_connections: int = 10):
+    def __init__(
+        self,
+        redis_url: str = None,
+        supabase_url: str = None,
+        supabase_key: str = None,
+        max_connections: int = 10,
+    ):
         """
         Initialize BCM storage orchestrator.
 
@@ -54,7 +61,7 @@ class BCMStorageOrchestrator:
             "database_misses": 0,
             "generation_errors": 0,
             "storage_errors": 0,
-            "rebuilds": 0
+            "rebuilds": 0,
         }
 
         # Service configuration
@@ -64,9 +71,13 @@ class BCMStorageOrchestrator:
 
         self.logger.info("BCM Storage Orchestrator initialized")
 
-    async def create_bcm(self, raw_step_data: Dict[str, Any],
-                        workspace_id: str, user_id: str = None,
-                        force_rebuild: bool = False) -> Dict[str, Any]:
+    async def create_bcm(
+        self,
+        raw_step_data: Dict[str, Any],
+        workspace_id: str,
+        user_id: str = None,
+        force_rebuild: bool = False,
+    ) -> Dict[str, Any]:
         """
         Create BCM from raw onboarding step data.
 
@@ -99,7 +110,9 @@ class BCMStorageOrchestrator:
                     bcm = self.reducer._compress_to_budget(bcm)
 
             # Store in Redis (all tiers)
-            redis_success = self.redis_storage.store_bcm(workspace_id, bcm, store_all_tiers=True)
+            redis_success = self.redis_storage.store_bcm(
+                workspace_id, bcm, store_all_tiers=True
+            )
 
             # Store in database with versioning
             db_result = self.database_storage.store_bcm_supabase(
@@ -120,9 +133,12 @@ class BCMStorageOrchestrator:
                     "stored_in_database": True,
                     "token_count": self.reducer._count_tokens(bcm.dict()),
                     "compression_applied": current_tokens > self.max_token_budget,
-                    "generation_time_ms": (datetime.utcnow() - start_time).total_seconds() * 1000,
+                    "generation_time_ms": (
+                        datetime.utcnow() - start_time
+                    ).total_seconds()
+                    * 1000,
                     "workspace_id": workspace_id,
-                    "user_id": user_id
+                    "user_id": user_id,
                 }
             else:
                 self.metrics["storage_errors"] += 1
@@ -130,19 +146,17 @@ class BCMStorageOrchestrator:
                     "success": False,
                     "error": "Failed to store BCM",
                     "redis_success": redis_success,
-                    "db_result": db_result
+                    "db_result": db_result,
                 }
 
         except Exception as e:
             self.logger.error(f"Error creating BCM: {e}")
             self.metrics["generation_errors"] += 1
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
-    async def get_bcm(self, workspace_id: str, version: str = None,
-                use_cache: bool = True) -> Optional[BusinessContextManifest]:
+    async def get_bcm(
+        self, workspace_id: str, version: str = None, use_cache: bool = True
+    ) -> Optional[BusinessContextManifest]:
         """
         Retrieve BCM with intelligent fallback.
 
@@ -157,7 +171,9 @@ class BCMStorageOrchestrator:
         start_time = datetime.utcnow()
 
         try:
-            self.logger.debug(f"Retrieving BCM for workspace {workspace_id} (cache: {use_cache})")
+            self.logger.debug(
+                f"Retrieving BCM for workspace {workspace_id} (cache: {use_cache})"
+            )
 
             bcm = None
             source = "none"
@@ -183,7 +199,9 @@ class BCMStorageOrchestrator:
             if bcm:
                 # Cache the retrieved BCM if it came from database
                 if source == "database" and use_cache and self.cache_first:
-                    self.redis_storage.store_bcm(workspace_id, bcm, store_all_tiers=False)
+                    self.redis_storage.store_bcm(
+                        workspace_id, bcm, store_all_tiers=False
+                    )
 
                 access_time = (datetime.utcnow() - start_time).total_seconds() * 1000
                 self.logger.debug(f"BCM retrieved from {source} in {access_time:.2f}ms")
@@ -207,11 +225,32 @@ class BCMStorageOrchestrator:
         total_ops = self.metrics["total_operations"]
 
         metrics = self.metrics.copy()
-        metrics.update({
-            "cache_hit_rate": (self.metrics["cache_hits"] / total_ops * 100) if total_ops > 0 else 0,
-            "database_hit_rate": (self.metrics["database_hits"] / total_ops * 100) if total_ops > 0 else 0,
-            "error_rate": (self.metrics["generation_errors"] + self.metrics["storage_errors"]) / total_ops * 100) if total_ops > 0 else 0
-        })
+        metrics.update(
+            {
+                "cache_hit_rate": (
+                    (self.metrics["cache_hits"] / total_ops * 100)
+                    if total_ops > 0
+                    else 0
+                ),
+                "database_hit_rate": (
+                    (self.metrics["database_hits"] / total_ops * 100)
+                    if total_ops > 0
+                    else 0
+                ),
+                "error_rate": (
+                    (
+                        (
+                            self.metrics["generation_errors"]
+                            + self.metrics["storage_errors"]
+                        )
+                        / total_ops
+                        * 100
+                    )
+                    if total_ops > 0
+                    else 0
+                ),
+            }
+        )
 
         # Add component-specific metrics
         if self.redis_storage:
@@ -250,20 +289,24 @@ class BCMStorageOrchestrator:
             return {
                 "workspace_id": workspace_id,
                 "has_bcm": bcm is not None,
-                "latest_version": self.database_storage.get_latest_version(workspace_id),
+                "latest_version": self.database_storage.get_latest_version(
+                    workspace_id
+                ),
                 "version_count": db_stats,
                 "cache_available": cache_stats.get("redis_available", False),
                 "cache_hit_rate": cache_stats.get("hit_rate_percent", 0),
                 "database_available": self.database_storage.client is not None,
                 "token_count": self.reducer._count_tokens(bcm.dict()) if bcm else 0,
-                "last_updated": bcm.generated_at if bcm else None
+                "last_updated": bcm.generated_at if bcm else None,
             }
 
         except Exception as e:
             self.logger.error(f"Error getting workspace BCM info: {e}")
             return {"error": str(e)}
 
-    def cleanup_workspace(self, workspace_id: str, keep_latest: int = 5) -> Dict[str, Any]:
+    def cleanup_workspace(
+        self, workspace_id: str, keep_latest: int = 5
+    ) -> Dict[str, Any]:
         """
         Clean up old BCM versions for a workspace.
 
@@ -276,7 +319,9 @@ class BCMStorageOrchestrator:
         """
         try:
             # Clean up database
-            db_deleted = self.database_storage.cleanup_old_versions(workspace_id, keep_latest)
+            db_deleted = self.database_storage.cleanup_old_versions(
+                workspace_id, keep_latest
+            )
 
             # Clean up Redis (all tiers)
             redis_invalidated = self.redis_storage.invalidate_bcm(workspace_id)
@@ -285,7 +330,7 @@ class BCMStorageOrchestrator:
                 "success": True,
                 "database_deleted": db_deleted,
                 "redis_invalidated": redis_invalidated,
-                "total_deleted": db_deleted + redis_invalidated
+                "total_deleted": db_deleted + redis_invalidated,
             }
 
         except Exception as e:
@@ -302,7 +347,7 @@ class BCMStorageOrchestrator:
         health = {
             "service": "healthy",
             "components": {},
-            "metrics": self.get_service_metrics()
+            "metrics": self.get_service_metrics(),
         }
 
         # Check reducer
@@ -319,7 +364,7 @@ class BCMStorageOrchestrator:
         db_stats = self.database_storage.get_storage_stats()
         health["components"]["database"] = {
             "available": db_stats.get("available", False),
-            "error": db_stats.get("error")
+            "error": db_stats.get("error"),
         }
 
         # Overall health status
@@ -328,7 +373,7 @@ class BCMStorageOrchestrator:
             for status in [
                 health["components"]["reducer"],
                 health["components"]["redis"].get("redis_available", False),
-                health["components"]["database"].get("available", False)
+                health["components"]["database"].get("available", False),
             ]
         )
 

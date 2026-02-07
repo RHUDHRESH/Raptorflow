@@ -103,7 +103,7 @@ class ModelTier(str, Enum):
 
 def get_llm(model_tier: ModelTier = ModelTier.FLASH):
     """Get LLM instance for backward compatibility."""
-    return llm_manager
+    return get_llm_manager()
 
 
 try:
@@ -130,7 +130,7 @@ except ImportError:
 
 
 # Local imports
-from config import LLMProvider, settings
+from backend.config import LLMProvider, settings
 
 logger = structlog.get_logger(__name__)
 
@@ -889,12 +889,26 @@ def retry_on_failure(max_retries: int = 3, delay: float = 1.0, backoff: float = 
     return decorator
 
 
-# Global LLM manager instance
-llm_manager = LLMManager()
+# Global LLM manager instance (lazy)
+_llm_manager: Optional[LLMManager] = None
 
-# Set up caching
-if settings.CACHE_MAX_SIZE > 0:
-    set_llm_cache(llm_manager.cache)
+
+def get_llm_manager() -> LLMManager:
+    """Lazy-create the global LLM manager to avoid import-time side effects."""
+    global _llm_manager
+    if _llm_manager is None:
+        _llm_manager = LLMManager()
+        # Set up caching
+        if settings.CACHE_MAX_SIZE > 0:
+            set_llm_cache(_llm_manager.cache)
+    return _llm_manager
+
+
+def __getattr__(name: str):
+    if name == "llm_manager":
+        return get_llm_manager()
+    raise AttributeError(name)
+
 
 # Export main components
 __all__ = [
@@ -910,11 +924,11 @@ __all__ = [
     "GoogleProvider",
     "AnthropicProvider",
     "ModelTier",
+    "get_llm_manager",
     "llm_manager",
     "TokenCounter",
     "CostCalculator",
     "LLMCache",
-    "llm_manager",
     "rate_limit",
     "retry_on_failure",
 ]

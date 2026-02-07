@@ -5,6 +5,7 @@ Campaigns API endpoints with AI processing
 import logging
 from typing import Any, Dict, List, Optional
 
+from api.dependencies import auth_context, current_user, get_supabase_client
 from db.campaigns import CampaignRepository
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -41,6 +42,27 @@ class CampaignUpdate(BaseModel):
     status: Optional[str] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
+
+
+class CampaignLegacyCreate(BaseModel):
+    name: str
+    user_id: str
+    workspace_id: str
+    move_sequence: List[str]
+    schedule: str = "daily"
+
+
+class CampaignLegacyResponse(BaseModel):
+    success: bool
+    campaign_id: str = ""
+    data: Dict[str, Any] = {}
+    error: str = ""
+
+
+class CampaignLegacyListResponse(BaseModel):
+    success: bool
+    campaigns: List[Dict[str, Any]] = []
+    error: str = ""
 
 
 @router.get("/")
@@ -81,6 +103,28 @@ async def list_campaigns(
             "total_pages": result.total_pages,
         },
     }
+
+
+@router.get("/list", response_model=CampaignLegacyListResponse)
+async def list_campaigns_legacy(
+    workspace_id: str = Query(..., description="Workspace ID"),
+    page: int = 0,
+    page_size: int = 20,
+    status: Optional[str] = None,
+):
+    """Legacy alias for listing campaigns."""
+    try:
+        result = await list_campaigns(
+            workspace_id=workspace_id,
+            page=page,
+            page_size=page_size,
+            status=status,
+        )
+        return CampaignLegacyListResponse(
+            success=True, campaigns=result.get("campaigns", [])
+        )
+    except Exception as exc:
+        return CampaignLegacyListResponse(success=False, error=str(exc))
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -190,6 +234,37 @@ async def create_campaign(
         )
 
     return result.data[0]
+
+
+@router.post("/create", response_model=CampaignLegacyResponse)
+async def create_campaign_legacy(
+    request: CampaignLegacyCreate,
+    workspace_id: str = Query(..., description="Workspace ID"),
+):
+    """Legacy alias for creating campaigns."""
+    try:
+        description = (
+            f"Legacy schedule: {request.schedule}. "
+            f"Move sequence: {request.move_sequence}"
+        )
+        campaign_data = CampaignCreate(
+            name=request.name,
+            description=description,
+        )
+        created = await create_campaign(campaign_data, workspace_id=workspace_id)
+        return CampaignLegacyResponse(
+            success=True,
+            campaign_id=str(created.get("id", "")),
+            data=created,
+        )
+    except HTTPException as exc:
+        return CampaignLegacyResponse(
+            success=False,
+            campaign_id="",
+            error=str(exc.detail),
+        )
+    except Exception as exc:
+        return CampaignLegacyResponse(success=False, campaign_id="", error=str(exc))
 
 
 @router.get("/{campaign_id}")
@@ -413,6 +488,26 @@ async def add_move_to_campaign(
         "campaign_id": campaign_id,
         "move_id": move_id,
     }
+
+
+@router.post("/execute/{campaign_id}", response_model=CampaignLegacyResponse)
+async def execute_campaign_legacy(
+    campaign_id: str, workspace_id: str = Query(..., description="Workspace ID")
+):
+    """Legacy alias for launching campaigns."""
+    try:
+        result = await launch_campaign(campaign_id, workspace_id=workspace_id)
+        return CampaignLegacyResponse(
+            success=True, campaign_id=campaign_id, data=result
+        )
+    except HTTPException as exc:
+        return CampaignLegacyResponse(
+            success=False, campaign_id=campaign_id, error=str(exc.detail)
+        )
+    except Exception as exc:
+        return CampaignLegacyResponse(
+            success=False, campaign_id=campaign_id, error=str(exc)
+        )
 
 
 @router.post("/{campaign_id}/launch")

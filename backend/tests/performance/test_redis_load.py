@@ -3,6 +3,13 @@ Redis Load Testing Script
 Tests Redis performance under various load conditions
 """
 
+import pytest
+
+pytest.skip(
+    "Archived script-style module; not collected in canonical suite.",
+    allow_module_level=True,
+)
+
 import asyncio
 import json
 import statistics

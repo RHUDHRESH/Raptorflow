@@ -872,6 +872,28 @@ class OnboardingWorkflow:
             with open(file_path, "w") as f:
                 json.dump(bcm["content"], f, indent=2)
 
+            # Vectorize businesscontext.json for semantic memory
+            try:
+                from services.bcm_vectorize_service import BCMVectorizeService
+
+                vectorizer = BCMVectorizeService()
+                await vectorizer.vectorize_manifest(
+                    workspace_id=workspace_id,
+                    manifest=bcm.get("content", {}),
+                    version=str(
+                        bcm.get("version", {})
+                        if isinstance(bcm.get("version"), str)
+                        else bcm.get("version_major", 1)
+                    ),
+                    source="businesscontext.json",
+                )
+            except Exception as e:
+                logger.warning(
+                    "BCM vectorization failed for workspace %s: %s",
+                    workspace_id,
+                    e,
+                )
+
             return {
                 "success": True,
                 "onboarding_complete": True,

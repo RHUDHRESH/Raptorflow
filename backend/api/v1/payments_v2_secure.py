@@ -35,7 +35,7 @@ payment_rate_config = RateLimitConfig(
 # Initialize rate limiter
 payment_rate_limiter = RateLimiter(payment_rate_config)
 
-router = APIRouter(prefix="/api/payments/v2", tags=["payments"])
+router = APIRouter(prefix="", tags=["payments"])
 
 
 class SecurePaymentInitiateRequest(BaseModel):

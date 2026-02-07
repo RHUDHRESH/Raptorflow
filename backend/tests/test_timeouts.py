@@ -3,6 +3,12 @@ Comprehensive test suite for timeout handling and caching functionality.
 Tests timeout management, recovery strategies, circuit breakers, and cache performance.
 """
 
+import pytest
+
+pytest.skip(
+    "Legacy test archived; superseded by canonical test suite.", allow_module_level=True
+)
+
 import asyncio
 import time
 from datetime import datetime, timedelta

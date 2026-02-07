@@ -2,12 +2,11 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
+from agents.universal.agent import UniversalAgent
+from core.supabase_mgr import get_supabase_client
 from memory.models import MemoryType
 from memory.vector_store import VectorMemory
 from schemas.bcm_evolution import EventType
-
-from .agents.universal.agent import UniversalAgent
-from .core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ class BCMSweeper:
         try:
             # 1. Fetch old interactions
             result = (
-                await self.db.table("bcm_events")
+                self.db.table("bcm_events")
                 .select("*")
                 .eq("workspace_id", workspace_id)
                 .eq("event_type", EventType.USER_INTERACTION)
@@ -88,7 +87,7 @@ class BCMSweeper:
 
             # 4. Create SYSTEM_CHECKPOINT event (Ledger)
             checkpoint_result = (
-                await self.db.table("bcm_events")
+                self.db.table("bcm_events")
                 .insert(
                     {
                         "workspace_id": workspace_id,
@@ -108,7 +107,7 @@ class BCMSweeper:
             checkpoint_id = checkpoint_result.data[0]["id"]
 
             # 5. Delete old events (Economy: keep DB lean)
-            await self.db.table("bcm_events").delete().in_("id", event_ids).execute()
+            self.db.table("bcm_events").delete().in_("id", event_ids).execute()
 
             logger.info(f"BCM Sweep complete for {workspace_id}: {checkpoint_id}")
             return {
@@ -129,7 +128,7 @@ class BCMSweeper:
         try:
             # 1. ECONOMY: Efficiently find workspaces that have pending interactions
             result = (
-                await self.db.table("bcm_events")
+                self.db.table("bcm_events")
                 .select("workspace_id")
                 .eq("event_type", EventType.USER_INTERACTION)
                 .execute()

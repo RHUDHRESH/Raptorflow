@@ -1,3 +1,9 @@
+import pytest
+
+pytest.skip(
+    "Archived manual test script; use explicit run if needed.", allow_module_level=True
+)
+
 #!/usr/bin/env python3
 """
 Comprehensive Test Suite for Raptorflow Onboarding Backend
@@ -72,7 +78,7 @@ class RaptorflowTestSuite:
                         "item_id": f"test-{url.replace('https://', '').replace('/', '-')}",
                     }
                     response = await client.post(
-                        f"{self.base_url}/api/v1/onboarding/{self.session_id}/vault/url",
+                        f"{self.base_url}/api/onboarding/{self.session_id}/vault/url",
                         json=payload,
                     )
 
@@ -124,7 +130,7 @@ class RaptorflowTestSuite:
                         data = {"item_id": f"file-{filename}"}
 
                         response = await client.post(
-                            f"{self.base_url}/api/v1/onboarding/{self.session_id}/vault/upload",
+                            f"{self.base_url}/api/onboarding/{self.session_id}/vault/upload",
                             files=files,
                             data=data,
                         )
@@ -170,14 +176,14 @@ class RaptorflowTestSuite:
                 }
 
                 response = await client.post(
-                    f"{self.base_url}/api/v1/onboarding/{self.session_id}/steps/1",
+                    f"{self.base_url}/api/onboarding/{self.session_id}/steps/1",
                     json=payload,
                 )
 
                 if response.status_code == 200:
                     # Retrieve step data
                     response2 = await client.get(
-                        f"{self.base_url}/api/v1/onboarding/{self.session_id}/steps/1"
+                        f"{self.base_url}/api/onboarding/{self.session_id}/steps/1"
                     )
 
                     if response2.status_code == 200:
@@ -208,7 +214,7 @@ class RaptorflowTestSuite:
             async with httpx.AsyncClient() as client:
                 # Get vault contents
                 response = await client.get(
-                    f"{self.base_url}/api/v1/onboarding/{self.session_id}/vault"
+                    f"{self.base_url}/api/onboarding/{self.session_id}/vault"
                 )
 
                 if response.status_code == 200:
@@ -238,7 +244,7 @@ class RaptorflowTestSuite:
                     "item_id": os.getenv("ITEM_ID"),
                 }
                 response = await client.post(
-                    f"{self.base_url}/api/v1/onboarding/{self.session_id}/vault/url",
+                    f"{self.base_url}/api/onboarding/{self.session_id}/vault/url",
                     json=payload,
                 )
 

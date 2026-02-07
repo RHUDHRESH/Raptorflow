@@ -23,6 +23,9 @@ class MemoryType(Enum):
     RESEARCH = "research"
     CONVERSATION = "conversation"
     FEEDBACK = "feedback"
+    BCM = "bcm"
+    BCM_SECTION = "bcm_section"
+    MARKET_INTEL = "market_intel"
 
     @classmethod
     def get_all_types(cls) -> List[str]:

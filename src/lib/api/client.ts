@@ -7,7 +7,7 @@
 import { RaptorResponse } from '../../modules/infrastructure/types/api';
 import { RaptorErrorCodes, RaptorErrorMessages } from '../../modules/infrastructure/services/apiResponse';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = '/api';
 
 export interface Agent {
   id: string;
@@ -65,7 +65,7 @@ class ApiClient {
 
       const data = await response.json().catch(() => null);
       const requestId = response.headers.get('x-request-id') || undefined;
-      
+
       // If the backend already returns RaptorResponse, return it directly
       if (data && typeof data.success === 'boolean' && data.meta) {
         return {
@@ -145,7 +145,7 @@ class ApiClient {
 
   private getMockResponse<T>(endpoint: string): RaptorResponse<T> {
     const timestamp = new Date().toISOString();
-    
+
     const wrap = <T>(data: T): RaptorResponse<T> => ({
       success: true,
       data,

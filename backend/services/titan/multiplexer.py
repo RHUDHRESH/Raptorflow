@@ -47,7 +47,7 @@ Return only a JSON list of strings."""
             elif "```" in content:
                 content = content.split("```")[1].split("```")[0].strip()
 
-            variations = eval(content)  # Use json.loads in production
+            variations = json.loads(content)
             if not isinstance(variations, list):
                 return [query]
             return variations[:count]

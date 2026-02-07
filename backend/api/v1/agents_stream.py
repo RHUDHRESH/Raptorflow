@@ -381,6 +381,11 @@ async def cancel_session(
         )
 
 
+@router.get("", response_model=Dict[str, Any])
+async def list_available_agents_root(user_id: str = Query(..., description="User ID")):
+    return await list_available_agents(user_id)
+
+
 @router.get("/agents", response_model=Dict[str, Any])
 async def list_available_agents(user_id: str = Query(..., description="User ID")):
     """

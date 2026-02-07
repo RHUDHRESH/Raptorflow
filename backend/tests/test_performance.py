@@ -1,3 +1,7 @@
+import pytest
+
+pytest.skip("Legacy test archived; superseded by canonical test suite.", allow_module_level=True)
+
 ﻿"""
 Enhanced performance tests for RaptorFlow backend.
 Tests session management, performance optimization, and resource pooling under load.

@@ -24,7 +24,7 @@ export default function Embedded3kPayment() {
 
     try {
       const amountInPaise = parseInt(customAmount) * 100
-      
+
       const response = await fetch('/api/create-embedded-payment', {
         method: 'POST',
         headers: {
@@ -36,7 +36,7 @@ export default function Embedded3kPayment() {
       })
 
       const data = await response.json()
-      
+
       if (data.status === 'success') {
         setResult(data)
       } else {
@@ -51,7 +51,7 @@ export default function Embedded3kPayment() {
 
   async function processPayment() {
     if (!result) return
-    
+
     setIsProcessing(true)
     setError('')
 
@@ -131,8 +131,8 @@ export default function Embedded3kPayment() {
                   <p><strong>Status:</strong> <span className="text-green-600 font-semibold">{result.receipt.status}</span></p>
                 </div>
               </div>
-              <Button 
-                onClick={() => window.location.reload()} 
+              <Button
+                onClick={() => window.location.reload()}
                 className="w-full"
                 size="lg"
               >

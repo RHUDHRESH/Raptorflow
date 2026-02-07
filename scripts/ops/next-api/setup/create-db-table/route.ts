@@ -20,24 +20,24 @@ export async function POST() {
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
-        
+
         CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON public.password_reset_tokens(token);
         CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_email ON public.password_reset_tokens(email);
         CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires ON public.password_reset_tokens(expires_at);
-        
+
         -- Enable RLS
         ALTER TABLE public.password_reset_tokens ENABLE ROW LEVEL SECURITY;
-        
+
         -- Policies
         CREATE POLICY IF NOT EXISTS "password_reset_tokens_insert" ON public.password_reset_tokens
           FOR INSERT WITH CHECK (true);
-          
+
         CREATE POLICY IF NOT EXISTS "password_reset_tokens_select" ON public.password_reset_tokens
           FOR SELECT USING (true);
-          
+
         CREATE POLICY IF NOT EXISTS "password_reset_tokens_update" ON public.password_reset_tokens
           FOR UPDATE USING (true);
-          
+
         CREATE POLICY IF NOT EXISTS "password_reset_tokens_delete" ON public.password_reset_tokens
           FOR DELETE USING (true);
       `
@@ -45,13 +45,13 @@ export async function POST() {
 
     if (error) {
       console.error('SQL execution error:', error);
-      
+
       // Try alternative approach - test if table exists
       const testResult = await supabase
         .from('password_reset_tokens')
         .select('count')
         .limit(1);
-      
+
       if (testResult.error && testResult.error.code === '42P01') {
         return NextResponse.json({
           success: false,
@@ -68,7 +68,7 @@ export async function POST() {
 CREATE INDEX idx_password_reset_tokens_token ON public.password_reset_tokens(token);`
         }, { status: 400 });
       }
-      
+
       return NextResponse.json({
         success: true,
         message: 'Table already exists or was created successfully',

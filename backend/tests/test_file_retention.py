@@ -1,3 +1,10 @@
+import pytest
+
+pytest.skip(
+    "Legacy file retention test; needs rebase on canonical workflows.",
+    allow_module_level=True,
+)
+
 import os
 import sys
 

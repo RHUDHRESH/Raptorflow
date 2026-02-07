@@ -2,20 +2,16 @@
 Blackbox strategy generation API endpoints.
 """
 
+from __future__ import annotations
+
 import uuid
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from memory.controller import MemoryController
 from pydantic import BaseModel, Field
-from workflows.blackbox import BlackboxWorkflow
 
-from cognitive import CognitiveEngine
-
-from ..agents.dispatcher import AgentDispatcher
-from ..agents.specialists.blackbox_strategist import BlackboxStrategist
-from ..core.database import get_db
-from ..dependencies import (
+from ...core.database import get_db
+from ...dependencies import (
     get_agent_dispatcher,
     get_cognitive_engine,
     get_memory_controller,
@@ -93,10 +89,6 @@ class StrategyAcceptResponse(BaseModel):
     error: Optional[str]
 
 
-# Global instance
-blackbox_strategist = BlackboxStrategist()
-
-
 @router.post("/generate", response_model=StrategyResponse)
 async def generate_strategy(
     request: StrategyGenerationRequest,
@@ -135,6 +127,8 @@ async def generate_strategy(
             )
 
         # Initialize workflow
+        from workflows.blackbox import BlackboxWorkflow  # noqa: PLC0415
+
         workflow = BlackboxWorkflow(
             db_client=db,
             memory_controller=memory_controller,
@@ -308,6 +302,8 @@ async def accept_strategy(
     """
     try:
         # Initialize workflow
+        from workflows.blackbox import BlackboxWorkflow  # noqa: PLC0415
+
         workflow = BlackboxWorkflow(
             db_client=db,
             memory_controller=memory_controller,

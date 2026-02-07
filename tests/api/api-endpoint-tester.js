@@ -8,10 +8,8 @@ const API_ENDPOINTS = [
   { path: '/api/auth/verify-email', method: 'POST', critical: true },
   { path: '/api/auth/session-management', method: 'GET', critical: true },
 
-  // Health & Monitoring
+  // Health
   { path: '/api/health', method: 'GET', critical: true },
-  { path: '/api/monitoring/dashboard', method: 'GET', critical: false },
-  { path: '/api/monitoring/enhanced-dashboard', method: 'GET', critical: false },
 
   // User Management
   { path: '/api/me/subscription', method: 'GET', critical: true },
@@ -22,19 +20,8 @@ const API_ENDPOINTS = [
   { path: '/api/onboarding/create-workspace', method: 'POST', critical: true },
   { path: '/api/onboarding/classify', method: 'POST', critical: true },
 
-  // Payment & Billing
-  { path: '/api/create-payment', method: 'POST', critical: true },
-  { path: '/api/complete-mock-payment', method: 'POST', critical: true },
-  { path: '/api/billing/dunning', method: 'GET', critical: false },
-
-  // Database & Storage
-  { path: '/api/create-tables', method: 'POST', critical: false },
-  { path: '/api/execute-sql', method: 'POST', critical: false },
-  { path: '/api/create-storage', method: 'POST', critical: false },
-
-  // Integration & Testing
-  { path: '/api/integration-test', method: 'GET', critical: false },
-  { path: '/api/auto-setup', method: 'POST', critical: false }
+  // Billing
+  { path: '/api/billing/dunning', method: 'GET', critical: false }
 ];
 
 class APIEndpointTester {

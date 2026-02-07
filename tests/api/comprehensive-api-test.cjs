@@ -10,10 +10,8 @@ const API_ENDPOINTS = [
   { path: '/api/auth/session-management', method: 'POST', critical: true, desc: 'Session management (POST)' },
   { path: '/api/auth/two-factor', method: 'POST', critical: false, desc: '2FA setup' },
 
-  // HEALTH & MONITORING
+  // HEALTH
   { path: '/api/health', method: 'GET', critical: true, desc: 'System health check' },
-  { path: '/api/monitoring/dashboard', method: 'GET', critical: false, desc: 'Monitoring dashboard' },
-  { path: '/api/monitoring/enhanced-dashboard', method: 'GET', critical: false, desc: 'Enhanced dashboard' },
 
   // USER MANAGEMENT
   { path: '/api/me/subscription', method: 'GET', critical: true, desc: 'User subscription info' },
@@ -39,29 +37,10 @@ const API_ENDPOINTS = [
   { path: '/api/onboarding/perceptual-map', method: 'POST', critical: false, desc: 'Perceptual mapping' },
   { path: '/api/onboarding/positioning', method: 'POST', critical: false, desc: 'Positioning analysis' },
 
-  // PAYMENT & BILLING
-  { path: '/api/create-payment', method: 'POST', critical: true, desc: 'Create payment' },
-  { path: '/api/create-embedded-payment', method: 'POST', critical: false, desc: 'Embedded payment' },
-  { path: '/api/create-direct-payment', method: 'POST', critical: false, desc: 'Direct payment' },
-  { path: '/api/complete-mock-payment', method: 'POST', critical: true, desc: 'Mock payment completion' },
+  // BILLING
   { path: '/api/billing/dunning', method: 'GET', critical: false, desc: 'Billing dunning' },
 
-  // DATABASE & STORAGE
-  { path: '/api/create-tables', method: 'POST', critical: false, desc: 'Create database tables' },
-  { path: '/api/create-tables-direct', method: 'POST', critical: false, desc: 'Direct table creation' },
-  { path: '/api/create-tables-final', method: 'POST', critical: false, desc: 'Final table creation' },
-  { path: '/api/create-tables-immediate', method: 'POST', critical: false, desc: 'Immediate table creation' },
-  { path: '/api/create-tables-now', method: 'POST', critical: false, desc: 'Create tables now' },
-  { path: '/api/force-create-tables', method: 'POST', critical: false, desc: 'Force table creation' },
-  { path: '/api/execute-sql', method: 'POST', critical: false, desc: 'Execute SQL' },
-  { path: '/api/create-storage', method: 'POST', critical: false, desc: 'Create storage' },
-  { path: '/api/init-storage', method: 'POST', critical: false, desc: 'Initialize storage' },
-  { path: '/api/gcp-storage', method: 'GET', critical: false, desc: 'GCP storage' },
-
-  // INTEGRATION & UTILITIES
-  { path: '/api/integration-test', method: 'GET', critical: false, desc: 'Integration test' },
-  { path: '/api/auto-setup', method: 'POST', critical: false, desc: 'Auto setup' },
-  { path: '/api/auth-mock', method: 'GET', critical: false, desc: 'Auth mock' },
+  // UTILITIES
   { path: '/api/gdpr/data-export', method: 'GET', critical: false, desc: 'GDPR data export' }
 ];
 

@@ -3,13 +3,18 @@ Auth Domain - Router
 Authentication endpoints using Supabase Auth
 """
 
+import logging
 from typing import Any, Dict, Optional
 
-from app.auth_middleware import get_current_user_id, require_auth
-from domains.auth.models import Profile
+from api.dependencies import get_current_user
+from app.auth_middleware import require_auth
+from core.models import User
 from domains.auth.service import AuthService, get_auth_service
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
+from services.profile_service import ProfileError, ProfileService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth")
 
@@ -134,6 +139,52 @@ async def refresh_token(
 
 
 # ============ Profile Endpoints ============
+
+
+@router.post("/ensure-profile")
+async def ensure_profile(user: User = Depends(get_current_user)):
+    """Ensure profile + workspace exist for the authenticated user."""
+    service = ProfileService()
+    try:
+        result = service.ensure_profile(user)
+        logger.info("Profile ensured for user %s", user.id)
+        return result
+    except ProfileError as exc:
+        logger.error("Profile ensure failed for user %s: %s", user.id, exc)
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": exc.error_type,
+                "message": str(exc),
+                "context": exc.context,
+            },
+        ) from exc
+    except Exception as exc:
+        logger.exception("Unexpected profile ensure error for user %s", user.id)
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+
+@router.get("/verify-profile")
+async def verify_profile(user: User = Depends(get_current_user)):
+    """Verify profile/workspace/payment status for the authenticated user."""
+    service = ProfileService()
+    try:
+        result = service.verify_profile(user)
+        logger.info("Profile verification successful for user %s", user.id)
+        return result
+    except ProfileError as exc:
+        logger.error("Profile verification failed for user %s: %s", user.id, exc)
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": exc.error_type,
+                "message": str(exc),
+                "context": exc.context,
+            },
+        ) from exc
+    except Exception as exc:
+        logger.exception("Unexpected profile verification error for user %s", user.id)
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/me", response_model=ProfileResponse)

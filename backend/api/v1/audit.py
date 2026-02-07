@@ -6,6 +6,7 @@ Provides access to audit logs and compliance reporting
 from datetime import datetime, timedelta
 from typing import List, Optional
 
+from api.dependencies import current_user
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..core.audit import get_audit_logger

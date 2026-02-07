@@ -5,8 +5,10 @@ REST API endpoints for Business Context Manifest operations including
 creation, retrieval, versioning, and management with comprehensive error handling.
 """
 
+import asyncio
 import json
 import logging
+import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import UUID
@@ -15,8 +17,9 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from ..integration.bcm_reducer import BusinessContextManifest
-from ..services.bcm_storage_orchestrator import BCMStorageOrchestrator
+from ...integration.bcm_reducer import BusinessContextManifest
+from ...services.bcm_backfill_service import BCMVectorBackfillService
+from ...services.bcm_storage_orchestrator import BCMStorageOrchestrator
 
 
 # Pydantic models for API requests/responses
@@ -395,6 +398,73 @@ async def get_metrics(service: BCMStorageOrchestrator = Depends(get_bcm_service)
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/vectorize/backfill")
+async def backfill_bcm_vectors(
+    table: str = Query(
+        "both",
+        description="Target table: bcm_manifests, business_context_manifests, or both",
+    ),
+    batch_size: int = Query(50, ge=1, le=500),
+    max_records: int = Query(0, ge=0),
+    dry_run: bool = Query(False, description="Count only; do not write vectors"),
+):
+    """
+    Backfill BCM vectors into semantic memory.
+    """
+    if table not in ("bcm_manifests", "business_context_manifests", "both"):
+        raise HTTPException(status_code=400, detail="Invalid table selection")
+
+    try:
+        service = BCMVectorBackfillService()
+        if await service.is_locked():
+            raise HTTPException(status_code=409, detail="Backfill already in progress")
+
+        run_id = f"bcm-backfill-{uuid.uuid4().hex[:8]}"
+        await service.set_status(  # best-effort status update
+            {
+                "run_id": run_id,
+                "status": "queued",
+                "table": table,
+                "dry_run": dry_run,
+            }
+        )
+
+        async def _run():
+            await service.backfill_with_lock(
+                run_id=run_id,
+                table=table,
+                batch_size=batch_size,
+                max_records=max_records,
+                dry_run=dry_run,
+            )
+
+        asyncio.create_task(_run())
+
+        return {
+            "success": True,
+            "queued": True,
+            "run_id": run_id,
+            "table": table,
+            "dry_run": dry_run,
+        }
+    except Exception as e:
+        logging.error(f"Error in BCM vector backfill: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/vectorize/backfill/status")
+async def backfill_bcm_vectors_status():
+    """
+    Get BCM vector backfill status.
+    """
+    try:
+        service = BCMVectorBackfillService()
+        return await service.get_status()
+    except Exception as e:
+        logging.error(f"Error fetching BCM vector backfill status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/workspaces")
 async def list_workspaces_with_bcm(
     service: BCMStorageOrchestrator = Depends(get_bcm_service),
@@ -464,31 +534,3 @@ async def verify_integrity(
     except Exception as e:
         logging.error(f"Error verifying data integrity: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# Error handlers
-@router.exception_handler(HTTPException)
-async def http_exception_handler(request, exc):
-    """Handle HTTP exceptions."""
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "error": exc.detail,
-            "status_code": exc.status_code,
-            "timestamp": datetime.utcnow().isoformat(),
-        },
-    )
-
-
-@router.exception_handler(Exception)
-async def general_exception_handler(request, exc):
-    """Handle general exceptions."""
-    logging.error(f"Unhandled exception: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": "Internal server error",
-            "status_code": 500,
-            "timestamp": datetime.utcnow().isoformat(),
-        },
-    )

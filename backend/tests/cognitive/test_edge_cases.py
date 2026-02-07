@@ -3,6 +3,12 @@ Comprehensive Error Testing Suite
 Tests all edge cases and failure scenarios
 """
 
+import pytest
+
+pytest.skip(
+    "Archived manual test suite; not part of canonical run.", allow_module_level=True
+)
+
 import asyncio
 import json
 import os

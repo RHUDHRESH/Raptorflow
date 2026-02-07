@@ -126,9 +126,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/openapi.json",
             "/favicon.ico",
             "/static/",
-            "/api/v1/auth/login",
-            "/api/v1/auth/signup",
-            "/api/v1/auth/refresh",
+            "/api/auth/login",
+            "/api/auth/signup",
+            "/api/auth/refresh",
         ]
         self.jwt_validator = get_jwt_validator()
         self.audit_logger = get_audit_logger()
@@ -257,15 +257,15 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
     def get_endpoint_category(self, path: str) -> str:
         """Categorize endpoint for rate limiting"""
-        if "/api/v1/agents" in path:
+        if "/api/agents" in path:
             return "agents"
-        elif "/api/v1/upload" in path or "/api/v1/files" in path:
+        elif "/api/upload" in path or "/api/files" in path:
             return "upload"
-        elif "/api/v1/export" in path:
+        elif "/api/export" in path:
             return "export"
-        elif "/api/v1/search" in path:
+        elif "/api/search" in path:
             return "search"
-        elif "/api/v1/auth" in path:
+        elif "/api/auth" in path:
             return "auth"
         else:
             return "api"

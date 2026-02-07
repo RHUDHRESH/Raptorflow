@@ -11,10 +11,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from database_config import DB_CONFIG
-from supabase_mgr import get_supabase_admin
-
 from supabase import Client
+
+from .database_config import DB_CONFIG
+from .supabase_mgr import get_supabase_admin
 
 logger = logging.getLogger(__name__)
 

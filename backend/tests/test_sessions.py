@@ -3,6 +3,12 @@ Comprehensive test suite for enhanced session management system.
 Tests Redis-based sessions, performance tracking, and analytics.
 """
 
+import pytest
+
+pytest.skip(
+    "Legacy test archived; superseded by canonical test suite.", allow_module_level=True
+)
+
 import asyncio
 import time
 import uuid

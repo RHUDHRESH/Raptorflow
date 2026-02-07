@@ -78,8 +78,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
 
 def add_middleware(app: FastAPI) -> None:
-    """Add all middleware to FastAPI app"""
-    app.add_middleware(WorkspaceContextMiddleware)
+    """Add core middleware to FastAPI app."""
     app.add_middleware(RequestTimingMiddleware)
     app.add_middleware(ErrorHandlingMiddleware)
-    logger.info("Middleware configured")
+    logger.info("Core middleware configured")

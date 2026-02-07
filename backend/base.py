@@ -35,7 +35,7 @@ from pydantic import BaseModel, ValidationError
 from state import StateManager, StateStatus, StateType
 
 # Local imports
-from config import settings
+from backend.config import settings
 
 logger = structlog.get_logger(__name__)
 

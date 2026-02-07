@@ -9,7 +9,7 @@ from typing import Dict, Optional
 
 from pydantic import BaseModel, Field
 
-from config import ModelTier
+from backend.config import ModelTier
 
 logger = logging.getLogger(__name__)
 

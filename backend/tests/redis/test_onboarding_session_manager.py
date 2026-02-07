@@ -10,7 +10,8 @@ from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from redis.session_manager import (
+
+from backend.redis.session_manager import (
     OnboardingSessionManager,
     get_onboarding_session_manager,
 )

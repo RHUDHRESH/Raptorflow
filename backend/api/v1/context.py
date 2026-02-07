@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from ..services.bcm_manifest_service import BCMManifestService
+from ...services.bcm_manifest_service import BCMManifestService
 
 logger = logging.getLogger(__name__)
 

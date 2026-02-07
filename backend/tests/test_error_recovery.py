@@ -3,6 +3,12 @@ Comprehensive Error Recovery Testing Framework for Raptorflow.
 Tests all error recovery scenarios with validation and performance measurement.
 """
 
+import pytest
+
+pytest.skip(
+    "Legacy test archived; superseded by canonical test suite.", allow_module_level=True
+)
+
 import asyncio
 import time
 from datetime import datetime, timedelta

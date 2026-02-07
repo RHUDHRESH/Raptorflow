@@ -1,4 +1,4 @@
-"""
+﻿"""
 Integration tests for Onboarding Session Manager with API
 
 Tests the complete flow from API endpoints to Redis storage.
@@ -11,7 +11,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from main import app
+
+from backend.main import app
 
 
 class TestOnboardingSessionIntegration:
@@ -60,7 +61,7 @@ class TestOnboardingSessionIntegration:
         """Test successful session creation."""
         with patch("api.v1.onboarding.session_manager", mock_session_manager):
             response = client.post(
-                "/api/v1/onboarding/session?workspace_id=workspace456&user_id=user123"
+                "/api/onboarding/session?workspace_id=workspace456&user_id=user123"
             )
 
             assert response.status_code == 200
@@ -74,7 +75,7 @@ class TestOnboardingSessionIntegration:
 
     def test_create_session_missing_workspace(self, client):
         """Test session creation without workspace ID."""
-        response = client.post("/api/v1/onboarding/session")
+        response = client.post("/api/onboarding/session")
 
         assert response.status_code == 422  # Validation error
 
@@ -88,7 +89,7 @@ class TestOnboardingSessionIntegration:
 
         with patch("api.v1.onboarding.session_manager", mock_session_manager):
             response = client.post(
-                "/api/v1/onboarding/test_session/steps/1",
+                "/api/onboarding/test_session/steps/1",
                 json={"data": step_data, "version": 1},
             )
 
@@ -105,7 +106,7 @@ class TestOnboardingSessionIntegration:
         step_data = {"company_name": "Test Corp"}
 
         response = client.post(
-            "/api/v1/onboarding/test_session/steps/0",
+            "/api/onboarding/test_session/steps/0",
             json={"data": step_data, "version": 1},
         )
 
@@ -117,7 +118,7 @@ class TestOnboardingSessionIntegration:
         step_data = {"company_name": "Test Corp"}
 
         response = client.post(
-            "/api/v1/onboarding/test_session/steps/24",
+            "/api/onboarding/test_session/steps/24",
             json={"data": step_data, "version": 1},
         )
 
@@ -127,7 +128,7 @@ class TestOnboardingSessionIntegration:
     def test_get_progress_success(self, client, mock_session_manager):
         """Test getting session progress."""
         with patch("api.v1.onboarding.session_manager", mock_session_manager):
-            response = client.get("/api/v1/onboarding/test_session/progress")
+            response = client.get("/api/onboarding/test_session/progress")
 
             assert response.status_code == 200
             data = response.json()
@@ -138,7 +139,7 @@ class TestOnboardingSessionIntegration:
     def test_get_step_success(self, client, mock_session_manager):
         """Test getting specific step data."""
         with patch("api.v1.onboarding.session_manager", mock_session_manager):
-            response = client.get("/api/v1/onboarding/test_session/steps/1")
+            response = client.get("/api/onboarding/test_session/steps/1")
 
             assert response.status_code == 200
             data = response.json()
@@ -149,7 +150,7 @@ class TestOnboardingSessionIntegration:
 
     def test_get_step_invalid_id(self, client):
         """Test getting step with invalid ID."""
-        response = client.get("/api/v1/onboarding/test_session/steps/0")
+        response = client.get("/api/onboarding/test_session/steps/0")
 
         assert response.status_code == 400
         assert "Invalid step ID" in response.json()["detail"]
@@ -157,7 +158,7 @@ class TestOnboardingSessionIntegration:
     def test_get_session_summary_success(self, client, mock_session_manager):
         """Test getting session summary."""
         with patch("api.v1.onboarding.session_manager", mock_session_manager):
-            response = client.get("/api/v1/onboarding/test_session/summary")
+            response = client.get("/api/onboarding/test_session/summary")
 
             assert response.status_code == 200
             data = response.json()
@@ -169,7 +170,7 @@ class TestOnboardingSessionIntegration:
     def test_finalize_session_success(self, client, mock_session_manager):
         """Test session finalization."""
         with patch("api.v1.onboarding.session_manager", mock_session_manager):
-            response = client.post("/api/v1/onboarding/test_session/finalize")
+            response = client.post("/api/onboarding/test_session/finalize")
 
             assert response.status_code == 200
             data = response.json()
@@ -185,7 +186,7 @@ class TestOnboardingSessionIntegration:
         mock_session_manager.get_all_steps.return_value = {}
 
         with patch("api.v1.onboarding.session_manager", mock_session_manager):
-            response = client.post("/api/v1/onboarding/test_session/finalize")
+            response = client.post("/api/onboarding/test_session/finalize")
 
             assert response.status_code == 404
             assert "No step data found" in response.json()["detail"]
@@ -193,7 +194,7 @@ class TestOnboardingSessionIntegration:
     def test_delete_session_success(self, client, mock_session_manager):
         """Test session deletion."""
         with patch("api.v1.onboarding.session_manager", mock_session_manager):
-            response = client.delete("/api/v1/onboarding/test_session")
+            response = client.delete("/api/onboarding/test_session")
 
             assert response.status_code == 200
             data = response.json()
@@ -206,7 +207,7 @@ class TestOnboardingSessionIntegration:
         mock_session_manager.delete_session.return_value = False
 
         with patch("api.v1.onboarding.session_manager", mock_session_manager):
-            response = client.delete("/api/v1/onboarding/test_session")
+            response = client.delete("/api/onboarding/test_session")
 
             assert response.status_code == 404
             assert "Session not found" in response.json()["detail"]

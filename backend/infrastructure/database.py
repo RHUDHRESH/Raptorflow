@@ -7,9 +7,10 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
+from core.supabase_mgr import get_supabase_admin, get_supabase_client
 from pydantic import BaseModel
 
-from supabase import Client, create_client
+from supabase import Client
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +37,22 @@ class SupabaseClient:
     def _load_config(self) -> SupabaseConfig:
         """Load Supabase configuration from environment variables"""
         return SupabaseConfig(
-            url=os.getenv("NEXT_PUBLIC_SUPABASE_URL", ""),
-            anon_key=os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY", ""),
-            service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""),
+            url=(
+                os.getenv("SUPABASE_URL")
+                or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+                or os.getenv("DATABASE_URL")
+                or ""
+            ),
+            anon_key=(
+                os.getenv("SUPABASE_ANON_KEY")
+                or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+                or ""
+            ),
+            service_role_key=(
+                os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+                or os.getenv("SUPABASE_SERVICE_KEY")
+                or ""
+            ),
             pool_min=int(os.getenv("DATABASE_POOL_MIN", "2")),
             pool_max=int(os.getenv("DATABASE_POOL_MAX", "10")),
             pool_idle_timeout=int(os.getenv("DATABASE_POOL_IDLE_TIMEOUT", "30000")),
@@ -47,11 +61,8 @@ class SupabaseClient:
     def _initialize_client(self):
         """Initialize Supabase client"""
         try:
-            if not self.config.url or not self.config.anon_key:
-                raise ValueError(
-                    "Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
-                )
-            self._client = create_client(self.config.url, self.config.anon_key)
+            # Delegate to canonical supabase manager
+            self._client = get_supabase_client()
             logger.info("Supabase client initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize Supabase client: {e}")
@@ -66,11 +77,7 @@ class SupabaseClient:
     def get_service_client(self) -> Client:
         """Get Supabase client with service role key"""
         try:
-            if not self.config.url or not self.config.service_role_key:
-                raise ValueError(
-                    "Supabase service role not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
-                )
-            return create_client(self.config.url, self.config.service_role_key)
+            return get_supabase_admin()
         except Exception as e:
             logger.error(f"Failed to create service client: {e}")
             raise

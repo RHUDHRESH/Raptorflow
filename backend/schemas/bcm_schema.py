@@ -292,7 +292,7 @@ class MarketSizing(BaseModel):
         None, description="Serviceable Obtainable Market"
     )
     currency: Optional[str] = Field(
-        None, default="USD", description="Currency for market values"
+        default="USD", description="Currency for market values"
     )
     year: Optional[int] = Field(None, description="Market sizing year")
 
@@ -474,7 +474,7 @@ class BusinessContextManifest(BaseModel):
             raise ValueError("Completion percentage must be between 0 and 100")
         return v
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def compute_checksum(cls, values):
         """Compute SHA-256 checksum if not provided."""
         if "checksum" not in values or not values["checksum"]:

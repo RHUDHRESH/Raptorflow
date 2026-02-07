@@ -49,7 +49,7 @@ async function main() {
   await debugEndpoint('/api/auth/session-management');
   console.log('\n' + '='.repeat(50) + '\n');
 
-  await debugEndpoint('/api/create-payment');
+  await debugEndpoint('/api/me/subscription');
 }
 
 main().catch(console.error);

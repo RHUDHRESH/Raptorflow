@@ -31,6 +31,9 @@ def test_memory_type_enum():
         "research",
         "conversation",
         "feedback",
+        "bcm",
+        "bcm_section",
+        "market_intel",
     ]
     actual_types = MemoryType.get_all_types()
 

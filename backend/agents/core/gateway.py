@@ -490,7 +490,7 @@ class AgentGateway:
     async def _handle_stream(self, request: GatewayRequest) -> Dict[str, Any]:
         """Handle stream request."""
         return {
-            "stream_url": f"/api/v1/agents/stream/{request.request_id}",
+            "stream_url": f"/api/agents/stream/{request.request_id}",
             "stream_type": "sse",
             "supports_backpressure": True,
         }

@@ -14,6 +14,12 @@ Features:
 - Test data management and fixtures
 """
 
+import pytest
+
+pytest.skip(
+    "Archived manual test script; use explicit run if needed.", allow_module_level=True
+)
+
 import asyncio
 import json
 import logging

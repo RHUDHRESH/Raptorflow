@@ -8,7 +8,8 @@ from typing import Any, Dict, List, Optional
 from core.database import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from redis.cache import cached
+
+from backend.redis.cache import cached
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 

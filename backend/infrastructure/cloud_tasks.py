@@ -15,12 +15,16 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 from google.api_core import exceptions
-from google.cloud import tasks_v2
 from google.protobuf import timestamp_pb2
 
 from .gcp import get_gcp_client
 
 logger = logging.getLogger(__name__)
+
+try:
+    from google.cloud import tasks_v2  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    tasks_v2 = None
 
 
 class TaskStatus(Enum):
@@ -131,6 +135,15 @@ class CloudTasksClient:
         # Default handler URL
         self.default_handler_url = os.getenv("CLOUD_TASKS_HANDLER_URL", "")
 
+    def _availability_error(self) -> Optional[str]:
+        if tasks_v2 is None:
+            return "google-cloud-tasks not installed"
+        if not self.client:
+            return "Cloud Tasks client not configured"
+        if not self.project_id or not self.region:
+            return "GCP project/region not configured"
+        return None
+
     def _get_queue_path(self, queue_name: str) -> str:
         """Get full queue path."""
         return f"projects/{self.project_id}/locations/{self.region}/queues/{self.queue_prefix}-{queue_name}"
@@ -147,6 +160,11 @@ class CloudTasksClient:
         retry_config: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Create a Cloud Tasks queue."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return False
+
         try:
             queue_path = self._get_queue_path(queue_name)
 
@@ -192,6 +210,11 @@ class CloudTasksClient:
 
     async def delete_queue(self, queue_name: str) -> bool:
         """Delete a Cloud Tasks queue."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return False
+
         try:
             queue_path = self._get_queue_path(queue_name)
             self.client.delete_queue(name=queue_path)
@@ -208,6 +231,11 @@ class CloudTasksClient:
 
     async def list_queues(self) -> List[str]:
         """List all queues."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return []
+
         try:
             parent = f"projects/{self.project_id}/locations/{self.region}"
 
@@ -227,6 +255,16 @@ class CloudTasksClient:
 
     async def create_task(self, config: TaskConfig) -> TaskResult:
         """Create a Cloud Task."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return TaskResult(
+                success=False,
+                task_id=config.task_id,
+                error_message=availability_error,
+                created_at=datetime.now(),
+            )
+
         try:
             queue_path = self._get_queue_path(config.queue_name)
 
@@ -334,6 +372,11 @@ class CloudTasksClient:
 
     async def delete_task(self, queue_name: str, task_id: str) -> bool:
         """Delete a task."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return False
+
         try:
             task_path = self._get_task_path(queue_name, task_id)
             self.client.delete_task(name=task_path)
@@ -350,6 +393,11 @@ class CloudTasksClient:
 
     async def get_task(self, queue_name: str, task_id: str) -> Optional[TaskInfo]:
         """Get task information."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return None
+
         try:
             task_path = self._get_task_path(queue_name, task_id)
             task = self.client.get_task(name=task_path)
@@ -400,6 +448,11 @@ class CloudTasksClient:
         filter_expression: Optional[str] = None,
     ) -> List[TaskInfo]:
         """List tasks in a queue."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return []
+
         try:
             queue_path = self._get_queue_path(queue_name)
 
@@ -479,6 +532,11 @@ class CloudTasksClient:
 
     async def get_queue_stats(self, queue_name: str) -> Dict[str, Any]:
         """Get queue statistics."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return {}
+
         try:
             queue_path = self._get_queue_path(queue_name)
             queue = self.client.get_queue(name=queue_path)
@@ -517,6 +575,11 @@ class CloudTasksClient:
 
     async def get_all_stats(self) -> Dict[str, Any]:
         """Get statistics for all queues."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return {}
+
         try:
             queues = await self.list_queues()
 
@@ -543,6 +606,11 @@ class CloudTasksClient:
 
     async def purge_queue(self, queue_name: str) -> bool:
         """Purge all tasks from a queue."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return False
+
         try:
             queue_path = self._get_queue_path(queue_name)
 
@@ -559,6 +627,11 @@ class CloudTasksClient:
 
     async def pause_queue(self, queue_name: str) -> bool:
         """Pause a queue."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return False
+
         try:
             queue_path = self._get_queue_path(queue_name)
             queue = self.client.get_queue(name=queue_path)
@@ -576,6 +649,11 @@ class CloudTasksClient:
 
     async def resume_queue(self, queue_name: str) -> bool:
         """Resume a paused queue."""
+        availability_error = self._availability_error()
+        if availability_error:
+            self.logger.warning(f"Cloud Tasks unavailable: {availability_error}")
+            return False
+
         try:
             queue_path = self._get_queue_path(queue_name)
             queue = self.client.get_queue(name=queue_path)

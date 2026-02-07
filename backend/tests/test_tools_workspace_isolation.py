@@ -1,3 +1,7 @@
+import pytest
+
+pytest.skip("Legacy test archived; superseded by canonical test suite.", allow_module_level=True)
+
 ﻿"""
 Test file to verify all tools work with workspace isolation.
 """

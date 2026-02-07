@@ -12,7 +12,7 @@ from infrastructure.database import get_supabase
 from infrastructure.email import get_email
 from infrastructure.llm import get_llm
 
-from config import settings
+from backend.config import settings
 
 logger = logging.getLogger(__name__)
 

@@ -11,6 +11,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from api.dependencies import current_user, get_workspace_access
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field

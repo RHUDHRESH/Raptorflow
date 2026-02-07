@@ -55,6 +55,8 @@ const SECURITY_CONFIG = {
   }
 }
 
+const INTERNAL_API_TOKEN = process.env.INTERNAL_API_TOKEN
+
 // Rate limiting store (in production, use Redis)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
 
@@ -224,7 +226,7 @@ export async function middleware(request: NextRequest) {
     // Rate limiting with bypass for health checks
     if (!checkRateLimit(ip!, isAuth, user?.role === 'admin')) {
       // Bypass rate limiting for health checks and monitoring
-      if (path.startsWith('/api/health') || path.startsWith('/api/monitoring')) {
+      if (path.startsWith('/api/health')) {
         // Allow health checks to pass through
       } else {
         await logSecurityEvent('RATE_LIMIT_EXCEEDED', 'medium', {
@@ -293,15 +295,30 @@ export async function middleware(request: NextRequest) {
           apiUrl: process.env.NEXT_PUBLIC_API_URL
         })
 
+        const verifyHeaders: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'Cookie': request.headers.get('cookie') || '',
+          'Authorization': request.headers.get('authorization') || '',
+          'X-Forwarded-For': ip,
+          'X-User-Agent': userAgent || '',
+        }
+
+        if (user?.id) {
+          verifyHeaders['X-User-Id'] = user.id
+        }
+        if (user?.workspace_id) {
+          verifyHeaders['X-Workspace-Id'] = user.workspace_id
+        }
+        if (user?.email) {
+          verifyHeaders['X-User-Email'] = user.email
+        }
+        if (INTERNAL_API_TOKEN) {
+          verifyHeaders['X-Internal-Token'] = INTERNAL_API_TOKEN
+        }
+
         const verifyResponse = await fetch(profileUrl, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cookie': request.headers.get('cookie') || '',
-            'Authorization': request.headers.get('authorization') || '',
-            'X-Forwarded-For': ip,
-            'X-User-Agent': userAgent || '',
-          },
+          headers: verifyHeaders,
           cache: 'no-store',
           signal: AbortSignal.timeout(5000), // 5 second timeout
         })

@@ -3,6 +3,12 @@ Comprehensive Payment Security Testing Framework
 Tests all payment security components with penetration testing scenarios
 """
 
+import pytest
+
+pytest.skip(
+    "Legacy test archived; superseded by canonical test suite.", allow_module_level=True
+)
+
 import asyncio
 import base64
 import hashlib

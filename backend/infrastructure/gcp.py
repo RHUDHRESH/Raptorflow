@@ -12,13 +12,39 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-import google.cloud.resourcemanager_v3 as resource_manager
 from google.auth import default
 from google.auth.exceptions import DefaultCredentialsError
-from google.cloud import bigquery
-from google.cloud import logging as cloud_logging
-from google.cloud import pubsub_v1, storage, tasks_v2
 from google.oauth2 import service_account
+
+try:
+    import google.cloud.resourcemanager_v3 as resource_manager
+except Exception:  # pragma: no cover - optional dependency
+    resource_manager = None
+
+try:
+    from google.cloud import bigquery
+except Exception:  # pragma: no cover - optional dependency
+    bigquery = None
+
+try:
+    from google.cloud import logging as cloud_logging
+except Exception:  # pragma: no cover - optional dependency
+    cloud_logging = None
+
+try:
+    from google.cloud import pubsub_v1
+except Exception:  # pragma: no cover - optional dependency
+    pubsub_v1 = None
+
+try:
+    from google.cloud import storage
+except Exception:  # pragma: no cover - optional dependency
+    storage = None
+
+try:
+    from google.cloud import tasks_v2
+except Exception:  # pragma: no cover - optional dependency
+    tasks_v2 = None
 
 logger = logging.getLogger(__name__)
 
@@ -111,12 +137,12 @@ class GCPClient:
         self.logger = logging.getLogger("gcp_client")
 
         # Service clients
-        self.storage_client: Optional[storage.Client] = None
-        self.bigquery_client: Optional[bigquery.Client] = None
-        self.pubsub_client: Optional[pubsub_v1.PublisherClient] = None
-        self.cloud_tasks_client: Optional[tasks_v2.CloudTasksClient] = None
-        self.logging_client: Optional[cloud_logging.Client] = None
-        self.resource_manager_client: Optional[resource_manager.ProjectsClient] = None
+        self.storage_client: Optional[Any] = None
+        self.bigquery_client: Optional[Any] = None
+        self.pubsub_client: Optional[Any] = None
+        self.cloud_tasks_client: Optional[Any] = None
+        self.logging_client: Optional[Any] = None
+        self.resource_manager_client: Optional[Any] = None
 
         # Service status
         self.service_status: Dict[str, GCPServiceStatus] = {}
@@ -166,7 +192,7 @@ class GCPClient:
 
         try:
             # Initialize Storage client
-            if self.config.enable_storage:
+            if self.config.enable_storage and storage is not None:
                 self.storage_client = storage.Client(
                     project=self.config.project_id, credentials=self.config.credentials
                 )
@@ -177,7 +203,7 @@ class GCPClient:
                 )
 
             # Initialize BigQuery client
-            if self.config.enable_bigquery:
+            if self.config.enable_bigquery and bigquery is not None:
                 self.bigquery_client = bigquery.Client(
                     project=self.config.project_id, credentials=self.config.credentials
                 )
@@ -186,7 +212,7 @@ class GCPClient:
                 )
 
             # Initialize Pub/Sub client
-            if self.config.enable_pubsub:
+            if self.config.enable_pubsub and pubsub_v1 is not None:
                 self.pubsub_client = pubsub_v1.PublisherClient(
                     credentials=self.config.credentials
                 )
@@ -195,7 +221,7 @@ class GCPClient:
                 )
 
             # Initialize Cloud Tasks client
-            if self.config.enable_cloud_tasks:
+            if self.config.enable_cloud_tasks and tasks_v2 is not None:
                 self.cloud_tasks_client = tasks_v2.CloudTasksClient(
                     credentials=self.config.credentials
                 )
@@ -204,9 +230,10 @@ class GCPClient:
                 )
 
             # Initialize Resource Manager client
-            self.resource_manager_client = resource_manager.ProjectsClient(
-                credentials=self.config.credentials
-            )
+            if resource_manager is not None:
+                self.resource_manager_client = resource_manager.ProjectsClient(
+                    credentials=self.config.credentials
+                )
 
         except Exception as e:
             self.logger.error(f"Failed to initialize GCP services: {e}")
@@ -302,34 +329,37 @@ class GCPClient:
         status = self.service_status.get(service_name)
         return status is not None and status.available
 
-    def get_storage_client(self) -> Optional[storage.Client]:
+    def get_storage_client(self) -> Optional[Any]:
         """Get Storage client."""
         if self.is_service_available("storage"):
             return self.storage_client
         return None
 
-    def get_bigquery_client(self) -> Optional[bigquery.Client]:
+    def get_bigquery_client(self) -> Optional[Any]:
         """Get BigQuery client."""
         if self.is_service_available("bigquery"):
             return self.bigquery_client
         return None
 
-    def get_pubsub_client(self) -> Optional[pubsub_v1.PublisherClient]:
+    def get_pubsub_client(self) -> Optional[Any]:
         """Get Pub/Sub client."""
         if self.is_service_available("pubsub"):
             return self.pubsub_client
         return None
 
-    def get_cloud_tasks_client(self) -> Optional[tasks_v2.CloudTasksClient]:
+    def get_cloud_tasks_client(self) -> Optional[Any]:
         """Get Cloud Tasks client."""
         if self.is_service_available("cloud_tasks"):
             return self.cloud_tasks_client
         return None
 
-    def get_logging_client(self) -> Optional[cloud_logging.Client]:
+    def get_logging_client(self) -> Optional[Any]:
         """Get Cloud Logging client."""
         if self.logging_client:
             return self.logging_client
+
+        if cloud_logging is None:
+            return None
 
         if self.is_authenticated():
             try:
@@ -341,7 +371,7 @@ class GCPClient:
                 self.logger.error(f"Failed to create logging client: {e}")
         return None
 
-    def get_resource_manager_client(self) -> Optional[resource_manager.ProjectsClient]:
+    def get_resource_manager_client(self) -> Optional[Any]:
         """Get Resource Manager client."""
         if self.is_authenticated():
             return self.resource_manager_client

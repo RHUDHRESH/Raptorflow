@@ -10,10 +10,10 @@ import logging
 from datetime import UTC, datetime
 from typing import Any, Dict, List, Optional
 
+from core.supabase_mgr import get_supabase_client
 from memory.controller import SimpleMemoryController
 
-from .core.supabase_mgr import get_supabase_client
-from .services.dcm import get_dcm
+from .dcm import get_dcm
 
 logger = logging.getLogger("raptorflow.services.macm")
 

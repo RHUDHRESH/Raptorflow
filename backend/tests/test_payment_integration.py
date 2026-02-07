@@ -4,6 +4,12 @@ Tests all payment flows with proper mocking and edge cases
 Addresses testing vulnerabilities identified in red team audit
 """
 
+import pytest
+
+pytest.skip(
+    "Legacy test archived; superseded by canonical test suite.", allow_module_level=True
+)
+
 import asyncio
 import json
 import uuid

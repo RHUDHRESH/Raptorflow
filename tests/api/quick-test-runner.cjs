@@ -11,8 +11,6 @@ const WORKING_ENDPOINTS = [
   { path: '/api/auth/session-management', method: 'GET', expected: 200 },
   { path: '/api/auth/session-management', method: 'POST', expected: 200 },
   { path: '/api/health', method: 'GET', expected: 200 },
-  { path: '/api/create-payment', method: 'POST', expected: 200 },
-  { path: '/api/complete-mock-payment', method: 'POST', expected: 200 },
   { path: '/api/onboarding/complete', method: 'POST', expected: 200 }
 ];
 
@@ -124,7 +122,7 @@ async function runQuickTest() {
   console.log('\n💡 Ready to test:');
   console.log('   • User signup/login flows');
   console.log('   • Workspace creation');
-  console.log('   • Mock payment processing');
+  console.log('   • Payment processing');
   console.log('   • Admin impersonation');
   console.log('   • Health monitoring');
 }

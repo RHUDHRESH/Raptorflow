@@ -169,15 +169,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const startTime = performance.now();
       setIsCheckingProfile(true);
       try {
+        const authHeader = session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : {}
+
         // Parallel execution: ensure profile and verify profile simultaneously
         const [ensureResponse, verifyResponse] = await Promise.all([
           fetch('/api/proxy/v1/auth/ensure-profile', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeader },
             credentials: 'include',
           }),
           fetch('/api/proxy/v1/auth/verify-profile', {
             method: 'GET',
+            headers: authHeader,
             credentials: 'include',
             cache: 'no-store',
           })
@@ -269,7 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsCheckingProfile(false);
       }
     }, DEBOUNCE_DELAY);
-  }, [user, router, pathname]);
+  }, [user, session, router, pathname]);
 
   useEffect(() => {
     if (user) {

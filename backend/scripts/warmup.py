@@ -253,7 +253,7 @@ class WarmupScript:
 
             # Prime feature flags cache
             try:
-                from config.feature_flags import get_feature_flags
+                from backend.config.feature_flags import get_feature_flags
 
                 feature_flags = get_feature_flags()
                 await feature_flags.get_all_flags()

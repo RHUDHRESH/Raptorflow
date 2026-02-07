@@ -38,6 +38,16 @@ __license__ = "MIT"
 # Import them directly where needed: from agents.dispatcher import AgentDispatcher
 
 # Core imports (lightweight)
+
+# Ensure backend submodules are importable with top-level aliases (e.g., `import jobs`)
+# when running via `python -m backend.*` from the repo root.
+import sys
+from pathlib import Path
+
+_backend_root = str(Path(__file__).parent)
+if _backend_root not in sys.path:
+    # Append to avoid shadowing third-party packages (e.g., redis)
+    sys.path.append(_backend_root)
 from .config import get_settings
 
 settings = get_settings()

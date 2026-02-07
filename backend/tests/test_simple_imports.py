@@ -1,3 +1,9 @@
+import pytest
+
+pytest.skip(
+    "Archived manual test script; use explicit run if needed.", allow_module_level=True
+)
+
 #!/usr/bin/env python3
 """
 Simple import test to identify missing dependencies

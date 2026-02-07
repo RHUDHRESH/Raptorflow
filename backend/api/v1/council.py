@@ -9,9 +9,6 @@ from db.council import CouncilRepository
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from ..services.expert_council import create_swarm_session, get_expert_council_swarm
-from ..services.foundation import FoundationService
-
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/council", tags=["council"])
@@ -45,6 +42,12 @@ async def execute_council(
     Triggers an Expert Council Swarm session and persists it.
     """
     try:
+        from ...services.expert_council import (  # noqa: PLC0415
+            create_swarm_session,
+            get_expert_council_swarm,
+        )
+        from ...services.foundation import FoundationService  # noqa: PLC0415
+
         swarm = get_expert_council_swarm()
         foundation_service = FoundationService()
         council_repo = CouncilRepository()

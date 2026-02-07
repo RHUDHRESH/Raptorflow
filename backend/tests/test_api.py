@@ -9,7 +9,10 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from main_minimal import app
+
+from backend.main import app
+
+pytestmark = pytest.mark.integration
 
 
 class TestAPI:
@@ -26,7 +29,7 @@ class TestAPI:
         # Mock authentication for testing
         login_data = {"email": "test@example.com", "password": "testpassword123"}
 
-        response = client.post("/api/v1/auth/login", json=login_data)
+        response = client.post("/api/auth/login", json=login_data)
         if response.status_code == 200:
             token = response.json()["access_token"]
             return {"Authorization": f"Bearer {token}"}
@@ -80,7 +83,7 @@ class TestAPI:
 
     def test_users_endpoint_unauthorized(self, client: TestClient):
         """Test users endpoint without authentication."""
-        response = client.get("/api/v1/users/me")
+        response = client.get("/api/users/me")
 
         assert response.status_code == 401
 
@@ -88,7 +91,7 @@ class TestAPI:
         self, client: TestClient, auth_headers: Dict[str, str]
     ):
         """Test users endpoint with authentication."""
-        response = client.get("/api/v1/users/me", headers=auth_headers)
+        response = client.get("/api/users/me", headers=auth_headers)
 
         assert response.status_code in [200, 404]  # May not exist yet
 
@@ -96,7 +99,7 @@ class TestAPI:
         self, client: TestClient, auth_headers: Dict[str, str]
     ):
         """Test workspaces endpoint."""
-        response = client.get("/api/v1/workspaces", headers=auth_headers)
+        response = client.get("/api/workspaces", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
@@ -105,14 +108,14 @@ class TestAPI:
         workspace_data = {"name": "Test Workspace", "description": "A test workspace"}
 
         response = client.post(
-            "/api/v1/workspaces", json=workspace_data, headers=auth_headers
+            "/api/workspaces", json=workspace_data, headers=auth_headers
         )
 
         assert response.status_code in [201, 404, 422]
 
     def test_campaigns_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test campaigns endpoint."""
-        response = client.get("/api/v1/campaigns", headers=auth_headers)
+        response = client.get("/api/campaigns", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
@@ -125,14 +128,14 @@ class TestAPI:
         }
 
         response = client.post(
-            "/api/v1/campaigns", json=campaign_data, headers=auth_headers
+            "/api/campaigns", json=campaign_data, headers=auth_headers
         )
 
         assert response.status_code in [201, 404, 422]
 
     def test_agents_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test agents endpoint."""
-        response = client.get("/api/v1/agents", headers=auth_headers)
+        response = client.get("/api/agents", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
@@ -145,14 +148,14 @@ class TestAPI:
         }
 
         response = client.post(
-            "/api/v1/agents/execute", json=agent_data, headers=auth_headers
+            "/api/agents/execute", json=agent_data, headers=auth_headers
         )
 
         assert response.status_code in [200, 404, 422]
 
     def test_icps_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test ICPs endpoint."""
-        response = client.get("/api/v1/icps", headers=auth_headers)
+        response = client.get("/api/icps", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
@@ -165,19 +168,19 @@ class TestAPI:
             "psychographics": {},
         }
 
-        response = client.post("/api/v1/icps", json=icp_data, headers=auth_headers)
+        response = client.post("/api/icps", json=icp_data, headers=auth_headers)
 
         assert response.status_code in [201, 404, 422]
 
     def test_analytics_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test analytics endpoint."""
-        response = client.get("/api/v1/analytics", headers=auth_headers)
+        response = client.get("/api/analytics", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
     def test_memory_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test memory endpoint."""
-        response = client.get("/api/v1/memory", headers=auth_headers)
+        response = client.get("/api/memory", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
@@ -189,7 +192,7 @@ class TestAPI:
             "metadata": {},
         }
 
-        response = client.post("/api/v1/memory", json=memory_data, headers=auth_headers)
+        response = client.post("/api/memory", json=memory_data, headers=auth_headers)
 
         assert response.status_code in [201, 404, 422]
 
@@ -197,7 +200,7 @@ class TestAPI:
         self, client: TestClient, auth_headers: Dict[str, str]
     ):
         """Test onboarding endpoint."""
-        response = client.get("/api/v1/onboarding", headers=auth_headers)
+        response = client.get("/api/onboarding", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
@@ -206,7 +209,7 @@ class TestAPI:
         step_data = {"step_id": 1, "data": {}, "completed": False}
 
         response = client.post(
-            "/api/v1/onboarding/step", json=step_data, headers=auth_headers
+            "/api/onboarding/step", json=step_data, headers=auth_headers
         )
 
         assert response.status_code in [200, 404, 422]
@@ -227,7 +230,7 @@ class TestAPI:
 
     def test_error_handling_404(self, client: TestClient):
         """Test 404 error handling."""
-        response = client.get("/api/v1/nonexistent")
+        response = client.get("/api/nonexistent")
 
         assert response.status_code == 404
         data = response.json()
@@ -235,7 +238,7 @@ class TestAPI:
 
     def test_error_handling_422(self, client: TestClient):
         """Test 422 error handling."""
-        response = client.post("/api/v1/users/me", json={"invalid": "data"})
+        response = client.post("/api/users/me", json={"invalid": "data"})
 
         assert response.status_code == 422
         data = response.json()
@@ -246,7 +249,7 @@ class TestAPI:
         # This would test internal server errors
         # For now, just verify error handling structure
 
-        response = client.get("/api/v1/error-test")
+        response = client.get("/api/error-test")
 
         # Should handle gracefully
         assert response.status_code in [404, 500]
@@ -266,7 +269,7 @@ class TestAPI:
 
     def test_cors_headers(self, client: TestClient):
         """Test CORS headers."""
-        response = client.options("/api/v1/users/me")
+        response = client.options("/api/users/me")
 
         # Should include CORS headers
         assert (
@@ -278,7 +281,7 @@ class TestAPI:
         """Test content type validation."""
         # Send invalid content type
         response = client.post(
-            "/api/v1/users/me",
+            "/api/users/me",
             data="invalid data",
             headers={"Content-Type": "text/plain"},
         )
@@ -290,7 +293,7 @@ class TestAPI:
         # Send large request
         large_data = {"data": "x" * 1000000}  # 1MB of data
 
-        response = client.post("/api/v1/users/me", json=large_data)
+        response = client.post("/api/users/me", json=large_data)
 
         assert response.status_code in [413, 422, 401]
 
@@ -306,7 +309,7 @@ class TestAPI:
 
     def test_api_versioning(self, client: TestClient):
         """Test API versioning."""
-        response = client.get("/api/v1/health")
+        response = client.get("/api/health")
 
         assert response.status_code in [200, 404]
 
@@ -315,7 +318,7 @@ class TestAPI:
 
     def test_pagination(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test pagination."""
-        response = client.get("/api/v1/users?page=1&limit=10", headers=auth_headers)
+        response = client.get("/api/users?page=1&limit=10", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
@@ -328,20 +331,20 @@ class TestAPI:
         self, client: TestClient, auth_headers: Dict[str, str]
     ):
         """Test search functionality."""
-        response = client.get("/api/v1/search?q=test", headers=auth_headers)
+        response = client.get("/api/search?q=test", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
     def test_filtering(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test filtering functionality."""
-        response = client.get("/api/v1/users?status=active", headers=auth_headers)
+        response = client.get("/api/users?status=active", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
     def test_sorting(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test sorting functionality."""
         response = client.get(
-            "/api/v1/users?sort=created_at&order=desc", headers=auth_headers
+            "/api/users?sort=created_at&order=desc", headers=auth_headers
         )
 
         assert response.status_code in [200, 404]
@@ -350,9 +353,7 @@ class TestAPI:
         """Test bulk operations."""
         bulk_data = [{"name": "Item 1"}, {"name": "Item 2"}, {"name": "Item 3"}]
 
-        response = client.post(
-            "/api/v1/bulk/users", json=bulk_data, headers=auth_headers
-        )
+        response = client.post("/api/bulk/users", json=bulk_data, headers=auth_headers)
 
         assert response.status_code in [201, 404, 422]
 
@@ -373,7 +374,7 @@ class TestAPI:
         file_content = b"test file content"
 
         response = client.post(
-            "/api/v1/upload",
+            "/api/upload",
             files={"file": ("test.txt", file_content, "text/plain")},
             headers=auth_headers,
         )
@@ -382,7 +383,7 @@ class TestAPI:
 
     def test_file_download(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test file download."""
-        response = client.get("/api/v1/files/test.txt", headers=auth_headers)
+        response = client.get("/api/files/test.txt", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
@@ -390,7 +391,7 @@ class TestAPI:
         self, client: TestClient, auth_headers: Dict[str, str]
     ):
         """Test data export."""
-        response = client.get("/api/v1/export/users?format=csv", headers=auth_headers)
+        response = client.get("/api/export/users?format=csv", headers=auth_headers)
 
         assert response.status_code in [200, 404]
 
@@ -404,7 +405,7 @@ class TestAPI:
         csv_content = "name,email\nTest User,test@example.com"
 
         response = client.post(
-            "/api/v1/import/users",
+            "/api/import/users",
             files={"file": ("users.csv", csv_content, "text/csv")},
             headers=auth_headers,
         )

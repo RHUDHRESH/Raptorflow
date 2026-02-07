@@ -9,11 +9,11 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from api.dependencies import current_user, get_workspace_access
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from ...auth.dependencies import get_current_user, get_workspace_access
 from ...memory.episodic.models import ConversationTurn, Episode
 from ...memory.episodic.store import EpisodicMemory
 from ...models import User, Workspace

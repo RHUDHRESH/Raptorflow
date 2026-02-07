@@ -1,6 +1,7 @@
-import logging
+﻿import logging
 from typing import Any, Dict, Optional
 
+from api.dependencies import auth_context, get_supabase_admin
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from schemas.business_context_input import BusinessContextInput

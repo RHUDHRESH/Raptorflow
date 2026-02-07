@@ -7,6 +7,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
+from core.supabase_mgr import get_supabase_client
 from schemas.bcm_evolution import (
     BusinessContextEverything,
     EventType,
@@ -14,8 +15,7 @@ from schemas.bcm_evolution import (
 )
 from schemas.business_context import BrandIdentity, MarketPosition, StrategicAudience
 
-from .core.supabase_mgr import get_supabase_client
-from .services.upstash_client import get_upstash_client
+from .upstash_client import get_upstash_client
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ class BCMProjector:
             )
             # Fetch all events for this workspace, ordered by creation
             result = (
-                await self.db.table(self.table_name)
+                self.db.table(self.table_name)
                 .select("*")
                 .eq("workspace_id", workspace_id)
                 .order("created_at")

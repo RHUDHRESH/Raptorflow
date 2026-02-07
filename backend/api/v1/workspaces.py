@@ -4,11 +4,9 @@ Workspaces API endpoints
 
 from typing import Any, Dict, List, Optional
 
+from api.dependencies import auth_context, current_user, get_supabase_client
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr
-
-from ..core.supabase_mgr import get_supabase_client
-from ..core.workspace import get_workspace_for_user
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 

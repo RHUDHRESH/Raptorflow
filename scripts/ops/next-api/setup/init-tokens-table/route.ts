@@ -31,7 +31,7 @@ export async function POST() {
         .from('password_reset_tokens')
         .select('count')
         .limit(1);
-      
+
       if (testResult.error && testResult.error.code === '42P01') {
         return NextResponse.json({
           success: false,
@@ -47,7 +47,7 @@ export async function POST() {
 );`
         }, { status: 400 });
       }
-      
+
       return NextResponse.json({
         success: true,
         message: 'Table already exists or was created successfully'

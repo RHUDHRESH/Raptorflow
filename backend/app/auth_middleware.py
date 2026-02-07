@@ -30,12 +30,16 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Any:
         # Skip auth for public endpoints
-        public_paths = [
+        public_paths = {
             "/",
             "/health",
-            "/docs",
-            "/redoc",
             "/openapi.json",
+            # Canonical auth paths
+            "/api/auth/login",
+            "/api/auth/signup",
+            "/api/auth/callback",
+            "/api/auth/refresh",
+            # Legacy paths (rewritten to /api/*)
             "/api/v1/auth/login",
             "/api/v1/auth/signup",
             "/api/v1/auth/callback",
@@ -44,11 +48,14 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             "/api/v2/auth/signup",
             "/api/v2/auth/callback",
             "/api/v2/auth/refresh",
-        ]
+        }
+        public_prefixes = ("/docs", "/redoc")
 
         # Check if path is public
         path = request.url.path
-        if any(path.startswith(public) or path == public for public in public_paths):
+        if path in public_paths or any(
+            path.startswith(prefix) for prefix in public_prefixes
+        ):
             return await call_next(request)
 
         # Extract JWT from Authorization header

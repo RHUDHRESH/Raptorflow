@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 from memory.models import MemoryType
 from memory.vector_store import VectorMemory
 
-from .services.upstash_client import get_upstash_client
+from .upstash_client import get_upstash_client
 
 logger = logging.getLogger("raptorflow.services.dcm")
 

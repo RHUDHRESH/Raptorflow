@@ -17,8 +17,7 @@ from critic import AdversarialCritic
 from engine import CognitiveEngine
 from execution import PlanExecutor
 from fallback import FallbackHandler
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from hitl import ApprovalGate
@@ -45,23 +44,7 @@ from ..models import CognitiveResult, ExecutionPlan, PerceivedInput, ReflectionR
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="Raptorflow Cognitive Engine API",
-    description="Production-ready cognitive processing engine with 100% enterprise capabilities",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-)
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+router = APIRouter(prefix="", tags=["cognitive"])
 
 # Security
 security = HTTPBearer()
@@ -197,7 +180,7 @@ async def get_current_user(
 background_tasks = BackgroundTasks()
 
 
-@app.on_event("startup")
+@router.on_event("startup")
 async def startup_event():
     """Initialize components on startup."""
     logger.info("Starting Cognitive Engine API...")
@@ -222,7 +205,7 @@ async def cleanup_expired_cache():
         logger.error(f"Cache cleanup failed: {e}")
 
 
-@app.get("/", response_model=Dict[str, Any])
+@router.get("/", response_model=Dict[str, Any])
 async def root():
     """Root endpoint."""
     return {
@@ -235,7 +218,7 @@ async def root():
     }
 
 
-@app.get("/health", response_model=HealthCheckResponse)
+@router.get("/health", response_model=HealthCheckResponse)
 async def health_check():
     """Health check endpoint."""
     try:
@@ -279,7 +262,7 @@ async def health_check():
         )
 
 
-@app.get("/metrics", response_model=MetricsResponse)
+@router.get("/metrics", response_model=MetricsResponse)
 async def get_metrics():
     """Get system metrics."""
     try:
@@ -327,7 +310,7 @@ async def get_metrics():
         )
 
 
-@app.post("/api/v1/cognitive/process", response_model=CognitiveResponse)
+@router.post("/process", response_model=CognitiveResponse)
 async def process_cognitive(
     request: CognitiveRequest, user_id: str = Query(..., description="User ID")
 ):
@@ -427,7 +410,7 @@ async def process_cognitive(
         )
 
 
-@app.post("/api/v1/cognitive/perception", response_model=Dict[str, Any])
+@router.post("/perception", response_model=Dict[str, Any])
 async def process_perception(
     text: str,
     context: Optional[Dict[str, Any]] = None,
@@ -450,7 +433,7 @@ async def process_perception(
         return {"success": False, "error": str(e), "metadata": {"module": "perception"}}
 
 
-@app.post("/api/v1/cognitive/planning", response_model=Dict[str, Any])
+@router.post("/planning", response_model=Dict[str, Any])
 async def process_planning(
     text: str,
     perceived_input: Optional[Dict[str, Any]] = None,
@@ -481,7 +464,7 @@ async def process_planning(
         return {"success": False, "error": str(e), "metadata": {"module": "planning"}}
 
 
-@app.post("/api/v1/cognitive/reflection", response_model=Dict[str, Any])
+@router.post("/reflection", response_model=Dict[str, Any])
 async def process_reflection(
     output: str,
     goal: str,
@@ -507,7 +490,7 @@ async def process_reflection(
         return {"success": False, "error": str(e), "metadata": {"module": "reflection"}}
 
 
-@app.post("/api/v1/cognitive/critic", response_model=Dict[str, Any])
+@router.post("/critic", response_model=Dict[str, Any])
 async def process_critic(
     content: str,
     context: Optional[Dict[str, Any]] = None,
@@ -532,7 +515,7 @@ async def process_critic(
         return {"success": False, "error": str(e), "metadata": {"module": "critic"}}
 
 
-@app.post("/api/v1/cognitive/approvals", response_model=Dict[str, Any])
+@router.post("/approvals", response_model=Dict[str, Any])
 async def get_pending_approvals(user_id: str = Query(..., description="User ID")):
     """Get pending approval requests."""
     try:
@@ -566,9 +549,7 @@ async def get_pending_approvals(user_id: str = Query(..., description="User ID")
         return {"success": False, "error": str(e), "metadata": {"module": "approvals"}}
 
 
-@app.post(
-    "/api/v1/cognitive/approvals/{approval_id}/respond", response_model=Dict[str, Any]
-)
+@router.post("/approvals/{approval_id}/respond", response_model=Dict[str, Any])
 async def respond_approval(
     approval_id: str,
     approved: bool,
@@ -592,7 +573,7 @@ async def respond_approval(
         return {"success": False, "error": str(e), "metadata": {"module": "approvals"}}
 
 
-@app.get("/api/v1/cognitive/cache/stats", response_model=Dict[str, Any])
+@router.get("/cache/stats", response_model=Dict[str, Any])
 async def get_cache_stats():
     """Get cache statistics."""
     try:
@@ -607,7 +588,7 @@ async def get_cache_stats():
         return {"success": False, "error": str(e), "metadata": {"module": "cache"}}
 
 
-@app.delete("/api/v1/cognitive/cache/clear", response_model=Dict[str, Any])
+@router.delete("/cache/clear", response_model=Dict[str, Any])
 async def clear_cache():
     """Clear all cache entries."""
     try:
@@ -624,7 +605,7 @@ async def clear_cache():
         return {"success": False, "error": str(e), "metadata": {"module": "cache"}}
 
 
-@app.get("/api/v1/cognitive/trace/{trace_id}", response_model=Dict[str, Any])
+@router.get("/trace/{trace_id}", response_model=Dict[str, Any])
 async def get_trace(trace_id: str):
     """Get trace details."""
     try:
@@ -648,7 +629,7 @@ async def get_trace(trace_id: str):
         return {"success": False, "error": str(e), "metadata": {"module": "traces"}}
 
 
-@app.get("/api/v1/cognitive/versions", response_model=Dict[str, Any])
+@router.get("/versions", response_model=Dict[str, Any])
 async def get_versions():
     """Get component versions."""
     try:
@@ -663,7 +644,7 @@ async def get_versions():
         return {"success": False, "error": str(e), "metadata": {"module": "versioning"}}
 
 
-@app.get("/api/v1/cognitive/services", response_model=Dict[str, Any])
+@router.get("/services", response_model=Dict[str, Any])
 async def get_services():
     """Get discovered services."""
     try:
@@ -680,7 +661,7 @@ async def get_services():
         return {"success": False, "error": str(e), "metadata": {"module": "discovery"}}
 
 
-@app.get("/api/v1/cognitive/rules", response_model=Dict[str, Any])
+@router.get("/rules", response_model=Dict[str, Any])
 async def get_routing_rules():
     """Get routing rules."""
     try:
@@ -694,7 +675,6 @@ async def get_routing_rules():
 
 
 # Error handlers
-@app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc):
     """Global exception handler."""
     logger.error(f"Global exception: {exc}")
@@ -713,7 +693,6 @@ async def global_exception_handler(request: Request, exc):
     )
 
 
-@app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """HTTP exception handler."""
     logger.error(f"HTTP exception: {exc}")

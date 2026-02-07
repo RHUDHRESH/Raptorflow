@@ -9,11 +9,11 @@ Provides one-liner methods for common operations like ledgering events.
 import logging
 from typing import Any, Dict, List, Optional
 
+from core.supabase_mgr import get_supabase_client
 from schemas.bcm_evolution import EventType
 
-from .core.supabase_mgr import get_supabase_client
-from .services.bcm_projector import BCMProjector
-from .services.bcm_recorder import BCMEventRecorder
+from .bcm_projector import BCMProjector
+from .bcm_recorder import BCMEventRecorder
 
 logger = logging.getLogger(__name__)
 

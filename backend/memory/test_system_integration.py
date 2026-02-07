@@ -329,6 +329,9 @@ def test_memory_type_consistency():
         "research",
         "conversation",
         "feedback",
+        "bcm",
+        "bcm_section",
+        "market_intel",
     ]
     actual_memory_types = MemoryType.get_all_types()
 

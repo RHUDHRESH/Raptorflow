@@ -1,4 +1,4 @@
-"""
+﻿"""
 Payments Domain - Service
 PhonePe payment processing and subscription management
 """
@@ -78,7 +78,7 @@ class PaymentService:
                 "amount": amount,
                 "redirectUrl": redirect_url or "https://raptorflow.in/payment/callback",
                 "redirectMode": "REDIRECT",
-                "callbackUrl": "https://api.raptorflow.in/api/v1/payments/webhook",
+                "callbackUrl": "https://api.raptorflow.in/api/payments/webhook",
                 "paymentInstrument": {"type": "PAY_PAGE"},
             }
 

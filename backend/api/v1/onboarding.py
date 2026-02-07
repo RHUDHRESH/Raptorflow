@@ -9,13 +9,23 @@ import asyncio
 import logging
 import os
 import tempfile
+import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from api.dependencies import current_user
 from core.supabase_mgr import get_supabase_admin
 from db.repositories.onboarding import OnboardingRepository
 from db.repositories.onboarding_steps import OnboardingStepsRepository
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    UploadFile,
+)
 from integration.bcm_reducer import BCMReducer
 from pydantic import BaseModel, Field, validator
 from schemas.onboarding_schema import (
@@ -32,6 +42,11 @@ from tenacity import (
     wait_exponential,
 )
 
+# Core system imports
+from ...infrastructure.storage import FileCategory
+from ...infrastructure.storage import upload_file as upload_infra_file
+from ...utils.ucid import UCIDGenerator
+from ..agents.graphs.onboarding_v2 import OnboardingGraphV2
 from ..agents.specialists.category_advisor import CategoryAdvisor
 from ..agents.specialists.channel_recommender import ChannelRecommender
 from ..agents.specialists.competitor_analyzer import CompetitorAnalyzer
@@ -54,12 +69,15 @@ from ..agents.specialists.reddit_researcher import RedditResearcher
 from ..agents.specialists.soundbites_generator import SoundbitesGenerator
 from ..agents.specialists.truth_sheet_generator import TruthSheetGenerator
 from ..redis.session_manager import get_onboarding_session_manager
-
-# Core system imports
 from ..services.ocr_service import OCRService
+from ..services.onboarding_migration_service import (
+    OnboardingMigrationService,
+    migrate_onboarding_status_batch,
+)
 from ..services.profile_service import ProfileService
 from ..services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
 from ..services.storage import get_enhanced_storage_service
+from ..services.supabase_client import get_supabase_client
 from ..services.vertex_ai_service import vertex_ai_service
 
 # Configure logging
@@ -73,6 +91,10 @@ RETRY_BASE_DELAY = 1
 
 # Create router
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
+router_v2 = APIRouter(prefix="/v2", tags=["onboarding-v2"])
+router_migration = APIRouter(prefix="/migration", tags=["onboarding-migration"])
+router.include_router(router_v2)
+router.include_router(router_migration)
 
 # Initialize industrial services
 ocr_service = OCRService()
@@ -83,6 +105,9 @@ onboarding_steps_repo = OnboardingStepsRepository()
 # Initialize Redis session manager
 session_manager = get_onboarding_session_manager()
 profile_service = ProfileService()
+onboarding_graph = OnboardingGraphV2().create_graph()
+migration_service = OnboardingMigrationService()
+migration_supabase_client = get_supabase_client()
 
 
 def _ensure_active_subscription(profile: Dict[str, Any]) -> None:
@@ -828,6 +853,268 @@ async def get_session_summary(session_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/{session_id}/health")
+async def session_health_check(session_id: str):
+    """Check session health and Redis connectivity"""
+    try:
+        metadata = await session_manager.get_metadata(session_id)
+        if not metadata:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        redis_health = await session_manager.health_check()
+        summary = await session_manager.get_session_summary(session_id)
+
+        return {
+            "success": True,
+            "session_id": session_id,
+            "session_health": {
+                "exists": True,
+                "metadata_valid": metadata is not None,
+                "steps_completed": (
+                    summary.get("stats", {}).get("completed_steps", 0) if summary else 0
+                ),
+                "last_activity": metadata.get("started_at"),
+            },
+            "redis_health": redis_health,
+            "checked_at": datetime.utcnow().isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking session health: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{session_id}/status")
+async def session_status(session_id: str):
+    """Get session status and progress"""
+    try:
+        summary = await session_manager.get_session_summary(session_id)
+        if not summary or "error" in summary:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        progress = await session_manager.get_progress(session_id)
+        return {
+            "success": True,
+            "session_id": session_id,
+            "summary": summary,
+            "progress": progress,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting session status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/{session_id}/cleanup")
+async def cleanup_session(session_id: str):
+    """Cleanup session data (legacy compatibility)."""
+    try:
+        success = await session_manager.delete_session(session_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Session not found")
+        return {
+            "success": True,
+            "session_id": session_id,
+            "cleaned_at": datetime.utcnow().isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cleaning up session: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class SyncStepRequest(BaseModel):
+    step_id: int
+    data: Dict[str, Any]
+
+
+@router.get("/status")
+async def get_onboarding_status(
+    workspace_id: str, user_id: str = Query(..., description="User ID")
+):
+    """Legacy sync status endpoint (workspace-based)."""
+    try:
+        session = await onboarding_repo.get_by_workspace(workspace_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="No onboarding session found")
+
+        progress = await onboarding_repo.get_session_progress(session.id)
+        current_step = progress.get("current_step", 1)
+        next_step = _build_next_step_guidance(current_step)
+
+        return {
+            "workspace_id": workspace_id,
+            "total_steps": TOTAL_ONBOARDING_STEPS,
+            "completed_steps": len(progress.get("completed_steps", [])),
+            "failed_steps": 0,
+            "in_progress_steps": 1,
+            "progress_percentage": progress.get("progress_percentage", 0),
+            "current_step": str(current_step),
+            "next_step": next_step.get("next_step", {}).get("step_number"),
+            "steps": progress.get("completed_steps", []),
+            "is_locked": False,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting onboarding status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/next-step")
+async def get_next_step(
+    workspace_id: str, user_id: str = Query(..., description="User ID")
+):
+    """Legacy sync next-step endpoint (workspace-based)."""
+    try:
+        session = await onboarding_repo.get_by_workspace(workspace_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="No onboarding session found")
+
+        progress = await onboarding_repo.get_session_progress(session.id)
+        current_step = progress.get("current_step", 1)
+        next_step = _build_next_step_guidance(current_step)
+
+        return {
+            "next_step": next_step.get("next_step"),
+            "can_execute": next_step.get("next_step") is not None,
+            "reason": next_step.get("message"),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting next step: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/step-data/{step_id}")
+async def get_step_data_by_workspace(
+    step_id: int, workspace_id: str, user_id: str = Query(..., description="User ID")
+):
+    """Legacy sync step data endpoint (workspace-based)."""
+    try:
+        session = await onboarding_repo.get_by_workspace(workspace_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="No onboarding session found")
+
+        step_data = await session_manager.get_step(session.id, step_id)
+        if not step_data:
+            raise HTTPException(status_code=404, detail="Step data not found")
+
+        return {
+            "step_id": step_id,
+            "status": "completed",
+            "result_data": step_data.get("data"),
+            "completed_at": step_data.get("saved_at"),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting step data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/step")
+async def execute_step_sync(
+    request: SyncStepRequest,
+    workspace_id: str,
+    user_id: str = Query(..., description="User ID"),
+):
+    """Legacy sync execute step endpoint (workspace-based)."""
+    try:
+        session = await onboarding_repo.get_by_workspace(workspace_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="No onboarding session found")
+
+        step_request = StepUpdateRequest(
+            data=request.data, version=1, workspace_id=workspace_id
+        )
+        return await update_step_data(session.id, request.step_id, step_request)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error executing step: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/reset-step")
+async def reset_step_sync(
+    step_id: int, workspace_id: str, user_id: str = Query(..., description="User ID")
+):
+    """Legacy sync reset-step endpoint (workspace-based)."""
+    try:
+        session = await onboarding_repo.get_by_workspace(workspace_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="No onboarding session found")
+
+        key = session_manager.STEP_KEY_PREFIX.format(session.id, step_id)
+        await session_manager.redis.delete(key)
+        progress = await session_manager.get_progress(session.id)
+
+        return {
+            "success": True,
+            "message": f"Step {step_id} reset successfully",
+            "progress": progress,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error resetting step: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/resume")
+async def resume_onboarding(
+    workspace_id: str, user_id: str = Query(..., description="User ID")
+):
+    """Legacy sync resume endpoint (workspace-based)."""
+    try:
+        session = await onboarding_repo.get_by_workspace(workspace_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="No onboarding session found")
+
+        progress = await session_manager.get_progress(session.id)
+        current_step = progress.get("completed", 0) + 1 if progress else 1
+        next_step = _build_next_step_guidance(current_step)
+        return {
+            "success": True,
+            "session_id": session.id,
+            "progress": progress,
+            "next_step": next_step.get("next_step"),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error resuming onboarding: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/sync-check")
+async def sync_check(
+    workspace_id: str, user_id: str = Query(..., description="User ID")
+):
+    """Legacy sync-check endpoint (workspace-based)."""
+    try:
+        session = await onboarding_repo.get_by_workspace(workspace_id)
+        if not session:
+            return {"synced": True, "message": "No onboarding session"}
+
+        progress = await session_manager.get_progress(session.id)
+        return {
+            "synced": True,
+            "issues": [],
+            "workspace_id": workspace_id,
+            "current_step": progress.get("completed", 0) + 1 if progress else 1,
+            "is_locked": False,
+        }
+    except Exception as e:
+        logger.error(f"Error checking sync: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/{session_id}/finalize")
 async def finalize_session(session_id: str, force_finalize: bool = False):
     """Finalize onboarding session with comprehensive validation and BCM generation"""
@@ -955,6 +1242,59 @@ async def finalize_session(session_id: str, force_finalize: bool = False):
         raise
     except Exception as e:
         logger.error(f"Error finalizing session: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/finalize/health")
+async def finalize_health():
+    """Health check for onboarding finalization."""
+    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+
+
+@router.get("/context/manifest")
+async def get_context_manifest(workspace_id: str = Query(...)):
+    """Get latest business context for a workspace."""
+    try:
+        supabase = onboarding_repo._get_supabase_client()
+        result = (
+            supabase.table("business_contexts")
+            .select("*")
+            .eq("workspace_id", workspace_id)
+            .order("updated_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if not result.data:
+            return {
+                "success": False,
+                "workspace_id": workspace_id,
+                "manifest": None,
+                "message": "No business context found",
+            }
+        return {
+            "success": True,
+            "workspace_id": workspace_id,
+            "manifest": result.data[0],
+            "retrieved_at": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving business context: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/context/rebuild")
+async def rebuild_context(workspace_id: str = Query(...)):
+    """Rebuild BCM for a workspace."""
+    try:
+        await _trigger_bcm_generation(workspace_id)
+        return {
+            "success": True,
+            "workspace_id": workspace_id,
+            "message": "BCM rebuild triggered",
+            "triggered_at": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Error rebuilding context: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -2068,6 +2408,28 @@ async def process_url(session_id: str, request: URLProcessRequest):
         raise HTTPException(status_code=500, detail=f"URL processing failed: {str(e)}")
 
 
+@router.post("/{session_id}/upload-file")
+async def upload_file_compat(
+    session_id: str,
+    file: UploadFile = File(...),
+    item_id: str = Form(...),
+    workspace_id: str = Form(...),
+):
+    """Legacy wrapper for vault upload."""
+    return await upload_file(
+        session_id=session_id,
+        workspace_id=workspace_id,
+        file=file,
+        item_id=item_id,
+    )
+
+
+@router.post("/{session_id}/process-url")
+async def process_url_compat(session_id: str, request: URLProcessRequest):
+    """Legacy wrapper for vault URL processing."""
+    return await process_url(session_id, request)
+
+
 @router.get("/{session_id}/vault")
 async def get_vault_contents(session_id: str):
     """Get all vault contents for a session - persistent"""
@@ -2087,51 +2449,6 @@ async def get_vault_contents(session_id: str):
         }
     except Exception as e:
         logger.error(f"Error getting vault contents: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/{session_id}/steps/{step_id}")
-async def get_step_data(session_id: str, step_id: int):
-    """Get step data - persistent"""
-    try:
-        # We need to fetch session
-        # Use simple supabase query via repo
-        # get_by_workspace isn't efficient if we have ID.
-        # Implemented get(id) in Base Repo? Yes "get(self, id: str, workspace_id: str)".
-        # But we need workspace_id to verify access properly.
-        # For now, we assume RLS handles it or we use raw query.
-
-        # Adding get_session_by_id to repo would be cleaner, but base `get`
-        # requires `workspace_id`.
-        # So we query by ID directly using private method logic or add usage.
-        # Let's use `onboarding_repo._get_supabase_client()...` or just assume we have `get_by_workspace` but we don't have workspace_id in args here?
-        # WARNING: Original `get_step_data` didn't ask for `workspace_id`.
-        # This is a security flaw in original too if session_id is guessable.
-
-        # We'll stick to simple query.
-        res = (
-            onboarding_repo._get_supabase_client()
-            .table(onboarding_repo.table_name)
-            .select("*")
-            .eq("id", session_id)
-            .single()
-            .execute()
-        )
-        if not res.data:
-            raise HTTPException(status_code=404, detail="Session not found")
-
-        session_data = res.data
-        step_data_blob = session_data.get("step_data", {})
-        specific_step = step_data_blob.get(str(step_id), {})
-
-        return {
-            "session_id": session_id,
-            "step_id": step_id,
-            "data": specific_step.get("data", {}),
-            "updated_at": specific_step.get("updated_at"),
-        }
-    except Exception as e:
-        logger.error(f"Error getting step data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -2331,6 +2648,8 @@ async def _trigger_bcm_generation(workspace_id: str):
         from integration.context_builder import build_business_context_manifest
         from memory.controller import MemoryController
 
+        from ..services.bcm_vectorize_service import BCMVectorizeService
+
         # Build BCM
         memory_controller = MemoryController()
         bcm = await build_business_context_manifest(
@@ -2342,110 +2661,27 @@ async def _trigger_bcm_generation(workspace_id: str):
         # Store BCM in memory tiers
         await memory_controller.store_bcm(workspace_id, bcm["content"], "tier0")
 
+        # Best-effort: vectorize BCM for semantic memory
+        try:
+            vectorizer = BCMVectorizeService()
+            await vectorizer.vectorize_manifest(
+                workspace_id=workspace_id,
+                manifest=bcm.get("content", {}),
+                version=str(bcm.get("version_major", 1)),
+                source="context_builder",
+            )
+        except Exception as e:
+            logger.warning(
+                "BCM vectorization failed for workspace %s: %s",
+                workspace_id,
+                e,
+            )
+
         logger.info(f"Generated BCM for workspace {workspace_id}")
 
     except Exception as e:
         logger.error(f"Error triggering BCM generation: {e}")
         raise
-
-
-@router.post("/{session_id}/finalize")
-async def finalize_onboarding(session_id: str):
-    """Finalize onboarding session and generate business context"""
-    try:
-        # Validate session exists
-        session_summary = await session_manager.get_session_summary(session_id)
-        if not session_summary or "error" in session_summary:
-            raise HTTPException(status_code=404, detail="Session not found")
-
-        # Get session metadata
-        metadata = session_summary.get("metadata")
-        if not metadata:
-            raise HTTPException(status_code=400, detail="Session metadata not found")
-
-        workspace_id = metadata.get("workspace_id")
-        user_id = metadata.get("user_id")
-
-        if not workspace_id or not user_id:
-            raise HTTPException(status_code=400, detail="Invalid session metadata")
-
-        # Get all session steps
-        all_steps = await session_manager.get_all_steps(session_id)
-
-        if not all_steps:
-            raise HTTPException(status_code=400, detail="No step data found in session")
-
-        # Validate minimum completion (at least 50% of steps)
-        completed_steps = len(all_steps)
-        completion_percentage = (completed_steps / session_manager.TOTAL_STEPS) * 100
-
-        if completion_percentage < 50:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Insufficient completion: {completed_steps}/{session_manager.TOTAL_STEPS} steps completed",
-            )
-
-        # Generate business context from session data
-        business_context = await _generate_business_context_from_session(
-            session_id=session_id,
-            workspace_id=workspace_id,
-            user_id=user_id,
-            all_steps=all_steps,
-            metadata=metadata,
-        )
-
-        # Validate business context
-        from validators.business_context_validator import business_context_validator
-
-        validated_context, validation_results = (
-            business_context_validator.validate_from_dict(business_context.model_dump())
-        )
-
-        if not validation_results["is_valid"]:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Business context validation failed: {validation_results['errors']}",
-            )
-
-        # Store business context in database
-        await _store_business_context(workspace_id, validated_context)
-
-        # Update user onboarding status
-        await _update_user_onboarding_status(user_id, workspace_id, "completed")
-
-        # Trigger BCM generation
-        await _trigger_bcm_generation(workspace_id)
-
-        # Clean up session data
-        await session_manager.delete_session(session_id)
-
-        logger.info(
-            f"Finalized onboarding for session {session_id}, workspace {workspace_id}"
-        )
-
-        return {
-            "success": True,
-            "session_id": session_id,
-            "workspace_id": workspace_id,
-            "business_context": {
-                "ucid": validated_context.ucid,
-                "completion_percentage": validated_context.calculate_completion_percentage(),
-                "validation_score": validation_results["score"],
-                "status": validated_context.status,
-            },
-            "next_steps": [
-                "Business context has been generated and stored",
-                "BCM (Business Context Manifest) is being generated",
-                "You can now access the dashboard and other features",
-            ],
-            "validation_results": validation_results,
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error finalizing onboarding session {session_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 async def _generate_business_context_from_session(
@@ -2764,3 +3000,1123 @@ async def _update_user_onboarding_status(user_id: str, workspace_id: str, status
     except Exception as e:
         logger.error(f"Error updating onboarding status: {e}")
         raise
+
+
+# ---------------------------------------------------------------------------
+# Onboarding v2 (LangGraph) endpoints
+# ---------------------------------------------------------------------------
+
+
+class StartSessionRequest(BaseModel):
+    workspace_id: str
+    user_id: str
+
+
+class OnboardingResponse(BaseModel):
+    success: bool
+    ucid: str
+    session_id: str
+    progress: float
+    data: Dict[str, Any]
+    next_step: str
+
+
+async def run_onboarding_step(
+    session_id: str,
+    step_name: str,
+    input_updates: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Helper to run a specific graph node and return the updated state."""
+    config = {"configurable": {"thread_id": session_id}}
+    state_update = input_updates or {}
+    state_update["current_step"] = step_name
+
+    final_state = await onboarding_graph.ainvoke(state_update, config)
+    return final_state
+
+
+@router_v2.post("/start", response_model=Dict[str, Any])
+async def start_onboarding_v2(
+    request: StartSessionRequest,
+    user_id: str = Query(..., description="User ID"),
+):
+    """Initialize a new onboarding v2 session."""
+    profile = profile_service.verify_profile(current_user)
+    _ensure_active_subscription(profile)
+    profile_workspace_id = profile.get("workspace_id")
+    if not profile_workspace_id:
+        raise HTTPException(status_code=400, detail="Workspace not found for user")
+    if user_id != current_user.id or request.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="User does not match session owner")
+    if request.workspace_id != profile_workspace_id:
+        raise HTTPException(
+            status_code=403, detail="Workspace does not match authenticated user"
+        )
+
+    ucid = UCIDGenerator.generate()
+    session_id = str(uuid.uuid4())
+
+    return {
+        "success": True,
+        "ucid": ucid,
+        "session_id": session_id,
+        "progress": 0.0,
+        "next_step": "evidence_vault",
+    }
+
+
+@router_v2.post("/{session_id}/vault", response_model=Dict[str, Any])
+async def submit_vault_evidence(
+    session_id: str,
+    workspace_id: str,
+    user_id: str,
+    files: List[UploadFile] = File(...),
+):
+    """Step 1: Submit evidence and auto-classify via EvidenceClassifier."""
+    evidence = []
+    for file in files:
+        content = await file.read()
+        result = await upload_infra_file(
+            content=content,
+            filename=file.filename,
+            workspace_id=workspace_id,
+            user_id=user_id,
+            category=FileCategory.UPLOADS,
+        )
+        if result.success:
+            evidence.append(
+                {
+                    "file_id": result.file_id,
+                    "filename": file.filename,
+                    "content_type": file.content_type,
+                }
+            )
+
+    final_state = await run_onboarding_step(
+        session_id, "evidence_vault", {"evidence": evidence}
+    )
+
+    return {
+        "success": True,
+        "ucid": final_state.get("ucid", "PENDING"),
+        "progress": final_state.get("onboarding_progress", 4.34),
+        "data": final_state.get("step_data", {}).get("evidence_vault", {}),
+        "next_step": "auto_extraction",
+    }
+
+
+@router_v2.post("/{session_id}/extract", response_model=Dict[str, Any])
+async def trigger_extraction(session_id: str):
+    """Step 2: Deep fact extraction via ExtractionOrchestrator."""
+    final_state = await run_onboarding_step(session_id, "auto_extraction")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("auto_extraction", {}),
+        "next_step": "contradiction_check",
+    }
+
+
+@router_v2.post("/{session_id}/offer-pricing", response_model=Dict[str, Any])
+async def analyze_offer_pricing(session_id: str):
+    """Step 6: Architect revenue model via OfferArchitect."""
+    final_state = await run_onboarding_step(session_id, "offer_pricing")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("offer_pricing", {}),
+        "next_step": "market_intelligence",
+    }
+
+
+@router_v2.post("/{session_id}/market-intelligence", response_model=Dict[str, Any])
+async def research_market_intelligence(session_id: str):
+    """Step 7: Autonomous research via RedditScraper & InsightExtractor."""
+    final_state = await run_onboarding_step(session_id, "market_intelligence")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("market_intelligence", {}),
+        "next_step": "comparative_angle",
+    }
+
+
+@router_v2.post("/{session_id}/comparative-angle", response_model=Dict[str, Any])
+async def analyze_comparative_angle(session_id: str):
+    """Step 8: Define vantage point via ComparativeAngleGenerator."""
+    final_state = await run_onboarding_step(session_id, "comparative_angle")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("comparative_angle", {}),
+        "next_step": "category_paths",
+    }
+
+
+@router_v2.post("/{session_id}/category-paths", response_model=Dict[str, Any])
+async def recommend_category_paths(session_id: str):
+    """Step 9: Safe/Clever/Bold paths via CategoryAdvisor."""
+    final_state = await run_onboarding_step(session_id, "category_paths")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("category_paths", {}),
+        "next_step": "capability_rating",
+    }
+
+
+@router_v2.post("/{session_id}/capability-rating", response_model=Dict[str, Any])
+async def rate_capabilities(session_id: str):
+    """Step 10: 4-tier audit via CapabilityRatingEngine."""
+    final_state = await run_onboarding_step(session_id, "capability_rating")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("capability_rating", {}),
+        "next_step": "perceptual_map",
+    }
+
+
+@router_v2.post("/{session_id}/perceptual-map", response_model=Dict[str, Any])
+async def generate_perceptual_map(session_id: str):
+    """Step 11: Competitive mapping via PerceptualMapGenerator."""
+    final_state = await run_onboarding_step(session_id, "perceptual_map")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("perceptual_map", {}),
+        "next_step": "strategic_grid",
+    }
+
+
+@router_v2.post("/{session_id}/strategic-grid", response_model=Dict[str, Any])
+async def lock_strategic_position(session_id: str):
+    """Step 12: Position lock & milestones via StrategicGridOrchestrator."""
+    final_state = await run_onboarding_step(session_id, "strategic_grid")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("strategic_grid", {}),
+        "next_step": "positioning_statements",
+    }
+
+
+@router_v2.post("/{session_id}/positioning-statements", response_model=Dict[str, Any])
+async def draft_positioning_statements(session_id: str):
+    """Step 13: Brand manifesto via NeuroscienceCopywriter."""
+    final_state = await run_onboarding_step(session_id, "positioning_statements")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("positioning_statements", {}),
+        "next_step": "focus_sacrifice",
+    }
+
+
+@router_v2.post("/{session_id}/focus-sacrifice", response_model=Dict[str, Any])
+async def recommend_focus_sacrifice(session_id: str):
+    """Step 14: Tradeoffs via ConstraintEngine."""
+    final_state = await run_onboarding_step(session_id, "focus_sacrifice")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("focus_sacrifice", {}),
+        "next_step": "icp_profiles",
+    }
+
+
+@router_v2.post("/{session_id}/icp-profiles", response_model=Dict[str, Any])
+async def generate_icp_profiles(session_id: str):
+    """Step 15: Deep ICP profiling via ICPArchitect."""
+    final_state = await run_onboarding_step(session_id, "icp_profiles")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("icp_profiles", {}),
+        "next_step": "buying_process",
+    }
+
+
+@router_v2.post("/{session_id}/buying-process", response_model=Dict[str, Any])
+async def architect_buying_process(session_id: str):
+    """Step 16: Buyer journey via BuyingProcessArchitect."""
+    final_state = await run_onboarding_step(session_id, "buying_process")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("buying_process", {}),
+        "next_step": "messaging_guardrails",
+    }
+
+
+@router_v2.post("/{session_id}/messaging-guardrails", response_model=Dict[str, Any])
+async def define_messaging_guardrails(session_id: str):
+    """Step 17: Brand rules via MessagingRulesEngine."""
+    final_state = await run_onboarding_step(session_id, "messaging_guardrails")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("messaging_guardrails", {}),
+        "next_step": "soundbites_library",
+    }
+
+
+@router_v2.post("/{session_id}/soundbites", response_model=Dict[str, Any])
+async def generate_soundbites(session_id: str):
+    """Step 18: Atomic copy via SoundbitesGenerator."""
+    final_state = await run_onboarding_step(session_id, "soundbites_library")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("soundbites_library", {}),
+        "next_step": "message_hierarchy",
+    }
+
+
+@router_v2.post("/{session_id}/message-hierarchy", response_model=Dict[str, Any])
+async def architect_message_hierarchy(session_id: str):
+    """Step 19: Structural cascade via MessageHierarchyArchitect."""
+    final_state = await run_onboarding_step(session_id, "message_hierarchy")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("message_hierarchy", {}),
+        "next_step": "channel_mapping",
+    }
+
+
+@router_v2.post("/{session_id}/channel-mapping", response_model=Dict[str, Any])
+async def map_acquisition_channels(session_id: str):
+    """Step 20: Media mix via ChannelRecommender."""
+    final_state = await run_onboarding_step(session_id, "channel_mapping")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("channel_mapping", {}),
+        "next_step": "tam_sam_som",
+    }
+
+
+@router_v2.post("/{session_id}/tam-sam-som", response_model=Dict[str, Any])
+async def calculate_market_size(session_id: str):
+    """Step 21: Financial modeling via MarketSizer."""
+    final_state = await run_onboarding_step(session_id, "tam_sam_som")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("tam_sam_som", {}),
+        "next_step": "validation_todos",
+    }
+
+
+@router_v2.post("/{session_id}/reality-check", response_model=Dict[str, Any])
+async def perform_reality_check(session_id: str):
+    """Step 22: Readiness audit via ValidationTracker."""
+    final_state = await run_onboarding_step(session_id, "validation_todos")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("validation_todos", {}),
+        "next_step": "final_synthesis",
+    }
+
+
+@router_v2.post("/{session_id}/final-synthesis", response_model=Dict[str, Any])
+async def finalize_onboarding(session_id: str):
+    """Step 23: Production handover via FinalSynthesis."""
+    final_state = await run_onboarding_step(session_id, "final_synthesis")
+    return {
+        "success": True,
+        "data": final_state.get("step_data", {}).get("final_synthesis", {}),
+        "handover_status": "Systems Online",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Onboarding migration endpoints
+# ---------------------------------------------------------------------------
+
+
+class MigrationRequest(BaseModel):
+    """Request model for user migration."""
+
+    user_ids: List[str] = Field(..., description="List of user IDs to migrate")
+    batch_size: int = Field(default=50, description="Batch size for processing")
+
+
+class MigrationResponse(BaseModel):
+    """Response model for migration operations."""
+
+    success: bool
+    total_users: int
+    migrated_users: int
+    failed_users: int
+    results: List[Dict[str, Any]]
+    stats: Optional[Dict[str, Any]]
+    error_message: Optional[str] = None
+    processing_time_ms: Optional[float] = None
+
+
+class RollbackRequest(BaseModel):
+    """Request model for rollback operations."""
+
+    user_ids: List[str] = Field(..., description="List of user IDs to rollback")
+
+
+class RollbackResponse(BaseModel):
+    """Response model for rollback operations."""
+
+    success: bool
+    total_users: int
+    rolled_back_users: int
+    failed_users: int
+    results: List[Dict[str, Any]]
+    error_message: Optional[str] = None
+    processing_time_ms: Optional[float] = None
+
+
+class ValidationResponse(BaseModel):
+    """Response model for migration validation."""
+
+    valid: bool
+    user_id: str
+    session_id: Optional[str]
+    workspace_id: Optional[str]
+    legacy_status: Optional[str]
+    new_status: Optional[str]
+    completion_percentage: Optional[float]
+    bcm_generated: Optional[bool]
+    error_message: Optional[str] = None
+    details: Optional[Dict[str, Any]]
+
+
+class StatsResponse(BaseModel):
+    """Response model for migration statistics."""
+
+    total_users: int
+    migrated_users: int
+    failed_users: int
+    legacy_completed_users: int
+    legacy_active_users: int
+    avg_completion_time: Optional[float]
+    migration_start_time: Optional[str]
+    migration_end_time: Optional[str]
+    total_migrations: Optional[int]
+    completed_migrations: Optional[int]
+    failed_migrations: Optional[int]
+
+
+@router_migration.post("/migrate")
+async def migrate_users(request: MigrationRequest, background_tasks: BackgroundTasks):
+    """
+    Migrate users from legacy onboarding status to new session system.
+    """
+    start_time = datetime.utcnow()
+
+    try:
+        if not request.user_ids:
+            raise HTTPException(status_code=400, detail="No user IDs provided")
+
+        valid_user_ids = []
+        for user_id in request.user_ids:
+            user_data = await migration_supabase_client.execute(
+                "SELECT id, onboarding_status, onboarding_step, has_completed_onboarding FROM users WHERE id = $1",
+                [user_id],
+            )
+
+            if not user_data:
+                logger.warning("User %s not found, skipping", user_id)
+                continue
+
+            if (
+                not user_data[0]["onboarding_status"]
+                or user_data[0]["onboarding_status"] == "migrated"
+            ):
+                logger.warning(
+                    "User %s has no legacy onboarding data, skipping", user_id
+                )
+                continue
+
+            valid_user_ids.append(user_id)
+
+        if not valid_user_ids:
+            raise HTTPException(
+                status_code=400,
+                detail="No valid users with legacy onboarding data found",
+            )
+
+        all_results = []
+        batch_size = request.batch_size
+
+        for i in range(0, len(valid_user_ids), batch_size):
+            batch = valid_user_ids[i : i + batch_size]
+
+            logger.info(
+                "Processing migration batch %s/%s",
+                i // batch_size + 1,
+                (len(valid_user_ids) + batch_size - 1) // batch_size,
+            )
+
+            try:
+                batch_results = await migrate_onboarding_status_batch(batch)
+                all_results.extend(batch_results)
+            except Exception as e:
+                logger.error("Failed to process batch %s: %s", i // batch_size + 1, e)
+                for failed_user in batch:
+                    all_results.append(
+                        {"user_id": failed_user, "success": False, "error": str(e)}
+                    )
+
+        migrated_count = sum(
+            1 for result in all_results if result.get("success", False)
+        )
+        failed_count = len(all_results) - migrated_count
+
+        stats = await migration_service.get_migration_stats()
+        end_time = datetime.utcnow()
+        processing_time_ms = (end_time - start_time).total_seconds() * 1000
+
+        return MigrationResponse(
+            success=failed_count == 0,
+            total_users=len(request.user_ids),
+            migrated_users=migrated_count,
+            failed_users=failed_count,
+            results=all_results,
+            stats={
+                "total_users": stats.total_users,
+                "migrated_users": stats.migrated_users,
+                "failed_users": stats.failed_users,
+                "legacy_completed_users": stats.legacy_completed_users,
+                "legacy_active_users": stats.legacy_active_users,
+                "avg_completion_time": stats.avg_completion_time,
+                "migration_start_time": (
+                    stats.migration_start_time.isoformat()
+                    if stats.migration_start_time
+                    else None
+                ),
+                "migration_end_time": (
+                    stats.migration_end_time.isoformat()
+                    if stats.migration_end_time
+                    else None
+                ),
+            },
+            processing_time_ms=processing_time_ms,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Migration failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Migration failed: {str(e)}")
+
+
+@router_migration.post("/migrate/{user_id}")
+async def migrate_single_user(user_id: str, background_tasks: BackgroundTasks):
+    """Migrate a single user from legacy onboarding status to new session system."""
+    try:
+        result = await migration_service.migrate_user(user_id)
+
+        return {
+            "success": True,
+            "user_id": result.user_id,
+            "session_id": result.session_id,
+            "workspace_id": result.workspace_id,
+            "legacy_status": result.legacy_status,
+            "new_status": result.new_status,
+            "current_step": result.current_step,
+            "completion_percentage": result.completion_percentage,
+            "bcm_generated": result.bcm_generated,
+            "migrated_at": result.migrated_at.isoformat(),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Single user migration failed for %s: %s", user_id, e)
+        raise HTTPException(status_code=500, detail=f"Migration failed: {str(e)}")
+
+
+@router_migration.post("/rollback")
+async def rollback_users(request: RollbackRequest, background_tasks: BackgroundTasks):
+    """Rollback migration for specified users, restoring legacy onboarding status."""
+    start_time = datetime.utcnow()
+
+    try:
+        if not request.user_ids:
+            raise HTTPException(status_code=400, detail="No user IDs provided")
+
+        all_results = []
+
+        for user_id in request.user_ids:
+            try:
+                success = await migration_service.rollback_user(user_id)
+                all_results.append({"user_id": user_id, "success": success})
+            except Exception as e:
+                logger.error("Failed to rollback user %s: %s", user_id, e)
+                all_results.append(
+                    {"user_id": user_id, "success": False, "error": str(e)}
+                )
+
+        rolled_back_count = sum(
+            1 for result in all_results if result.get("success", False)
+        )
+        failed_count = len(all_results) - rolled_back_count
+
+        end_time = datetime.utcnow()
+        processing_time_ms = (end_time - start_time).total_seconds() * 1000
+
+        return RollbackResponse(
+            success=failed_count == 0,
+            total_users=len(request.user_ids),
+            rolled_back_users=rolled_back_count,
+            failed_users=failed_count,
+            results=all_results,
+            processing_time_ms=processing_time_ms,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Rollback failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Rollback failed: {str(e)}")
+
+
+@router_migration.post("/rollback/{user_id}")
+async def rollback_single_user(user_id: str, background_tasks: BackgroundTasks):
+    """Rollback migration for a single user."""
+    try:
+        success = await migration_service.rollback_user(user_id)
+
+        return {
+            "success": success,
+            "user_id": user_id,
+            "message": (
+                "Rollback completed successfully" if success else "Rollback failed"
+            ),
+        }
+
+    except Exception as e:
+        logger.error("Single user rollback failed for %s: %s", user_id, e)
+        raise HTTPException(status_code=500, detail=f"Rollback failed: {str(e)}")
+
+
+@router_migration.get("/stats")
+async def get_migration_stats() -> StatsResponse:
+    """Get current migration statistics."""
+    try:
+        stats = await migration_service.get_migration_stats()
+
+        return StatsResponse(
+            total_users=stats.total_users,
+            migrated_users=stats.migrated_users,
+            failed_users=stats.failed_users,
+            legacy_completed_users=stats.legacy_completed_users,
+            legacy_active_users=stats.legacy_active_users,
+            avg_completion_time=stats.avg_completion_time,
+            migration_start_time=(
+                stats.migration_start_time.isoformat()
+                if stats.migration_start_time
+                else None
+            ),
+            migration_end_time=(
+                stats.migration_end_time.isoformat()
+                if stats.migration_end_time
+                else None
+            ),
+            total_migrations=stats.total_migrations,
+            completed_migrations=stats.completed_migrations,
+            failed_migrations=stats.failed_migrations,
+        )
+
+    except Exception as e:
+        logger.error("Failed to get migration stats: %s", e)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get migration stats: {str(e)}"
+        )
+
+
+@router_migration.get("/validate/{user_id}")
+async def validate_migration(user_id: str) -> ValidationResponse:
+    """Validate migration integrity for a user."""
+    try:
+        validation_result = await migration_service.validate_migration(user_id)
+
+        return ValidationResponse(
+            valid=validation_result["valid"],
+            user_id=validation_result.get("user_id"),
+            session_id=validation_result.get("session_id"),
+            workspace_id=validation_result.get("workspace_id"),
+            legacy_status=validation_result.get("legacy_status"),
+            new_status=validation_result.get("new_status"),
+            completion_percentage=validation_result.get("completion_percentage"),
+            bcm_generated=validation_result.get("bcm_generated"),
+            error_message=validation_result.get("error"),
+            details=validation_result,
+        )
+
+    except Exception as e:
+        logger.error("Failed to validate migration for user %s: %s", user_id, e)
+        raise HTTPException(status_code=500, detail=f"Validation failed: {str(e)}")
+
+
+@router_migration.get("/health")
+async def migration_health_check() -> Dict[str, Any]:
+    """Health check for the migration system."""
+    try:
+        await migration_supabase_client.execute("SELECT 1")
+        stats = await migration_service.get_migration_stats()
+
+        return {
+            "healthy": True,
+            "database": "connected",
+            "migration_service": "operational",
+            "total_users": stats.total_users,
+            "migrated_users": stats.migrated_users,
+            "failed_users": stats.failed_users,
+            "checked_at": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error("Migration health check failed: %s", e)
+        return {
+            "healthy": False,
+            "error": str(e),
+            "checked_at": datetime.utcnow().isoformat(),
+        }
+
+
+@router_migration.post("/cleanup")
+async def cleanup_failed_migrations(
+    older_than_days: int = Query(
+        default=7, description="Clean up migration logs older than specified days"
+    )
+):
+    """Clean up failed migration logs older than specified days."""
+    try:
+        await migration_service._cleanup_failed_migrations(older_than_days)
+
+        return {
+            "success": True,
+            "message": f"Cleaned up migration logs older than {older_than_days} days",
+            "cleaned_at": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error("Failed to cleanup migration logs: %s", e)
+        raise HTTPException(status_code=500, detail=f"Cleanup failed: {str(e)}")
+
+
+@router_migration.get("/user/{user_id}/status")
+async def get_user_migration_status(user_id: str) -> Dict[str, Any]:
+    """Get detailed migration status for a specific user."""
+    try:
+        user_query = """
+            SELECT id, email, full_name, onboarding_status, onboarding_step, has_completed_onboarding
+            FROM users WHERE id = $1
+        """
+
+        user_result = await migration_supabase_client.execute(user_query, [user_id])
+        if not user_result:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user_data = user_result[0]
+        migration_result = await migration_service.validate_migration(user_id)
+
+        return {
+            "user_id": user_id,
+            "email": user_data["email"],
+            "full_name": user_data["full_name"],
+            "legacy_status": user_data["onboarding_status"],
+            "legacy_step": user_data["onboarding_step"],
+            "legacy_completed": user_data["has_completed_onboarding"],
+            "migration_status": "migrated" if migration_result["valid"] else "legacy",
+            "session_id": migration_result.get("session_id"),
+            "workspace_id": migration_result.get("workspace_id"),
+            "new_status": migration_result.get("new_status"),
+            "current_step": migration_result.get("current_step"),
+            "completion_percentage": migration_result.get("completion_percentage"),
+            "bcm_generated": migration_result.get("bcm_generated"),
+            "migrated_at": migration_result.get("migrated_at"),
+            "validation": migration_result,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to get user migration status for %s: %s", user_id, e)
+        raise HTTPException(status_code=500, detail=f"Failed to get status: {str(e)}")
+
+
+@router_migration.get("/workspace/{workspace_id}/summary")
+async def get_workspace_migration_summary(workspace_id: str) -> Dict[str, Any]:
+    """Get migration summary for a workspace."""
+    try:
+        workspace_query = """
+            SELECT id, name, owner_id, created_at, updated_at
+            FROM workspaces
+            WHERE id = $1
+        """
+
+        workspace_result = await migration_supabase_client.execute(
+            workspace_query, [workspace_id]
+        )
+        if not workspace_result:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+
+        workspace_data = workspace_result[0]
+
+        summary_query = """
+            SELECT
+                COUNT(*) as total_sessions,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_sessions,
+                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_sessions,
+                AVG(completion_percentage) as avg_completion,
+                COUNT(CASE WHEN bcm_generated = TRUE THEN 1 END) as bcm_generated_sessions,
+                COUNT(CASE WHEN bcm_finalized = TRUE THEN 1 END) as bcm_finalized_sessions,
+                MAX(completed_at) as last_completion_at
+            FROM onboarding_sessions
+            WHERE workspace_id = $1
+        """
+
+        summary_result = await migration_supabase_client.execute(
+            summary_query, [workspace_id]
+        )
+        summary_data = summary_result[0] if summary_result else {}
+
+        return {
+            "workspace_id": workspace_id,
+            "workspace_name": workspace_data["name"],
+            "owner_id": workspace_data["owner_id"],
+            "total_sessions": summary_data.get("total_sessions", 0),
+            "completed_sessions": summary_data.get("completed_sessions", 0),
+            "active_sessions": summary_data.get("active_sessions", 0),
+            "avg_completion": summary_data.get("avg_completion", 0),
+            "bcm_generated_sessions": summary_data.get("bcm_generated_sessions", 0),
+            "bcm_finalized_sessions": summary_data.get("bcm_finalized_sessions", 0),
+            "last_completion_at": summary_data.get("last_completion_at"),
+            "created_at": workspace_data["created_at"],
+            "updated_at": workspace_data["updated_at"],
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "Failed to get workspace migration summary for %s: %s", workspace_id, e
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to get summary: {str(e)}")
+
+
+@router_migration.get("/progress")
+async def get_migration_progress() -> Dict[str, Any]:
+    """Get real-time migration progress."""
+    try:
+        stats = await migration_service.get_migration_stats()
+        total_users = stats.total_users
+        migrated_users = stats.migrated_users
+        progress_percentage = (
+            (migrated_users / total_users * 100) if total_users > 0 else 0
+        )
+
+        return {
+            "total_users": total_users,
+            "migrated_users": migrated_users,
+            "failed_users": stats.failed_users,
+            "progress_percentage": progress_percentage,
+            "legacy_completed_users": stats.legacy_completed_users,
+            "legacy_active_users": stats.legacy_active_users,
+            "migration_start_time": (
+                stats.migration_start_time.isoformat()
+                if stats.migration_start_time
+                else None
+            ),
+            "migration_end_time": (
+                stats.migration_end_time.isoformat()
+                if stats.migration_end_time
+                else None
+            ),
+            "estimated_completion_time": None,
+            "processing_rate": 0,
+            "checked_at": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error("Failed to get migration progress: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to get progress: {str(e)}")
+
+
+@router_migration.get("/legacy-status/{user_id}")
+async def get_legacy_status(user_id: str) -> Dict[str, Any]:
+    """Get legacy onboarding status for a user (before migration)."""
+    try:
+        user_query = """
+            SELECT id, email, full_name, onboarding_status, onboarding_step, has_completed_onboarding,
+                   preferences, metadata, created_at, updated_at
+            FROM users
+            WHERE id = $1
+        """
+
+        result = await migration_supabase_client.execute(user_query, [user_id])
+        if not result:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user_data = result[0]
+
+        return {
+            "user_id": user_id,
+            "email": user_data["email"],
+            "full_name": user_data["full_name"],
+            "onboarding_status": user_data["onboarding_status"],
+            "onboarding_step": user_data["onboarding_step"],
+            "has_completed_onboarding": user_data["has_completed_onboarding"],
+            "preferences": user_data["preferences"],
+            "metadata": user_data["metadata"],
+            "created_at": user_data["created_at"],
+            "updated_at": user_data["updated_at"],
+        }
+
+    except Exception as e:
+        logger.error("Failed to get legacy status for %s: %s", user_id, e)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get legacy status: {str(e)}"
+        )
+
+
+@router_migration.get("/comparison")
+async def get_legacy_vs_new_comparison() -> Dict[str, Any]:
+    """Get comparison between legacy and new onboarding systems."""
+    try:
+        legacy_query = """
+            SELECT
+                COUNT(*) as total_users,
+                COUNT(CASE WHEN has_completed_onboarding THEN 1 END) as completed_users,
+                COUNT(CASE WHEN onboarding_status IN ('active', 'in_progress') THEN 1 END) as active_users,
+                COUNT(CASE WHEN onboarding_status = 'none' THEN 1 END) as no_onboarding_users
+            FROM users
+        """
+
+        legacy_result = await migration_supabase_client.execute(legacy_query)
+        legacy_data = legacy_result[0] if legacy_result else {}
+
+        new_stats = await migration_service.get_migration_stats()
+
+        return {
+            "legacy_system": {
+                "total_users": legacy_data.get("total_users", 0),
+                "completed_users": legacy_data.get("completed_users", 0),
+                "active_users": legacy_data.get("active_users", 0),
+                "no_onboarding_users": legacy_data.get("no_onboarding_users", 0),
+            },
+            "new_system": {
+                "total_users": new_stats.total_users,
+                "migrated_users": new_stats.migrated_users,
+                "failed_users": new_stats.failed_users,
+                "legacy_completed_users": new_stats.legacy_completed_users,
+                "legacy_active_users": new_stats.legacy_active_users,
+            },
+            "comparison": {
+                "migration_rate": (
+                    (new_stats.migrated_users / legacy_data.get("total_users", 0) * 100)
+                    if legacy_data.get("total_users", 0) > 0
+                    else 0
+                ),
+                "completion_rate_difference": (
+                    (
+                        (
+                            new_stats.legacy_completed_users
+                            - legacy_data.get("completed_users", 0)
+                        )
+                        / legacy_data.get("total_users", 1)
+                        * 100
+                    )
+                    if legacy_data.get("total_users", 0) > 0
+                    else 0
+                ),
+                "active_users_difference": (
+                    (
+                        (
+                            new_stats.legacy_active_users
+                            - legacy_data.get("active_users", 0)
+                        )
+                        / legacy_data.get("total_users", 1)
+                        * 100
+                    )
+                    if legacy_data.get("total_users", 0) > 0
+                    else 0
+                ),
+            },
+            "checked_at": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error("Failed to get comparison: %s", e)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get comparison: {str(e)}"
+        )
+
+
+@router_migration.post("/migrate/batch")
+async def migrate_large_batch(
+    request: MigrationRequest, background_tasks: BackgroundTasks
+):
+    """Process a large migration batch in the background."""
+    try:
+        background_tasks.add_task(
+            _process_large_migration_batch, request.user_ids, request.batch_size
+        )
+
+        return {
+            "success": True,
+            "message": f"Large batch migration started for {len(request.user_ids)} users",
+            "batch_size": request.batch_size,
+            "estimated_time": (len(request.user_ids) / request.batch_size) * 2,
+        }
+
+    except Exception as e:
+        logger.error("Failed to start large batch migration: %s", e)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to start batch migration: {str(e)}"
+        )
+
+
+async def _process_large_migration_batch(user_ids: List[str], batch_size: int):
+    """Background task to process large migration batch."""
+    try:
+        logger.info("Processing large migration batch of %s users", len(user_ids))
+
+        for i in range(0, len(user_ids), batch_size):
+            sub_batch = user_ids[i : i + batch_size]
+
+            logger.info(
+                "Processing sub-batch %s/%s",
+                i // batch_size + 1,
+                (len(user_ids) + batch_size - 1) // batch_size,
+            )
+
+            try:
+                results = await migrate_onboarding_status_batch(sub_batch)
+                logger.info(
+                    "Sub-batch %s completed: %s/%s",
+                    i // batch_size + 1,
+                    sum(1 for r in results if r.get("success", False)),
+                    len(sub_batch),
+                )
+
+                if i + batch_size < len(user_ids):
+                    await asyncio.sleep(2)
+
+            except Exception as e:
+                logger.error("Sub-batch %s failed: %s", i // batch_size + 1, e)
+
+        logger.info("Large batch migration completed")
+
+    except Exception as e:
+        logger.error("Large batch migration failed: %s", e)
+
+
+@router_migration.get("/admin/users/unmigrated")
+async def get_unmigrated_users() -> List[Dict[str, Any]]:
+    """Get list of users who haven't been migrated yet."""
+    try:
+        query = """
+            SELECT id, email, full_name, onboarding_status, onboarding_step, has_completed_onboarding
+            FROM users
+            WHERE onboarding_status NOT IN ('migrated', 'none')
+            ORDER BY created_at DESC
+        """
+
+        result = await migration_supabase_client.execute(query)
+        return [
+            {
+                "user_id": row["id"],
+                "email": row["email"],
+                "full_name": row["full_name"],
+                "onboarding_status": row["onboarding_status"],
+                "onboarding_step": row["onboarding_step"],
+                "has_completed_onboarding": row["has_completed_onboarding"],
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"],
+            }
+            for row in result
+        ]
+
+    except Exception as e:
+        logger.error("Failed to get unmigrated users: %s", e)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get unmigrated users: {str(e)}"
+        )
+
+
+@router_migration.get("/admin/users/migrated")
+async def get_migrated_users() -> List[Dict[str, Any]]:
+    """Get list of users who have been migrated."""
+    try:
+        query = """
+            SELECT u.id, u.email, u.full_name, os.session_id, os.status, os.current_step,
+                   os.completion_percentage, os.bcm_generated, os.migrated_at
+            FROM users u
+            JOIN onboarding_sessions os ON u.id = os.user_id
+            WHERE os.migrated_from_legacy = TRUE
+            ORDER BY os.migrated_at DESC
+        """
+
+        result = await migration_supabase_client.execute(query)
+        return [
+            {
+                "user_id": row["id"],
+                "email": row["email"],
+                "full_name": row["full_name"],
+                "session_id": row["session_id"],
+                "status": row["status"],
+                "current_step": row["current_step"],
+                "completion_percentage": row["completion_percentage"],
+                "bcm_generated": row["bcm_generated"],
+                "migrated_at": row["migrated_at"],
+            }
+            for row in result
+        ]
+
+    except Exception as e:
+        logger.error("Failed to get migrated users: %s", e)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get migrated users: {str(e)}"
+        )
+
+
+@router_migration.get("/admin/users/migration-details")
+async def get_detailed_migration_details() -> Dict[str, Any]:
+    """Get detailed migration information for admin dashboard."""
+    try:
+        stats = await migration_service.get_migration_stats()
+
+        logs_query = """
+            SELECT id, source_user_id, target_session_id, legacy_onboarding_status,
+                   legacy_onboarding_step, legacy_has_completed_onboarding, status,
+                   started_at, completed_at, error_message
+            FROM onboarding_migration_log
+            ORDER BY created_at DESC
+            LIMIT 50
+        """
+
+        logs_result = await migration_supabase_client.execute(logs_query)
+        recent_logs = [
+            {
+                "log_id": row["id"],
+                "user_id": row["source_user_id"],
+                "session_id": row["target_session_id"],
+                "legacy_status": row["legacy_onboarding_status"],
+                "legacy_step": row["legacy_onboarding_step"],
+                "legacy_completed": row["legacy_has_completed_onboarding"],
+                "status": row["status"],
+                "started_at": row["started_at"],
+                "completed_at": row["completed_at"],
+                "error_message": row["error_message"],
+            }
+            for row in logs_result
+        ]
+
+        return {
+            "stats": {
+                "total_users": stats.total_users,
+                "migrated_users": stats.migrated_users,
+                "failed_users": stats.failed_users,
+                "legacy_completed_users": stats.legacy_completed_users,
+                "legacy_active_users": stats.legacy_active_users,
+                "avg_completion_time": stats.avg_completion_time,
+                "migration_start_time": stats.migration_start_time,
+                "migration_end_time": stats.migration_end_time,
+                "total_migrations": stats.total_migrations,
+                "completed_migrations": stats.completed_migrations,
+                "failed_migrations": stats.failed_migrations,
+            },
+            "recent_logs": recent_logs,
+            "checked_at": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error("Failed to get detailed migration details: %s", e)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get migration details: {str(e)}"
+        )

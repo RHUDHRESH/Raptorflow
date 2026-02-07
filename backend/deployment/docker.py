@@ -61,7 +61,7 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \\
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Start application
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
 """
 
     def get_docker_compose_content(self, environment: str = "development") -> Dict[str, Any]:
@@ -333,7 +333,7 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \\
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Start application
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
 """
 
     def get_kubernetes_deployment(self, namespace: str = "default") -> Dict[str, Any]:
@@ -644,14 +644,14 @@ gcloud run deploy $REGISTRY:$VERSION \\
     --max-instances 3 \\
     --set-env-vars \\
         ENVIRONMENT=production \\
-        SECRET_KEY="${{os.getenv('SECRET_KEY')}" \\
-        DATABASE_URL="${{os.getenv('DATABASE_URL')}" \\
-        UPSTABASE_REDIS_URL="${{os.getenv('UPSTABASE_REDIS_URL')}" \\
-        UPSTABASE_REDIS_TOKEN="${{os.getenv('UPSTABASE_REDIS_TOKEN')}" \\
-        VERTEX_AI_PROJECT_ID="${{os.getenv('VERTEX_AI_PROJECT_ID')}" \\
+        SECRET_KEY="${SECRET_KEY}" \\
+        DATABASE_URL="${DATABASE_URL}" \\
+        UPSTABASE_REDIS_URL="${UPSTABASE_REDIS_URL}" \\
+        UPSTABASE_REDIS_TOKEN="${UPSTABASE_REDIS_TOKEN}" \\
+        VERTEX_AI_PROJECT_ID="${VERTEX_AI_PROJECT_ID}" \\
         GCP_PROJECT_ID="$GCP_PROJECT_ID" \\
-        WEBHOOK_SECRET="${{os.getenv('WEBHOOK_SECRET')}" \\
-        ALLOWED_ORIGINS="${{os.getenv('ALLOWED_ORIGINS', '*')}" \\
+        WEBHOOK_SECRET="${WEBHOOK_SECRET}" \\
+        ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-*}" \\
     --set-cloudsql-instances raptorflow-prod:us-central1:raptorflow-db \\
     --set-cloudsql-databases raptorflow_prod \\
     --set-secrets raptorflow-prod-secrets

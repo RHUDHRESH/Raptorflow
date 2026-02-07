@@ -2,14 +2,16 @@
 Approval management API endpoints.
 """
 
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
-from ..core.database import get_db
+from ...core.database import get_db
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
 
@@ -37,6 +39,7 @@ class ApprovalDecisionRequest(BaseModel):
     gate_id: str
     workspace_id: str
     user_id: str
+    session_id: str
     approved: bool = Field(..., description="Whether to approve or reject")
     reason: str = Field(default="", description="Reason for decision")
     approver_id: Optional[str] = Field(None, description="ID of the approver")
@@ -90,8 +93,22 @@ class ApprovalCreateResponse(BaseModel):
     error: Optional[str]
 
 
-# Global instance
-hitl_graph = HITLGraph()
+_hitl_graph: Optional[HITLGraph] = None
+
+
+def get_hitl_graph() -> HITLGraph:
+    global _hitl_graph
+    if _hitl_graph is None:
+        try:
+            from ...agents.graphs.hitl import HITLGraph  # noqa: PLC0415
+
+            _hitl_graph = HITLGraph()
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"HITLGraph unavailable: {exc}",
+            ) from exc
+    return _hitl_graph
 
 
 @router.get("/pending", response_model=ApprovalListResponse)
@@ -103,6 +120,7 @@ async def list_pending_approvals(
     offset: int = 0,
     user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
+    hitl_graph: HITLGraph = Depends(get_hitl_graph),
 ):
     """
     List all pending approvals for a workspace.
@@ -155,6 +173,7 @@ async def approve_request(
     background_tasks: BackgroundTasks,
     user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
+    hitl_graph: HITLGraph = Depends(get_hitl_graph),
 ):
     """
     Approve a pending approval request.
@@ -220,6 +239,7 @@ async def reject_request(
     background_tasks: BackgroundTasks,
     user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
+    hitl_graph: HITLGraph = Depends(get_hitl_graph),
 ):
     """
     Reject a pending approval request.
@@ -340,6 +360,7 @@ async def create_approval_gate(
     background_tasks: BackgroundTasks,
     user_id: str = Query(..., description="User ID"),
     db=Depends(get_db),
+    hitl_graph: HITLGraph = Depends(get_hitl_graph),
 ):
     """
     Create a new approval gate for content requiring human review.

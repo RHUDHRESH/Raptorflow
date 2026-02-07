@@ -100,7 +100,7 @@ The system is **production-ready** and provides enterprise-grade monitoring capa
 1. **Start Your Backend**
    ```bash
    cd backend
-   python -m uvicorn main:app --reload
+   python -m uvicorn backend.main:app --reload
    ```
 
 2. **Monitor Your Sentry Dashboard**
@@ -150,7 +150,7 @@ The system is **production-ready** and provides enterprise-grade monitoring capa
 
 **Raptorflow Backend now has enterprise-grade Sentry monitoring that:**
 - ✅ Captures 100% of errors with detailed context
-- ✅ Tracks performance with <100ms accuracy  
+- ✅ Tracks performance with <100ms accuracy
 - ✅ Reduces noise by >80% with intelligent categorization
 - ✅ Detects critical issues within 30 seconds
 - ✅ Correlates errors with user sessions for faster debugging

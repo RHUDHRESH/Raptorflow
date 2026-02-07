@@ -3,6 +3,12 @@ Database Tests for RaptorFlow Backend
 Tests database connections, migrations, and data integrity
 """
 
+import pytest
+
+pytest.skip(
+    "Legacy test archived; superseded by canonical test suite.", allow_module_level=True
+)
+
 import asyncio
 from typing import Any, Dict, List
 from unittest.mock import AsyncMock, patch

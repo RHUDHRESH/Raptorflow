@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 RED TEAM TEST: Find actual flaws in agents system
 No imports, no dependencies - just raw code analysis
@@ -50,7 +50,7 @@ def test_imports():
 
     # Test 5: Main app
     try:
-        from main import app
+        from backend.main import app
 
         results["main_app"] = "PASS"
     except Exception as e:
@@ -101,10 +101,10 @@ def main():
     print(f"\n=== SUCCESS RATE: {success_rate:.1f}% ===")
 
     if success_rate < 80:
-        print("❌ CRITICAL FLAWS DETECTED")
+        print("âŒ CRITICAL FLAWS DETECTED")
         return False
     else:
-        print("✅ SYSTEM IS VIABLE")
+        print("âœ… SYSTEM IS VIABLE")
         return True
 
 

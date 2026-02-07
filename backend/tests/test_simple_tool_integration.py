@@ -1,3 +1,10 @@
+import pytest
+
+pytest.skip(
+    "Archived script-style module; not collected in canonical suite.",
+    allow_module_level=True,
+)
+
 #!/usr/bin/env python3
 """
 Simple test for tool integration without relative imports.

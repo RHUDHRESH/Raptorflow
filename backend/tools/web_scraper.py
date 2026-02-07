@@ -53,7 +53,7 @@ except ImportError:
         pass
 
 
-from config import settings
+from backend.config import settings
 
 # Local imports
 from .base import (
