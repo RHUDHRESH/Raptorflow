@@ -1,67 +1,78 @@
-"""
-Reasoning Telemetry Service: Persists AI reasoning traces for audit and API visibility.
-"""
+import time
+from typing import Any, Dict, Optional
 
-import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-from .core.supabase_mgr import get_supabase_client
-from .services.bcm_integration import bcm_evolution
-
-logger = logging.getLogger(__name__)
+from backend.utils.logger import logger
 
 
-class ReasoningTelemetry:
-    """Service for capturing and persisting agent reasoning traces."""
+class Telemetry:
+    """
+    SOTA Telemetry Service for Cognitive Intelligence Engine.
+    Tracks agent latency, token usage, and graph traversal success.
+    """
 
-    def __init__(self):
-        self.supabase = get_supabase_client()
-
-    async def log_reasoning(
-        self, workspace_id: str, agent_name: str, task_id: str, trace: Dict[str, Any]
-    ) -> bool:
-        """
-        Persists a reasoning trace to the database and BCM Ledger.
-        """
-        try:
-            data = {
-                "workspace_id": workspace_id,
+    @staticmethod
+    def capture_agent_start(agent_name: str, task_id: str):
+        logger.info(
+            f"AGENT_START: {agent_name}",
+            extra={
+                "event_type": "agent_start",
                 "agent_name": agent_name,
                 "task_id": task_id,
-                "trace": trace,
-                "created_at": datetime.utcnow().isoformat(),
-            }
+                "start_time": time.time(),
+            },
+        )
 
-            # Using Supabase JSONB for persistence
-            await self.supabase.table("agent_reasoning_logs").insert(data).execute()
+    @staticmethod
+    def capture_agent_end(
+        agent_name: str, task_id: str, duration: float, success: bool
+    ):
+        logger.info(
+            f"AGENT_END: {agent_name}",
+            extra={
+                "event_type": "agent_end",
+                "agent_name": agent_name,
+                "task_id": task_id,
+                "duration_ms": duration * 1000,
+                "success": success,
+            },
+        )
 
-            # Record in BCM Ledger via unified integration
-            await bcm_evolution.record_interaction(
-                workspace_id=workspace_id,
-                agent_name=agent_name,
-                interaction_type="AI_REASONING",
-                payload={"task_id": task_id, "reasoning_length": len(str(trace))},
-            )
+    @staticmethod
+    def capture_token_usage(
+        agent_name: str, model: str, prompt_tokens: int, completion_tokens: int
+    ):
+        logger.info(
+            f"TOKEN_USAGE: {agent_name} ({model})",
+            extra={
+                "event_type": "token_usage",
+                "agent_name": agent_name,
+                "model": model,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": prompt_tokens + completion_tokens,
+            },
+        )
 
-            return True
-        except Exception as e:
-            logger.error(f"Failed to log reasoning: {e}")
-            return False
+    @staticmethod
+    def capture_state_transition(
+        actor: str,
+        from_state: str,
+        to_state: str,
+        task_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ):
+        logger.info(
+            f"STATE_TRANSITION: {actor} {from_state} -> {to_state}",
+            extra={
+                "event_type": "state_transition",
+                "actor": actor,
+                "from_state": from_state,
+                "to_state": to_state,
+                "task_id": task_id,
+                "metadata": metadata or {},
+            },
+        )
 
-    async def get_trace(self, task_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Retrieves a reasoning trace for a specific task.
-        """
-        try:
-            res = (
-                await self.supabase.table("agent_reasoning_logs")
-                .select("reasoning_trace")
-                .eq("task_id", task_id)
-                .single()
-                .execute()
-            )
-            return res.data.get("reasoning_trace") if res.data else None
-        except Exception as e:
-            logger.error(f"Failed to retrieve trace: {e}")
-            return None
+
+def get_telemetry() -> Telemetry:
+    return Telemetry()

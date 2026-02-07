@@ -16,11 +16,13 @@ async def get_tenant_id(x_tenant_id: Optional[str] = Header(None)) -> UUID:
     from Supabase/Auth0 and extract the tenant_id from claims.
     """
     if not x_tenant_id:
-        # For development/demo, allow fallback or fail
-        # In a real build, this MUST raise 401
         settings = get_settings()
-        fallback = settings.DEFAULT_TENANT_ID
-        return UUID(fallback)
+        if settings.ALLOW_DEFAULT_TENANT_ID_FALLBACK:
+            return UUID(settings.DEFAULT_TENANT_ID)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing X-Tenant-ID header.",
+        )
 
     try:
         return UUID(x_tenant_id)

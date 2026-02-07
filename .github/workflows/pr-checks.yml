@@ -58,9 +58,26 @@ jobs:
           pip install -r backend/requirements-prod.txt
           pip install pytest pytest-asyncio pytest-cov
 
+<<<<<<< HEAD
       - name: Run pytest
         run: |
           python -m pytest backend/tests -v --tb=short --timeout=300
+=======
+      - name: Run unit tests
+        working-directory: backend
+        run: npm test -- --run --coverage --reporter=verbose
+        env:
+          NODE_ENV: test
+          REDIS_URL: redis://localhost:6379
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          file: ./backend/coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+>>>>>>> origin/codex/add-authentication-to-blackbox-routes
 
   # =====================================================
   # INTEGRATION TESTS

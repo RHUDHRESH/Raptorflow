@@ -47,6 +47,19 @@ class Config(BaseSettings):
     MODEL_REASONING: str = "gemini-2.5-flash-lite"
     MODEL_GENERAL: str = "gemini-2.5-flash-lite"
 
+    # Image Generation Models (Nano Banana)
+    MODEL_IMAGE_NANO: str = "gemini-2.5-flash-image"
+    MODEL_IMAGE_PRO: str = "gemini-3-pro-image-preview"
+
+    # Creative Asset Generation Settings
+    IMAGE_GEN_ENABLED: bool = True
+    IMAGE_MAX_COUNT_PER_REQUEST: int = 4
+    IMAGE_DEFAULT_STYLE: str = "photorealistic"
+
+    # Usage Tracking
+    ENABLE_USAGE_TRACKING: bool = True
+    MONTHLY_IMAGE_QUOTA: int = 100
+
     EMBEDDING_MODEL: str = "text-embedding-004"
 
     # Backend Vertex Keys
@@ -62,6 +75,18 @@ class Config(BaseSettings):
     TAVILY_API_KEY: Optional[str] = None
     PERPLEXITY_API_KEY: Optional[str] = None
     BRAVE_SEARCH_API_KEY: Optional[str] = None
+    SEARCH_PROVIDER_ORDER: list[str] = ["native", "serper"]
+    SEARCH_PROVIDER_QUOTAS: dict[str, Optional[int]] = {
+        "native": None,
+        "serper": 500,
+    }
+    SEARCH_PROVIDER_SETTINGS: dict[str, dict[str, str]] = {
+        "serper": {"endpoint": "https://google.serper.dev/search"},
+    }
+
+    # Rendering
+    JS_RENDERING_ENABLED: bool = False
+    JS_RENDERING_TIMEOUT_S: int = 20
 
     # Payment Configuration (PhonePe Standard Checkout v2)
     PHONEPE_CLIENT_ID: Optional[str] = None
@@ -70,11 +95,13 @@ class Config(BaseSettings):
     PHONEPE_ENV: Optional[str] = None
     PHONEPE_WEBHOOK_USERNAME: Optional[str] = None
     PHONEPE_WEBHOOK_PASSWORD: Optional[str] = None
+    PAYMENT_REDIRECT_ALLOWLIST: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     # Security
     SECRET_KEY: str = "industrial-secret-placeholder"
     RF_INTERNAL_KEY: Optional[str] = None
     DEFAULT_TENANT_ID: str = "00000000-0000-0000-0000-000000000000"
+    ALLOW_DEFAULT_TENANT_ID_FALLBACK: bool = False
     AUTONOMY_LEVEL: str = "medium"
     NEXT_PUBLIC_API_URL: str = "http://localhost:8000"
     AUTH_JWKS_URL: Optional[str] = None
@@ -154,6 +181,11 @@ def get_settings() -> Config:
         "MODEL_REASONING_HIGH",
         "MODEL_REASONING",
         "MODEL_GENERAL",
+        "MODEL_IMAGE_NANO",
+        "MODEL_IMAGE_PRO",
+        "IMAGE_GEN_ENABLED",
+        "ENABLE_USAGE_TRACKING",
+        "MONTHLY_IMAGE_QUOTA",
         "OPENAI_API_KEY",
         "ANTHROPIC_API_KEY",
         "SERPER_API_KEY",

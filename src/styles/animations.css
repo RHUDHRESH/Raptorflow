@@ -1,0 +1,335 @@
+/* ================================================
+   RaptorFlow — Animation Styles
+   Premium motion design tokens and utilities
+   ================================================ */
+
+:root {
+    /* Animation timing */
+    --anim-duration-fast: 0.3s;
+    --anim-duration-normal: 0.6s;
+    --anim-duration-slow: 1s;
+    --anim-duration-slower: 1.5s;
+
+    /* Easing curves */
+    --anim-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --anim-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --anim-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Stagger delays */
+    --anim-stagger-xs: 0.03s;
+    --anim-stagger-sm: 0.05s;
+    --anim-stagger-md: 0.08s;
+    --anim-stagger-lg: 0.12s;
+}
+
+/* ================================================
+   GRAIN OVERLAY
+   ================================================ */
+.grain-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+}
+
+.grain-overlay::before {
+    content: '';
+    position: absolute;
+    inset: -200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    animation: grain-shift 8s steps(10) infinite;
+}
+
+@keyframes grain-shift {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    10% {
+        transform: translate(-5%, -10%);
+    }
+
+    20% {
+        transform: translate(-15%, 5%);
+    }
+
+    30% {
+        transform: translate(7%, -25%);
+    }
+
+    40% {
+        transform: translate(-5%, 25%);
+    }
+
+    50% {
+        transform: translate(-15%, 10%);
+    }
+
+    60% {
+        transform: translate(15%, 0%);
+    }
+
+    70% {
+        transform: translate(0%, 15%);
+    }
+
+    80% {
+        transform: translate(3%, 35%);
+    }
+
+    90% {
+        transform: translate(-10%, 10%);
+    }
+}
+
+/* ================================================
+   REVEAL ANIMATIONS
+   ================================================ */
+.reveal-fade {
+    opacity: 0;
+    transition: opacity var(--anim-duration-normal) var(--anim-ease-out);
+}
+
+.reveal-fade.is-visible {
+    opacity: 1;
+}
+
+.reveal-up {
+    opacity: 0;
+    transform: translateY(60px);
+    transition:
+        opacity var(--anim-duration-normal) var(--anim-ease-out),
+        transform var(--anim-duration-normal) var(--anim-ease-out);
+}
+
+.reveal-up.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-scale {
+    opacity: 0;
+    transform: scale(0.9);
+    transition:
+        opacity var(--anim-duration-normal) var(--anim-ease-out),
+        transform var(--anim-duration-normal) var(--anim-ease-spring);
+}
+
+.reveal-scale.is-visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ================================================
+   MAGNETIC BUTTON STYLES
+   ================================================ */
+.magnetic-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    will-change: transform;
+}
+
+.magnetic-btn-inner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s var(--anim-ease-out);
+}
+
+.magnetic-btn:hover .magnetic-btn-inner {
+    transform: scale(1.02);
+}
+
+/* ================================================
+   FLOATING ORB STYLES
+   ================================================ */
+.floating-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    will-change: transform;
+    pointer-events: none;
+}
+
+.floating-orb--primary {
+    background: linear-gradient(135deg,
+            hsl(var(--foreground) / 0.15) 0%,
+            hsl(var(--muted-foreground) / 0.08) 50%,
+            transparent 100%);
+}
+
+.floating-orb--accent {
+    background: linear-gradient(135deg,
+            hsl(var(--accent) / 0.2) 0%,
+            hsl(var(--accent) / 0.05) 100%);
+}
+
+/* ================================================
+   TEXT REVEAL UTILITIES
+   ================================================ */
+.text-reveal-wrapper {
+    overflow: hidden;
+    display: inline-block;
+}
+
+.text-reveal-inner {
+    display: inline-block;
+    will-change: transform;
+}
+
+.word-wrapper {
+    display: inline-block;
+    overflow: hidden;
+}
+
+.word {
+    display: inline-block;
+    will-change: transform, opacity;
+}
+
+.char-wrapper {
+    display: inline-block;
+    overflow: hidden;
+}
+
+.char {
+    display: inline-block;
+    will-change: transform, opacity;
+}
+
+/* ================================================
+   SECTION DIVIDERS
+   ================================================ */
+.section-divider {
+    position: relative;
+    height: 1px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.section-divider::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            hsl(var(--border)) 20%,
+            hsl(var(--border)) 80%,
+            transparent 100%);
+    transform: scaleX(0);
+    transition: transform var(--anim-duration-slow) var(--anim-ease-out);
+}
+
+.section-divider.is-visible::after {
+    transform: scaleX(1);
+}
+
+/* ================================================
+   CURSOR SPOTLIGHT (Optional)
+   ================================================ */
+.cursor-spotlight {
+    position: fixed;
+    width: 400px;
+    height: 400px;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(circle,
+            hsl(var(--foreground) / 0.03) 0%,
+            transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s ease;
+    mix-blend-mode: overlay;
+}
+
+/* ================================================
+   STAGGER ANIMATION DELAYS
+   ================================================ */
+.stagger-1 {
+    transition-delay: calc(var(--anim-stagger-md) * 1) !important;
+}
+
+.stagger-2 {
+    transition-delay: calc(var(--anim-stagger-md) * 2) !important;
+}
+
+.stagger-3 {
+    transition-delay: calc(var(--anim-stagger-md) * 3) !important;
+}
+
+.stagger-4 {
+    transition-delay: calc(var(--anim-stagger-md) * 4) !important;
+}
+
+.stagger-5 {
+    transition-delay: calc(var(--anim-stagger-md) * 5) !important;
+}
+
+.stagger-6 {
+    transition-delay: calc(var(--anim-stagger-md) * 6) !important;
+}
+
+/* ================================================
+   LOADING ANIMATION
+   ================================================ */
+.page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: hsl(var(--background));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s var(--anim-ease-out);
+}
+
+.page-loader.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loader-logo {
+    animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+@keyframes pulse-subtle {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+/* ================================================
+   REDUCED MOTION
+   ================================================ */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .reveal-up,
+    .reveal-fade,
+    .reveal-scale {
+        opacity: 1;
+        transform: none;
+    }
+}

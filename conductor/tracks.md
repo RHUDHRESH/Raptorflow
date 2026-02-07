@@ -157,4 +157,12 @@
 ## [x] Track: Growth Engine Modernization (Matrix, Black Box, Campaigns)
 *Link: [./conductor/tracks/growth_engine_modernization_20251225/](./conductor/tracks/growth_engine_modernization_20251225/)*
 >>>>>>> Stashed changes
+<<<<<<< HEAD
 >>>>>>> origin/codex/implement-jwt-verification-in-auth.py
+=======
+
+---
+
+## [~] Track: SOTA Economical Swarm Architecture
+*Link: [./conductor/tracks/swarm_architecture_20251225/](./conductor/tracks/swarm_architecture_20251225/)*
+>>>>>>> origin/codex/add-authentication-to-blackbox-routes

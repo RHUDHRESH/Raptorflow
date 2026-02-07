@@ -1,0 +1,822 @@
+import math
+import time
+from datetime import datetime
+from enum import Enum
+from functools import wraps
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
+from fastapi import HTTPException, status
+
+from backend.core.vault import Vault
+from backend.inference import InferenceProvider
+from backend.models.blackbox import BlackboxOutcome, BlackboxTelemetry
+from backend.utils.pii_masking import mask_pii
+
+
+class AttributionModel(str, Enum):
+    """Supported attribution models for business outcomes."""
+
+    FIRST_TOUCH = "first_touch"
+    LAST_TOUCH = "last_touch"
+    LINEAR = "linear"
+
+
+def trace_agent(service, agent_id: str, tenant_id: Optional[UUID] = None):
+    """
+    Synchronous decorator to automatically log agent execution to Blackbox.
+    Expects the first argument of the decorated function to be move_id (UUID).
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(move_id, *args, **kwargs):
+            resolved_tenant_id = tenant_id or kwargs.get("tenant_id")
+            if not resolved_tenant_id:
+                raise ValueError("tenant_id is required to log blackbox telemetry.")
+            start_time = time.time()
+            try:
+                result = func(move_id, *args, **kwargs)
+                latency = time.time() - start_time
+
+                # Extract token usage if available in result
+                tokens = 0
+                if isinstance(result, dict):
+                    usage = result.get("usage", {})
+                    tokens = usage.get("total_tokens", usage.get("tokens", 0))
+
+                # Log telemetry (Task 93: PII Masking)
+                masked_trace = mask_pii(
+                    {"input": args, "kwargs": kwargs, "output": result}
+                )
+
+                telemetry = BlackboxTelemetry(
+                    tenant_id=resolved_tenant_id,
+                    move_id=move_id,
+                    agent_id=agent_id,
+                    trace=masked_trace,
+                    tokens=tokens,
+                    latency=latency,
+                )
+                service.log_telemetry(telemetry)
+                return result
+            except Exception as e:
+                # Log failure telemetry
+                latency = time.time() - start_time
+                telemetry = BlackboxTelemetry(
+                    tenant_id=resolved_tenant_id,
+                    move_id=move_id,
+                    agent_id=agent_id,
+                    trace={"error": str(e), "status": "failed"},
+                    latency=latency,
+                )
+                service.log_telemetry(telemetry)
+                raise e
+
+        return wrapper
+
+    return decorator
+
+
+class BlackboxService:
+    """
+    Industrial-scale Service for the RaptorFlow Blackbox.
+    Handles high-volume telemetry, ROI attribution, and strategic learning.
+    Uses strictly synchronous operations.
+    """
+
+    def __init__(self, vault: Vault):
+        self.vault = vault
+        self._bigquery_client = None
+
+    def _apply_filters(self, query, filters: Dict[str, Any]):
+        for key, value in filters.items():
+            if isinstance(value, (list, tuple, set)):
+                query = query.in_(key, list(value))
+            else:
+                query = query.eq(key, value)
+        return query
+
+    @staticmethod
+    def _infer_workspace_id(
+        tenant_id: Optional[UUID],
+        telemetry: List[Dict[str, Any]],
+        outcomes: List[Dict[str, Any]],
+    ) -> Optional[str]:
+        if tenant_id:
+            return str(tenant_id)
+        for record in telemetry + outcomes:
+            workspace_id = record.get("workspace_id") or record.get("tenant_id")
+            if workspace_id:
+                return str(workspace_id)
+        return None
+
+    def _fetch_scoped_records(
+        self,
+        table: str,
+        *,
+        select_fields: str,
+        tenant_id: Optional[UUID],
+        filters: Dict[str, Any],
+        enforce_access: bool,
+        allow_empty: bool,
+        forbidden_detail: str,
+        not_found_detail: str,
+    ) -> List[Dict[str, Any]]:
+        session = self.vault.get_session()
+        query = session.table(table).select(select_fields)
+        if tenant_id:
+            query = query.eq("workspace_id", str(tenant_id))
+        query = self._apply_filters(query, filters)
+        result = query.execute()
+        if result.data or not (tenant_id and enforce_access):
+            return result.data
+
+        unscoped_query = session.table(table).select("id")
+        unscoped_query = self._apply_filters(unscoped_query, filters)
+        unscoped_result = unscoped_query.execute()
+        if unscoped_result.data:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=forbidden_detail
+            )
+        if not allow_empty:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=not_found_detail
+            )
+        return []
+
+    def _get_bigquery_client(self):
+        """Lazily initializes the BigQuery client."""
+        if not self._bigquery_client:
+            from google.cloud import bigquery
+
+            self._bigquery_client = bigquery.Client(project=self.vault.project_id)
+        return self._bigquery_client
+
+    def log_telemetry(
+        self,
+        telemetry: BlackboxTelemetry,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+    ):
+        """Logs an execution trace to both Supabase and BigQuery."""
+        if user_id:
+            telemetry.trace = {**telemetry.trace, "user_id": user_id}
+        # Task 93: Ensure PII is masked before persistence
+        telemetry.trace = mask_pii(telemetry.trace)
+
+        # 1. Persist to Supabase
+        session = self.vault.get_session()
+        data = telemetry.model_dump(mode="json")
+        if tenant_id:
+            data["workspace_id"] = str(tenant_id)
+        session.table("blackbox_telemetry_industrial").insert(data).execute()
+
+        # 2. Stream to BigQuery
+        self.stream_to_bigquery(telemetry)
+
+    def stream_to_bigquery(self, telemetry: BlackboxTelemetry):
+        """Streams telemetry data to BigQuery for analytical processing."""
+        client = self._get_bigquery_client()
+        table_id = f"{self.vault.project_id}.raptorflow_analytics.telemetry_stream"
+
+        # Format for BQ
+        row = telemetry.model_dump(mode="json")
+        row["timestamp"] = telemetry.timestamp.isoformat()
+
+        errors = client.insert_rows_json(table_id, [row])
+        if errors:
+            print(f"BigQuery insertion errors: {errors}")
+
+    def get_agent_audit_log(self, agent_id: str, tenant_id: UUID, limit: int = 100):
+        """Retrieves latest telemetry logs for a specific agent."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_telemetry_industrial")
+            .select("*")
+            .eq("agent_id", agent_id)
+            .eq("tenant_id", str(tenant_id))
+            .order("timestamp", ascending=False)
+            .limit(limit)
+            .execute()
+        )
+        return result.data
+
+    def calculate_move_cost(self, move_id: str, tenant_id: UUID):
+        """Aggregates total token cost for a specific move."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_telemetry_industrial")
+            .select("tokens")
+            .eq("move_id", str(move_id))
+            .eq("tenant_id", str(tenant_id))
+            .execute()
+        )
+        return sum(row.get("tokens", 0) for row in result.data)
+
+    def get_telemetry_by_move(self, move_id: str, tenant_id: UUID) -> List[Dict]:
+        """Retrieves all telemetry traces associated with a specific move."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_telemetry_industrial")
+            .select("*")
+            .eq("move_id", str(move_id))
+            .eq("tenant_id", str(tenant_id))
+            .execute()
+        )
+        return result.data
+
+    def attribute_outcome(self, outcome: BlackboxOutcome):
+        """Attributes a business outcome to specific campaign/move."""
+        # 1. Persist to Supabase
+        session = self.vault.get_session()
+        data = outcome.model_dump(mode="json")
+        session.table("blackbox_outcomes_industrial").insert(data).execute()
+
+        # 2. Stream to BigQuery
+        self.stream_outcome_to_bigquery(outcome)
+
+    def stream_outcome_to_bigquery(self, outcome: BlackboxOutcome):
+        """Streams outcome data to BigQuery for analytical processing."""
+        client = self._get_bigquery_client()
+        table_id = f"{self.vault.project_id}.raptorflow_analytics.outcomes_stream"
+
+        # Format for BQ
+        row = outcome.model_dump(mode="json")
+        row["timestamp"] = outcome.timestamp.isoformat()
+
+        errors = client.insert_rows_json(table_id, [row])
+        if errors:
+            print(f"BigQuery outcome insertion errors: {errors}")
+
+    def compute_roi(
+        self,
+        campaign_id: UUID,
+        tenant_id: UUID,
+        model: AttributionModel = AttributionModel.LINEAR,
+    ) -> Dict[str, Any]:
+        """
+        Calculates the Return on Investment for a campaign.
+        Aggregates costs from all moves and compares against attributed outcomes.
+        """
+        session = self.vault.get_session()
+
+        # 1. Get all moves for this campaign, ordered by creation
+        moves_res = (
+            session.table("moves")
+            .select("id")
+            .eq("campaign_id", str(campaign_id))
+            .eq("tenant_id", str(tenant_id))
+            .order("created_at")
+            .execute()
+        )
+        move_ids = [m["id"] for m in moves_res.data]
+
+        if not move_ids:
+            return {
+                "roi": 0.0,
+                "total_cost": 0.0,
+                "total_value": 0.0,
+                "status": "no_moves",
+            }
+
+        # 2. Aggregate costs (tokens * simulated price $0.02/1k)
+        total_tokens = sum(self.calculate_move_cost(mid, tenant_id) for mid in move_ids)
+        total_cost = (total_tokens / 1000.0) * 0.02
+
+        # 3. Aggregate Outcomes based on Attribution Model
+        outcomes_res = (
+            session.table("blackbox_outcomes_industrial")
+            .select("value", "move_id")
+            .eq("campaign_id", str(campaign_id))
+            .eq("tenant_id", str(tenant_id))
+            .execute()
+        )
+        outcomes = outcomes_res.data
+
+        total_value = 0.0
+        if model == AttributionModel.LINEAR:
+            total_value = sum(float(o["value"]) for o in outcomes)
+        elif model == AttributionModel.FIRST_TOUCH:
+            first_move_id = move_ids[0]
+            total_value = sum(
+                float(o["value"]) for o in outcomes if o.get("move_id") == first_move_id
+            )
+        elif model == AttributionModel.LAST_TOUCH:
+            last_move_id = move_ids[-1]
+            total_value = sum(
+                float(o["value"]) for o in outcomes if o.get("move_id") == last_move_id
+            )
+
+        # 4. ROI Formula: (Value - Cost) / Cost
+        roi = ((total_value - total_cost) / total_cost) if total_cost > 0 else 0.0
+
+        return {
+            "campaign_id": str(campaign_id),
+            "attribution_model": model.value,
+            "roi": round(roi, 4),
+            "total_cost": round(total_cost, 4),
+            "total_value": round(total_value, 4),
+            "status": "computed",
+        }
+
+    def calculate_momentum_score(self) -> float:
+        """
+        Calculates a 'Momentum Score' based on outcome-to-token ratio.
+        """
+        session = self.vault.get_session()
+
+        tele_res = (
+            session.table("blackbox_telemetry_industrial").select("tokens").execute()
+        )
+        total_tokens = sum(float(t.get("tokens", 0)) for t in tele_res.data)
+
+        out_res = (
+            session.table("blackbox_outcomes_industrial").select("value").execute()
+        )
+        total_value = sum(float(o.get("value", 0)) for o in out_res.data)
+
+        if total_tokens == 0:
+            return 0.0
+
+        return round((total_value / total_tokens) * 1000, 4)
+
+    def calculate_attribution_confidence(self, move_id: str, tenant_id: UUID) -> float:
+        """Calculates confidence based on telemetry volume."""
+        telemetry = self.get_telemetry_by_move(move_id, tenant_id)
+        count = len(telemetry)
+        if count == 0:
+            return 0.0
+        confidence = 0.3 + (0.65 * (math.log10(count) / 2.0))
+        return min(round(confidence, 2), 1.0)
+
+    def get_roi_matrix_data(self, tenant_id: UUID) -> List[Dict]:
+        """Retrieves ROI data for all active campaigns."""
+        session = self.vault.get_session()
+        camps = (
+            session.table("campaigns")
+            .select("id", "title")
+            .eq("status", "active")
+            .eq("tenant_id", str(tenant_id))
+            .execute()
+        )
+
+        matrix = []
+        for c in camps.data:
+            roi_res = self.compute_roi(UUID(c["id"]), tenant_id)
+            matrix.append(
+                {
+                    "campaign_id": c["id"],
+                    "title": c["title"],
+                    "roi": roi_res["roi"],
+                    "momentum": self.calculate_momentum_score(),
+                }
+            )
+        return matrix
+
+    def get_longitudinal_analysis(self, days: int = 90) -> List[Dict[str, Any]]:
+        """
+        Performs complex longitudinal analysis using BigQuery.
+        Aggregates daily costs and outcomes to track performance trends.
+        """
+        client = self._get_bigquery_client()
+        dataset = "raptorflow_analytics"
+        project = self.vault.project_id
+
+        query = f"""
+            WITH daily_costs AS (
+                SELECT
+                    DATE(timestamp) as day,
+                    SUM(tokens) as daily_tokens,
+                    SUM(tokens / 1000 * 0.02) as estimated_cost
+                FROM `{project}.{dataset}.telemetry_stream`
+                WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {days} DAY)
+                GROUP BY day
+            ),
+            daily_outcomes AS (
+                SELECT
+                    DATE(timestamp) as day,
+                    SUM(value) as daily_value
+                FROM `{project}.{dataset}.outcomes_stream`
+                WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {days} DAY)
+                GROUP BY day
+            )
+            SELECT
+                c.day,
+                c.daily_tokens,
+                c.estimated_cost,
+                COALESCE(o.daily_value, 0) as daily_value,
+                CASE
+                    WHEN c.estimated_cost > 0 THEN (COALESCE(o.daily_value, 0) - c.estimated_cost) / c.estimated_cost
+                    ELSE 0
+                END as daily_roi
+            FROM daily_costs c
+            LEFT JOIN daily_outcomes o ON c.day = o.day
+            ORDER BY c.day DESC
+        """
+
+        query_job = client.query(query)
+        results = query_job.result()
+
+        analysis = []
+        for row in results:
+            analysis.append(
+                {
+                    "day": str(row.day),
+                    "tokens": row.daily_tokens,
+                    "cost": round(row.estimated_cost, 4),
+                    "value": round(row.daily_value, 4),
+                    "roi": round(row.daily_roi, 4),
+                }
+            )
+
+        return analysis
+
+    async def trigger_learning_cycle(
+        self, move_id: str, tenant_id: UUID
+    ) -> Dict[str, Any]:
+        """
+        Triggers the multi-agentic learning cycle via LangGraph.
+        Summarizes outcomes and telemetry into strategic learnings.
+        """
+        from backend.graphs.blackbox_analysis import create_blackbox_graph
+        from backend.memory.swarm_learning import record_learning
+        from backend.services.evaluation import OutputEvaluator
+
+        graph = create_blackbox_graph()
+        initial_state = {
+            "move_id": move_id,
+            "tenant_id": str(tenant_id),
+            "telemetry_data": [],
+            "findings": [],
+            "outcomes": [],
+            "reflection": "",
+            "confidence": 0.0,
+            "status": [],
+        }
+
+        final_state = await graph.ainvoke(initial_state)
+        evaluator = OutputEvaluator()
+        workspace_id = self._infer_workspace_id(
+            tenant_id=tenant_id,
+            telemetry=final_state.get("telemetry_data", []),
+            outcomes=final_state.get("outcomes", []),
+        )
+
+        # 1. Process findings into permanent memory
+        for finding in final_state.get("findings", []):
+            l_type = self.categorize_learning(finding)
+            self.upsert_learning_embedding(
+                content=finding, learning_type=l_type, source_ids=[UUID(move_id)]
+            )
+            evaluation = evaluator.evaluate_output(
+                finding,
+                outcomes=final_state.get("outcomes", []),
+                confidence=final_state.get("confidence", 0.0),
+            )
+            await record_learning(
+                workspace_id=workspace_id,
+                content=finding,
+                evaluation=evaluation,
+                metadata={
+                    "move_id": move_id,
+                    "learning_type": l_type,
+                    "source": "blackbox_learning_cycle",
+                },
+            )
+
+        return {
+            "move_id": move_id,
+            "findings_count": len(final_state.get("findings", [])),
+            "confidence": final_state.get("confidence", 0.0),
+            "status": "cycle_complete",
+        }
+
+    async def generate_pivot_recommendation(
+        self, move_id: str, tenant_id: UUID
+    ) -> Dict[str, Any]:
+        """
+        Uses the LearningAgent to generate a high-level strategic pivot
+        recommendation for a specific move.
+        """
+        from backend.agents.blackbox_specialist import LearningAgent
+
+        # 1. Gather context
+        traces = self.get_telemetry_by_move(move_id, tenant_id)
+        outcomes_res = (
+            self.vault.get_session()
+            .table("blackbox_outcomes_industrial")
+            .select("*")
+            .eq("move_id", str(move_id))
+            .eq("tenant_id", str(tenant_id))
+            .execute()
+        )
+        outcomes = outcomes_res.data
+
+        # 2. Run LearningAgent
+        agent = LearningAgent()
+        state = {
+            "findings": [str(t.get("trace", "")) for t in traces],
+            "reflection": (
+                f"Observed {len(outcomes)} outcomes with total value "
+                f"{sum(o.get('value', 0) for o in outcomes)}"
+            ),
+            "status": [],
+        }
+
+        result = await agent.run(state)
+        return {
+            "move_id": move_id,
+            "pivot_recommendation": result.get("pivots", ""),
+            "status": "pivot_generated",
+        }
+
+    async def apply_learning_to_foundation(
+        self, brand_kit_id: UUID, learning_id: UUID
+    ) -> Dict[str, Any]:
+        """
+        Updates foundation modules (BrandKit/Positioning) based on a strategic learning.
+        """
+        from backend.services.foundation_service import FoundationService
+
+        # 1. Retrieve data
+        session = self.vault.get_session()
+        learning_res = (
+            session.table("blackbox_learnings_industrial")
+            .select("*")
+            .eq("id", str(learning_id))
+            .execute()
+        )
+        if not learning_res.data:
+            return {"status": "error", "message": "Learning not found"}
+
+        learning = learning_res.data[0]
+        content = learning["content"]
+
+        # 2. Trigger foundation update
+        f_service = FoundationService(self.vault)
+        await f_service.update_brand_kit(brand_kit_id, {"updates": content})
+
+        return {"status": "foundation_updated", "learning_id": str(learning_id)}
+
+    def get_learning_feed(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Retrieves the latest strategic learnings from the Blackbox memory.
+        """
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_learnings_industrial")
+            .select("*")
+            .order("timestamp", desc=True)
+            .limit(limit)
+            .execute()
+        )
+        return result.data
+
+    def validate_insight(self, learning_id: UUID, status: str) -> bool:
+        """
+        Updates the validation status of a strategic insight (HITL).
+        """
+        session = self.vault.get_session()
+        session.table("blackbox_learnings_industrial").update({"status": status}).eq(
+            "id", str(learning_id)
+        ).execute()
+        return True
+
+    def get_evidence_package(self, learning_id: UUID) -> List[Dict[str, Any]]:
+        """
+        Retrieves all telemetry traces associated with a specific learning.
+        Packages them for the UI to display as 'Proof'.
+        """
+        session = self.vault.get_session()
+        # 1. Fetch learning to get source_ids (trace_ids)
+        learning_res = (
+            session.table("blackbox_learnings_industrial")
+            .select("source_ids")
+            .eq("id", str(learning_id))
+            .execute()
+        )
+        if not learning_res.data:
+            return []
+
+        source_ids = learning_res.data[0].get("source_ids", [])
+        if not source_ids:
+            return []
+
+        # 2. Fetch all telemetry for these IDs
+        telemetry_res = (
+            session.table("blackbox_telemetry_industrial")
+            .select("*")
+            .in_("id", source_ids)
+            .execute()
+        )
+        return telemetry_res.data
+
+    def upsert_learning_embedding(
+        self,
+        content: str,
+        learning_type: str,
+        source_ids: List[UUID] = None,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+    ):
+        """Generates embedding and persists learning."""
+        embed_model = InferenceProvider.get_embeddings()
+        embedding = embed_model.embed_query(content)
+
+        session = self.vault.get_session()
+        data = {
+            "content": content,
+            "embedding": embedding,
+            "source_ids": [str(sid) for sid in (source_ids or [])],
+            "learning_type": learning_type,
+        }
+        if tenant_id:
+            data["workspace_id"] = str(tenant_id)
+        session.table("blackbox_learnings_industrial").insert(data).execute()
+
+    def search_strategic_memory(
+        self,
+        query: str,
+        limit: int = 5,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+    ):
+        """Vector similarity search on learnings."""
+        embed_model = InferenceProvider.get_embeddings()
+        query_embedding = embed_model.embed_query(query)
+
+        session = self.vault.get_session()
+        result = session.rpc(
+            "match_blackbox_learnings",
+            params={
+                "query_embedding": query_embedding,
+                "match_threshold": 0.5,
+                "match_count": limit,
+                "p_workspace_id": str(tenant_id) if tenant_id else None,
+            },
+        ).execute()
+        return result.data
+
+    def link_learning_to_evidence(
+        self,
+        learning_id: UUID,
+        trace_ids: List[UUID],
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+        enforce_access: bool = False,
+    ):
+        """Links learning to supporting traces."""
+        session = self.vault.get_session()
+        self._fetch_scoped_records(
+            "blackbox_learnings_industrial",
+            select_fields="id",
+            tenant_id=tenant_id,
+            filters={"id": str(learning_id)},
+            enforce_access=enforce_access,
+            allow_empty=False,
+            forbidden_detail="Learning is not accessible for this tenant.",
+            not_found_detail="Learning not found.",
+        )
+
+        if trace_ids:
+            scoped_traces = self._fetch_scoped_records(
+                "blackbox_telemetry_industrial",
+                select_fields="id",
+                tenant_id=tenant_id,
+                filters={"id": [str(tid) for tid in trace_ids]},
+                enforce_access=False,
+                allow_empty=True,
+                forbidden_detail="",
+                not_found_detail="",
+            )
+            if tenant_id and enforce_access and len(scoped_traces) != len(trace_ids):
+                unscoped_traces = (
+                    session.table("blackbox_telemetry_industrial")
+                    .select("id")
+                    .in_("id", [str(tid) for tid in trace_ids])
+                    .execute()
+                )
+                if unscoped_traces.data:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Evidence traces are not accessible for this tenant.",
+                    )
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Evidence traces not found.",
+                )
+
+        session.table("blackbox_learnings_industrial").update(
+            {"source_ids": [str(tid) for tid in trace_ids]}
+        ).eq("id", str(learning_id)).execute()
+
+    def prune_strategic_memory(
+        self,
+        learning_type: str,
+        before: datetime,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+    ):
+        """Removes outdated learnings."""
+        session = self.vault.get_session()
+        query = session.table("blackbox_learnings_industrial").delete()
+        if tenant_id:
+            query = query.eq("workspace_id", str(tenant_id))
+        query.eq("learning_type", learning_type).lt(
+            "timestamp", before.isoformat()
+        ).execute()
+
+    def categorize_learning(self, content: str) -> str:
+        """Uses Gemini to classify learning content."""
+        llm = InferenceProvider.get_model(model_tier="mundane")
+        prompt = f"Categorize this marketing learning as 'strategic', 'tactical', or 'content': {content}"
+        response = llm.invoke(prompt)
+        category = response.content.strip().lower()
+        for label in ["strategic", "tactical", "content"]:
+            if label in category:
+                return label
+        return "tactical"
+
+    def get_memory_context_for_planner(
+        self,
+        move_type: str,
+        limit: int = 5,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+    ) -> str:
+        """Formats relevant memory for agents."""
+        results = self.search_strategic_memory(
+            query=move_type, limit=limit, tenant_id=tenant_id, user_id=user_id
+        )
+        if not results:
+            return ""
+        return "\n---\n".join(
+            [
+                f"[{r.get('learning_type', '').upper()}] {r.get('content')}"
+                for r in results
+            ]
+        )
+
+    def auto_cleanup_telemetry(self, days_to_keep: int = 30):
+        """
+        Removes telemetry and outcomes older than days_to_keep from Supabase.
+        Long-term data remains in BigQuery.
+        """
+        import datetime
+
+        threshold = datetime.datetime.now() - datetime.timedelta(days=days_to_keep)
+        threshold_iso = threshold.isoformat()
+
+        session = self.vault.get_session()
+
+        # 1. Cleanup Telemetry
+        session.table("blackbox_telemetry_industrial").delete().lt(
+            "timestamp", threshold_iso
+        ).execute()
+
+        # 2. Cleanup Outcomes
+        session.table("blackbox_outcomes_industrial").delete().lt(
+            "timestamp", threshold_iso
+        ).execute()
+
+        return True
+
+    def get_outcomes_by_campaign(
+        self, campaign_id: UUID, tenant_id: UUID
+    ) -> List[Dict]:
+        """Retrieves all business outcomes for a specific campaign."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_outcomes_industrial")
+            .select("*")
+            .eq("campaign_id", str(campaign_id))
+            .eq("tenant_id", str(tenant_id))
+            .execute()
+        )
+        return result.data
+
+    def get_outcomes_by_move(self, move_id: UUID, tenant_id: UUID) -> List[Dict]:
+        """Retrieves all business outcomes for a specific move."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_outcomes_industrial")
+            .select("*")
+            .eq("move_id", str(move_id))
+            .eq("tenant_id", str(tenant_id))
+            .execute()
+        )
+        return result.data
+
+    def get_learnings_by_move(self, move_id: UUID) -> List[Dict]:
+        """Retrieves all strategic learnings associated with a specific move."""
+        session = self.vault.get_session()
+        # Learnings table uses source_ids (list of move/trace IDs)
+        # We use contains to find if move_id is in source_ids
+        result = (
+            session.table("blackbox_learnings_industrial")
+            .select("*")
+            .contains("source_ids", [str(move_id)])
+            .execute()
+        )
+        return result.data
