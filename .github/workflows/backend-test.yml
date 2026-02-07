@@ -117,7 +117,7 @@ jobs:
           -n auto
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         file: coverage.xml
         flags: backend
@@ -201,7 +201,7 @@ jobs:
           || true
 
     - name: Upload integration coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         file: backend/coverage.xml
         flags: integration
