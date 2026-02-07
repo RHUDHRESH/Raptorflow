@@ -39,12 +39,9 @@ repos:
         files: ^backend/
 
 -   repo: https://github.com/pre-commit/mirrors-eslint
-    # Align with repo's ESLint major version. ESLint v9 requires flat config (eslint.config.js),
-    # while this repo currently uses .eslintrc.cjs.
-    # mirrors-eslint publishes tags that track ESLint releases, but not every patch
-    # release has a corresponding tag. v8.57.0 exists broadly; pin dependencies
-    # separately if you need a specific patch.
-    rev: v8.57.0
+    # Align with repo's ESLint major version. ESLint v8 requires .eslintrc.cjs.
+    # Using v8.57.1 which has a valid git tag in mirrors-eslint
+    rev: v8.57.1
     hooks:
     -   id: eslint
         files: \.(js|jsx|ts|tsx)$
