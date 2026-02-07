@@ -16,13 +16,13 @@ from crewai import Task as CrewAITask
 from langgraph.graph import StateGraph
 from pydantic import BaseModel
 
-from agents.crewai_adapter import (
+from backend.agents.crewai_adapter import (
     RAPTORFLOW_AGENT_CONFIGS,
     AgentRole,
     CrewAgentConfig,
     CrewAIAgentAdapter,
 )
-from agents.crewai_coordination import (
+from backend.agents.crewai_coordination import (
     AdvancedCrewCoordinator,
     ConflictType,
     CrewConflictResolver,
@@ -30,8 +30,13 @@ from agents.crewai_coordination import (
     CrewScalingManager,
     get_crew_coordinator,
 )
-from agents.crewai_tasks import CrewTaskManager, EnhancedTask, TaskPriority, TaskStatus
-from agents.hybrid_integration import (
+from backend.agents.crewai_tasks import (
+    CrewTaskManager,
+    EnhancedTask,
+    TaskPriority,
+    TaskStatus,
+)
+from backend.agents.hybrid_integration import (
     AgentType,
     ExecutionMode,
     HybridAgent,
@@ -82,7 +87,7 @@ class TestCrewAIAgentAdapter:
 
     def test_adapt_to_cognitive_state(self, crewai_adapter):
         """Test cognitive state adaptation."""
-        from models.cognitive import AgentMessage
+        from backend.models.cognitive import AgentMessage
 
         state = {
             "messages": [
@@ -393,8 +398,8 @@ class TestHybridIntegration:
     def test_hybrid_agent_initialization(self, hybrid_agent):
         """Test hybrid agent initialization."""
         assert hybrid_agent.agent_id == "test_hybrid_agent"
-        assert hybrid_agent.name == " .config.name
-        dolar hybrid_agent .config.role == ]; assert hybrid_agent.execution_mode == ExecutionMode.ADAPTIVE
+        assert hybrid_agent.name == hybrid_agent.config.name
+        assert hybrid_agent.config.role == "test_role"
 
     def test_execution_mode_selection(self, hybrid_agent):
         """Test execution mode selection logic."""
@@ -633,7 +638,7 @@ class TestDataFactory:
         """Create a hybrid workflow state."""
         state = HybridWorkflowState()
         if messages:
-            from models.cognitive import AgentMessage
+            from backend.models.cognitive import AgentMessage
 
             state.messages = [
                 AgentMessage(role="user", content=msg) for msg in messages
