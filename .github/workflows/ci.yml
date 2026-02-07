@@ -42,6 +42,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+<<<<<<< HEAD
           python -m pip install --upgrade pip
           pip install -r backend/requirements-prod.txt
           pip install black isort flake8 mypy bandit safety pytest pytest-asyncio pytest-cov
@@ -70,6 +71,28 @@ jobs:
             bandit-${{ matrix.python-version }}.json
             safety-${{ matrix.python-version }}.json
           retention-days: 30
+=======
+          cd raptorflow-app && npm ci
+          cd ../backend && python -m pip install --upgrade pip && pip install poetry && poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
+
+      - name: Check formatting (Frontend)
+        run: cd raptorflow-app && npm run format:check
+
+      - name: Lint (Frontend)
+        run: cd raptorflow-app && npm run lint
+
+      - name: Type check (Frontend)
+        run: cd raptorflow-app && npm run type-check
+
+      - name: Lint (Backend)
+        run: cd backend && python -m flake8 --max-line-length=120 backend/
+
+      - name: Format check (Backend)
+        run: cd backend && python -m black --check --line-length 88 backend/
+
+      - name: Type check (Backend)
+        run: cd backend && python -m mypy backend/
+>>>>>>> origin/codex/implement-jwt-verification-in-auth.py
 
   # =====================================================
   # WORLD-CLASS UNIT TESTING
@@ -114,8 +137,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Install dependencies
         run: |
+<<<<<<< HEAD
           python -m pip install --upgrade pip
           pip install -r backend/requirements-prod.txt
           pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
@@ -131,11 +160,19 @@ jobs:
             --cov-report=html:htmlcov-unit-${{ matrix.python-version }} \
             --cov-report=xml:coverage-unit-${{ matrix.python-version }}.xml \
             --timeout=300
+=======
+          cd raptorflow-app && npm ci
+          cd ../backend && python -m pip install --upgrade pip && pip install poetry && poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
+
+      - name: Run backend unit tests
+        run: cd backend && python -m pytest tests/ -v
+>>>>>>> origin/codex/implement-jwt-verification-in-auth.py
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
           REDIS_URL: redis://localhost:6379
           PYTHONPATH: .
 
+<<<<<<< HEAD
       - name: Parallel Unit Tests (Performance)
         if: matrix.python-version == '3.12'
         run: |
@@ -149,6 +186,10 @@ jobs:
             --cov-append \
             --cov-report=term-missing \
             --timeout=300
+=======
+      - name: Run frontend unit tests
+        run: cd raptorflow-app && npm run test:unit
+>>>>>>> origin/codex/implement-jwt-verification-in-auth.py
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
           REDIS_URL: redis://localhost:6379

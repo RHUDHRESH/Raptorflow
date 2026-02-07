@@ -1,3 +1,4 @@
+<<<<<<< HEAD:ecosystem.config.js
 module.exports = {
     apps: [
         {
@@ -21,3 +22,21 @@ module.exports = {
         }
     ]
 };
+=======
+module.exports = {
+    apps: [
+        {
+            name: 'raptorflow',
+            script: 'C:\\Program Files\\nodejs\\npm.cmd',
+            args: 'run dev',
+            env: {
+                NODE_ENV: 'development',
+            },
+            interpreter: 'none',
+            watch: false,
+            autorestart: true,
+            max_memory_restart: '1G'
+        },
+    ],
+};
+>>>>>>> origin/codex/implement-jwt-verification-in-auth.py:raptorflow-app/ecosystem.config.js

@@ -1,0 +1,65 @@
+[project]
+name = "raptorflow-backend"
+version = "0.1.0"
+description = "Industrial-grade backend for RaptorFlow"
+requires-python = ">=3.11,<3.14"
+authors = [
+    { name = "RaptorFlow Team", email = "admin@raptorflow.io" }
+]
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn==0.34.0",
+    "pydantic==2.10.4",
+    "pydantic-settings==2.7.0",
+    "supabase==2.10.0",
+    "langgraph>=0.2.60",
+    "langchain-openai==0.2.13",
+    "langchain-google-vertexai==2.0.9",
+    "upstash-redis==1.2.0",
+    "httpx==0.28.1",
+    "python-multipart==0.0.20",
+    "python-jose[cryptography]==3.3.0",
+    "passlib[bcrypt]==1.7.4",
+    "pandas==2.2.3",
+    "numpy==2.2.0",
+    "google-cloud-storage==2.19.0",
+    "google-cloud-bigquery==3.27.0",
+    "google-cloud-secret-manager==2.22.0",
+    "google-genai==0.4.0",
+    "google-cloud-run==0.10.11",
+    "google-cloud-logging==3.11.3",
+    "apache-beam[gcp]==2.61.0",
+    "pyarrow==18.1.0",
+    "tavily-python==0.5.0",
+    "aiohttp==3.11.10",
+    "duckduckgo-search==6.3.3",
+]
+
+[tool.setuptools]
+packages = ["agents", "api", "core", "graphs", "memory", "ml", "models", "scripts", "services", "skills", "tools", "utils"]
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.0.0"
+flake8 = "^7.0.0"
+mypy = "^1.8.0"
+isort = "^5.13.0"
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = "E203"

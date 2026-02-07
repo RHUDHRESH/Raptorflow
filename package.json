@@ -1,5 +1,6 @@
 {
   "name": "raptorflow",
+<<<<<<< HEAD
   "version": "1.0.0",
   "type": "module",
   "engines": {
@@ -123,5 +124,17 @@
     "vite": "^5.4.11",
     "vite-tsconfig-paths": "^6.0.5",
     "vitest": "^1.0.4"
+=======
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix raptorflow-app run dev",
+    "build": "npm --prefix raptorflow-app run build",
+    "start": "npm --prefix raptorflow-app run start",
+    "lint": "npm --prefix raptorflow-app run lint",
+    "test": "npm --prefix raptorflow-app run test"
+  },
+  "dependencies": {
+    "pg-sdk-node": "^2.0.2"
+>>>>>>> origin/codex/implement-jwt-verification-in-auth.py
   }
 }

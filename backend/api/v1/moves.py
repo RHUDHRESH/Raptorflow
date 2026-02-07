@@ -1,340 +1,56 @@
-﻿"""
-Moves API endpoints
-Handles HTTP requests for move operations
-"""
+from typing import Any, Dict
 
-from typing import Any, Dict, List, Optional
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from backend.core.auth import get_current_user
+from backend.services.move_service import MoveService, get_move_service
 
-from ..services.move import MoveService
-
-router = APIRouter(prefix="/moves", tags=["moves"])
+router = APIRouter(prefix="/v1/moves", tags=["moves"])
 
 
-# Pydantic models for request/response
-class MoveCreate(BaseModel):
-    name: str
-    category: Optional[str] = None
-    goal: Optional[str] = None
-    target_icp_id: Optional[str] = None
-    strategy: Optional[dict] = None
-    execution_plan: Optional[List[str]] = None
-    status: Optional[str] = None
-    duration_days: Optional[int] = None
-    success_metrics: Optional[List[str]] = None
-
-
-class MoveUpdate(BaseModel):
-    name: Optional[str] = None
-    category: Optional[str] = None
-    goal: Optional[str] = None
-    target_icp_id: Optional[str] = None
-    strategy: Optional[dict] = None
-    execution_plan: Optional[List[str]] = None
-    status: Optional[str] = None
-    duration_days: Optional[int] = None
-    success_metrics: Optional[List[str]] = None
-    results: Optional[dict] = None
-
-
-class MoveResponse(BaseModel):
-    id: str
-    workspace_id: str
-    campaign_id: Optional[str]
-    name: str
-    category: str
-    goal: Optional[str]
-    target_icp_id: Optional[str]
-    strategy: dict
-    execution_plan: List[str]
-    status: str
-    duration_days: Optional[int]
-    started_at: Optional[str]
-    completed_at: Optional[str]
-    success_metrics: List[str]
-    results: dict
-    created_at: str
-    updated_at: str
-
-
-class MoveExecuteRequest(BaseModel):
-    move_name: str
-    context: Dict[str, Any] = {}
-    user_id: str
-    workspace_id: str
-    flow_id: str = "default"
-
-
-class MoveExecuteResponse(BaseModel):
-    success: bool
-    data: Dict[str, Any] = {}
-    error: str = ""
-
-
-def _get_synapse_brain():
-    try:
-        from ...synapse import brain
-
-        return brain
-    except Exception:
-        return None
-
-
-# Dependency injection
-def get_move_service() -> MoveService:
-    return MoveService()
-
-
-@router.get("/", response_model=List[MoveResponse])
-async def list_moves(
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
+@router.post("/generate-weekly/{campaign_id}")
+async def generate_weekly_moves(
+    campaign_id: str,
+    background_tasks: BackgroundTasks,
+    _current_user: dict = Depends(get_current_user),
+    service: MoveService = Depends(get_move_service),
 ):
-    """List all moves for workspace"""
-    moves = await move_service.list_moves(workspace_id)
-    return moves
+    """SOTA Endpoint: Triggers agentic move generation for a campaign."""
+    campaign = await service.get_campaign(campaign_id)
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found.")
 
+    background_tasks.add_task(service.generate_weekly_moves, campaign_id)
 
-@router.post("/", response_model=MoveResponse)
-async def create_move(
-    move_data: MoveCreate,
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Create new move"""
-    try:
-        move = await move_service.create_move(workspace_id, move_data.dict())
-        return move
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/{move_id}", response_model=MoveResponse)
-async def get_move(
-    move_id: str,
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Get move by ID with details"""
-    move = await move_service.get_move_with_details(move_id, workspace_id)
-
-    if not move:
-        raise HTTPException(status_code=404, detail="Move not found")
-
-    return move
-
-
-@router.put("/{move_id}", response_model=MoveResponse)
-async def update_move(
-    move_id: str,
-    move_data: MoveUpdate,
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Update move"""
-    try:
-        move = await move_service.update_move(
-            move_id, workspace_id, move_data.dict(exclude_unset=True)
-        )
-
-        if not move:
-            raise HTTPException(status_code=404, detail="Move not found")
-
-        return move
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.post("/execute", response_model=MoveExecuteResponse)
-async def execute_move(request: MoveExecuteRequest) -> MoveExecuteResponse:
-    """Execute a strategic move using the Synapse brain."""
-    brain = _get_synapse_brain()
-    if not brain:
-        raise HTTPException(status_code=503, detail="Synapse brain unavailable")
-
-    try:
-        context = {
-            "task": request.move_name,
-            **request.context,
-            "user_id": request.user_id,
-            "workspace_id": request.workspace_id,
-            "flow_id": request.flow_id,
-        }
-
-        result = await brain.run_move(request.move_name, context, request.flow_id)
-
-        return MoveExecuteResponse(
-            success=result.get("status") == "success",
-            data=result.get("data", {}),
-            error=result.get("error") or "",
-        )
-    except Exception as exc:
-        return MoveExecuteResponse(success=False, error=str(exc))
-
-
-@router.get("/available", response_model=Dict[str, List[str]])
-async def list_available_moves() -> Dict[str, List[str]]:
-    """List all available move sequences."""
     return {
-        "moves": [
-            "market_research",
-            "content_creation",
-            "competitive_analysis",
-            "product_launch",
-        ]
+        "status": "started",
+        "campaign_id": campaign_id,
+        "message": "Weekly move generation started in background.",
     }
 
 
-@router.delete("/{move_id}")
-async def delete_move(
+@router.get("/generate-weekly/{campaign_id}/status")
+async def get_moves_status(
+    campaign_id: str,
+    _current_user: dict = Depends(get_current_user),
+    service: MoveService = Depends(get_move_service),
+):
+    """SOTA Endpoint: Retrieves status of move generation."""
+    result = await service.get_moves_generation_status(campaign_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Status not found.")
+    return result
+
+
+@router.patch("/{move_id}/status")
+async def update_move_status(
     move_id: str,
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
+    status_update: Dict[str, Any],
+    _current_user: dict = Depends(get_current_user),
+    service: MoveService = Depends(get_move_service),
 ):
-    """Delete move"""
-    try:
-        success = await move_service.delete_move(move_id, workspace_id)
-
-        if not success:
-            raise HTTPException(status_code=404, detail="Move not found")
-
-        return {"message": "Move deleted successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.post("/{move_id}/start", response_model=MoveResponse)
-async def start_move(
-    move_id: str,
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Start a move"""
-    try:
-        move = await move_service.start_move(move_id, workspace_id)
-
-        if not move:
-            raise HTTPException(status_code=404, detail="Move not found")
-
-        return move
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.post("/{move_id}/pause", response_model=MoveResponse)
-async def pause_move(
-    move_id: str,
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Pause a move"""
-    try:
-        move = await move_service.pause_move(move_id, workspace_id)
-
-        if not move:
-            raise HTTPException(status_code=404, detail="Move not found")
-
-        return move
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.post("/{move_id}/complete", response_model=MoveResponse)
-async def complete_move(
-    move_id: str,
-    results: Optional[dict] = None,
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Complete a move"""
-    try:
-        move = await move_service.complete_move(move_id, workspace_id, results)
-
-        if not move:
-            raise HTTPException(status_code=404, detail="Move not found")
-
-        return move
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.post("/{move_id}/generate-tasks")
-async def generate_tasks(
-    move_id: str,
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Generate tasks for a move"""
-    try:
-        tasks = await move_service.generate_tasks(move_id, workspace_id)
-        return {"tasks": tasks, "count": len(tasks)}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/{move_id}/tasks")
-async def get_move_tasks(
-    move_id: str,
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Get tasks for a move"""
-    try:
-        move = await move_service.get_move_with_details(move_id, workspace_id)
-
-        if not move:
-            raise HTTPException(status_code=404, detail="Move not found")
-
-        return {"tasks": move.get("tasks", [])}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/analytics")
-async def get_move_analytics(
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Get move analytics"""
-    try:
-        analytics = await move_service.get_move_analytics(workspace_id)
-        return analytics
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/active", response_model=List[MoveResponse])
-async def get_active_moves(
-    workspace_id: str = Query(..., description="Workspace ID"),
-    move_service: MoveService = Depends(get_move_service),
-):
-    """Get all active moves"""
-    try:
-        moves = await move_service.list_moves(workspace_id, {"status": "active"})
-        return moves
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/calendar/events")
-async def get_moves_calendar(
-    workspace_id: str = Query(..., description="Workspace ID"),
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-):
-    """
-    Retrieve all move events for the calendar view.
-    """
-    move_service = MoveService()
-
-    # 1. Fetch moves within range
-    all_moves = await move_service.list_moves(workspace_id)
-
-    # Simple filtering for now
-    calendar_moves = [
-        m for m in all_moves if m.get("start_date") or m.get("completed_at")
-    ]
-
-    return {"success": True, "moves": calendar_moves}
+    """SOTA Endpoint: Updates the status and result of a specific move."""
+    await service.update_move_status(
+        move_id, status_update.get("status"), status_update.get("result")
+    )
+    return {"status": "updated", "move_id": move_id}
