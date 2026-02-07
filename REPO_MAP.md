@@ -1,8 +1,6 @@
-# REPO_MAP.md (Generated 2026-02-07)
+# REPO_MAP.md (Updated 2026-02-07)
 
-Scope: generated from git-tracked files only using `git ls-files` + `git grep`.
-
-Excludes: untracked files; ignored directories (`node_modules/`, `.next/`, `dist/`, `build/`, `.opencode/`, `.codex/`, `.git/`).
+Scope: full working tree (previously untracked critical files now included).
 
 ## Commands (Build/Run/Test)
 
@@ -29,7 +27,8 @@ Canonical runner: `backend/run_simple.py` (runs `uvicorn` against `backend.main:
 - Run (script): `python backend/run_simple.py`
 
 Notes:
-- `backend/main.py` imports `create_app` from `backend.app_factory` (but `backend/app_factory.py` is currently untracked; excluded from scan).
+- `backend/main.py` delegates to `backend.app_factory.create_app()` (see ADR-0002).
+- All routers are registered via `backend/api/registry.py` (49 routers).
 - `backend/start_backend.py` and `backend/run.py` are marked deprecated (see module docstrings).
 
 ### Docker / Local Stack
@@ -54,11 +53,15 @@ Notes:
 
 ### Backend (FastAPI)
 
-- Canonical ASGI app: `backend/main.py` (creates `app = create_app()`)
-- Minimal app wrapper: `backend/main_minimal.py` (docs enabled)
+- Canonical ASGI app: `backend/main.py` → `backend/app_factory.create_app()`
+- App factory: `backend/app_factory.py` (middleware ordering, router registration, CORS)
+- Router registry: `backend/api/registry.py` (single list of all routers)
+- Auth middleware: `backend/app/auth_middleware.py` (Supabase JWT verification)
+- Auth dependencies: `backend/api/dependencies.py` (`require_auth`, `get_current_user`, context vars)
+- Dependency wiring: `backend/dependencies.py` (re-exports from `api.dependencies` + service deps)
+- System routes: `backend/api/system.py` (health check, root)
+- Minimal app wrapper: `backend/main_minimal.py` (test backward compat)
 - Backwards-compat wrappers: `backend/main_new.py`, `backend/main_production.py` (re-export `backend.main:app`)
-- Auth middleware: `backend/app/auth_middleware.py`
-- Dependency wiring: `backend/dependencies.py` (imports `api.dependencies.*`, which is currently untracked)
 
 ### Other API Servers (FastAPI) In This Repo
 
@@ -129,10 +132,24 @@ Examples:
   - `src/app/api/payments/webhook/route.ts` (Next route handler processing webhook)
   - `src/app/api/webhooks/phonepe/route.ts` forwards to backend webhook endpoint
 
-## Known Gaps (Tracked-only Constraint)
+## ADRs
 
-These untracked working-tree files appear runtime-critical but were excluded from scanning:
+- `ADRs/ADR-0001-auth-unification.md` — Supabase JWT as single canonical auth
+- `ADRs/ADR-0002-entrypoint-consolidation.md` — main.py delegates to app_factory
+- `ADRs/ADR-0003-env-consolidation.md` — single .env.example
 
-- `backend/app_factory.py` (imported by `backend/main.py`, `backend/main_minimal.py`)
-- `backend/api/dependencies.py`, `backend/api/registry.py`, `backend/api/legacy_registry.py`, `backend/api/system.py` (imported from tracked code paths)
-- `src/app/api/[...path]/` (UI code calls `/api/proxy/...`, implying a proxy route exists)
+## Known Gaps (Resolved)
+
+Previously untracked files now included in working tree:
+
+- ✅ `backend/app_factory.py` — now canonical, used by `main.py`
+- ✅ `backend/api/dependencies.py` — canonical auth guards
+- ✅ `backend/api/registry.py` — canonical router list
+- ✅ `backend/api/system.py` — system routes
+- ✅ `src/app/api/[...path]/route.ts` — universal proxy with auth forwarding
+
+## Remaining Gaps
+
+- `.env.production` contains real secrets committed to repo — must be rotated and removed from history
+- `.env.template`, `env.example`, `.env.universal-gemini` are superseded by `.env.example` — pending deletion
+- `tsconfig.json` references `jest` and `node` type definitions that aren't installed

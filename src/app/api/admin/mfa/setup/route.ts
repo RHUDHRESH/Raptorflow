@@ -1,55 +1,26 @@
-import { createServerSupabaseClient } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
 
-// MFA setup routes - temporarily disabled until otplib is properly configured
+// DEPRECATED: Custom MFA setup is removed (see ADR-0001-auth-unification.md).
+// MFA is now handled exclusively via Supabase Auth MFA API:
+//   supabase.auth.mfa.enroll()   — setup
+//   supabase.auth.mfa.verify()   — verify
+//   supabase.auth.mfa.unenroll() — disable
+// This route returns 410 Gone to signal clients to migrate.
+
+const GONE_RESPONSE = {
+  error: 'This endpoint has been removed',
+  migration: 'Use Supabase Auth MFA API (supabase.auth.mfa.*) instead',
+  docs: 'https://supabase.com/docs/guides/auth/auth-mfa',
+}
 
 export async function POST() {
-  try {
-    const supabase = await createServerSupabaseClient()
-
-    // Get current user
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check if user is admin
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, role, mfa_enabled')
-      .eq('auth_user_id', session.user.id)
-      .single()
-
-    if (!user || !['admin', 'super_admin'].includes(user.role)) {
-      return NextResponse.json({ error: 'MFA only available for admin users' }, { status: 403 })
-    }
-
-    // MFA setup not available - otplib not configured
-    return NextResponse.json({
-      error: 'MFA setup temporarily unavailable',
-      message: 'Contact admin for MFA configuration'
-    }, { status: 503 })
-
-  } catch (error) {
-    console.error('MFA setup error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
+  return NextResponse.json(GONE_RESPONSE, { status: 410 })
 }
 
 export async function PUT() {
-  return NextResponse.json({
-    error: 'MFA verification temporarily unavailable',
-    message: 'Contact admin for MFA configuration'
-  }, { status: 503 })
+  return NextResponse.json(GONE_RESPONSE, { status: 410 })
 }
 
 export async function DELETE() {
-  return NextResponse.json({
-    error: 'MFA disable temporarily unavailable',
-    message: 'Contact admin for MFA configuration'
-  }, { status: 503 })
+  return NextResponse.json(GONE_RESPONSE, { status: 410 })
 }

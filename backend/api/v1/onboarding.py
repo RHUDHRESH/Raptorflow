@@ -799,11 +799,24 @@ async def get_session_progress(session_id: str):
     """Get current session progress"""
     try:
         progress = await session_manager.get_progress(session_id)
-
         if not progress:
             raise HTTPException(status_code=404, detail="Session not found")
 
-        return {"session_id": session_id, "progress": progress}
+        metadata = await session_manager.get_metadata(session_id)
+
+        workspace_id = metadata.get("workspace_id") if metadata else None
+        last_activity = (
+            progress.get("last_updated")
+            or (metadata.get("last_updated") if metadata else None)
+            or (metadata.get("started_at") if metadata else None)
+        )
+
+        return {
+            "session_id": session_id,
+            "workspace_id": workspace_id,
+            "progress": progress,
+            "last_activity": last_activity,
+        }
 
     except HTTPException:
         raise
@@ -2062,9 +2075,9 @@ async def generate_positioning(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/{session_id}/progress")
-async def get_onboarding_progress(session_id: str):
-    """Get comprehensive onboarding progress"""
+@router.get("/{session_id}/progress/persistent")
+async def get_onboarding_progress_persistent(session_id: str):
+    """Get comprehensive onboarding progress from persistent storage."""
     try:
         progress = await onboarding_repo.get_session_progress(session_id)
         return {"success": True, "progress": progress}

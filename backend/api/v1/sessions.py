@@ -7,8 +7,8 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
+from api.dependencies import require_auth
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
 from ..core.metrics import get_analytics_manager
@@ -26,23 +26,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 
-# Dependency for authentication
-async def get_current_user_id(
-    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
-) -> Optional[str]:
-    """Extract user ID from credentials."""
-    try:
-        if credentials and credentials.credentials:
-            # In a real implementation, this would validate the token
-            # For now, return a simple user identifier
-            return (
-                credentials.credentials.split(":")[0]
-                if ":" in credentials.credentials
-                else credentials.credentials
-            )
-    except Exception as e:
-        logger.error(f"Failed to extract user ID: {e}")
-        return None
+# Authentication: uses canonical Supabase JWT verification (see ADR-0001)
+# get_current_user_id is an alias for require_auth which returns the verified user_id
+get_current_user_id = require_auth
 
 
 @router.post("/")

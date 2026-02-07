@@ -17,9 +17,10 @@ from critic import AdversarialCritic
 from engine import CognitiveEngine
 from execution import PlanExecutor
 from fallback import FallbackHandler
+from api.dependencies import get_current_user as _canonical_get_current_user
+from api.dependencies import require_auth
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from hitl import ApprovalGate
 from monitoring import CognitiveMonitor
 from parallel import ParallelExecutor
@@ -45,9 +46,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="", tags=["cognitive"])
-
-# Security
-security = HTTPBearer()
 
 # Initialize cognitive components
 cognitive_engine = CognitiveEngine()
@@ -162,18 +160,8 @@ class MetricsResponse(BaseModel):
     )
 
 
-# Authentication dependency
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-):
-    """Get current user from credentials."""
-    # This would integrate with your authentication system
-    # For now, return a mock user
-    return {
-        "user_id": credentials.credentials if credentials else "demo_user",
-        "email": "demo@example.com",
-        "name": "Demo User",
-    }
+# Authentication: uses canonical Supabase JWT verification (see ADR-0001)
+get_current_user = _canonical_get_current_user
 
 
 # Background tasks

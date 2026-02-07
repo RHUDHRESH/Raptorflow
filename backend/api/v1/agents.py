@@ -8,17 +8,14 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from agents.exceptions import AuthenticationError, ValidationError, WorkspaceError
+from api.dependencies import require_auth
 from core.validation import validate_agent_request
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from backend.config import validate_config
 
 logger = logging.getLogger(__name__)
-
-# Security
-security = HTTPBearer()
 
 # Router
 router = APIRouter(prefix="/agents", tags=["agents"])
@@ -114,25 +111,12 @@ class HealthResponse(BaseModel):
     registered_agents: int
 
 
-# Authentication dependency
-async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Verify authentication token."""
-    try:
-        # In a real implementation, this would verify the JWT token
-        # For now, we'll just check that a token is provided
-        if not credentials.credentials:
-            raise AuthenticationError("No token provided")
-
-        # TODO: Implement proper JWT verification
-        return credentials.credentials
-
-    except Exception as e:
-        logger.error(f"Authentication failed: {e}")
-        raise HTTPException(status_code=401, detail="Authentication failed")
+# Authentication: uses canonical Supabase JWT verification via require_auth
+# (see ADR-0001-auth-unification.md)
 
 
 # Workspace validation dependency
-async def validate_workspace(workspace_id: str, token: str = Depends(verify_token)):
+async def validate_workspace(workspace_id: str, token: str = Depends(require_auth)):
     """Validate workspace access."""
     try:
         # In a real implementation, this would check if the user has access to the workspace
@@ -184,7 +168,7 @@ rate_limiter = RateLimiter()
 
 # Rate limiting dependency
 async def check_rate_limit(
-    workspace_id: str, user_id: str, token: str = Depends(verify_token)
+    workspace_id: str, user_id: str, token: str = Depends(require_auth)
 ):
     """Check rate limits for the user."""
     key = f"{workspace_id}:{user_id}"
@@ -200,7 +184,7 @@ async def check_rate_limit(
 async def execute_agent(
     request: AgentRequest,
     http_request: Request,
-    token: str = Depends(verify_token),
+    token: str = Depends(require_auth),
     workspace_id: str = Depends(validate_workspace),
     rate_ok: None = Depends(check_rate_limit),
 ):
@@ -257,12 +241,12 @@ async def execute_agent(
 
 
 @router.get("", response_model=List[str])
-async def list_agents_root(token: str = Depends(verify_token)):
+async def list_agents_root(token: str = Depends(require_auth)):
     return await list_agents(token)
 
 
 @router.get("/agents", response_model=List[str])
-async def list_agents(token: str = Depends(verify_token)):
+async def list_agents(token: str = Depends(require_auth)):
     """List all available agents."""
     try:
         agents = get_dispatcher().registry.list_agents()
@@ -274,12 +258,12 @@ async def list_agents(token: str = Depends(verify_token)):
 
 
 @router.get("/{agent_name}", response_model=AgentInfoResponse)
-async def get_agent_info_root(agent_name: str, token: str = Depends(verify_token)):
+async def get_agent_info_root(agent_name: str, token: str = Depends(require_auth)):
     return await get_agent_info(agent_name, token)
 
 
 @router.get("/agents/{agent_name}", response_model=AgentInfoResponse)
-async def get_agent_info(agent_name: str, token: str = Depends(verify_token)):
+async def get_agent_info(agent_name: str, token: str = Depends(require_auth)):
     """Get information about a specific agent."""
     try:
         agent_info = get_dispatcher().get_agent_info(agent_name)
@@ -297,7 +281,7 @@ async def get_agent_info(agent_name: str, token: str = Depends(verify_token)):
 
 
 @router.get("/stats", response_model=DispatcherStatsResponse)
-async def get_dispatcher_stats(token: str = Depends(verify_token)):
+async def get_dispatcher_stats(token: str = Depends(require_auth)):
     """Get dispatcher statistics."""
     try:
         stats = get_dispatcher().get_dispatcher_stats()
@@ -314,7 +298,7 @@ async def get_request_history(
     user_id: Optional[str] = None,
     session_id: Optional[str] = None,
     limit: int = Query(100, ge=1, le=1000),
-    token: str = Depends(verify_token),
+    token: str = Depends(require_auth),
 ):
     """Get request history with optional filtering."""
     try:
@@ -398,7 +382,7 @@ async def load_context(
     user_id: str,
     session_id: str,
     context_type: str = "full",
-    token: str = Depends(verify_token),
+    token: str = Depends(require_auth),
     workspace_valid: str = Depends(validate_workspace),
 ):
     """Load context for a workspace."""
@@ -425,7 +409,7 @@ async def load_context(
 async def batch_execute_agents(
     requests: List[AgentRequest],
     background_tasks: BackgroundTasks,
-    token: str = Depends(verify_token),
+    token: str = Depends(require_auth),
 ):
     """Execute multiple agent requests in parallel."""
     try:
@@ -483,7 +467,7 @@ async def batch_execute_agents(
 async def clear_history(
     workspace_id: Optional[str] = None,
     user_id: Optional[str] = None,
-    token: str = Depends(verify_token),
+    token: str = Depends(require_auth),
 ):
     """Clear request history (admin only)."""
     try:

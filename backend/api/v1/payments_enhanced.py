@@ -15,11 +15,10 @@ from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
+    Header,
     HTTPException,
     Request,
-    Security,
 )
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, validator
 
 from ..config.settings import get_settings
@@ -45,8 +44,6 @@ logger = logging.getLogger(__name__)
 # Create router
 router = APIRouter(prefix="", tags=["payments_enhanced"])
 
-# Security
-security = HTTPBearer(auto_error=False)
 
 # Initialize production components
 settings = get_settings()
@@ -175,20 +172,14 @@ class RefundResponse(BaseModel):
     fraud_assessment: Optional[Dict[str, Any]] = None
 
 
-# Dependency for session validation
+# Payment session extraction (NOT user auth — see ADR-0001)
+# Payment session IDs are passed via X-Payment-Session header,
+# NOT via Authorization (which is reserved for Supabase JWT).
 async def get_current_session(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(security),
+    x_payment_session: Optional[str] = Header(None),
 ) -> Optional[str]:
-    """Extract and validate session token from authorization header"""
-    if not credentials:
-        return None
-
-    try:
-        # Extract session ID from Bearer token
-        session_id = credentials.credentials
-        return session_id
-    except Exception:
-        return None
+    """Extract payment session ID from X-Payment-Session header."""
+    return x_payment_session or None
 
 
 @router.post("/initiate", response_model=PaymentInitiateResponse)
