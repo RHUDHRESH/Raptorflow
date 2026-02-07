@@ -3,14 +3,14 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from backend.agents.memory_reflection import MemoryReflectionAgent
-from backend.agents.shared.agents import CostGovernor
-from backend.agents.supervisor import HandoffProtocol
-from backend.core.base_tool import BaseRaptorTool
-from backend.core.toolbelt import ToolbeltV2
-from backend.inference import InferenceProvider
-from backend.memory.swarm_l1 import SwarmL1MemoryManager
-from backend.models.swarm import SwarmTask, SwarmTaskStatus
+from agents.memory_reflection import MemoryReflectionAgent
+from agents.shared.agents import CostGovernor
+from agents.supervisor import HandoffProtocol
+from core.base_tool import BaseRaptorTool
+from core.toolbelt import ToolbeltV2
+from inference import InferenceProvider
+from memory.swarm_l1 import SwarmL1MemoryManager
+from models.swarm import SwarmTask, SwarmTaskStatus
 
 logger = logging.getLogger("raptorflow.scripts.validate_swarm_flow")
 

@@ -3,9 +3,9 @@ from typing import Any, Dict, Optional
 
 from langchain_core.prompts import ChatPromptTemplate
 
-from backend.core.tool_registry import BaseRaptorTool, RaptorRateLimiter
-from backend.core.prompts import MarketingFrameworks, MusePrompts
-from backend.inference import InferenceProvider
+from core.prompts import MarketingFrameworks, MusePrompts
+from core.tool_registry import BaseRaptorTool, RaptorRateLimiter
+from inference import InferenceProvider
 
 logger = logging.getLogger("raptorflow.tools.muse")
 

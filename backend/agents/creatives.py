@@ -387,15 +387,15 @@ class ImageArchitect:
     """
 
     def __init__(self, model_tier: str = "nano"):
-        from backend.core.usage_tracker import usage_tracker
-        from backend.inference import InferenceProvider
+        from core.usage_tracker import usage_tracker
+        from inference import InferenceProvider
 
         self.model = InferenceProvider.get_image_model(model_tier=model_tier)
         self.usage_tracker = usage_tracker
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
-        from backend.utils.storage import pil_to_bytes, upload_image_to_gcs
+        from utils.storage import pil_to_bytes, upload_image_to_gcs
 
         tenant_id = state.get("tenant_id", "default")
 

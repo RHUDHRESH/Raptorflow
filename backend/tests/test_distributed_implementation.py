@@ -15,14 +15,14 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from backend.mlops.distributed_data_processing import (
+from mlops.distributed_data_processing import (
     DataFormat,
     DataProcessingJob,
     DistributedDataProcessingOrchestrator,
     ProcessingBackend,
     StorageType,
 )
-from backend.mlops.distributed_experiment_tracking import (
+from mlops.distributed_experiment_tracking import (
     DistributedExperimentTracker,
     ExperimentConfig,
     ExperimentStatus,
@@ -30,23 +30,21 @@ from backend.mlops.distributed_experiment_tracking import (
     RunConfig,
     TrackingBackend,
 )
-from backend.mlops.distributed_hyperparameter_tuning import (
+from mlops.distributed_hyperparameter_tuning import (
     DistributedHyperparameterTuner,
     HyperparameterSpace,
     OptimizationDirection,
     SearchStrategy,
     TuningConfig,
 )
-from backend.mlops.distributed_model_versioning import (
+from mlops.distributed_model_versioning import (
     DistributedModelRegistry,
     ModelFramework,
     ModelMetadata,
     ModelStatus,
 )
-from backend.mlops.distributed_model_versioning import (
-    StorageBackend as ModelStorageBackend,
-)
-from backend.mlops.distributed_pytorch_ddp import (
+from mlops.distributed_model_versioning import StorageBackend as ModelStorageBackend
+from mlops.distributed_pytorch_ddp import (
     CheckpointConfig,
     DDPConfig,
     DistributedTrainer,
@@ -56,7 +54,7 @@ from backend.mlops.distributed_pytorch_ddp import (
 )
 
 # Import all distributed components
-from backend.mlops.distributed_training_architecture import (
+from mlops.distributed_training_architecture import (
     ClusterConfig,
     DistributedFramework,
     DistributedTrainingArchitecture,

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from backend.graphs.swarm_orchestrator import SwarmController
+from graphs.swarm_orchestrator import SwarmController
 
 
 @pytest.mark.asyncio

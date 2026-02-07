@@ -5,11 +5,11 @@ from typing import Dict, List, Optional
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
-from backend.core.config import get_settings
-from backend.core.gap_planner import build_gap_queries, evaluate_dossier_gaps
-from backend.core.research_engine import ResearchEngine, SearchProvider
-from backend.inference import InferenceProvider
-from backend.models.dossier_schema import DEFAULT_DOSSIER_SCHEMA, build_dossier_model
+from core.config import get_settings
+from core.gap_planner import build_gap_queries, evaluate_dossier_gaps
+from core.research_engine import ResearchEngine, SearchProvider
+from inference import InferenceProvider
+from models.dossier_schema import DEFAULT_DOSSIER_SCHEMA, build_dossier_model
 
 logger = logging.getLogger("raptorflow.research_deep")
 

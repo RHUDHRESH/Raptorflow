@@ -5,7 +5,7 @@ import pytest
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from backend.graphs.swarm_orchestrator import SwarmController, SwarmRouteDecision
+from graphs.swarm_orchestrator import SwarmController, SwarmRouteDecision
 
 
 class TestState(TypedDict):
@@ -40,13 +40,13 @@ def router(state: TestState):
     return next_step[0]
 
 
-from backend.agents.classifier import (
+from agents.classifier import (
     Intent,
     create_ambiguity_resolver,
     create_intent_classifier,
 )
-from backend.agents.planner import Plan, create_task_decomposer
-from backend.models.fortress import FortressTask
+from agents.planner import Plan, create_task_decomposer
+from models.fortress import FortressTask
 
 
 @pytest.mark.asyncio
@@ -141,7 +141,9 @@ async def test_hierarchical_supervisor_delegation():
 
     # We mock the initialization of HierarchicalSupervisor to inject our mock_chain
     supervisor = SwarmController(
-        supervisor_llm=mock_llm, team_members=["research"], system_prompt="System prompt"
+        supervisor_llm=mock_llm,
+        team_members=["research"],
+        system_prompt="System prompt",
     )
     with patch.object(
         SwarmController, "supervisor_chain", new_callable=PropertyMock

@@ -1,8 +1,10 @@
-from backend.models.queue_controller import CapabilityProfile, QueueController, QueuedTask
+from models.queue_controller import CapabilityProfile, QueueController, QueuedTask
 
 
 def test_queue_controller_enforces_per_agent_concurrency():
-    profile = CapabilityProfile(default_concurrency=1, per_agent_concurrency={"researcher": 2})
+    profile = CapabilityProfile(
+        default_concurrency=1, per_agent_concurrency={"researcher": 2}
+    )
     controller = QueueController(capability_profile=profile)
 
     task_one = QueuedTask(task_id="t1", agent_type="researcher")

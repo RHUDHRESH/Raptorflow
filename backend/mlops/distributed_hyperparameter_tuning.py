@@ -17,52 +17,60 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 # Hyperparameter optimization imports
-try:
-    import optuna
+# Import ML dependencies with dependency management
+from core.dependencies import get_ml_dependencies
+
+ml_deps = get_ml_dependencies()
+
+# Optuna imports
+optuna = ml_deps.import_optuna()
+if optuna:
     from optuna import Study, Trial, create_study
     from optuna.pruners import HyperbandPruner, MedianPruner
     from optuna.samplers import GridSampler, RandomSampler, TPESampler
 
     OPTUNA_AVAILABLE = True
-except ImportError:
+else:
     OPTUNA_AVAILABLE = False
 
-try:
-    import ray
+# Ray imports
+ray = ml_deps.import_ray()
+if ray:
     from ray import tune
     from ray.tune import RunConfig, TuneConfig
     from ray.tune.schedulers import ASHAScheduler, PopulationBasedTraining
     from ray.tune.search.optuna import OptunaSearch
 
     RAY_AVAILABLE = True
-except ImportError:
+else:
     RAY_AVAILABLE = False
 
-try:
-    import hyperopt
+# Hyperopt imports
+hyperopt = ml_deps.import_hyperopt()
+if hyperopt:
     from hyperopt import STATUS_OK, Trials, fmin, hp, tpe
 
     HYPEROPT_AVAILABLE = True
-except ImportError:
+else:
     HYPEROPT_AVAILABLE = False
 
 # MLflow imports
-try:
-    import mlflow
+mlflow = ml_deps.import_mlflow()
+if mlflow:
     import mlflow.pytorch
 
     MLFLOW_AVAILABLE = True
-except ImportError:
+else:
     MLFLOW_AVAILABLE = False
 
 # PyTorch imports
-try:
-    import torch
+torch = ml_deps.import_torch()
+if torch:
     import torch.nn as nn
     import torch.optim as optim
 
     PYTORCH_AVAILABLE = True
-except ImportError:
+else:
     PYTORCH_AVAILABLE = False
 
 logger = logging.getLogger("raptorflow.distributed_hyperparameter_tuning")

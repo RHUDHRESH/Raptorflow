@@ -1,14 +1,17 @@
 import logging
 from abc import ABC
+from datetime import datetime
 from typing import Any, AsyncIterator, Dict, List, Optional, Type
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
-from backend.inference import InferenceProvider
-from backend.models.capabilities import CapabilityProfile
-from backend.models.cognitive import AgentMessage, CognitiveIntelligenceState
+from agents.tool_integration import get_agent_tools
+from inference import InferenceProvider
+from memory.swarm_coordinator import get_swarm_memory_coordinator
+from models.capabilities import CapabilityProfile
+from models.cognitive import AgentMessage, CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.base")
 
@@ -28,16 +31,24 @@ class BaseCognitiveAgent(ABC):
         tools: Optional[List[BaseTool]] = None,
         output_schema: Optional[Type[BaseModel]] = None,
         capability_profile: Optional[CapabilityProfile] = None,
+        auto_assign_tools: bool = True,
     ):
         self.name = name
         self.role = role
         self.system_prompt = system_prompt
         self.model_tier = model_tier
         self.capability_profile = capability_profile
-        self.tools = self._filter_tools(tools or [])
+
+        # Auto-assign tools based on role if no tools provided
+        if auto_assign_tools and not tools:
+            self.tools = self._filter_tools(get_agent_tools(role))
+        else:
+            self.tools = self._filter_tools(tools or [])
+
         self.output_schema = output_schema
 
         self.llm = InferenceProvider.get_model(model_tier=self.model_tier)
+        self.memory_coordinator = None  # Will be initialized during execution
 
         if self.tools:
             self.llm_with_tools = self.llm.bind_tools(self.tools)
@@ -114,9 +125,19 @@ class BaseCognitiveAgent(ABC):
 
     async def __call__(self, state: CognitiveIntelligenceState) -> Dict[str, Any]:
         """
-        Node execution logic with token tracking.
+        Node execution logic with token tracking and memory integration.
         """
         logger.info(f"Agent {self.name} ({self.role}) executing...")
+
+        # Initialize memory coordinator if needed
+        workspace_id = state.get("workspace_id")
+        if workspace_id and not self.memory_coordinator:
+            self.memory_coordinator = get_swarm_memory_coordinator(workspace_id)
+
+            # Register agent with memory system
+            await self.memory_coordinator.initialize_agent_memory(
+                agent_id=self.name, agent_type=self.role
+            )
 
         messages = self._format_messages(state.get("messages", []))
 
@@ -145,6 +166,24 @@ class BaseCognitiveAgent(ABC):
         output_tokens = token_usage.get("candidates_token_count", 0)
 
         logger.info(f"Agent {self.name} tokens: {input_tokens} in, {output_tokens} out")
+
+        # Record agent execution in memory system
+        if self.memory_coordinator:
+            await self.memory_coordinator.record_agent_memory(
+                agent_id=self.name,
+                content={
+                    "task": state.get("instructions", ""),
+                    "result": content,
+                    "tokens_used": {"input": input_tokens, "output": output_tokens},
+                    "model_tier": self.model_tier,
+                },
+                importance=0.6,  # Medium importance for agent outputs
+                metadata={
+                    "agent_type": self.role,
+                    "workspace_id": workspace_id,
+                    "execution_timestamp": str(datetime.now()),
+                },
+            )
 
         return {
             "messages": [AgentMessage(role=self.role, content=content)],

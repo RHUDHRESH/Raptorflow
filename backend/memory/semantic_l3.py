@@ -1,9 +1,9 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from backend.db import save_memory, vector_search
-from backend.inference import InferenceProvider
-from backend.memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
+from db import save_memory, vector_search
+from inference import InferenceProvider
+from memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
 
 logger = logging.getLogger("raptorflow.memory.semantic_l3")
 
@@ -70,7 +70,9 @@ class L3SemanticMemory:
             metadata = {}
         metadata["type"] = "foundation"
         policy = get_memory_policy()
-        metadata.update(policy.retention_metadata(workspace_importance, agent_importance))
+        metadata.update(
+            policy.retention_metadata(workspace_importance, agent_importance)
+        )
 
         try:
             fact_id = await save_memory(

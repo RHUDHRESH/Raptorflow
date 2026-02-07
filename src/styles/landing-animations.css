@@ -1,0 +1,402 @@
+/* ================================================
+   RaptorFlow Landing Page — Animation System
+   Spylt/Wealthsimple Inspired Design Patterns
+   ================================================ */
+
+/* ============================================
+   TILTED CONTAINERS
+   Break the grid with dynamic rotation
+   ============================================ */
+.tilted-card {
+    transform: rotate(-3deg);
+    transform-origin: center center;
+}
+
+.tilted-card-right {
+    transform: rotate(3deg);
+    transform-origin: center center;
+}
+
+.tilted-card-strong {
+    transform: rotate(-5deg);
+}
+
+.tilted-card-strong-right {
+    transform: rotate(5deg);
+}
+
+/* Hover: subtle counter-rotation */
+.tilted-card:hover,
+.tilted-card-right:hover {
+    transform: rotate(0deg) scale(1.02);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ============================================
+   BREAKOUT IMAGES
+   Images that overflow their containers
+   ============================================ */
+.breakout-image {
+    position: relative;
+}
+
+.breakout-image img,
+.breakout-image>div {
+    position: relative;
+    z-index: 10;
+}
+
+.breakout-left {
+    margin-left: -48px;
+}
+
+.breakout-right {
+    margin-right: -48px;
+}
+
+.breakout-top {
+    margin-top: -32px;
+}
+
+.breakout-bottom {
+    margin-bottom: -32px;
+}
+
+/* Large breakout for hero */
+.breakout-hero {
+    margin-left: -80px;
+    margin-right: -80px;
+    margin-top: -40px;
+}
+
+/* ============================================
+   FLUID TYPOGRAPHY
+   Giant headlines that bleed edges
+   ============================================ */
+.fluid-headline {
+    font-size: clamp(3rem, 10vw, 8rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    overflow: visible;
+}
+
+.fluid-headline-bleed {
+    margin-left: -5vw;
+    margin-right: -5vw;
+    padding-left: 5vw;
+    padding-right: 5vw;
+}
+
+/* ============================================
+   FLOATING EFFECTS
+   Elements that feel weightless
+   ============================================ */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(1deg);
+    }
+}
+
+@keyframes float-slow {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-30px);
+    }
+}
+
+@keyframes float-drift {
+
+    0%,
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+
+    25% {
+        transform: translate(10px, -15px) rotate(2deg);
+    }
+
+    50% {
+        transform: translate(-5px, -25px) rotate(-1deg);
+    }
+
+    75% {
+        transform: translate(-10px, -10px) rotate(1deg);
+    }
+}
+
+.floating {
+    animation: float 6s ease-in-out infinite;
+}
+
+.floating-slow {
+    animation: float-slow 8s ease-in-out infinite;
+}
+
+.floating-drift {
+    animation: float-drift 10s ease-in-out infinite;
+}
+
+/* Staggered floating for multiple items */
+.floating-delay-1 {
+    animation-delay: 0s;
+}
+
+.floating-delay-2 {
+    animation-delay: 1s;
+}
+
+.floating-delay-3 {
+    animation-delay: 2s;
+}
+
+.floating-delay-4 {
+    animation-delay: 3s;
+}
+
+/* ============================================
+   DEPTH & SHADOWS
+   Layered Z-axis for premium feel
+   ============================================ */
+.depth-layer-1 {
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.depth-layer-2 {
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.08),
+        0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.depth-layer-3 {
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.depth-layer-hero {
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+/* ============================================
+   SHIMMER & GLOW EFFECTS
+   Premium surface treatments
+   ============================================ */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.shimmer-surface {
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.03) 50%,
+            transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 8s ease-in-out infinite;
+}
+
+.glow-subtle {
+    box-shadow:
+        0 0 40px rgba(255, 255, 255, 0.03),
+        0 0 80px rgba(255, 255, 255, 0.02);
+}
+
+.glow-accent {
+    box-shadow:
+        0 0 30px rgba(228, 228, 231, 0.1),
+        0 0 60px rgba(228, 228, 231, 0.05);
+}
+
+/* ============================================
+   SCROLL-TRIGGERED ANIMATION STATES
+   Initial states for GSAP reveals
+   ============================================ */
+.reveal-fade-up {
+    opacity: 0;
+    transform: translateY(40px);
+}
+
+.reveal-fade-in {
+    opacity: 0;
+}
+
+.reveal-scale-up {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.reveal-tilt-in {
+    opacity: 0;
+    transform: translateY(60px) rotate(-3deg);
+}
+
+.revealed {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================
+   GRADIENT BACKGROUNDS
+   Rich, subtle gradients
+   ============================================ */
+.gradient-mesh-dark {
+    background:
+        radial-gradient(at 40% 20%, rgba(39, 39, 42, 0.8) 0px, transparent 50%),
+        radial-gradient(at 80% 0%, rgba(24, 24, 27, 0.6) 0px, transparent 50%),
+        radial-gradient(at 0% 50%, rgba(39, 39, 42, 0.5) 0px, transparent 50%),
+        radial-gradient(at 80% 50%, rgba(24, 24, 27, 0.4) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(39, 39, 42, 0.3) 0px, transparent 50%),
+        var(--dark-canvas, #09090B);
+}
+
+.gradient-mesh-light {
+    background:
+        radial-gradient(at 40% 20%, rgba(250, 250, 250, 0.8) 0px, transparent 50%),
+        radial-gradient(at 80% 0%, rgba(244, 244, 245, 0.6) 0px, transparent 50%),
+        radial-gradient(at 0% 50%, rgba(250, 250, 250, 0.5) 0px, transparent 50%),
+        #FFFFFF;
+}
+
+/* ============================================
+   INTERACTIVE STATES
+   Premium micro-interactions
+   ============================================ */
+.interactive-lift {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.3s ease;
+}
+
+.interactive-lift:hover {
+    transform: translateY(-8px);
+}
+
+.interactive-tilt {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.interactive-tilt:hover {
+    transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-4px);
+}
+
+/* ============================================
+   ORGANIC SECTION TRANSITIONS
+   SVG-powered wave/drip dividers
+   ============================================ */
+.organic-divider {
+    position: relative;
+    height: 100px;
+    margin-top: -50px;
+    margin-bottom: -50px;
+    z-index: 10;
+}
+
+.organic-divider svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.organic-divider-wave {
+    height: 60px;
+    margin-top: -30px;
+    margin-bottom: -30px;
+}
+
+/* ============================================
+   PARALLAX HELPERS
+   For GSAP ScrollTrigger integration
+   ============================================ */
+.parallax-container {
+    overflow: hidden;
+    position: relative;
+}
+
+.parallax-slow {
+    will-change: transform;
+}
+
+.parallax-fast {
+    will-change: transform;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 768px) {
+
+    .tilted-card,
+    .tilted-card-right {
+        transform: rotate(-2deg);
+    }
+
+    .tilted-card-strong,
+    .tilted-card-strong-right {
+        transform: rotate(-3deg);
+    }
+
+    .breakout-left,
+    .breakout-right {
+        margin-left: -24px;
+        margin-right: -24px;
+    }
+
+    .breakout-hero {
+        margin-left: -32px;
+        margin-right: -32px;
+    }
+
+    .fluid-headline {
+        font-size: clamp(2.5rem, 12vw, 5rem);
+    }
+}
+
+/* ============================================
+   REDUCED MOTION
+   Accessibility support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+
+    .floating,
+    .floating-slow,
+    .floating-drift {
+        animation: none;
+    }
+
+    .shimmer-surface {
+        animation: none;
+    }
+
+    .reveal-fade-up,
+    .reveal-fade-in,
+    .reveal-scale-up,
+    .reveal-tilt-in {
+        opacity: 1;
+        transform: none;
+    }
+
+    .interactive-lift:hover,
+    .interactive-tilt:hover {
+        transform: none;
+    }
+}

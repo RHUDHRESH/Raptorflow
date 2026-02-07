@@ -4,13 +4,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.core.config import get_settings
-from backend.core.sandbox import RaptorSandbox
-from backend.core.toolbelt import BaseRaptorTool, RaptorRateLimiter, cache_tool_output
-from backend.core.vault import RaptorVault
-from backend.graphs.spine_v3 import build_ultimate_spine
-from backend.inference import InferenceProvider
-from backend.services.telemetry import (
+from core.config import get_settings
+from core.sandbox import RaptorSandbox
+from core.toolbelt import BaseRaptorTool, RaptorRateLimiter, cache_tool_output
+from core.vault import RaptorVault
+from graphs.spine_v3 import build_ultimate_spine
+from inference import InferenceProvider
+from services.telemetry import (
     CostEvaluator,
     RaptorEvaluator,
     RaptorTelemetry,
@@ -212,7 +212,7 @@ def test_langsmith_config():
     """Verify that LangSmith variables are expected in environment."""
     # This check ensures we don't deploy to prod without observability.
     # In a real system, we might use a validator function.
-    from backend.core.config import get_settings
+    from core.config import get_settings
 
     telemetry = RaptorTelemetry()
     settings = get_settings()

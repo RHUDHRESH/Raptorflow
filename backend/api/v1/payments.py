@@ -4,9 +4,9 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
-from backend.core.auth import get_current_user
-from backend.core.config import get_settings
-from backend.services.payment_service import PhonePeCallbackError, payment_service
+from core.auth import get_current_user
+from core.config import get_settings
+from services.payment_service import PhonePeCallbackError, payment_service
 
 router = APIRouter(prefix="/v1/payments", tags=["Payments"])
 
@@ -63,6 +63,13 @@ async def initiate_payment(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="redirect_url is not in the allowlist.",
+        )
+
+    # RBI compliance: Autopay only allowed for amounts ≤ ₹5,000
+    if payload.amount > 5000:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Amount exceeds ₹5,000 limit for autopay payments per RBI regulations.",
         )
 
     if (

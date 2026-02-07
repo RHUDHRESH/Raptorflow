@@ -47,12 +47,34 @@ mypy = "^1.8.0"
 isort = "^5.13.0"
 pytest = "^8.0.0"
 pytest-asyncio = "^0.23.0"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+httpx = "^0.28.1"
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = "-ra -q"
+addopts = [
+    "-ra",
+    "-q",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+    "--cov=backend",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-fail-under=80"
+]
 testpaths = [
     "tests",
+]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "asyncio: marks tests as async tests"
 ]
 
 [tool.black]

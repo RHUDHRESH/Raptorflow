@@ -3,16 +3,12 @@ from datetime import datetime
 
 from langgraph.graph import END, START, StateGraph
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.agents.shared.agents import IntentRouter, QualityGate
-from backend.agents.shared.context_assembler import ContextAssemblerAgent
-from backend.core.lifecycle import apply_lifecycle_transition
-from backend.models.cognitive import (
-    AgentMessage,
-    CognitiveIntelligenceState,
-    CognitiveStatus,
-)
-from backend.services.budget_governor import BudgetGovernor
+from agents.base import BaseCognitiveAgent
+from agents.shared.agents import IntentRouter, QualityGate
+from agents.shared.context_assembler import ContextAssemblerAgent
+from core.lifecycle import apply_lifecycle_transition
+from models.cognitive import AgentMessage, CognitiveIntelligenceState, CognitiveStatus
+from services.budget_governor import BudgetGovernor
 
 logger = logging.getLogger("raptorflow.graphs.muse_create")
 
@@ -111,8 +107,8 @@ async def drafting_node(state: CognitiveIntelligenceState):
     family = state["brief"].get("asset_family", "text")
 
     if family == "image":
-        from backend.agents.creatives import ImageArchitect, VisualPrompter
-        from backend.inference import InferenceProvider
+        from agents.creatives import ImageArchitect, VisualPrompter
+        from inference import InferenceProvider
 
         # 1. Generate visual prompt first
         prompter = VisualPrompter(InferenceProvider.get_model("reasoning"))

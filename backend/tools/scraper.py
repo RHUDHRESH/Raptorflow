@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict
 
-from backend.core.tool_registry import BaseRaptorTool, RaptorRateLimiter
-from backend.core.config import get_settings
+from core.config import get_settings
+from core.tool_registry import BaseRaptorTool, RaptorRateLimiter
 
 logger = logging.getLogger("raptorflow.tools.scraper")
 

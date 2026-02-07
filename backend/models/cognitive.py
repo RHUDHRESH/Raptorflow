@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from backend.memory.short_term import L1ShortTermMemory
+from memory.short_term import L1ShortTermMemory
 
 
 class BudgetCaps(BaseModel):

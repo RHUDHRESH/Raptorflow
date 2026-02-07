@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.core.tool_registry import BaseRaptorTool
+from core.tool_registry import BaseRaptorTool
 
 
 class FailingTool(BaseRaptorTool):
@@ -37,7 +37,7 @@ async def test_toolbelt_missing_tool_handling():
     """
     Verify Toolbelt handles missing tools gracefully.
     """
-    from backend.core.toolbelt import ToolbeltV2
+    from core.toolbelt import ToolbeltV2
 
     belt = ToolbeltV2()
     result = await belt.run_tool("non_existent_tool")

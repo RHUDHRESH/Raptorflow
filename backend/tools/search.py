@@ -1,8 +1,8 @@
 import logging
 from typing import Any
 
-from backend.core.tool_registry import BaseRaptorTool, RaptorRateLimiter
-from backend.core.search_native import NativeSearch
+from core.search_native import NativeSearch
+from core.tool_registry import BaseRaptorTool, RaptorRateLimiter
 
 logger = logging.getLogger("raptorflow.tools.search")
 

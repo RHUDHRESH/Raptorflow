@@ -4,8 +4,8 @@ from typing import Any, List, TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from backend.inference import InferenceProvider
-from backend.models.swarm import SwarmSubtaskSpec, SwarmTask
+from inference import InferenceProvider
+from models.swarm import SwarmSubtaskSpec, SwarmTask
 
 logger = logging.getLogger("raptorflow.agents.swarm_decomposer")
 
@@ -38,7 +38,9 @@ class SwarmTaskDecomposer:
                 ("user", "{goal}"),
             ]
         )
-        self.chain = self.prompt | self.llm.with_structured_output(SwarmDecompositionPlan)
+        self.chain = self.prompt | self.llm.with_structured_output(
+            SwarmDecompositionPlan
+        )
 
     async def __call__(self, state: TypedDict) -> dict:
         """Generate swarm subtask specs from the incoming state."""

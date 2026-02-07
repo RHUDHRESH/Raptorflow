@@ -23,8 +23,8 @@ class AnalysisState(TypedDict):
 
 def get_blackbox_service():
     """Dependency provider for BlackboxService."""
-    from backend.core.vault import Vault
-    from backend.services.blackbox_service import BlackboxService
+    from core.vault import Vault
+    from services.blackbox_service import BlackboxService
 
     vault = Vault()
     return BlackboxService(vault)
@@ -43,7 +43,7 @@ async def extract_insights_node(state: AnalysisState) -> Dict:
     """
     Node: Analyzes telemetry via LLM to extract strategic findings.
     """
-    from backend.inference import InferenceProvider
+    from inference import InferenceProvider
 
     llm = InferenceProvider.get_model(model_tier="reasoning")
 
@@ -75,7 +75,7 @@ async def reflect_and_validate_node(state: AnalysisState) -> Dict:
     """
     Node: Critiques the findings and outcomes, assigning confidence.
     """
-    from backend.inference import InferenceProvider
+    from inference import InferenceProvider
 
     llm = InferenceProvider.get_model(
         model_tier="ultra"
@@ -122,7 +122,7 @@ def should_continue(state: AnalysisState) -> str:
 
 def evaluate_run(state: AnalysisState) -> Dict[str, Any]:
     """Evaluates telemetry and findings at the end of the run."""
-    from backend.services.evaluation import EvaluationService
+    from services.evaluation import EvaluationService
 
     evaluator = EvaluationService()
     evaluation = evaluator.evaluate_run(
@@ -141,7 +141,7 @@ def create_blackbox_graph():
     """
     from langgraph.graph import END, START, StateGraph
 
-    from backend.agents.blackbox_specialist import (
+    from agents.blackbox_specialist import (
         BlackboxCritiqueAgent,
         CompetitorIntelligenceAgent,
         ROIAnalystAgent,

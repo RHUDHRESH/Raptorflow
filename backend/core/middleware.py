@@ -5,14 +5,15 @@ import uuid
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.models.telemetry import TelemetryEvent, TelemetryEventType
-from backend.services.rate_limiter import GlobalRateLimiter
-from backend.utils.logger import logger
+from models.telemetry import TelemetryEvent, TelemetryEventType
+from services.rate_limiter import GlobalRateLimiter
+from utils.logger import logger
 
 # Context variable to store trace ID synchronously
 _trace_id_ctx_var: contextvars.ContextVar[str] = contextvars.ContextVar(
     "trace_id", default=""
 )
+
 
 def get_current_trace_id() -> str:
     """Returns the current trace ID from the context."""

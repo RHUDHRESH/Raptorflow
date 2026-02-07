@@ -54,15 +54,15 @@ export class ContextManager {
   private initializeAdaptationRules(): void {
     // Time-based adaptations
     this.adaptationRules.set('morning', {
-      soundProfile: 'professional',
-      intensity: 'normal',
-      volume: 0.4
+      soundProfile: 'luxury',
+      intensity: 'subtle',
+      volume: 0.2
     });
 
     this.adaptationRules.set('night', {
-      soundProfile: 'minimalist',
+      soundProfile: 'luxury',
       intensity: 'subtle',
-      volume: 0.2,
+      volume: 0.05,
       features: {
         completionSounds: false,
         particleEffects: false,
@@ -73,9 +73,9 @@ export class ContextManager {
 
     // Environment-based adaptations
     this.adaptationRules.set('office', {
-      soundProfile: 'professional',
+      soundProfile: 'luxury',
       intensity: 'subtle',
-      volume: 0.3,
+      volume: 0.15,
       features: {
         completionSounds: true,
         particleEffects: false,
@@ -85,9 +85,9 @@ export class ContextManager {
     });
 
     this.adaptationRules.set('public', {
-      soundProfile: 'minimalist',
+      soundProfile: 'luxury',
       intensity: 'subtle',
-      volume: 0.1,
+      volume: 0.05,
       features: {
         completionSounds: false,
         particleEffects: false,

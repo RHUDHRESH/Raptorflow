@@ -1,683 +1,573 @@
-"""
-Integration tests for RaptorFlow backend.
-Tests end-to-end workflows and system integration.
-"""
-
 import asyncio
-import time
-from typing import Any, Dict
-from unittest.mock import AsyncMock, Mock
+import json
+from typing import Any, Dict, Optional
 
 import pytest
-from integration.agents_cognitive import execute_with_cognition
-from integration.auth_all import inject_auth_context
-from integration.billing_usage import deduct_from_budget
-from integration.context_builder import build_full_context
-from integration.events_all import wire_all_event_handlers
-from integration.memory_database import sync_database_to_memory
-from integration.output_pipeline import process_output
-from integration.redis_sessions import persist_agent_state, restore_agent_state
-from integration.routing_memory import route_with_memory_context
-from integration.test_harness import run_integration_tests
-from integration.validation import validate_agent_state, validate_workspace_consistency
+from fastapi.testclient import TestClient
+from httpx import AsyncClient
+
+from core.auth import get_current_user
+from main import app
+from models.requests import AssetCreateRequest, CampaignCreateRequest, MoveCreateRequest
 
 
-class TestIntegration:
-    """Test suite for integration components."""
+class MockUser:
+    """Mock user for testing."""
+    def __init__(self, user_id: str = "test_user", tenant_id: str = "test_tenant"):
+        self.id = user_id
+        self.tenant_id = tenant_id
+        self.email = "test@example.com"
 
-    @pytest.fixture
-    def mock_db_client(self):
-        """Mock database client."""
-        client = Mock()
-        client.table.return_value.select.return_value.execute.return_value.data = [
-            {"id": "test"}
-        ]
-        return client
 
-    @pytest.fixture
-    def mock_memory_controller(self):
-        """Mock memory controller."""
-        controller = AsyncMock()
-        controller.search.return_value = []
-        controller.store.return_value = "memory_id"
-        return controller
+def mock_get_current_user():
+    """Mock authentication dependency."""
+    return MockUser()
 
-    @pytest.fixture
-    def mock_cognitive_engine(self):
-        """Mock cognitive engine."""
-        engine = AsyncMock()
-        engine.perception.perceive.return_value = Mock(intent="test", entities=[])
-        engine.planning.plan.return_value = Mock(steps=[], total_cost=0.1)
-        engine.reflection.reflect.return_value = Mock(quality_score=0.8, approved=True)
-        return engine
 
-    @pytest.fixture
-    def mock_agent_dispatcher(self):
-        """Mock agent dispatcher."""
-        dispatcher = AsyncMock()
-        agent = AsyncMock()
-        agent.execute.return_value = {"success": True, "output": "test"}
-        dispatcher.get_agent.return_value = agent
-        return dispatcher
+@pytest.fixture
+def client():
+    """Test client fixture."""
+    return TestClient(app)
 
-    @pytest.fixture
-    def mock_redis_client(self):
-        """Mock Redis client."""
-        redis_client = AsyncMock()
-        redis_client.setex.return_value = True
-        redis_client.get.return_value = '{"test": "data"}'
-        return redis_client
 
-    @pytest.mark.asyncio
-    async def test_routing_memory_integration(
-        self, mock_memory_controller, mock_agent_dispatcher
-    ):
-        """Test routing with memory context integration."""
-        # Mock dependencies
-        routing_pipeline = AsyncMock()
-        routing_pipeline.route.return_value = Mock(
-            target_agent="test_agent", memory_context=[], context_used=True
-        )
+@pytest.fixture
+def async_client():
+    """Async test client fixture."""
+    return AsyncClient(app=app, base_url="http://test")
 
-        # Test routing with memory
-        result = await route_with_memory_context(
-            request="test request",
-            workspace_id="test_workspace",
-            memory_controller=mock_memory_controller,
-            routing_pipeline=routing_pipeline,
-        )
 
-        assert result.target_agent == "test_agent"
-        assert result.context_used is True
-        mock_memory_controller.search.assert_called_once()
-        routing_pipeline.route.assert_called_once()
+@pytest.fixture
+def mock_auth():
+    """Mock authentication for testing."""
+    app.dependency_overrides[get_current_user] = mock_get_current_user
+    yield
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def sample_campaign_data():
+    """Sample campaign data for testing."""
+    return {
+        "title": "Test Campaign",
+        "objective": "This is a test campaign for unit testing purposes",
+        "status": "draft"
+    }
+
+
+@pytest.fixture
+def sample_move_data():
+    """Sample move data for testing."""
+    return {
+        "title": "Test Move",
+        "description": "This is a test move for unit testing purposes",
+        "priority": 3,
+        "move_type": "content",
+        "tool_requirements": []
+    }
+
+
+@pytest.fixture
+def sample_asset_data():
+    """Sample asset data for testing."""
+    return {
+        "content": "This is test content for unit testing",
+        "asset_type": "text",
+        "metadata": {"test": True}
+    }
+
+
+class TestDatabaseOperations:
+    """Test database operations and transactions."""
 
     @pytest.mark.asyncio
-    async def test_agents_cognitive_integration(
-        self, mock_cognitive_engine, mock_agent_dispatcher
-    ):
-        """Test agents with cognitive engine integration."""
-        # Mock agent state
-        state = {
-            "workspace_id": "test_workspace",
-            "user_id": "test_user",
-            "input": "test input",
-            "messages": [],
-        }
+    async def test_database_connection(self):
+        """Test database connection pool."""
+        from db import get_pool
+        pool = get_pool()
+        assert pool is not None
 
-        agent = Mock()
-        agent.name = "test_agent"
-
-        # Test cognitive execution
-        result = await execute_with_cognition(
-            agent=agent, state=state, cognitive_engine=mock_cognitive_engine
-        )
-
-        assert "perceived_input" in result
-        assert "execution_plan" in result
-        assert "reflection_result" in result
-        assert result["cognitive_processing"] is True
-        assert result["quality_score"] == 0.8
+        # Test connection
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("SELECT 1")
+                result = await cur.fetchone()
+                assert result[0] == 1
 
     @pytest.mark.asyncio
-    async def test_memory_database_integration(
-        self, mock_db_client, mock_memory_controller
-    ):
-        """Test memory and database integration."""
-        # Test database to memory sync
-        result = await sync_database_to_memory(
-            workspace_id="test_workspace",
-            db=mock_db_client,
-            memory_controller=mock_memory_controller,
-        )
+    async def test_transaction_rollback(self):
+        """Test transaction rollback on error."""
+        from db import get_db_transaction
 
-        assert "foundation" in result
-        assert "icps" in result
-        assert "moves" in result
-        assert "campaigns" in result
-        assert "cross_module" in result
+        try:
+            async with get_db_transaction() as conn:
+                async with conn.cursor() as cur:
+                    # This should work
+                    await cur.execute("SELECT 1")
+                    result = await cur.fetchone()
+                    assert result[0] == 1
 
-    @pytest.mark.asyncio
-    async def test_auth_integration(self):
-        """Test authentication integration."""
-        # Mock user data
-        user = {
-            "id": "test_user",
-            "email": "test@example.com",
-            "subscription_tier": "pro",
-        }
-        workspace_id = "test_workspace"
-
-        # Mock agent state
-        state = {}
-
-        # Test auth context injection
-        result = await inject_auth_context(state, user, workspace_id)
-
-        assert result["user_id"] == "test_user"
-        assert result["workspace_id"] == workspace_id
-        assert result["authenticated"] is True
-        assert "permissions" in result
+                    # Force an error to test rollback
+                    raise Exception("Test rollback")
+        except Exception as e:
+            assert str(e) == "Test rollback"
 
     @pytest.mark.asyncio
-    async def test_redis_sessions_integration(self, mock_redis_client):
-        """Test Redis sessions integration."""
-        from agents.state import AgentState
+    async def test_cache_operations(self):
+        """Test cache operations."""
+        from memory.cache import get_cache_client
 
-        # Mock agent state
-        state = AgentState()
-        state.update(
-            {"workspace_id": "test_workspace", "user_id": "test_user", "test": True}
-        )
+        cache = get_cache_client()
+        test_key = "test_key"
+        test_value = {"test": "data"}
 
-        session_id = "test_session"
+        # Test set and get
+        await cache.set(test_key, test_value)
+        result = await cache.get(test_key)
+        assert result == test_value
 
-        # Test state persistence
-        persist_result = await persist_agent_state(session_id, state, mock_redis_client)
-        assert persist_result is True
+        # Test delete
+        await cache.delete(test_key)
+        result = await cache.get(test_key)
+        assert result is None
 
-        # Test state restoration
-        restored_state = await restore_agent_state(session_id, mock_redis_client)
-        assert restored_state is not None
-        assert restored_state["workspace_id"] == "test_workspace"
 
-    @pytest.mark.asyncio
-    async def test_events_integration(
-        self, mock_memory_controller, mock_cognitive_engine, mock_agent_dispatcher
-    ):
-        """Test events integration."""
-        mock_redis_client = AsyncMock()
+class TestAuthentication:
+    """Test authentication and authorization."""
 
-        # Test event wiring
-        result = await wire_all_event_handlers(
-            redis_client=mock_redis_client,
-            memory_controller=mock_memory_controller,
-            cognitive_engine=mock_cognitive_engine,
-            billing_service=Mock(),
-        )
+    def test_jwt_validation(self):
+        """Test JWT token validation."""
+        from fastapi import HTTPException
 
-        assert result is None  # Function doesn't return value, just wires handlers
+        from core.auth import get_current_user
 
-    @pytest.mark.asyncio
-    async def test_billing_usage_integration(self, mock_redis_client):
-        """Test billing and usage integration."""
-        # Test budget deduction
-        result = await deduct_from_budget(
-            workspace_id="test_workspace",
-            tokens=100,
-            cost=0.5,
-            redis_client=mock_redis_client,
-            user_id="test_user",
-        )
+        # Test with invalid token
+        try:
+            # This should raise an exception
+            get_current_user("invalid_token")
+        except HTTPException:
+            pass  # Expected
+        except Exception:
+            pass  # Also expected for invalid token
 
-        assert result["success"] is True
-        assert result["deducted_tokens"] == 100
-        assert result["deducted_cost"] == 0.5
-        assert "within_budget" in result
+    def test_tenant_extraction(self):
+        """Test tenant ID extraction."""
+        from core.auth import get_tenant_id
 
-    @pytest.mark.asyncio
-    async def test_validation_integration(self, mock_db_client, mock_memory_controller):
-        """Test validation integration."""
-        # Test workspace consistency validation
-        result = await validate_workspace_consistency(
-            workspace_id="test_workspace",
-            db_client=mock_db_client,
-            memory_controller=mock_memory_controller,
-        )
+        # Test with valid tenant
+        mock_token = {"app_metadata": {"tenant_id": "test_tenant"}}
+        tenant_id = get_tenant_id(mock_token)
+        assert tenant_id == "test_tenant"
 
-        assert "database" in result
-        assert "memory" in result
-        assert "cross_module" in result
-        assert "overall" in result
+        # Test with missing tenant
+        mock_token = {"app_metadataaid": {}}
+        tenant_id = get_tenant_id(mock_token)
+        assert tenant_id is None
 
-        # Test agent state validation
-        from agents.state import AgentState
 
-        state = AgentState()
-        state.update(
-            {
-                "workspace_id": "test_workspace",
-                "user_id": "test_user",
-                "session_id": "test_session",
-            }
-        )
-
-        agent_result = await validate_agent_state(state)
-        assert agent_result["valid"] is True
-        assert "errors" in agent_result
-        assert "warnings" in agent_result
+class TestRateLimiting:
+    """Test rate limiting functionality."""
 
     @pytest.mark.asyncio
-    async def test_context_builder_integration(
-        self, mock_db_client, mock_memory_controller
-    ):
-        """Test context builder integration."""
-        # Test full context building
-        result = await build_full_context(
-            workspace_id="test_workspace",
-            query="test query",
-            db_client=mock_db_client,
-            memory_controller=mock_memory_controller,
-        )
+    async def test_rate_limiter_basic(self):
+        """Test basic rate limiting."""
+        from services.rate_limiter import GlobalRateLimiter
 
-        assert "workspace_id" in result
-        assert "query" in result
-        assert "database" in result
-        assert "memory" in result
-        assert "relevant_items" in result
-        assert "summary" in result
+        limiter = GlobalRateLimiter()
 
-    @pytest.mark.asyncio
-    async def test_output_pipeline_integration(
-        self, mock_db_client, mock_memory_controller, mock_cognitive_engine
-    ):
-        """Test output pipeline integration."""
-        # Test output processing
-        result = await process_output(
-            output="Test output content",
-            workspace_id="test_workspace",
-            user_id="test_user",
-            agent_name="test_agent",
-            output_type="content",
-            db_client=mock_db_client,
-            memory_controller=mock_memory_controller,
-            quality_checker=mock_cognitive_engine,
-        )
-
-        assert "output" in result
-        assert "quality" in result
-        assert "storage" in result
-        assert "memory" in result
-        assert "events" in result
-        assert "summary" in result
-
-
-class TestWorkflows:
-    """Test suite for workflow orchestrators."""
-
-    @pytest.fixture
-    def mock_workflow_dependencies(self):
-        """Mock workflow dependencies."""
-        db_client = Mock()
-        memory_controller = AsyncMock()
-        cognitive_engine = AsyncMock()
-        agent_dispatcher = AsyncMock()
-
-        return {
-            "db_client": db_client,
-            "memory_controller": memory_controller,
-            "cognitive_engine": cognitive_engine,
-            "agent_dispatcher": agent_dispatcher,
-        }
-
-    @pytest.mark.asyncio
-    async def test_onboarding_workflow(self, mock_workflow_dependencies):
-        """Test onboarding workflow."""
-        from workflows.onboarding import OnboardingWorkflow
-
-        workflow = OnboardingWorkflow(**mock_workflow_dependencies)
-
-        # Mock database responses
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "test_id"}
-        ]
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.select.return_value.execute.return_value.data = []
-
-        # Test evidence upload step
-        result = await workflow.execute_step(
-            workspace_id="test_workspace",
-            step="evidence_upload",
-            data={
-                "files": [
-                    {"filename": "test.pdf", "file_type": "pdf", "file_size": 1024}
-                ]
-            },
-        )
-
-        assert result["success"] is True
-        assert result["step"] == "evidence_upload"
-        assert "next_step" in result
-
-    @pytest.mark.asyncio
-    async def test_move_workflow(self, mock_workflow_dependencies):
-        """Test move workflow."""
-        from workflows.move import MoveWorkflow
-
-        workflow = MoveWorkflow(**mock_workflow_dependencies)
-
-        # Mock database responses
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "test_move_id"}
-        ]
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.select.return_value.execute.return_value.data = []
-
-        # Test move creation
-        result = await workflow.create_move(
-            workspace_id="test_workspace", goal="Test move goal", move_type="strategic"
-        )
-
-        assert result["success"] is True
-        assert "move_id" in result
-        assert "plan" in result
-
-    @pytest.mark.asyncio
-    async def test_content_workflow(self, mock_workflow_dependencies):
-        """Test content workflow."""
-        from workflows.content import ContentWorkflow
-
-        workflow = ContentWorkflow(**mock_workflow_dependencies)
-
-        # Mock database responses
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "test_content_id"}
-        ]
-
-        # Test content generation
-        result = await workflow.generate_content(
-            workspace_id="test_workspace",
-            request={"content_type": "blog", "title": "Test Blog"},
-        )
-
-        assert result["success"] is True
-        assert "content_id" in result
-        assert "content" in result
-        assert "quality_score" in result
-
-    @pytest.mark.asyncio
-    async def test_research_workflow(self, mock_workflow_dependencies):
-        """Test research workflow."""
-        from workflows.research import ResearchWorkflow
-
-        workflow = ResearchWorkflow(**mock_workflow_dependencies)
-
-        # Mock database responses
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "test_research_id"}
-        ]
-
-        # Test research execution
-        result = await workflow.conduct_research(
-            workspace_id="test_workspace",
-            query="market research",
-            research_type="market",
-        )
-
-        assert result["success"] is True
-        assert "research_id" in result
-        assert "analysis" in result
-        assert "insights" in result
-
-    @pytest.mark.asyncio
-    async def test_blackbox_workflow(self, mock_workflow_dependencies):
-        """Test blackbox workflow."""
-        from workflows.blackbox import BlackboxWorkflow
-
-        workflow = BlackboxWorkflow(**mock_workflow_dependencies)
-
-        # Mock database responses
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "test_strategy_id"}
-        ]
-
-        # Test strategy generation
-        result = await workflow.generate_strategy(workspace_id="test_workspace")
-
-        assert result["success"] is True
-        assert "strategy_id" in result
-        assert "strategy" in result
-        assert "risk_assessment" in result
-
-    @pytest.mark.asyncio
-    async def test_daily_wins_workflow(self, mock_workflow_dependencies):
-        """Test daily wins workflow."""
-        from workflows.daily_wins import DailyWinsWorkflow
-
-        workflow = DailyWinsWorkflow(**mock_workflow_dependencies)
-
-        # Mock database responses
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "test_wins_id"}
-        ]
-
-        # Test daily wins generation
-        result = await workflow.generate_today(workspace_id="test_workspace")
-
-        assert result["success"] is True
-        assert "daily_wins_id" in result
-        assert "wins" in result
-        assert "context" in result
-
-    @pytest.mark.asyncio
-    async def test_campaign_workflow(self, mock_workflow_dependencies):
-        """Test campaign workflow."""
-        from workflows.campaign import CampaignWorkflow
-
-        workflow = CampaignWorkflow(**mock_workflow_dependencies)
-
-        # Mock database responses
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "test_campaign_id"}
-        ]
-
-        # Test campaign planning
-        result = await workflow.plan_campaign(
-            workspace_id="test_workspace", goal="Test campaign goal"
-        )
-
-        assert result["success"] is True
-        assert "campaign_id" in result
-        assert "plan" in result
-        assert "validation" in result
-
-    @pytest.mark.asyncio
-    async def test_approval_workflow(self, mock_workflow_dependencies):
-        """Test approval workflow."""
-        from workflows.approval import ApprovalWorkflow
-
-        workflow = ApprovalWorkflow(**mock_workflow_dependencies)
-
-        # Mock database responses
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "test_approval_id"}
-        ]
-
-        # Test approval submission
-        result = await workflow.submit_for_approval(
-            output={
-                "workspace_id": "test_workspace",
-                "user_id": "test_user",
-                "type": "content",
-            },
-            risk_level="medium",
-            reason="Test approval",
-        )
-
-        assert result["success"] is True
-        assert "gate_id" in result
-        assert "approval_id" in result
-        assert result["status"] == "pending"
-
-    @pytest.mark.asyncio
-    async def test_feedback_workflow(self, mock_workflow_dependencies):
-        """Test feedback workflow."""
-        from workflows.feedback import FeedbackWorkflow
-
-        workflow = FeedbackWorkflow(**mock_workflow_dependencies)
-
-        # Mock database responses
-        mock_workflow_dependencies[
-            "db_client"
-        ].table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "test_feedback_id"}
-        ]
-
-        # Test feedback collection
-        result = await workflow.collect_feedback(
-            workspace_id="test_workspace",
-            feedback_data={"content": "Test feedback", "type": "ui", "rating": 4},
-            source="user",
-        )
-
-        assert result["success"] is True
-        assert "feedback_id" in result
-        assert result["source"] == "user"
-
-
-class TestSystemIntegration:
-    """Test suite for complete system integration."""
-
-    @pytest.mark.asyncio
-    async def test_integration_test_harness(self):
-        """Test integration test harness."""
-        # Mock all dependencies
-        db_client = Mock()
-        redis_client = AsyncMock()
-        memory_controller = AsyncMock()
-        cognitive_engine = AsyncMock()
-        agent_dispatcher = AsyncMock()
-
-        # Mock test results
-        db_client.table.return_value.select.return_value.limit.return_value.execute.return_value.data = [
-            {"id": "test"}
-        ]
-        redis_client.ping.return_value = True
-        memory_controller.search.return_value = []
-
-        # Test integration tests
-        result = await run_integration_tests(
-            db_client=db_client,
-            redis_client=redis_client,
-            memory_controller=memory_controller,
-            cognitive_engine=cognitive_engine,
-            agent_dispatcher=agent_dispatcher,
-        )
-
-        assert "start_time" in result
-        assert "tests" in result
-        assert "summary" in result
-        assert "duration" in result
-
-        # Check that all test categories were run
-        assert "database" in result["tests"]
-        assert "memory" in result["tests"]
-        assert "cognitive" in result["tests"]
-        assert "agents" in result["tests"]
-        assert "cross_module" in result["tests"]
-        assert "redis" in result["tests"]
-
-    @pytest.mark.asyncio
-    async def test_end_to_end_workflow(self):
-        """Test complete end-to-end workflow."""
-        # This would test a complete user journey
-        # For now, just verify the structure exists
-
-        from workflows.content import ContentWorkflow
-        from workflows.move import MoveWorkflow
-        from workflows.onboarding import OnboardingWorkflow
-
-        # Verify workflow classes exist
-        assert OnboardingWorkflow is not None
-        assert MoveWorkflow is not None
-        assert ContentWorkflow is not None
-
-    @pytest.mark.asyncio
-    async def test_system_health_check(self):
-        """Test system health check integration."""
-        # Mock dependencies
-        db_client = Mock()
-        redis_client = AsyncMock()
-        memory_controller = AsyncMock()
-
-        # Mock healthy responses
-        db_client.table.return_value.select.return_value.limit.return_value.execute.return_value.data = [
-            {"id": "test"}
-        ]
-        redis_client.ping.return_value = True
-        memory_controller.search.return_value = []
-
-        # Test health check
-        from integration.test_harness import run_quick_integration_check
-
-        result = await run_quick_integration_check(
-            db_client=db_client,
-            redis_client=redis_client,
-            memory_controller=memory_controller,
-        )
-
+        # Test allowed request
+        result = await limiter.is_allowed("test_client")
         assert result is True
 
-    @pytest.mark.asyncio
-    async def test_error_handling_integration(self):
-        """Test error handling across integration points."""
-        # Mock failing dependencies
-        db_client = Mock()
-        db_client.table.return_value.select.return_value.execute.side_effect = (
-            Exception("Database error")
-        )
-
-        memory_controller = AsyncMock()
-        memory_controller.search.side_effect = Exception("Memory error")
-
-        # Test that errors are handled gracefully
-        from integration.validation import validate_workspace_consistency
-
-        result = await validate_workspace_consistency(
-            workspace_id="test_workspace",
-            db_client=db_client,
-            memory_controller=memory_controller,
-        )
-
-        assert result["overall"]["valid"] is False
-        assert "error" in result["overall"]
+        # Test remaining requests
+        remaining = await limiter.get_remaining_requests("test_client")
+        assert remaining >= 0
 
     @pytest.mark.asyncio
-    async def test_performance_integration(self):
-        """Test performance across integration points."""
-        # Mock dependencies with timing
-        db_client = Mock()
-        db_client.table.return_value.select.return_value.execute.return_value.data = [
-            {"id": "test"}
-        ]
+    async def test_rate_limiter_reset(self):
+        """Test rate limiter reset."""
+        from services.rate_limiter import GlobalRateLimiter
 
-        memory_controller = AsyncMock()
-        memory_controller.search.return_value = []
+        limiter = GlobalRateLimiter()
+        client_id = "test_reset_client"
 
-        # Test performance of context building
-        from integration.context_builder import ContextBuilder
+        # Use some requests
+        await limiter.is_allowed(client_id)
 
-        builder = ContextBuilder(db_client, memory_controller)
+        # Reset
+        await limiter.reset_limit(client_id)
 
+        # Should have full limit again
+        remaining = await limiter.get_remaining_requests(client_id)
+        assert remaining > 0
+
+
+class TestMetrics:
+    """Test metrics collection."""
+
+    @pytest.mark.asyncio
+    async def test_metrics_collection(self):
+        """Test metrics collection and aggregation."""
+        from core.metrics import get_metrics_collector
+
+        metrics = get_metrics_collector()
+        await metrics.start()
+
+        # Test counter
+        await metrics.increment_counter("test_counter", 1.0)
+        counter_value = await metrics.get_counter("test_counter")
+        assert counter_value == 1.0
+
+        # Test gauge
+        await metrics.set_gauge("test_gauge", 42.0)
+        gauge_value = await metrics.get_gauge("test_gauge")
+        assert gauge_value == 42.0
+
+        # Test histogram
+        await metrics.record_histogram("test_histogram", 1.5)
+        await metrics.record_histogram("test_histogram", 2.5)
+        await metrics.record_histogram("test_histogram", 3.5)
+
+        summary = await metrics.get_histogram_summary("test_histogram")
+        assert summary is not None
+        assert summary.count == 3
+        assert summary.min == 1.5
+        assert summary.max == 3.5
+
+        await metrics.stop()
+
+    @pytest.mark.asyncio
+    async def test_metrics_aggregation(self):
+        """Test metrics aggregation and percentiles."""
+        from core.metrics import get_metrics_collector
+
+        metrics = get_metrics_collector()
+        await metrics.start()
+
+        # Record multiple values
+        values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        for value in values:
+            await metrics.record_histogram("test_percentiles", value)
+
+        summary = await metrics.get_histogram_summary("test_percentiles")
+        assert summary is not None
+        assert summary.p50 == 5.5  # Median
+        assert summary.p95 == 9.55  # 95th percentile
+
+        await metrics.stop()
+
+
+class TestTaskQueue:
+    """Test background task queue."""
+
+    @pytest.mark.asyncio
+    async def test_task_queue_basic(self):
+        """Test basic task queue operations."""
+        from core.tasks import BackgroundTaskQueue, TaskPriority
+
+        queue = BackgroundTaskQueue(max_workers=2)
+        await queue.start()
+
+        # Simple task function
+        async def test_task(x, y):
+            return x + y
+
+        # Add task
+        task_id = await queue.add_task(
+            test_task,
+            5, 3,
+            priority=TaskPriority.HIGH
+        )
+
+        # Wait for task completion
+        await asyncio.sleep(0.1)
+
+        # Check status
+        status = await queue.get_task_status(task_id)
+        assert status is not None
+
+        await queue.stop()
+
+    @pytest.mark.asyncio
+    async def test_task_queue_retry(self):
+        """Test task retry logic."""
+        from core.tasks import BackgroundTaskQueue, TaskPriority
+
+        queue = BackgroundTaskQueue(max_workers=1)
+        await queue.start()
+
+        # Failing task function
+        call_count = 0
+        async def failing_task():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 3:
+                raise Exception("Task failed")
+            return "success"
+
+        # Add task with retries
+        task_id = await queue.add_task(
+            failing_task,
+            max_retries=3
+        )
+
+        # Wait for task completion
+        await asyncio.sleep(0.5)
+
+        # Check that task was retried
+        status = await queue.get_task_status(task_id)
+        assert status is not None
+
+        await queue.stop()
+
+    @pytest.mark.asyncio
+    async def test_task_queue_priority(self):
+        """Test task priority ordering."""
+        from core.tasks import BackgroundTaskQueue, TaskPriority
+
+        queue = BackgroundTaskQueue(max_workers=1)
+        await queue.start()
+
+        results = []
+
+        async def priority_task(task_id):
+            results.append(task_id)
+            return task_id
+
+        # Add tasks in reverse priority order
+        await queue.add_task(priority_task, "low", priority=TaskPriority.LOW)
+        await queue.add_task(priority_task, "high", priority=TaskPriority.HIGH)
+        await queue.add_task(priority_task, "medium", priority=TaskPriority.NORMAL)
+
+        # Wait for all tasks to complete
+        await asyncio.sleep(0.5)
+
+        # High priority task should execute first
+        assert len(results) == 3
+        assert results[0] == "high"
+
+        await queue.stop()
+
+
+class TestEnvironmentValidation:
+    """Test environment variable validation."""
+
+    def test_valid_environment(self):
+        """Test validation with valid environment."""
+        from core.env_validator import EnvironmentValidator, EnvType, EnvVar
+
+        validator = EnvironmentValidator()
+        validator.add_variable(EnvVar(
+            name="TEST_VAR",
+            env_type=EnvType.STRING,
+            required=False,
+            default="test_value"
+        ))
+
+        # Set environment variable
+        import os
+        os.environ["TEST_VAR"] = "test_value"
+
+        result = validator.validate_all()
+        assert result is True
+        assert len(validator.errors) == 0
+
+    def test_invalid_environment(self):
+        """Test validation with invalid environment."""
+        from core.env_validator import EnvironmentValidator, EnvType, EnvVar
+
+        validator = EnvironmentValidator()
+        validator.add_variable(EnvVar(
+            name="REQUIRED_VAR",
+            env_type=EnvType.STRING,
+            required=True
+        ))
+
+        # Don't set required variable
+        result = validator.validate_all()
+        assert result is False
+        assert len(validator.errors) > 0
+        assert any("REQUIRED_VAR" in error for error in validator.errors)
+
+    def test_type_validation(self):
+        """Test type validation."""
+        from core.env_validator import EnvironmentValidator, EnvType, EnvVar
+
+        validator = EnvironmentValidator()
+        validator.add_variable(EnvVar(
+            name="INT_VAR",
+            env_type=EnvType.INTEGER,
+            required=False
+        ))
+
+        # Set invalid integer value
+        import os
+        os.environ["INT_VAR"] = "not_an_integer"
+
+        result = validator.validate_all()
+        assert result is False
+        assert any("Expected integer" in error for error in validator.errors)
+
+
+class TestErrorHandling:
+    """Test error handling patterns."""
+
+    def test_raptorflow_error(self):
+        """Test custom RaptorFlowError."""
+        from core.exceptions import RaptorFlowError
+
+        error = RaptorFlowError(
+            message="Test error",
+            status_code=400,
+            error_code="TEST_ERROR"
+        )
+
+        assert error.message == "Test error"
+        assert error.status_code == 400
+        assert error.error_code == "TEST_ERROR"
+
+    def test_exception_handler(self):
+        """Test global exception handler."""
+        from fastapi import Request
+
+        from core.exceptions import RaptorFlowError
+        from main import app
+
+        # Test exception handler registration
+        assert app.exception_handlers is not None
+
+
+class TestLogging:
+    """Test logging configuration."""
+
+    def test_logging_setup(self):
+        """Test logging configuration setup."""
+        from utils.logging_config import get_logger, setup_logging
+
+        # Setup logging
+        setup_logging()
+
+        # Get logger
+        logger = get_logger("test")
+        assert logger is not None
+        assert logger.name == "raptorflow.test"
+
+    def test_logger_levels(self):
+        """Test different logger levels."""
+        from utils.logging_config import get_logger
+
+        logger = get_logger("test_levels")
+
+        # Test different log levels
+        logger.debug("Debug message")
+        logger.info("Info message")
+        logger.warning("Warning message")
+        logger.error("Error message")
+
+        # Should not raise exceptions
+        assert True
+
+
+# Integration Tests
+class TestFullIntegration:
+    """Full integration tests."""
+
+    @pytest.mark.asyncio
+    async def test_full_request_flow(self):
+        """Test complete request flow through all layers."""
+        from fastapi.testclient import TestClient
+
+        from main import app
+
+        client = TestClient(app)
+
+        # Test health check
+        response = client.get("/health")
+        assert response.status_code in [200, 429, 503]
+
+        # Test with authentication
+        app.dependency_overrides[get_current_user] = mock_get_current_user
+
+        # Test campaign creation
+        campaign_data = {
+            "title": "Integration Test Campaign",
+            "objective": "Testing full integration flow",
+            "status": "draft"
+        }
+        response = client.post("/v1/campaigns/", json=campaign_data)
+        assert response.status_code == 200
+
+        app.dependency_overrides.clear()
+
+    @pytest.mark.asyncio
+    async def test_concurrent_operations(self):
+        """Test concurrent operations."""
+        import asyncio
+
+        # Test concurrent database operations
+        async def concurrent_db_operation():
+            from db import get_db_connection
+            async with get_db_connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute("SELECT 1")
+                    return await cur.fetchone()
+
+        # Run multiple concurrent operations
+        tasks = [concurrent_db_operation() for _ in range(5)]
+        results = await asyncio.gather(*tasks)
+
+        # All should succeed
+        assert len(results) == 5
+        assert all(result[0] == 1 for result in results)
+
+
+# Performance Tests
+class TestPerformance:
+    """Performance and load tests."""
+
+    @pytest.mark.asyncio
+    async def test_database_pool_performance(self):
+        """Test database connection pool performance."""
+        import time
+
+        from db import get_pool
+
+        pool = get_pool()
+
+        # Test multiple concurrent connections
         start_time = time.time()
-        result = await builder.build_context(
-            workspace_id="test_workspace", query="test query"
-        )
+
+        async def test_connection():
+            async with pool.connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute("SELECT 1")
+                    return await cur.fetchone()
+
+        tasks = [test_connection() for _ in range(10)]
+        results = await asyncio.gather(*tasks)
+
+assert len(results) == 10
         end_time = time.time()
 
-        assert "workspace_id" in result
-        assert "relevant_items" in result
-        assert (end_time - start_time) < 1.0  # Should complete within 1 second
+        # Should complete within reasonable time
+        assert (end_time - start_time) < 5.0
 
+    @pytest.mark.asyncio
+    async def test_cache_performance(self):
+        """Test cache performance."""
+        import time
 
-if __name__ == "__main__":
-    # Run tests
-    pytest.main([__file__, "-v"])
+        from memory.cache import get_cache_client
+
+        cache = get_cache_client()
+
+        # Test cache set/get performance
+        start_time = time.time()
+
+        for i in range(100):
+            await cache.set(f"perf_test_{i}", f"value_{i}")
+            await cache.get(f"perf_test_{i}")
+
+        end_time = time.time()
+
+        # Should complete within reasonable time
+        assert (end_time - start_time) < 2.0

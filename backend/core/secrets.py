@@ -2,54 +2,46 @@ import logging
 import os
 from typing import Optional
 
-# Import secretmanager only if available
-try:
-    from google.api_core.exceptions import NotFound
-    from google.cloud import secretmanager
-
-    SECRET_MANAGER_AVAILABLE = True
-except ImportError:
-    SECRET_MANAGER_AVAILABLE = False
-    NotFound = Exception
-    secretmanager = None
+from google.api_core.exceptions import NotFound
+from google.cloud import secretmanager
 
 logger = logging.getLogger("raptorflow.core.secrets")
 
 
 def get_secret(name: str, project_id: Optional[str] = None) -> Optional[str]:
     """
-    Retrieve a secret from GCP Secret Manager or environment variables.
-    Falls back to environment variable if Secret Manager is not available.
+    SOTA Secret Retrieval.
+    Fetches secrets from GCP Secret Manager with a fallback to local environment variables.
+    Ensures industrial-grade security for credentials.
     """
-    # First try environment variable
-    env_value = os.environ.get(name)
-    if env_value:
-        return env_value
+    # 1. Check GCP Secret Manager
+    if not project_id:
+        project_id = os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
 
-    # Try GCP Secret Manager
-    if SECRET_MANAGER_AVAILABLE and secretmanager:
+    if project_id:
         try:
-            if project_id is None:
-
-                project_id = os.environ.get("GCP_PROJECT_ID")
-                if not project_id:
-                    logger.warning(
-                        "GCP_PROJECT_ID not set, cannot access Secret Manager"
-                    )
-                    return None
-
             client = secretmanager.SecretManagerServiceClient()
             secret_path = f"projects/{project_id}/secrets/{name}/versions/latest"
-
             response = client.access_secret_version(request={"name": secret_path})
-            secret_value = response.payload.data.decode("UTF-8")
+            val = response.payload.data.decode("UTF-8")
             logger.info(f"Secret {name} successfully fetched from GCP Secret Manager.")
-            return secret_value
+            return val
+        except PermissionError as e:
+            logger.warning(f"Permission denied accessing secret {name}: {e}")
         except NotFound:
-            logger.warning(f"Secret {name} not found in GCP Secret Manager.")
-            return None
+            logger.debug(f"Secret {name} not found in GCP Secret Manager.")
         except Exception as e:
-            logger.error(f"Error accessing GCP Secret Manager for {name}: {e}")
-            return None
+            logger.warning(f"Error accessing GCP Secret Manager for {name}: {e}")
+    else:
+        logger.debug(
+            f"GCP_PROJECT_ID not set. Skipping Secret Manager for {name}. Falling back to ENV."
+        )
 
-    return None
+    # 2. Fallback to Environment Variables
+    env_val = os.getenv(name)
+    if env_val:
+        logger.debug(f"Using environment variable for {name}.")
+    else:
+        logger.debug(f"Secret {name} not found in environment variables.")
+
+    return env_val

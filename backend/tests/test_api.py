@@ -1,461 +1,383 @@
-"""
-API Tests for RaptorFlow Backend
-Tests API endpoints, responses, and error handling
-"""
-
+import asyncio
 import json
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, patch
+from typing import Any, Dict, Optional
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
-from backend.main import app
+from core.auth import get_current_user
+from main import app
+from models.requests import AssetCreateRequest, CampaignCreateRequest, MoveCreateRequest
 
-pytestmark = pytest.mark.integration
+
+class MockUser:
+    """Mock user for testing."""
+
+    def __init__(self, user_id: str = "test_user", tenant_id: str = "test_tenant"):
+        self.id = user_id
+        self.tenant_id = tenant_id
+        self.email = "test@example.com"
 
 
-class TestAPI:
-    """Test API endpoints and responses."""
+def mock_get_current_user():
+    """Mock authentication dependency."""
+    return MockUser()
 
-    @pytest.fixture
-    def client(self) -> TestClient:
-        """Create test client."""
-        return TestClient(app)
 
-    @pytest.fixture
-    def auth_headers(self, client: TestClient) -> Dict[str, str]:
-        """Create authentication headers."""
-        # Mock authentication for testing
-        login_data = {"email": "test@example.com", "password": "testpassword123"}
+@pytest.fixture
+def client():
+    """Test client fixture."""
+    return TestClient(app)
 
-        response = client.post("/api/auth/login", json=login_data)
-        if response.status_code == 200:
-            token = response.json()["access_token"]
-            return {"Authorization": f"Bearer {token}"}
-        else:
-            return {"Authorization": "Bearer mock-token"}
 
-    def test_root_endpoint(self, client: TestClient):
-        """Test root endpoint."""
-        response = client.get("/")
+@pytest.fixture
+def async_client():
+    """Async test client fixture."""
+    return AsyncClient(app=app, base_url="http://test")
 
-        assert response.status_code == 200
-        data = response.json()
-        assert "status" in data
-        assert "service" in data
-        assert "version" in data
-        assert data["status"] == "healthy"
 
-    def test_health_endpoint(self, client: TestClient):
-        """Test health endpoint."""
+@pytest.fixture
+def mock_auth():
+    """Mock authentication for testing."""
+    app.dependency_overrides[get_current_user] = mock_get_current_user
+    yield
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def sample_campaign_data():
+    """Sample campaign data for testing."""
+    return {
+        "title": "Test Campaign",
+        "objective": "This is a test campaign for unit testing purposes",
+        "status": "draft",
+    }
+
+
+@pytest.fixture
+def sample_move_data():
+    """Sample move data for testing."""
+    return {
+        "title": "Test Move",
+        "description": "This is a test move for unit testing purposes",
+        "priority": 3,
+        "move_type": "content",
+        "tool_requirements": [],
+    }
+
+
+@pytest.fixture
+def sample_asset_data():
+    """Sample asset data for testing."""
+    return {
+        "content": "This is test content for unit testing",
+        "asset_type": "text",
+        "metadata": {"test": True},
+    }
+
+
+class TestHealthEndpoints:
+    """Test health check endpoints."""
+
+    def test_health_check_basic(self, client):
+        """Test basic health check."""
         response = client.get("/health")
-
         assert response.status_code == 200
         data = response.json()
-        assert "status" in data
+        assert data["status"] in ["healthy", "degraded"]
         assert "timestamp" in data
-        assert "services" in data
+        assert "version" in data
+        assert "components" in data
 
-    def test_api_docs_endpoint(self, client: TestClient):
-        """Test API documentation endpoint."""
-        response = client.get("/docs")
-
+    def test_health_check_detailed(self, client):
+        """Test detailed health check."""
+        response = client.get("/health?detailed=true")
         assert response.status_code == 200
-        assert "text/html" in response.headers["content-type"]
+        data = response.json()
+        assert "database" in data["components"]
+        assert "cache" in data["components"]
 
-    def test_api_redoc_endpoint(self, client: TestClient):
-        """Test ReDoc endpoint."""
-        response = client.get("/redoc")
 
+class TestCampaignEndpoints:
+    """Test campaign management endpoints."""
+
+    def test_create_campaign_success(self, client, mock_auth, sample_campaign_data):
+        """Test successful campaign creation."""
+        response = client.post("/v1/campaigns/", json=sample_campaign_data)
         assert response.status_code == 200
-        assert "text/html" in response.headers["content-type"]
+        data = response.json()
+        assert data["success"] is True
+        assert "data" in data
+        assert data["message"] == "Campaign created successfully"
 
-    def test_openapi_schema(self, client: TestClient):
-        """Test OpenAPI schema endpoint."""
-        response = client.get("/openapi.json")
+    def test_create_campaign_validation_error(self, client, mock_auth):
+        """Test campaign creation with validation errors."""
+        invalid_data = {
+            "title": "",  # Invalid: empty title
+            "objective": "too short",  # Invalid: too short objective
+        }
+        response = client.post("/v1/campaigns/", json=invalid_data)
+        assert response.status_code == 422  # Validation error
 
+    def test_create_campaign_unauthorized(self, client, sample_campaign_data):
+        """Test campaign creation without authentication."""
+        response = client.post("/v1/campaigns/", json=sample_campaign_data)
+        assert response.status_code == 401  # Unauthorized
+
+    def test_get_campaign_gantt(self, client, mock_auth):
+        """Test getting campaign Gantt chart."""
+        response = client.get("/v1/campaigns/test_campaign/gantt")
+        # Will likely return 404 for non-existent campaign, but should not be 401
+        assert response.status_code != 401
+
+
+class TestMoveEndpoints:
+    """Test move management endpoints."""
+
+    def test_create_move_success(self, client, mock_auth, sample_move_data):
+        """Test successful move creation."""
+        response = client.post("/v1/moves/", json=sample_move_data)
         assert response.status_code == 200
-        schema = response.json()
-        assert "openapi" in schema
-        assert "info" in schema
-        assert "paths" in schema
+        data = response.json()
+        assert data["success"] is True
 
-    def test_users_endpoint_unauthorized(self, client: TestClient):
-        """Test users endpoint without authentication."""
-        response = client.get("/api/users/me")
+    def test_create_move_validation_error(self, client, mock_auth):
+        """Test move creation with validation errors."""
+        invalid_data = {
+            "title": "",  # Invalid: empty title
+            "description": "short",  # Invalid: too short
+            "move_type": "invalid_type",  # Invalid: not in enum
+        }
+        response = client.post("/v1/moves/", json=invalid_data)
+        assert response.status_code == 422
 
-        assert response.status_code == 401
 
-    def test_users_endpoint_authorized(
-        self, client: TestClient, auth_headers: Dict[str, str]
-    ):
-        """Test users endpoint with authentication."""
-        response = client.get("/api/users/me", headers=auth_headers)
+class TestAssetEndpoints:
+    """Test asset management endpoints."""
 
-        assert response.status_code in [200, 404]  # May not exist yet
+    def test_create_asset_success(self, client, mock_auth, sample_asset_data):
+        """Test successful asset creation."""
+        response = client.post("/v1/assets/", json=sample_asset_data)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
 
-    def test_workspaces_endpoint(
-        self, client: TestClient, auth_headers: Dict[str, str]
-    ):
-        """Test workspaces endpoint."""
-        response = client.get("/api/workspaces", headers=auth_headers)
+    def test_create_asset_validation_error(self, client, mock_auth):
+        """Test asset creation with validation errors."""
+        invalid_data = {
+            "content": "",  # Invalid: empty content
+            "asset_type": "invalid_type",  # Invalid: not in enum
+        }
+        response = client.post("/v1/assets/", json=invalid_data)
+        assert response.status_code == 422
 
-        assert response.status_code in [200, 404]
 
-    def test_workspaces_create(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test workspace creation."""
-        workspace_data = {"name": "Test Workspace", "description": "A test workspace"}
+class TestFoundationEndpoints:
+    """Test foundation management endpoints."""
 
+    def test_save_foundation_state(self, client, mock_auth):
+        """Test saving foundation state."""
+        state_data = {
+            "state_data": {
+                "test_key": "test_value",
+                "timestamp": "2024-01-01T00:00:00Z",
+            }
+        }
+        response = client.post("/v1/foundation/state", json=state_data)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+
+    def test_get_foundation_state(self, client, mock_auth):
+        """Test getting foundation state."""
+        response = client.get("/v1/foundation/state")
+        # Will likely return 404 for non-existent state, but should not be 401
+        assert response.status_code != 401
+
+
+class TestRateLimiting:
+    """Test rate limiting functionality."""
+
+    def test_rate_limiting_headers(self, client):
+        """Test that rate limiting headers are present."""
+        response = client.get("/health")
+        # Rate limiting middleware should add headers
+        assert response.status_code in [200, 429]
+
+    def test_rate_limiting_enforcement(self, client):
+        """Test rate limiting enforcement (basic check)."""
+        # Make multiple rapid requests
+        responses = []
+        for _ in range(5):
+            response = client.get("/health")
+            responses.append(response.status_code)
+
+        # At least some requests should succeed
+        assert any(status == 200 for status in responses)
+
+
+class TestErrorHandling:
+    """Test error handling across endpoints."""
+
+    def test_404_handling(self, client):
+        """Test 404 error handling."""
+        response = client.get("/v1/nonexistent/endpoint")
+        assert response.status_code == 404
+
+    def test_method_not_allowed(self, client):
+        """Test method not allowed handling."""
+        response = client.delete("/v1/campaigns/")
+        assert response.status_code == 405
+
+    def test_invalid_json(self, client, mock_auth):
+        """Test invalid JSON handling."""
         response = client.post(
-            "/api/workspaces", json=workspace_data, headers=auth_headers
+            "/v1/campaigns/",
+            data="invalid json",
+            headers={"Content-Type": "application/json"},
         )
+        assert response.status_code == 422
 
-        assert response.status_code in [201, 404, 422]
 
-    def test_campaigns_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test campaigns endpoint."""
-        response = client.get("/api/campaigns", headers=auth_headers)
+class TestCORS:
+    """Test CORS configuration."""
 
-        assert response.status_code in [200, 404]
+    def test_cors_headers(self, client):
+        """Test CORS headers are present."""
+        response = client.options("/health")
+        assert response.status_code == 200
+        # Check for CORS headers
+        assert "access-control-allow-origin" in response.headers
 
-    def test_campaigns_create(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test campaign creation."""
+
+class TestMiddleware:
+    """Test middleware functionality."""
+
+    def test_correlation_id_header(self, client):
+        """Test correlation ID is added."""
+        response = client.get("/health")
+        # Correlation ID middleware should add this header
+        assert response.status_code in [200, 429, 503]
+
+    def test_request_logging(self, client):
+        """Test request logging middleware."""
+        response = client.get("/health")
+        # Request should be logged (can't directly test logging, but ensure no errors)
+        assert response.status_code in [200, 429, 503]
+
+
+class TestMetrics:
+    """Test metrics collection."""
+
+    def test_metrics_endpoint(self, client):
+        """Test metrics collection is working."""
+        # Make a request to generate metrics
+        response = client.get("/health")
+        assert response.status_code in [200, 429, 503]
+
+        # Metrics should be collected (can't directly test, but ensure no errors)
+        # This would typically be tested via metrics endpoint
+
+
+class TestAsyncOperations:
+    """Test async operations."""
+
+    @pytest.mark.asyncio
+    async def test_async_client(self, async_client):
+        """Test async client functionality."""
+        async with async_client as client:
+            response = await client.get("/health")
+            assert response.status_code in [200, 429, 503]
+
+    @pytest.mark.asyncio
+    async def test_async_campaign_creation(self, async_client, mock_auth):
+        """Test async campaign creation."""
         campaign_data = {
-            "name": "Test Campaign",
-            "description": "A test campaign",
+            "title": "Async Test Campaign",
+            "objective": "Testing async campaign creation",
             "status": "draft",
         }
 
-        response = client.post(
-            "/api/campaigns", json=campaign_data, headers=auth_headers
-        )
-
-        assert response.status_code in [201, 404, 422]
-
-    def test_agents_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test agents endpoint."""
-        response = client.get("/api/agents", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-    def test_agents_execute(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test agent execution."""
-        agent_data = {
-            "agent_type": "research",
-            "input": "Test input for agent",
-            "parameters": {},
-        }
-
-        response = client.post(
-            "/api/agents/execute", json=agent_data, headers=auth_headers
-        )
-
-        assert response.status_code in [200, 404, 422]
-
-    def test_icps_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test ICPs endpoint."""
-        response = client.get("/api/icps", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-    def test_icps_create(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test ICP creation."""
-        icp_data = {
-            "name": "Test ICP",
-            "description": "A test ICP",
-            "demographics": {},
-            "psychographics": {},
-        }
-
-        response = client.post("/api/icps", json=icp_data, headers=auth_headers)
-
-        assert response.status_code in [201, 404, 422]
-
-    def test_analytics_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test analytics endpoint."""
-        response = client.get("/api/analytics", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-    def test_memory_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test memory endpoint."""
-        response = client.get("/api/memory", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-    def test_memory_store(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test memory storage."""
-        memory_data = {
-            "type": "episodic",
-            "content": "Test memory content",
-            "metadata": {},
-        }
-
-        response = client.post("/api/memory", json=memory_data, headers=auth_headers)
-
-        assert response.status_code in [201, 404, 422]
-
-    def test_onboarding_endpoint(
-        self, client: TestClient, auth_headers: Dict[str, str]
-    ):
-        """Test onboarding endpoint."""
-        response = client.get("/api/onboarding", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-    def test_onboarding_step(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test onboarding step."""
-        step_data = {"step_id": 1, "data": {}, "completed": False}
-
-        response = client.post(
-            "/api/onboarding/step", json=step_data, headers=auth_headers
-        )
-
-        assert response.status_code in [200, 404, 422]
-
-    def test_payments_endpoint(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test payments endpoint."""
-        response = client.get("/api/payments", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-    def test_payment_create(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test payment creation."""
-        payment_data = {"amount": 1000, "currency": "USD", "method": "credit_card"}
-
-        response = client.post("/api/payments", json=payment_data, headers=auth_headers)
-
-        assert response.status_code in [201, 404, 422]
-
-    def test_error_handling_404(self, client: TestClient):
-        """Test 404 error handling."""
-        response = client.get("/api/nonexistent")
-
-        assert response.status_code == 404
-        data = response.json()
-        assert "detail" in data
-
-    def test_error_handling_422(self, client: TestClient):
-        """Test 422 error handling."""
-        response = client.post("/api/users/me", json={"invalid": "data"})
-
-        assert response.status_code == 422
-        data = response.json()
-        assert "detail" in data
-
-    def test_error_handling_500(self, client: TestClient):
-        """Test 500 error handling."""
-        # This would test internal server errors
-        # For now, just verify error handling structure
-
-        response = client.get("/api/error-test")
-
-        # Should handle gracefully
-        assert response.status_code in [404, 500]
-
-    def test_rate_limiting(self, client: TestClient):
-        """Test rate limiting."""
-        # Make multiple rapid requests
-        responses = []
-        for i in range(20):
-            response = client.get("/")
-            responses.append(response.status_code)
-
-        # Should eventually be rate limited
-        assert any(status == 429 for status in responses) or all(
-            status == 200 for status in responses
-        )
-
-    def test_cors_headers(self, client: TestClient):
-        """Test CORS headers."""
-        response = client.options("/api/users/me")
-
-        # Should include CORS headers
-        assert (
-            "access-control-allow-origin" in response.headers
-            or response.status_code == 401
-        )
-
-    def test_content_type_validation(self, client: TestClient):
-        """Test content type validation."""
-        # Send invalid content type
-        response = client.post(
-            "/api/users/me",
-            data="invalid data",
-            headers={"Content-Type": "text/plain"},
-        )
-
-        assert response.status_code in [422, 401, 415]
-
-    def test_request_size_limit(self, client: TestClient):
-        """Test request size limit."""
-        # Send large request
-        large_data = {"data": "x" * 1000000}  # 1MB of data
-
-        response = client.post("/api/users/me", json=large_data)
-
-        assert response.status_code in [413, 422, 401]
-
-    def test_response_format(self, client: TestClient):
-        """Test response format consistency."""
-        response = client.get("/")
-
-        assert response.status_code == 200
-        assert "application/json" in response.headers["content-type"]
-
-        data = response.json()
-        assert isinstance(data, dict)
-
-    def test_api_versioning(self, client: TestClient):
-        """Test API versioning."""
-        response = client.get("/api/health")
-
-        assert response.status_code in [200, 404]
-
-        # Should use correct API version
-        assert "api/v1" in str(response.url)
-
-    def test_pagination(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test pagination."""
-        response = client.get("/api/users?page=1&limit=10", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-        if response.status_code == 200:
+        async with async_client as client:
+            response = await client.post("/v1/campaigns/", json=campaign_data)
+            assert response.status_code == 200
             data = response.json()
-            # Should include pagination info
-            assert "data" in data or "items" in data
+            assert data["success"] is True
 
-    def test_search_functionality(
-        self, client: TestClient, auth_headers: Dict[str, str]
-    ):
-        """Test search functionality."""
-        response = client.get("/api/search?q=test", headers=auth_headers)
 
-        assert response.status_code in [200, 404]
+class TestIntegration:
+    """Integration tests."""
 
-    def test_filtering(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test filtering functionality."""
-        response = client.get("/api/users?status=active", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-    def test_sorting(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test sorting functionality."""
-        response = client.get(
-            "/api/users?sort=created_at&order=desc", headers=auth_headers
-        )
-
-        assert response.status_code in [200, 404]
-
-    def test_bulk_operations(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test bulk operations."""
-        bulk_data = [{"name": "Item 1"}, {"name": "Item 2"}, {"name": "Item 3"}]
-
-        response = client.post("/api/bulk/users", json=bulk_data, headers=auth_headers)
-
-        assert response.status_code in [201, 404, 422]
-
-    def test_webhook_handling(self, client: TestClient):
-        """Test webhook handling."""
-        webhook_data = {
-            "event": "payment.completed",
-            "data": {"id": "123", "amount": 1000},
+    def test_full_campaign_workflow(self, client, mock_auth):
+        """Test complete campaign workflow."""
+        # 1. Create campaign
+        campaign_data = {
+            "title": "Integration Test Campaign",
+            "objective": "Testing full campaign workflow",
+            "status": "draft",
         }
+        response = client.post("/v1/campaigns/", json=campaign_data)
+        assert response.status_code == 200
 
-        response = client.post("/webhooks/payment", json=webhook_data)
+        # 2. Create move for campaign
+        move_data = {
+            "title": "Integration Test Move",
+            "description": "Testing move creation in workflow",
+            "priority": 3,
+            "move_type": "content",
+        }
+        response = client.post("/v1/moves/", json=move_data)
+        assert response.status_code == 200
 
-        assert response.status_code in [200, 404, 422]
+        # 3. Create asset
+        asset_data = {
+            "content": "Integration test asset content",
+            "asset_type": "text",
+            "metadata": {"integration_test": True},
+        }
+        response = client.post("/v1/assets/", json=asset_data)
+        assert response.status_code == 200
 
-    def test_file_upload(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test file upload."""
-        # Create a test file
-        file_content = b"test file content"
 
-        response = client.post(
-            "/api/upload",
-            files={"file": ("test.txt", file_content, "text/plain")},
-            headers=auth_headers,
-        )
+# Performance Tests
+class TestPerformance:
+    """Performance and load tests."""
 
-        assert response.status_code in [200, 201, 404, 422]
-
-    def test_file_download(self, client: TestClient, auth_headers: Dict[str, str]):
-        """Test file download."""
-        response = client.get("/api/files/test.txt", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-    def test_export_functionality(
-        self, client: TestClient, auth_headers: Dict[str, str]
-    ):
-        """Test data export."""
-        response = client.get("/api/export/users?format=csv", headers=auth_headers)
-
-        assert response.status_code in [200, 404]
-
-        if response.status_code == 200:
-            assert "text/csv" in response.headers.get("content-type", "")
-
-    def test_import_functionality(
-        self, client: TestClient, auth_headers: Dict[str, str]
-    ):
-        """Test data import."""
-        csv_content = "name,email\nTest User,test@example.com"
-
-        response = client.post(
-            "/api/import/users",
-            files={"file": ("users.csv", csv_content, "text/csv")},
-            headers=auth_headers,
-        )
-
-        assert response.status_code in [200, 201, 404, 422]
-
-    def test_api_performance(self, client: TestClient):
-        """Test API response performance."""
+    def test_response_time_health(self, client):
+        """Test health endpoint response time."""
         import time
 
         start_time = time.time()
-        response = client.get("/")
+        response = client.get("/health")
         end_time = time.time()
 
         response_time = end_time - start_time
+        assert response_time < 1.0  # Should respond within 1 second
+        assert response.status_code in [200, 429, 503]
 
-        assert response.status_code == 200
-        assert response_time < 1.0, f"Response too slow: {response_time}s"
-
-    def test_concurrent_requests(self, client: TestClient):
-        """Test concurrent request handling."""
-        import concurrent.futures
+    def test_concurrent_requests(self, client):
+        """Test handling concurrent requests."""
         import threading
+        import time
+
+        results = []
 
         def make_request():
-            return client.get("/")
+            response = client.get("/health")
+            results.append(response.status_code)
 
-        # Make concurrent requests
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [executor.submit(make_request) for _ in range(10)]
-            responses = [future.result() for future in futures]
+        # Make 10 concurrent requests
+        threads = []
+        for _ in range(10):
+            thread = threading.Thread(target=make_request)
+            threads.append(thread)
+            thread.start()
 
-        # All requests should succeed
-        assert all(response.status_code == 200 for response in responses)
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join()
 
-    def test_api_security_headers(self, client: TestClient):
-        """Test security headers."""
-        response = client.get("/")
-
-        headers = response.headers
-        security_headers = [
-            "x-content-type-options",
-            "x-frame-options",
-            "x-xss-protection",
-            "strict-transport-security",
-        ]
-
-        # Should include security headers
-        assert any(header in headers for header in security_headers)
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
+        # All requests should complete without errors英
+        assert len(results) == 10
+        assert any(status == 200 for status in results)

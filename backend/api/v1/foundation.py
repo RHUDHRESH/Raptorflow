@@ -2,10 +2,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.core.auth import get_current_user, get_tenant_id
-from backend.core.vault import Vault
-from backend.models.foundation import BrandKit, FoundationState, Positioning
-from backend.services.foundation_service import FoundationService
+from core.auth import get_current_user, get_tenant_id
+from core.vault import Vault
+from models.foundation import BrandKit, FoundationState, Positioning
+from services.foundation_service import FoundationService
 
 router = APIRouter(prefix="/v1/foundation", tags=["foundation"])
 

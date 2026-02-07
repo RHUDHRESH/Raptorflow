@@ -1,9 +1,11 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from backend.inference import InferenceProvider
-from backend.memory.manager import MemoryManager
+from inference import InferenceProvider
+
+if TYPE_CHECKING:
+    from memory.manager import MemoryManager
 
 logger = logging.getLogger("raptorflow.memory.swarm_learning")
 
@@ -15,6 +17,8 @@ class SwarmLearning:
     """
 
     def __init__(self):
+        from memory.manager import MemoryManager
+
         self.memory = MemoryManager()
 
     def _serialize_learning(self, learning: Any) -> str:
@@ -136,7 +140,9 @@ class SwarmLearningMemory:
     Swarm memory manager for user feedback and swarm context recall.
     """
 
-    def __init__(self, memory_manager: Optional[MemoryManager] = None):
+    def __init__(self, memory_manager: Optional["MemoryManager"] = None):
+        from memory.manager import MemoryManager
+
         self.memory = memory_manager or MemoryManager()
 
     @staticmethod

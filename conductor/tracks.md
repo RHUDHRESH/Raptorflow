@@ -149,20 +149,29 @@
 
 ## [~] Track: End-to-End System Integrity Restoration
 *Link: [./conductor/tracks/integrity_20251224/](./conductor/tracks/integrity_20251224/)*
-<<<<<<< Updated upstream
-=======
 
 ---
 
 ## [x] Track: Growth Engine Modernization (Matrix, Black Box, Campaigns)
 *Link: [./conductor/tracks/growth_engine_modernization_20251225/](./conductor/tracks/growth_engine_modernization_20251225/)*
+<<<<<<< HEAD
 >>>>>>> Stashed changes
 <<<<<<< HEAD
 >>>>>>> origin/codex/implement-jwt-verification-in-auth.py
 =======
+=======
+>>>>>>> origin/codex/integrate-radar-feature-with-backend-dv6q26
 
 ---
 
 ## [~] Track: SOTA Economical Swarm Architecture
 *Link: [./conductor/tracks/swarm_architecture_20251225/](./conductor/tracks/swarm_architecture_20251225/)*
+<<<<<<< HEAD
 >>>>>>> origin/codex/add-authentication-to-blackbox-routes
+=======
+
+---
+
+## [~] Track: Onboarding Refactor & Precision Soundbite Framework 3.0
+*Link: [./conductor/tracks/onboarding_refactor_20251226/](./conductor/tracks/onboarding_refactor_20251226/)*
+>>>>>>> origin/codex/integrate-radar-feature-with-backend-dv6q26

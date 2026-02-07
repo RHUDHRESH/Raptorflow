@@ -3,8 +3,8 @@ import time
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
-from backend.db import get_db_connection
-from backend.models.telemetry import TelemetryEvent, TelemetryEventType
+from db import get_db_connection
+from models.telemetry import TelemetryEvent, TelemetryEventType
 
 logger = logging.getLogger("raptorflow.services.telemetry_collector")
 

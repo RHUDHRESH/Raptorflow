@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, TypedDict
 
-from backend.db import vector_search
+from db import vector_search
 
 logger = logging.getLogger("raptorflow.context_assembler")
 

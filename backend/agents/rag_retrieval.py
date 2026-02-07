@@ -4,8 +4,8 @@ from typing import Any, Dict, List
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
-from backend.inference import InferenceProvider
-from backend.memory.manager import MemoryManager
+from inference import InferenceProvider
+from memory.manager import MemoryManager
 
 logger = logging.getLogger("raptorflow.agents.rag_retrieval")
 

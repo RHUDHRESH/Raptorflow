@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.core.tool_registry import MatrixSkill
-from backend.skills.matrix_skills import SkillRegistry
+from core.tool_registry import MatrixSkill
+from skills.matrix_skills import SkillRegistry
 
 
 class MockSkill(MatrixSkill):
@@ -35,8 +35,8 @@ async def test_skill_execution():
 @pytest.mark.asyncio
 async def test_emergency_halt_skill():
     """Test that the EmergencyHaltSkill engages the kill-switch."""
-    from backend.services.matrix_service import MatrixService
-    from backend.skills.matrix_skills import EmergencyHaltSkill
+    from services.matrix_service import MatrixService
+    from skills.matrix_skills import EmergencyHaltSkill
 
     mock_matrix = AsyncMock(spec=MatrixService)
     mock_matrix.halt_system.return_value = True
@@ -49,8 +49,8 @@ async def test_emergency_halt_skill():
 @pytest.mark.asyncio
 async def test_emergency_halt_skill_failure():
     """Test EmergencyHaltSkill when MatrixService fails to halt."""
-    from backend.services.matrix_service import MatrixService
-    from backend.skills.matrix_skills import EmergencyHaltSkill
+    from services.matrix_service import MatrixService
+    from skills.matrix_skills import EmergencyHaltSkill
 
     mock_matrix = AsyncMock(spec=MatrixService)
     mock_matrix.halt_system.return_value = False
@@ -64,9 +64,9 @@ async def test_emergency_halt_skill_failure():
 @pytest.mark.asyncio
 async def test_emergency_halt_skill_with_pool():
     """Test EmergencyHaltSkill with agent pool clearing."""
-    from backend.agents.shared.pool_monitor import AgentPoolMonitor
-    from backend.services.matrix_service import MatrixService
-    from backend.skills.matrix_skills import EmergencyHaltSkill
+    from agents.shared.pool_monitor import AgentPoolMonitor
+    from services.matrix_service import MatrixService
+    from skills.matrix_skills import EmergencyHaltSkill
 
     mock_matrix = AsyncMock(spec=MatrixService)
     mock_matrix.halt_system.return_value = True
@@ -85,7 +85,7 @@ async def test_emergency_halt_skill_with_pool():
 @pytest.mark.asyncio
 async def test_inference_throttling_skill():
     """Test that the InferenceThrottlingSkill updates rate limits."""
-    from backend.skills.matrix_skills import InferenceThrottlingSkill
+    from skills.matrix_skills import InferenceThrottlingSkill
 
     mock_redis = AsyncMock()
     mock_redis.set.return_value = True
@@ -98,7 +98,7 @@ async def test_inference_throttling_skill():
 @pytest.mark.asyncio
 async def test_inference_throttling_skill_no_agent():
     """Test throttling skill when agent_id is missing."""
-    from backend.skills.matrix_skills import InferenceThrottlingSkill
+    from skills.matrix_skills import InferenceThrottlingSkill
 
     skill = InferenceThrottlingSkill(redis_client=MagicMock())
     result = await skill.execute({})
@@ -108,7 +108,7 @@ async def test_inference_throttling_skill_no_agent():
 @pytest.mark.asyncio
 async def test_inference_throttling_skill_exception():
     """Test throttling skill when redis raises exception."""
-    from backend.skills.matrix_skills import InferenceThrottlingSkill
+    from skills.matrix_skills import InferenceThrottlingSkill
 
     mock_redis = AsyncMock()
     mock_redis.set.side_effect = Exception("Redis failure")
@@ -120,7 +120,7 @@ async def test_inference_throttling_skill_exception():
 @pytest.mark.asyncio
 async def test_cache_purge_skill():
     """Test that the CachePurgeSkill clears keys."""
-    from backend.skills.matrix_skills import CachePurgeSkill
+    from skills.matrix_skills import CachePurgeSkill
 
     mock_redis = AsyncMock()
     mock_redis.delete.return_value = 1
@@ -133,7 +133,7 @@ async def test_cache_purge_skill():
 @pytest.mark.asyncio
 async def test_cache_purge_skill_exception():
     """Test purge skill when redis fails."""
-    from backend.skills.matrix_skills import CachePurgeSkill
+    from skills.matrix_skills import CachePurgeSkill
 
     mock_redis = AsyncMock()
     mock_redis.delete.side_effect = Exception("Purge error")
@@ -145,7 +145,7 @@ async def test_cache_purge_skill_exception():
 @pytest.mark.asyncio
 async def test_resource_scaling_skill():
     """Test that ResourceScalingSkill simulates scaling operations."""
-    from backend.skills.matrix_skills import ResourceScalingSkill
+    from skills.matrix_skills import ResourceScalingSkill
 
     skill = ResourceScalingSkill()
     # Test scale up
@@ -162,7 +162,7 @@ async def test_resource_scaling_skill():
 @pytest.mark.asyncio
 async def test_archive_logs_skill():
     """Test that ArchiveLogsSkill triggers log archival."""
-    from backend.skills.matrix_skills import ArchiveLogsSkill
+    from skills.matrix_skills import ArchiveLogsSkill
 
     mock_gcs = MagicMock()
     mock_gcs.archive_logs.return_value = True
@@ -180,7 +180,7 @@ async def test_archive_logs_skill():
 @pytest.mark.asyncio
 async def test_retrain_trigger_skill():
     """Test that RetrainTriggerSkill triggers model retraining."""
-    from backend.skills.matrix_skills import RetrainTriggerSkill
+    from skills.matrix_skills import RetrainTriggerSkill
 
     skill = RetrainTriggerSkill()
     result = await skill.execute(
@@ -198,7 +198,7 @@ async def test_retrain_trigger_skill():
 
 def test_skill_privilege_matrix():
     """Test RBAC for Matrix skills."""
-    from backend.skills.matrix_skills import SkillPrivilegeMatrix, UserRole
+    from skills.matrix_skills import SkillPrivilegeMatrix, UserRole
 
     rbac = SkillPrivilegeMatrix()
 
@@ -222,7 +222,7 @@ def test_skill_privilege_matrix():
 @pytest.mark.asyncio
 async def test_tool_execution_wrapper():
     """Test the wrapper for Matrix skill execution."""
-    from backend.skills.matrix_skills import ToolExecutionWrapper
+    from skills.matrix_skills import ToolExecutionWrapper
 
     class LocalMockSkill(MockSkill):
         @property
@@ -251,7 +251,7 @@ async def test_tool_execution_wrapper():
 
 def test_tool_output_validator():
     """Test validation of skill outputs."""
-    from backend.skills.matrix_skills import ToolOutputValidator
+    from skills.matrix_skills import ToolOutputValidator
 
     validator = ToolOutputValidator()
 

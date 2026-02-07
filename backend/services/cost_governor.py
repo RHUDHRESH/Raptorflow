@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict
 
-from backend.db import get_db_connection
+from db import get_db_connection
 
 logger = logging.getLogger("raptorflow.services.cost_governor")
 

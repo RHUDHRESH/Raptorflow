@@ -2,7 +2,7 @@ from typing import Dict, Optional
 
 import psycopg
 
-from backend.db import get_db_connection
+from db import get_db_connection
 
 
 class LongTermMemory:

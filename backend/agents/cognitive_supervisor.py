@@ -5,12 +5,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Field
 
-from backend.inference import InferenceProvider
-from backend.models.cognitive import (
-    AgentMessage,
-    CognitiveIntelligenceState,
-    CognitiveStatus,
-)
+from inference import InferenceProvider
+from models.cognitive import AgentMessage, CognitiveIntelligenceState, CognitiveStatus
 
 logger = logging.getLogger("raptorflow.agents.cognitive_supervisor")
 

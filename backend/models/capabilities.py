@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from backend.skills.matrix_skills import SkillPrivilegeMatrix, UserRole
+from skills.matrix_skills import SkillPrivilegeMatrix, UserRole
 
 
 class CapabilityProfile(BaseModel):

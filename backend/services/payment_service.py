@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Protocol
 from uuid import uuid4
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 BRIDGE_PATH = Path(__file__).resolve().parents[1] / "phonepe" / "phonepeBridge.js"
 FINAL_ORDER_STATES = {"COMPLETED", "SUCCESS"}
@@ -17,11 +17,9 @@ class PhonePeCallbackError(RuntimeError):
 class PhonePeGateway(Protocol):
     def pay(
         self, merchant_order_id: str, amount_paise: int, redirect_url: str
-    ) -> Dict[str, Any]:
-        ...
+    ) -> Dict[str, Any]: ...
 
-    def get_order_status(self, merchant_order_id: str) -> Dict[str, Any]:
-        ...
+    def get_order_status(self, merchant_order_id: str) -> Dict[str, Any]: ...
 
     def validate_callback(
         self,
@@ -29,8 +27,7 @@ class PhonePeGateway(Protocol):
         password: str,
         authorization: str,
         response_body: str,
-    ) -> Dict[str, Any]:
-        ...
+    ) -> Dict[str, Any]: ...
 
 
 class PhonePeNodeClient:

@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 
-from backend.services.blackbox_service import BlackboxService
+from services.blackbox_service import BlackboxService
 
 
 @pytest.mark.asyncio

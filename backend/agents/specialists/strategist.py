@@ -3,9 +3,9 @@ from typing import Any, Dict
 
 from pydantic import BaseModel, Field
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.core.prompts import StrategyPrompts
-from backend.models.cognitive import CognitiveIntelligenceState
+from agents.base import BaseCognitiveAgent
+from core.prompts import StrategyPrompts
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.strategist")
 

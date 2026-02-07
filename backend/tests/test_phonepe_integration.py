@@ -1,7 +1,7 @@
 import os
 from unittest.mock import Mock
 
-from backend.services.payment_service import PaymentService
+from services.payment_service import PaymentService
 
 
 def _set_phonepe_env() -> None:
@@ -19,9 +19,7 @@ def test_initiate_payment_calls_sdk_with_expected_payload():
     gateway.pay.return_value = {"redirectUrl": "https://phonepe.com/checkout"}
 
     service = PaymentService(gateway=gateway)
-    result = service.initiate_payment(
-        "user1", 100.0, "order-123", "http://redirect"
-    )
+    result = service.initiate_payment("user1", 100.0, "order-123", "http://redirect")
 
     gateway.pay.assert_called_once_with("order-123", 10000, "http://redirect")
     assert result["url"] == "https://phonepe.com/checkout"

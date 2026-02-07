@@ -137,7 +137,7 @@ class HierarchicalSupervisor:
             loop_count += 1
 
         current_state["next"] = "FINISH"
-        from backend.services.evaluation import EvaluationService
+        from services.evaluation import EvaluationService
 
         evaluator = EvaluationService()
         evaluation = evaluator.evaluate_run(

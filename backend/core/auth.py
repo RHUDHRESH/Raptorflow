@@ -1,11 +1,15 @@
+import logging
+import os
 from typing import Any, Optional
 from uuid import UUID
 
 import httpx
 from fastapi import Header, HTTPException, status
-from jose import JWTError, ExpiredSignatureError, jwk, jwt
+from jose import ExpiredSignatureError, JWTError, jwk, jwt
 
-from backend.core.config import get_settings
+from core.config import get_settings
+
+logger = logging.getLogger("raptorflow.auth")
 
 
 async def get_tenant_id(x_tenant_id: Optional[str] = Header(None)) -> UUID:
@@ -17,36 +21,62 @@ async def get_tenant_id(x_tenant_id: Optional[str] = Header(None)) -> UUID:
     """
     if not x_tenant_id:
         settings = get_settings()
-        if settings.ALLOW_DEFAULT_TENANT_ID_FALLBACK:
+        # Only allow fallback in development environments
+        if (
+            settings.ALLOW_DEFAULT_TENANT_ID_FALLBACK
+            and os.getenv("ENVIRONMENT") == "development"
+        ):
+            logger.warning("Using default tenant ID fallback - development mode only")
             return UUID(settings.DEFAULT_TENANT_ID)
+        logger.warning("Missing X-Tenant-ID header")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing X-Tenant-ID header.",
         )
 
     try:
-        return UUID(x_tenant_id)
+        tenant_uuid = UUID(x_tenant_id)
+        logger.debug(f"Successfully validated tenant ID: {tenant_uuid}")
+        return tenant_uuid
     except ValueError:
+        logger.warning(f"Invalid tenant ID format: {x_tenant_id}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Tenant ID format."
         )
 
 
 async def _fetch_jwks(jwks_url: str) -> dict[str, Any]:
-    async with httpx.AsyncClient(timeout=5.0) as client:
-        response = await client.get(jwks_url)
-        response.raise_for_status()
-        return response.json()
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(jwks_url)
+            response.raise_for_status()
+            jwks_data = response.json()
+            logger.debug(f"Successfully fetched JWKS from {jwks_url}")
+            return jwks_data
+    except httpx.HTTPError as e:
+        logger.error(f"Failed to fetch JWKS from {jwks_url}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch authentication keys.",
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error fetching JWKS: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Authentication service unavailable.",
+        )
 
 
 def _get_bearer_token(authorization: Optional[str]) -> str:
     if not authorization:
+        logger.warning("Missing Authorization header")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing Authorization header.",
         )
     parts = authorization.split()
     if len(parts) != 2 or parts[0].lower() != "bearer":
+        logger.warning(f"Invalid Authorization header format: {authorization[:20]}...")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authorization header must be a Bearer token.",
@@ -87,7 +117,9 @@ async def _decode_with_jwks(
     )
 
 
-async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[str, Any]:
+async def get_current_user(
+    authorization: Optional[str] = Header(None),
+) -> dict[str, Any]:
     """
     Verifies the JWT and returns the user object.
     Supports Supabase/Auth0 via JWKS or shared secret.
@@ -102,9 +134,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[
     )
     audience = settings.AUTH_AUDIENCE or "authenticated"
     algorithms = [
-        alg.strip()
-        for alg in settings.AUTH_JWT_ALGORITHMS.split(",")
-        if alg.strip()
+        alg.strip() for alg in settings.AUTH_JWT_ALGORITHMS.split(",") if alg.strip()
     ]
 
     try:
@@ -117,6 +147,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[
                 issuer=issuer,
                 audience=audience,
             )
+            logger.debug("JWT decoded successfully with secret")
         else:
             jwks_url = settings.AUTH_JWKS_URL or (
                 f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/.well-known/jwks.json"
@@ -124,6 +155,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[
                 else None
             )
             if not jwks_url:
+                logger.error("JWT verification is not configured")
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="JWT verification is not configured.",
@@ -135,18 +167,36 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[
                 audience=audience,
                 algorithms=algorithms,
             )
+            logger.debug("JWT decoded successfully with JWKS")
     except ExpiredSignatureError:
+        logger.warning("JWT token expired")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired."
         )
     except (JWTError, httpx.HTTPError) as exc:
+        logger.warning(f"Invalid JWT token: {exc}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {exc}",
+            detail="Invalid token.",
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error during JWT verification: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed.",
+        )
+
+    # Validate required claims
+    user_id = payload.get("sub")
+    if not user_id:
+        logger.error("JWT missing required 'sub' claim")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token: missing user identifier.",
         )
 
     return {
-        "id": payload.get("sub"),
+        "id": user_id,
         "email": payload.get("email"),
         "role": payload.get("role"),
         "claims": payload,

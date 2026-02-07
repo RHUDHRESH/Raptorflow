@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from backend.main import app
+from main import app
 
 client = TestClient(app)
 
@@ -34,9 +34,7 @@ def test_health_check_deep_success():
         mock_cache_getter.return_value = mock_redis
 
         with patch.dict(os.environ, {"RF_INTERNAL_KEY": "test-key"}):
-            response = client.get(
-                "/health", headers={"X-RF-Internal-Key": "test-key"}
-            )
+            response = client.get("/health", headers={"X-RF-Internal-Key": "test-key"})
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
@@ -63,9 +61,7 @@ def test_health_check_deep_failure():
         mock_cache_getter.return_value = mock_redis
 
         with patch.dict(os.environ, {"RF_INTERNAL_KEY": "test-key"}):
-            response = client.get(
-                "/health", headers={"X-RF-Internal-Key": "test-key"}
-            )
+            response = client.get("/health", headers={"X-RF-Internal-Key": "test-key"})
         assert response.status_code == 503
         data = response.json()
         assert data["status"] == "degraded"

@@ -9,9 +9,9 @@ if "google" not in sys.modules:
 if "google.cloud" not in sys.modules:
     sys.modules["google.cloud"] = MagicMock()
 
-from backend.core.vault import Vault
-from backend.models.blackbox import BlackboxTelemetry
-from backend.services.blackbox_service import BlackboxService
+from core.vault import Vault
+from models.blackbox import BlackboxTelemetry
+from services.blackbox_service import BlackboxService
 
 
 def test_blackbox_service_instantiation():
@@ -133,14 +133,12 @@ def test_blackbox_service_trigger_learning_cycle():
         "backend.graphs.blackbox_analysis.create_blackbox_graph",
         return_value=mock_graph,
     ):
-            with patch.object(service, "upsert_learning_embedding") as mock_upsert:
-                with patch.object(service, "categorize_learning", return_value="strategic"):
-                    move_id = str(uuid4())
-                    result = asyncio.run(
-                        service.trigger_learning_cycle(move_id, uuid4())
-                    )
-                    assert result["findings_count"] == 1
-                    mock_upsert.assert_called_once()
+        with patch.object(service, "upsert_learning_embedding") as mock_upsert:
+            with patch.object(service, "categorize_learning", return_value="strategic"):
+                move_id = str(uuid4())
+                result = asyncio.run(service.trigger_learning_cycle(move_id, uuid4()))
+                assert result["findings_count"] == 1
+                mock_upsert.assert_called_once()
 
 
 def test_blackbox_service_generate_pivot_recommendation():

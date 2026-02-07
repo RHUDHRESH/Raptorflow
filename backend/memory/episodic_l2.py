@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from backend.db import save_memory, vector_search
-from backend.memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
+from db import save_memory, vector_search
+from memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
 
 logger = logging.getLogger("raptorflow.memory.episodic_l2")
 
@@ -32,7 +32,9 @@ class L2EpisodicMemory:
             metadata = {}
         metadata["type"] = self.memory_type
         policy = get_memory_policy()
-        metadata.update(policy.retention_metadata(workspace_importance, agent_importance))
+        metadata.update(
+            policy.retention_metadata(workspace_importance, agent_importance)
+        )
 
         try:
             episode_id = await save_memory(

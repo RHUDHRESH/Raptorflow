@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List, Tuple
 
-from backend.models.dossier_schema import DEFAULT_DOSSIER_SCHEMA, DossierSchema
+from models.dossier_schema import DEFAULT_DOSSIER_SCHEMA, DossierSchema
 
 
 def _is_missing_value(value: object) -> bool:

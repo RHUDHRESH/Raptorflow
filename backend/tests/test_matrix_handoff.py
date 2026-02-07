@@ -1,6 +1,6 @@
 import pytest
 
-from backend.agents.shared.handoff import HandoffProtocol
+from agents.shared.handoff import HandoffProtocol
 
 
 def test_handoff_message_creation():

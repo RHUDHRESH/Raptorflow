@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 
-from backend.models.blackbox import BlackboxLearning, BlackboxOutcome, BlackboxTelemetry
+from models.blackbox import BlackboxLearning, BlackboxOutcome, BlackboxTelemetry
 
 
 def test_blackbox_telemetry_schema():
