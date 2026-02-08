@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { BlueprintButton } from "@/components/ui/BlueprintButton";
 import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 import { museService } from "@/services/muse.service";
+import { useBCMStore } from "@/stores/bcmStore";
 
 interface Message {
     id: string;
@@ -27,6 +28,7 @@ interface MuseChatProps {
 
 export default function MuseChat({ initialContext }: MuseChatProps) {
     const { workspaceId } = useWorkspace();
+    const { manifest: bcm, fetchBCM } = useBCMStore();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +55,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
 
         if (workspaceId) {
             check(workspaceId);
+            fetchBCM(workspaceId);
         }
 
         return () => {
@@ -95,7 +98,19 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
             const data = await museService.generate(workspaceId, {
                 task: messageText,
                 content_type: "general",
-                context: { platform: "Raptorflow" },
+                context: {
+                    platform: "Raptorflow",
+                    ...(bcm ? {
+                        company: bcm.foundation?.company,
+                        industry: bcm.foundation?.industry,
+                        value_prop: bcm.foundation?.value_prop,
+                        one_liner: bcm.messaging?.one_liner,
+                        tone: bcm.messaging?.tone,
+                        guardrails: bcm.messaging?.guardrails,
+                        icps: bcm.icps?.map(i => i.name),
+                        channels: bcm.channels?.map(c => c.name),
+                    } : {}),
+                },
                 max_tokens: 800,
                 temperature: 0.7,
             });
@@ -151,9 +166,21 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
             const data = await museService.generate(workspaceId, {
                 task,
                 content_type: contentType,
-                tone: "professional",
-                target_audience: "marketing professionals",
-                context: { platform: "Raptorflow" },
+                tone: bcm?.messaging?.tone?.[0] || "professional",
+                target_audience: bcm?.icps?.[0]?.name || "marketing professionals",
+                context: {
+                    platform: "Raptorflow",
+                    ...(bcm ? {
+                        company: bcm.foundation?.company,
+                        industry: bcm.foundation?.industry,
+                        value_prop: bcm.foundation?.value_prop,
+                        one_liner: bcm.messaging?.one_liner,
+                        tone: bcm.messaging?.tone,
+                        guardrails: bcm.messaging?.guardrails,
+                        icps: bcm.icps?.map(i => i.name),
+                        channels: bcm.channels?.map(c => c.name),
+                    } : {}),
+                },
                 max_tokens: 1000,
                 temperature: 0.7,
             });

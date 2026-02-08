@@ -65,6 +65,15 @@ Prefix: `/api/muse` (requires header `x-workspace-id`)
 - `GET /api/muse/health`
 - `POST /api/muse/generate`
 
+### Context / BCM (Scoped By Tenant)
+
+Prefix: `/api/context` (requires header `x-workspace-id`)
+
+- `GET /api/context/` — Get latest BCM manifest
+- `POST /api/context/rebuild` — Rebuild BCM from stored source context
+- `POST /api/context/seed` — Seed BCM from raw business_context.json
+- `GET /api/context/versions` — List all BCM versions
+
 ## Legacy Routers / Duplicate API Layers
 
 Historical router modules and payment/auth API layers were removed during scorched-earth reconstruction.

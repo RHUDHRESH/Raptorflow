@@ -49,6 +49,7 @@ Backend (FastAPI):
   - `backend/api/v1/moves.py`
   - `backend/api/v1/foundation.py`
   - `backend/api/v1/muse.py`
+  - `backend/api/v1/context.py` (BCM manifest CRUD)
 - System routes: `backend/api/system.py`
   - `GET /` and `GET /health`
   - Also mounted under `/api/*` for compatibility (`GET /api/`, `GET /api/health`)
@@ -56,11 +57,30 @@ Backend (FastAPI):
 Database:
 
 - Backend uses Supabase service-role access via `core/supabase_mgr.py`.
-- Core tables used by reconstruction mode:
+- Canonical schema (11 tables, pushed 2026-02-08):
   - `workspaces`
-  - `campaigns` (scoped by `tenant_id`)
-  - `moves` (scoped by `tenant_id`)
-  - `foundation_state` (scoped by `tenant_id`)
+  - `workspace_members`
+  - `profiles`
+  - `foundations` (scoped by `workspace_id`)
+  - `business_context_manifests` (scoped by `workspace_id`, versioned)
+  - `icp_profiles` (scoped by `workspace_id`)
+  - `campaigns` (scoped by `workspace_id`)
+  - `moves` (scoped by `workspace_id`)
+  - `subscription_plans`
+  - `subscriptions`
+  - `audit_logs`
+
+BCM Pipeline:
+
+- Fixtures: `backend/fixtures/business_context_*.json` (3 diverse fake businesses)
+- Pydantic schemas: `backend/schemas/business_context.py`
+- Reducer (pure function): `backend/services/bcm_reducer.py`
+- Service (Supabase CRUD): `backend/services/bcm_service.py`
+- Seed script: `scripts/seed_bcm.py`
+- Frontend types: `src/types/bcm.ts`
+- Frontend service: `src/services/bcm.service.ts`
+- Frontend store: `src/stores/bcmStore.ts`
+- Dashboard panel: `src/components/bcm/BCMStatusPanel.tsx`
 
 Tenant model:
 

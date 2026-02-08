@@ -1,0 +1,117 @@
+{
+  "version": "2.0",
+  "generated_at": "2026-02-08T01:00:00Z",
+  "session_id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+  "company_profile": {
+    "name": "GrowthForge",
+    "website": "https://growthforge.agency",
+    "industry": "Marketing Agency / B2B Services",
+    "stage": "Bootstrapped / Profitable",
+    "description": "GrowthForge is a performance marketing agency exclusively serving B2B SaaS companies in the $1M-$20M ARR range. We run full-funnel demand generation — from LinkedIn ads and cold email to SEO content and webinar funnels — with a unique 'pay for pipeline' model where 40% of our fee is tied to qualified pipeline generated."
+  },
+  "intelligence": {
+    "evidence_count": 8,
+    "facts": [
+      {"id": "f1", "category": "product", "label": "Core Service", "value": "Full-funnel demand gen for B2B SaaS: LinkedIn ads, cold email, SEO content, webinar funnels", "confidence": 0.95},
+      {"id": "f2", "category": "product", "label": "Differentiator", "value": "Pay-for-pipeline model: 40% of fee tied to qualified pipeline generated", "confidence": 0.93},
+      {"id": "f3", "category": "market", "label": "Market Size", "value": "B2B marketing services market is $76B globally, SaaS-focused segment ~$8B", "confidence": 0.85},
+      {"id": "f4", "category": "customer", "label": "Primary Buyer", "value": "CMO or VP Marketing at SaaS companies doing $1M-$20M ARR with 2-5 person marketing team", "confidence": 0.92},
+      {"id": "f5", "category": "traction", "label": "Current Revenue", "value": "$2.4M revenue, 18 active clients, 94% retention rate over 12 months", "confidence": 0.94},
+      {"id": "f6", "category": "competitive", "label": "Agency Landscape", "value": "Most agencies charge retainers with no accountability — clients are tired of paying for activity not results", "confidence": 0.88},
+      {"id": "f7", "category": "pricing", "label": "Pricing Model", "value": "Base retainer $8K-15K/month + 40% performance bonus tied to qualified pipeline", "confidence": 0.95},
+      {"id": "f8", "category": "brand", "label": "Reputation", "value": "Known in SaaS Twitter circles for transparent reporting and pipeline attribution", "confidence": 0.82}
+    ],
+    "icps": [
+      {
+        "name": "SaaS CMO / VP Marketing",
+        "demographics": {
+          "ageRange": "32-48",
+          "income": "$150K-250K",
+          "location": "US, UK, Canada",
+          "role": "CMO / VP Marketing / Head of Growth",
+          "stage": "SaaS company at $1M-$20M ARR"
+        },
+        "psychographics": {
+          "beliefs": "Marketing should be measured by pipeline and revenue, not vanity metrics",
+          "identity": "Revenue-focused marketer who speaks the language of the C-suite",
+          "fears": "Getting fired because marketing can't prove ROI to the board",
+          "values": ["accountability", "data transparency", "speed to results", "partnership over vendor relationship"],
+          "hangouts": ["SaaS Twitter/X", "Pavilion", "Exit Five community", "LinkedIn"],
+          "triggers": ["missed pipeline targets for 2 consecutive quarters", "board pressure to show marketing ROI", "in-house team is maxed out and can't scale channels", "previous agency delivered vanity metrics not pipeline"]
+        },
+        "painPoints": [
+          "Previous agencies charged $15K/month retainers and delivered blog posts nobody read",
+          "In-house team of 2-3 can't run LinkedIn ads + cold email + SEO + webinars simultaneously",
+          "Can't prove to the CEO that marketing spend turns into pipeline",
+          "Every agency pitch sounds the same — no one puts skin in the game"
+        ],
+        "goals": [
+          "Generate $500K+ in qualified pipeline per quarter from outbound + inbound",
+          "Have a marketing partner who is accountable to pipeline, not just deliverables",
+          "Scale demand gen across 3+ channels without hiring 5 more people",
+          "Get attribution clarity so the board sees marketing as a revenue center"
+        ],
+        "objections": [
+          "We've been burned by agencies before — why are you different?",
+          "The pay-for-pipeline model sounds great but how do you define 'qualified'?",
+          "Can you actually handle our technical SaaS content?",
+          "What happens if you don't hit pipeline targets — do we still pay the base?"
+        ],
+        "marketSophistication": 5
+      }
+    ],
+    "positioning": {
+      "category": "Performance Marketing for SaaS",
+      "categoryPath": "safe",
+      "uvp": "GrowthForge is the only B2B SaaS marketing agency where 40% of our fee is tied to the qualified pipeline we generate — because if we don't drive results, we don't deserve to get paid.",
+      "differentiators": [
+        "Pay-for-pipeline model: 40% performance fee tied to qualified pipeline",
+        "SaaS-only focus: we speak your language, know your metrics, understand your buyer",
+        "Full-funnel execution: LinkedIn ads + cold email + SEO + webinars under one roof",
+        "Transparent attribution: real-time dashboard showing every dollar to pipeline"
+      ],
+      "competitors": [
+        {"name": "WebFX", "type": "direct", "strengths": ["Large team", "Wide service range", "Strong SEO"], "weaknesses": ["Not SaaS-focused", "Retainer model with no performance tie", "Cookie-cutter playbooks"]},
+        {"name": "Single Grain", "type": "direct", "strengths": ["Strong brand (Eric Siu)", "Content marketing expertise", "Podcast audience"], "weaknesses": ["Generalist — serves all industries", "Premium pricing", "Less hands-on execution"]}
+      ]
+    },
+    "messaging": {
+      "oneLiner": "GrowthForge: The SaaS marketing agency that only wins when you do.",
+      "positioningStatement": "For SaaS CMOs who are tired of paying agencies for activity instead of results, GrowthForge is the performance marketing agency that ties 40% of its fee to qualified pipeline generated — unlike traditional agencies that charge flat retainers regardless of outcome.",
+      "valueProps": [
+        {"title": "Skin in the Game", "description": "40% of our fee is a performance bonus tied to qualified pipeline. If we don't deliver, we don't get paid in full."},
+        {"title": "SaaS-Native Execution", "description": "We only serve B2B SaaS. We know your metrics, your buyer journey, and your board's expectations."},
+        {"title": "Full-Funnel Under One Roof", "description": "LinkedIn ads, cold email, SEO content, and webinar funnels — all coordinated, all attributed, all in one dashboard."}
+      ],
+      "brandVoice": {
+        "tone": ["direct and no-BS", "confident with receipts", "peer-to-peer not vendor-to-client"],
+        "doList": ["Lead with pipeline numbers and client results", "Use specific SaaS metrics (ARR, pipeline, CAC)", "Share real client case studies with permission"],
+        "dontList": ["Don't use agency jargon like 'ideation' or 'synergistic'", "Don't promise overnight results", "Don't trash other agencies by name"]
+      },
+      "soundbites": [
+        "We eat what we kill. 40% of our fee depends on your pipeline.",
+        "Your last agency gave you blog posts. We give you pipeline.",
+        "We don't do 'brand awareness.' We do 'board-ready pipeline reports.'"
+      ],
+      "guardrails": [
+        "Always quantify claims with real numbers",
+        "Never promise specific pipeline numbers before discovery",
+        "Position as partner not vendor — we succeed together or not at all"
+      ]
+    },
+    "channels": [
+      {"name": "LinkedIn (organic + ads)", "priority": "primary"},
+      {"name": "Cold email (own outbound)", "priority": "primary"},
+      {"name": "Twitter/X (SaaS community)", "priority": "secondary"},
+      {"name": "Podcast guesting", "priority": "secondary"},
+      {"name": "Webinars (co-hosted with SaaS tools)", "priority": "experimental"}
+    ],
+    "market": {
+      "tam": "$76B (global B2B marketing services)",
+      "sam": "$8B (SaaS-focused marketing agencies)",
+      "som": "$400M (performance-based SaaS agencies, US + UK + Canada)",
+      "verticals": ["B2B SaaS", "DevTools", "FinTech SaaS", "HealthTech SaaS"],
+      "geo": "US (primary), UK, Canada"
+    }
+  }
+}

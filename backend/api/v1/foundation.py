@@ -1,8 +1,8 @@
 """
 Foundation API (No-Auth Reconstruction Mode)
 
-Stores the frontend Foundation state as JSON scoped by tenant/workspace.
-This intentionally avoids Supabase Auth/RLS by using the service role on the backend.
+Manages the workspace foundation data in the canonical `foundations` table.
+All operations scoped by X-Workspace-Id header.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 router = APIRouter(prefix="/foundation", tags=["foundation"])
 
 
-def _require_tenant_id(x_workspace_id: Optional[str]) -> str:
+def _require_workspace_id(x_workspace_id: Optional[str]) -> str:
     if not x_workspace_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -33,57 +33,69 @@ def _require_tenant_id(x_workspace_id: Optional[str]) -> str:
     return x_workspace_id
 
 
-class FoundationState(BaseModel):
-    ricps: List[Dict[str, Any]] = Field(default_factory=list)
+class FoundationOut(BaseModel):
+    id: Optional[str] = None
+    workspace_id: Optional[str] = None
+    company_info: Dict[str, Any] = Field(default_factory=dict)
+    mission: Optional[str] = None
+    vision: Optional[str] = None
+    value_proposition: Optional[str] = None
+    brand_voice: Dict[str, Any] = Field(default_factory=dict)
+    messaging: Dict[str, Any] = Field(default_factory=dict)
+    status: str = "draft"
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
+class FoundationUpdate(BaseModel):
+    company_info: Optional[Dict[str, Any]] = None
+    mission: Optional[str] = None
+    vision: Optional[str] = None
+    value_proposition: Optional[str] = None
+    brand_voice: Optional[Dict[str, Any]] = None
     messaging: Optional[Dict[str, Any]] = None
-    channels: List[Dict[str, Any]] = Field(default_factory=list)
+    status: Optional[str] = None
 
 
-@router.get("/", response_model=FoundationState)
+@router.get("/", response_model=FoundationOut)
 async def get_foundation(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
-) -> FoundationState:
-    tenant_id = _require_tenant_id(x_workspace_id)
+) -> FoundationOut:
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
 
     result = (
-        supabase.table("foundation_state")
-        .select("phase_progress")
-        .eq("tenant_id", tenant_id)
-        .single()
+        supabase.table("foundations")
+        .select("*")
+        .eq("workspace_id", workspace_id)
+        .limit(1)
         .execute()
     )
 
     if not result.data:
-        return FoundationState()
+        return FoundationOut(workspace_id=workspace_id)
 
-    phase_progress = result.data.get("phase_progress") or {}
-    return FoundationState(
-        ricps=phase_progress.get("ricps") or [],
-        messaging=phase_progress.get("messaging"),
-        channels=phase_progress.get("channels") or [],
-    )
+    return FoundationOut(**result.data[0])
 
 
-@router.put("/", response_model=FoundationState)
+@router.put("/", response_model=FoundationOut)
 async def save_foundation(
-    payload: FoundationState,
+    payload: FoundationUpdate,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
-) -> FoundationState:
-    tenant_id = _require_tenant_id(x_workspace_id)
+) -> FoundationOut:
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
 
-    row = {
-        "tenant_id": tenant_id,
-        "phase_progress": {
-            "ricps": payload.ricps,
-            "messaging": payload.messaging,
-            "channels": payload.channels,
-        },
-    }
+    row = {"workspace_id": workspace_id}
+    update_data = payload.model_dump(exclude_none=True)
+    row.update(update_data)
 
-    result = supabase.table("foundation_state").upsert(row).execute()
-    if result.data is None:
-        raise HTTPException(status_code=500, detail="Failed to save foundation state")
+    result = (
+        supabase.table("foundations")
+        .upsert(row, on_conflict="workspace_id")
+        .execute()
+    )
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to save foundation")
 
-    return payload
+    return FoundationOut(**result.data[0])

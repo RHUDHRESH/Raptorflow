@@ -16,6 +16,7 @@ import { MovesSkeleton } from "@/components/ui/DashboardSkeletons";
 import { cn } from "@/lib/utils";
 import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 import { toast } from "sonner";
+import { useBCMStore } from "@/stores/bcmStore";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    MOVES PAGE — QUIET LUXURY REDESIGN
@@ -38,6 +39,7 @@ export default function MovesPage() {
   const [activeTab, setActiveTab] = useState<ViewTab>('agenda');
 
   const { workspaceId } = useWorkspace();
+  const { manifest: bcm, fetchBCM } = useBCMStore();
 
   const { moves, addMove, fetchMoves, isLoading, error } = useMovesStore();
 
@@ -46,6 +48,7 @@ export default function MovesPage() {
     if (!workspaceId) return;
     didAttemptFetchRef.current = true;
     fetchMoves(workspaceId);
+    fetchBCM(workspaceId);
   }, [workspaceId, fetchMoves]);
 
   useEffect(() => {
@@ -161,7 +164,19 @@ export default function MovesPage() {
               </h1>
               <p className="text-sm text-[var(--muted)] mt-1">
                 Your execution headquarters — {stats.active} active, {stats.draft} drafts, {stats.completed} completed
+                {bcm?.foundation?.company && (
+                  <span className="ml-2 text-xs opacity-60">| {bcm.foundation.company}</span>
+                )}
               </p>
+              {bcm?.icps && bcm.icps.length > 0 && (
+                <div className="flex gap-2 mt-2">
+                  {bcm.icps.map((icp, i) => (
+                    <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)]">
+                      {icp.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
 

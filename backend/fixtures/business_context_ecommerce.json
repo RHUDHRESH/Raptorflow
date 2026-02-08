@@ -1,0 +1,151 @@
+{
+  "version": "2.0",
+  "generated_at": "2026-02-08T01:00:00Z",
+  "session_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "company_profile": {
+    "name": "EcoThread",
+    "website": "https://ecothread.co",
+    "industry": "Fashion / E-commerce DTC",
+    "stage": "Seed",
+    "description": "EcoThread is a direct-to-consumer sustainable fashion brand that makes premium basics from 100% recycled ocean plastic and deadstock fabric. Every piece is designed to last 5+ years, comes with a lifetime repair guarantee, and has a fully transparent supply chain you can trace from ocean cleanup to your closet."
+  },
+  "intelligence": {
+    "evidence_count": 9,
+    "facts": [
+      {"id": "f1", "category": "product", "label": "Core Material", "value": "Fabric made from 100% recycled ocean plastic (REPREVE certified)", "confidence": 0.96},
+      {"id": "f2", "category": "product", "label": "Differentiator", "value": "Lifetime repair guarantee — send any piece back for free repair forever", "confidence": 0.94},
+      {"id": "f3", "category": "market", "label": "Market Size", "value": "Sustainable fashion market projected at $33B by 2027, growing 9.7% CAGR", "confidence": 0.89},
+      {"id": "f4", "category": "customer", "label": "Primary Buyer", "value": "Eco-conscious millennials (28-38) with household income $75K+ who shop online-first", "confidence": 0.91},
+      {"id": "f5", "category": "competitive", "label": "Everlane Gap", "value": "Everlane faced backlash for greenwashing — customers want verifiable transparency", "confidence": 0.83},
+      {"id": "f6", "category": "pricing", "label": "Price Point", "value": "Premium basics: $45-85 per piece, positioned between fast fashion and luxury", "confidence": 0.95},
+      {"id": "f7", "category": "traction", "label": "Early Traction", "value": "3,200 customers, $280K revenue in first 8 months, 42% repeat purchase rate", "confidence": 0.90},
+      {"id": "f8", "category": "brand", "label": "Brand Story", "value": "Founded by a marine biologist who saw ocean plastic firsthand during research dives", "confidence": 0.97},
+      {"id": "f9", "category": "customer", "label": "Retention Insight", "value": "Customers who use the supply chain tracker buy 2.3x more than those who don't", "confidence": 0.85}
+    ],
+    "icps": [
+      {
+        "name": "Eco-Conscious Millennial",
+        "demographics": {
+          "ageRange": "28-38",
+          "income": "$75K-150K",
+          "location": "US coastal cities, UK, Scandinavia",
+          "role": "Professional (tech, creative, education)",
+          "stage": "Established career, values-driven spending"
+        },
+        "psychographics": {
+          "beliefs": "Believes individual purchasing decisions can drive systemic change",
+          "identity": "Conscious consumer who researches before buying",
+          "fears": "Being complicit in environmental destruction through mindless consumption",
+          "values": ["sustainability", "transparency", "quality over quantity", "minimalism"],
+          "hangouts": ["Instagram", "r/SustainableFashion", "Good On You app", "Patagonia community"],
+          "triggers": ["documentary about fast fashion waste", "favorite brand caught greenwashing", "closet purge reveals how much was wasted"]
+        },
+        "painPoints": [
+          "Most 'sustainable' brands are greenwashing — hard to know who to trust",
+          "Eco-friendly clothes often look frumpy or feel cheap",
+          "Premium sustainable brands are prohibitively expensive ($200+ per piece)"
+        ],
+        "goals": [
+          "Build a capsule wardrobe of pieces that last years, not months",
+          "Feel genuinely good about every purchase — no guilt",
+          "Look put-together without supporting exploitative supply chains"
+        ],
+        "objections": [
+          "How do I know your sustainability claims are real?",
+          "$65 for a t-shirt is a lot — even if it's sustainable",
+          "I've been burned by 'eco' brands before"
+        ],
+        "marketSophistication": 4
+      },
+      {
+        "name": "Corporate Sustainability Buyer",
+        "demographics": {
+          "ageRange": "30-50",
+          "income": "$100K-200K",
+          "location": "US, UK, EU",
+          "role": "Head of People / Office Manager / CSR Lead",
+          "stage": "Mid-to-large company with sustainability commitments"
+        },
+        "psychographics": {
+          "beliefs": "Corporate gifting and merch should reflect company values",
+          "identity": "The person who makes the company walk its sustainability talk",
+          "fears": "Ordering branded merch that ends up in landfill and embarrasses the company",
+          "values": ["brand alignment", "employee satisfaction", "measurable impact"],
+          "hangouts": ["LinkedIn", "B Corp community", "Sustainable Brands conference"],
+          "triggers": ["annual company merch order coming up", "new ESG reporting requirements", "employee survey shows sustainability matters"]
+        },
+        "painPoints": [
+          "Corporate merch is universally terrible — cheap, wasteful, unworn",
+          "Hard to find suppliers that can prove sustainability claims for ESG reports",
+          "Minimum order quantities from sustainable brands are too high for small orders"
+        ],
+        "goals": [
+          "Source branded basics that employees actually want to wear",
+          "Get verifiable sustainability data for ESG reporting",
+          "Low MOQ options for team gifts and onboarding kits"
+        ],
+        "objections": [
+          "Can you do custom branding on sustainable materials?",
+          "What's the lead time for corporate orders?",
+          "Do you have certifications we can reference in our ESG report?"
+        ],
+        "marketSophistication": 2
+      }
+    ],
+    "positioning": {
+      "category": "Transparent Sustainable Basics",
+      "categoryPath": "clever",
+      "uvp": "EcoThread makes premium basics from recycled ocean plastic with a lifetime repair guarantee and fully traceable supply chain — so you can see exactly where your clothes come from and know they'll last.",
+      "differentiators": [
+        "100% recycled ocean plastic fabric (REPREVE certified) — not just 'recycled content'",
+        "Lifetime repair guarantee — free repairs forever, no questions asked",
+        "Supply chain tracker — trace every piece from ocean cleanup to your closet",
+        "Founded by a marine biologist — authenticity you can't fake"
+      ],
+      "competitors": [
+        {"name": "Everlane", "type": "direct", "strengths": ["Strong brand", "Wide product range", "Retail presence"], "weaknesses": ["Greenwashing accusations", "No repair program", "Opaque supply chain despite 'radical transparency' claim"]},
+        {"name": "Patagonia", "type": "direct", "strengths": ["Gold standard for sustainability", "Worn Wear program", "Activist brand"], "weaknesses": ["Outdoor/athletic focus — not basics", "Premium pricing ($100+)", "Not DTC-first"]},
+        {"name": "Allbirds", "type": "indirect", "strengths": ["Strong sustainability story", "Comfortable products", "Tech-forward"], "weaknesses": ["Footwear focused", "Limited apparel range", "Carbon neutral claims questioned"]},
+        {"name": "Reformation", "type": "indirect", "strengths": ["Fashion-forward", "Strong social media", "Celebrity following"], "weaknesses": ["Not basics — trend-driven", "Higher price point", "Limited size range historically"]}
+      ]
+    },
+    "messaging": {
+      "oneLiner": "EcoThread: Premium basics made from ocean plastic. Built to last. Traced to source.",
+      "positioningStatement": "For eco-conscious consumers who are tired of greenwashing and disposable fashion, EcoThread is the sustainable basics brand that uses 100% recycled ocean plastic, offers a lifetime repair guarantee, and lets you trace every piece from ocean cleanup to your closet — unlike Everlane or fast fashion brands that make sustainability claims they can't prove.",
+      "valueProps": [
+        {"title": "Ocean-to-Closet Traceability", "description": "Every piece comes with a unique supply chain tracker showing its journey from ocean plastic collection to your door."},
+        {"title": "Lifetime Repair Guarantee", "description": "Send any piece back for free repair, forever. We believe in making clothes that last, not replacing them."},
+        {"title": "Premium Without the Premium Guilt", "description": "Priced between fast fashion and luxury ($45-85), so doing the right thing doesn't require a trust fund."}
+      ],
+      "brandVoice": {
+        "tone": ["warm and genuine", "optimistic but honest", "science-backed"],
+        "doList": ["Share real supply chain data and impact numbers", "Tell the founder's marine biology story", "Show the product in everyday settings — not just styled shoots"],
+        "dontList": ["Don't shame people for past purchases", "Don't use guilt as a marketing tactic", "Don't make claims without data to back them up"]
+      },
+      "soundbites": [
+        "Your t-shirt used to be a bottle in the Pacific.",
+        "We don't do 'sustainable-ish.' We do traceable.",
+        "The best wardrobe is the one you never have to replace."
+      ],
+      "guardrails": [
+        "Never shame consumers — inspire them instead",
+        "Always cite specific certifications (REPREVE, OEKO-TEX) not vague 'eco-friendly'",
+        "Founder story is a strength — use it but don't overdo it"
+      ]
+    },
+    "channels": [
+      {"name": "Instagram", "priority": "primary"},
+      {"name": "Email (lifecycle + launches)", "priority": "primary"},
+      {"name": "TikTok", "priority": "secondary"},
+      {"name": "Partnerships (B Corp brands)", "priority": "secondary"},
+      {"name": "Reddit (r/SustainableFashion)", "priority": "experimental"}
+    ],
+    "market": {
+      "tam": "$33B (global sustainable fashion)",
+      "sam": "$4.2B (sustainable basics / essentials)",
+      "som": "$120M (DTC sustainable basics, US + UK + Scandinavia)",
+      "verticals": ["Consumer basics", "Corporate merch", "Gift market"],
+      "geo": "US (primary), UK, Scandinavia"
+    }
+  }
+}

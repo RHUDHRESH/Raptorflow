@@ -7,5 +7,6 @@ In scorched-earth reconstruction mode, only these routers are supported:
 - moves
 - foundation
 - muse
+- context (BCM manifest)
 """
 

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notifications";
 import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 import { useCampaignStore, type Campaign } from "@/stores/campaignStore";
+import { useBCMStore } from "@/stores/bcmStore";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { BlueprintModal } from "@/components/ui/BlueprintModal";
@@ -52,6 +53,7 @@ function statusLabel(status: string): string {
 export default function CampaignsPage() {
   const router = useRouter();
   const { workspaceId } = useWorkspace();
+  const { manifest: bcm, fetchBCM } = useBCMStore();
   const {
     campaigns,
     isLoading,
@@ -75,7 +77,8 @@ export default function CampaignsPage() {
   useEffect(() => {
     if (!workspaceId) return;
     fetchCampaigns(workspaceId);
-  }, [workspaceId, fetchCampaigns]);
+    fetchBCM(workspaceId);
+  }, [workspaceId, fetchCampaigns, fetchBCM]);
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -168,6 +171,14 @@ export default function CampaignsPage() {
             <p className="text-sm text-[var(--muted)]">
               Real campaigns, persisted to the database. No paywalls.
             </p>
+            {bcm?.competitive?.category && (
+              <p className="text-xs text-[var(--muted)] mt-1">
+                Category: <span className="font-medium">{bcm.competitive.category}</span>
+                {bcm.competitive.alternatives?.length > 0 && (
+                  <span> · vs {bcm.competitive.alternatives.map(a => a.name).join(", ")}</span>
+                )}
+              </p>
+            )}
           </div>
           <button
             onClick={openCreate}

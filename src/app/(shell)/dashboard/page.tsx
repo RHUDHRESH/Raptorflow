@@ -11,6 +11,8 @@ import { useCampaignStore } from "@/stores/campaignStore";
 import { useFoundationStore } from "@/stores/foundationStore";
 import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 import { Target, Users, Zap, Layers } from "lucide-react";
+import BCMStatusPanel from "@/components/bcm/BCMStatusPanel";
+import { useBCMStore } from "@/stores/bcmStore";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    DASHBOARD — Founder Command Center
@@ -23,6 +25,7 @@ export default function DashboardPage() {
   const { campaigns, fetchCampaigns } = useCampaignStore();
   const { ricps, channels, fetchFoundation } = useFoundationStore();
   const { workspaceId, workspace } = useWorkspace();
+  const { manifest: bcm } = useBCMStore();
 
   // Fetch data on mount
   useEffect(() => {
@@ -65,12 +68,12 @@ export default function DashboardPage() {
     },
     {
       label: "Cohorts (ICPs)",
-      value: ricps.length,
+      value: bcm?.meta?.icps_count ?? ricps.length,
       icon: Users,
     },
     {
       label: "Channels",
-      value: channels.length,
+      value: bcm?.channels?.length ?? channels.length,
       icon: Layers,
     },
   ];
@@ -118,8 +121,9 @@ export default function DashboardPage() {
             <DashboardFocus move={primaryMove} />
           </div>
 
-          {/* Activity feed (takes 1/3 on desktop) */}
-          <div data-fade className="lg:col-span-1">
+          {/* Activity feed + BCM panel (takes 1/3 on desktop) */}
+          <div data-fade className="lg:col-span-1 space-y-6">
+            {workspaceId && <BCMStatusPanel workspaceId={workspaceId} />}
             <DashboardActivity items={recentActivity} />
           </div>
         </div>

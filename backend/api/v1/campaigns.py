@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
 
-def _require_tenant_id(x_workspace_id: Optional[str]) -> str:
+def _require_workspace_id(x_workspace_id: Optional[str]) -> str:
     if not x_workspace_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -49,7 +49,7 @@ class CampaignUpdate(BaseModel):
 
 class CampaignOut(BaseModel):
     id: str
-    tenant_id: str
+    workspace_id: str
     title: str
     description: Optional[str] = None
     objective: str
@@ -98,13 +98,13 @@ def _normalize_status(status_value: Optional[str]) -> str:
 async def list_campaigns(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignListOut:
-    tenant_id = _require_tenant_id(x_workspace_id)
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
 
     result = (
         supabase.table("campaigns")
         .select("*")
-        .eq("tenant_id", tenant_id)
+        .eq("workspace_id", workspace_id)
         .order("created_at", desc=True)
         .execute()
     )
@@ -118,12 +118,12 @@ async def create_campaign(
     payload: CampaignCreate,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignOut:
-    tenant_id = _require_tenant_id(x_workspace_id)
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
 
     insert_row: Dict[str, Any] = {
         "id": str(uuid4()),
-        "tenant_id": tenant_id,
+        "workspace_id": workspace_id,
         "title": payload.name,
         "description": payload.description,
         "objective": _normalize_objective(payload.objective),
@@ -145,7 +145,7 @@ async def get_campaign(
     campaign_id: str,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignOut:
-    tenant_id = _require_tenant_id(x_workspace_id)
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
     try:
         UUID(campaign_id)
@@ -156,7 +156,7 @@ async def get_campaign(
         supabase.table("campaigns")
         .select("*")
         .eq("id", campaign_id)
-        .eq("tenant_id", tenant_id)
+        .eq("workspace_id", workspace_id)
         .single()
         .execute()
     )
@@ -172,7 +172,7 @@ async def update_campaign(
     updates: CampaignUpdate,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignOut:
-    tenant_id = _require_tenant_id(x_workspace_id)
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
     try:
         UUID(campaign_id)
@@ -196,7 +196,7 @@ async def update_campaign(
         supabase.table("campaigns")
         .update(update_row)
         .eq("id", campaign_id)
-        .eq("tenant_id", tenant_id)
+        .eq("workspace_id", workspace_id)
         .execute()
     )
     if not result.data:
@@ -210,7 +210,7 @@ async def delete_campaign(
     campaign_id: str,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ):
-    tenant_id = _require_tenant_id(x_workspace_id)
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
     try:
         UUID(campaign_id)
@@ -221,11 +221,10 @@ async def delete_campaign(
         supabase.table("campaigns")
         .delete()
         .eq("id", campaign_id)
-        .eq("tenant_id", tenant_id)
+        .eq("workspace_id", workspace_id)
         .execute()
     )
     if result.data is None:
-        # Supabase returns [] on no rows, but be defensive.
         raise HTTPException(status_code=404, detail="Campaign not found")
 
     return None

@@ -1,0 +1,151 @@
+{
+  "version": "2.0",
+  "generated_at": "2026-02-08T01:00:00Z",
+  "session_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "company_profile": {
+    "name": "FlowBoard",
+    "website": "https://flowboard.io",
+    "industry": "SaaS / Productivity",
+    "stage": "Series A",
+    "description": "FlowBoard is an AI-powered project management platform built for distributed engineering teams. We replace the chaos of Slack threads, scattered docs, and missed deadlines with a single command center that auto-prioritizes work, surfaces blockers before standup, and generates sprint reports in one click."
+  },
+  "intelligence": {
+    "evidence_count": 12,
+    "facts": [
+      {"id": "f1", "category": "product", "label": "Core Feature", "value": "AI-powered sprint auto-planning that learns from team velocity", "confidence": 0.95},
+      {"id": "f2", "category": "product", "label": "Differentiator", "value": "Real-time blocker detection using commit + PR + Slack signal fusion", "confidence": 0.92},
+      {"id": "f3", "category": "market", "label": "Market Size", "value": "Project management software market is $7.2B in 2025, growing 13% CAGR", "confidence": 0.88},
+      {"id": "f4", "category": "customer", "label": "Primary Buyer", "value": "VP of Engineering at 50-500 person companies with 3+ remote offices", "confidence": 0.90},
+      {"id": "f5", "category": "competitive", "label": "Weakness of Asana", "value": "Asana lacks native AI sprint planning and requires heavy manual configuration", "confidence": 0.85},
+      {"id": "f6", "category": "competitive", "label": "Weakness of Monday", "value": "Monday.com is perceived as too visual/marketing-oriented for serious engineering teams", "confidence": 0.82},
+      {"id": "f7", "category": "pricing", "label": "Pricing Model", "value": "Per-seat SaaS, $15/user/month for teams, $29/user/month for enterprise", "confidence": 0.95},
+      {"id": "f8", "category": "traction", "label": "Current ARR", "value": "$1.2M ARR with 85 paying teams, 40% MoM growth", "confidence": 0.93},
+      {"id": "f9", "category": "customer", "label": "Churn Insight", "value": "Teams that activate AI sprint planning in week 1 have 3x lower churn", "confidence": 0.87},
+      {"id": "f10", "category": "brand", "label": "Brand Perception", "value": "Seen as the technical PM tool — engineers recommend it to their managers", "confidence": 0.80}
+    ],
+    "icps": [
+      {
+        "name": "Engineering Leader",
+        "demographics": {
+          "ageRange": "30-45",
+          "income": "$150K-250K",
+          "location": "US, UK, Germany",
+          "role": "VP Engineering / Engineering Manager",
+          "stage": "Scaling (50-500 employees)"
+        },
+        "psychographics": {
+          "beliefs": "Believes engineering productivity is the #1 lever for company growth",
+          "identity": "Technical leader who ships, not a process bureaucrat",
+          "fears": "Losing top engineers to burnout or better-tooled competitors",
+          "values": ["developer experience", "data-driven decisions", "async-first culture"],
+          "hangouts": ["Hacker News", "r/ExperiencedDevs", "LeadDev Slack"],
+          "triggers": ["missed sprint commitments 3x in a row", "engineer attrition spike", "board asks for eng velocity metrics"]
+        },
+        "painPoints": [
+          "Sprint planning takes 4+ hours per week across the org",
+          "No visibility into cross-team dependencies until things break",
+          "Reporting to the board requires manual spreadsheet assembly"
+        ],
+        "goals": [
+          "Cut sprint planning time by 60%",
+          "Get real-time visibility into blockers before standup",
+          "Auto-generate board-ready engineering metrics"
+        ],
+        "objections": [
+          "We already use Jira — switching cost is too high",
+          "AI planning sounds cool but can it really understand our codebase context?",
+          "My team will resist another tool"
+        ],
+        "marketSophistication": 4
+      },
+      {
+        "name": "VP of Operations",
+        "demographics": {
+          "ageRange": "35-50",
+          "income": "$130K-200K",
+          "location": "US, Canada, UK",
+          "role": "VP Operations / COO",
+          "stage": "Growth (100-500 employees)"
+        },
+        "psychographics": {
+          "beliefs": "Cross-functional visibility is the key to scaling without chaos",
+          "identity": "The person who makes the machine run smoothly",
+          "fears": "Being blindsided by project delays that impact revenue",
+          "values": ["predictability", "transparency", "operational excellence"],
+          "hangouts": ["LinkedIn", "COO Alliance", "Pavilion community"],
+          "triggers": ["major project delay impacts a customer commitment", "CEO asks why engineering is slow", "failed audit of project timelines"]
+        },
+        "painPoints": [
+          "Engineering is a black box — no idea what's on track vs at risk",
+          "Status updates are stale by the time they reach leadership",
+          "Resource allocation across projects is guesswork"
+        ],
+        "goals": [
+          "Real-time project health dashboard for leadership",
+          "Automated resource utilization tracking",
+          "Predictive delivery date estimates"
+        ],
+        "objections": [
+          "Engineering already has their tools — why do I need another view?",
+          "Will engineers actually keep this updated?",
+          "How is this different from a BI dashboard on top of Jira?"
+        ],
+        "marketSophistication": 3
+      }
+    ],
+    "positioning": {
+      "category": "AI-Native Project Management",
+      "categoryPath": "bold",
+      "uvp": "FlowBoard is the only project management platform that uses real-time engineering signals — commits, PRs, Slack, and CI/CD — to auto-plan sprints, detect blockers before standup, and generate board-ready reports without any manual input.",
+      "differentiators": [
+        "Signal fusion: combines code, chat, and CI data for true engineering intelligence",
+        "Zero-config AI sprint planning that learns from your team's actual velocity",
+        "Board-ready reports generated automatically — no spreadsheet assembly",
+        "Built by engineers for engineers — not a repurposed marketing PM tool"
+      ],
+      "competitors": [
+        {"name": "Asana", "type": "direct", "strengths": ["Brand recognition", "Large ecosystem", "Enterprise sales team"], "weaknesses": ["No AI sprint planning", "Manual configuration heavy", "Not engineering-focused"]},
+        {"name": "Monday.com", "type": "direct", "strengths": ["Beautiful UI", "Marketing-friendly", "Large user base"], "weaknesses": ["Perceived as non-technical", "No code/CI integration", "Expensive at scale"]},
+        {"name": "Notion", "type": "indirect", "strengths": ["Flexible", "Loved by startups", "Great docs"], "weaknesses": ["Not a real PM tool", "No sprint planning", "No engineering metrics"]}
+      ]
+    },
+    "messaging": {
+      "oneLiner": "FlowBoard: AI-powered project management that thinks like an engineer.",
+      "positioningStatement": "For engineering leaders at scaling companies who are drowning in manual sprint planning and blind to cross-team blockers, FlowBoard is the AI-native project management platform that auto-plans sprints, detects blockers in real-time, and generates board-ready reports — unlike Asana or Monday which require hours of manual configuration and have zero engineering intelligence.",
+      "valueProps": [
+        {"title": "AI Sprint Auto-Planning", "description": "Our AI learns your team's velocity and auto-generates sprint plans that actually match capacity."},
+        {"title": "Real-Time Blocker Detection", "description": "Fuses signals from code, chat, and CI to surface blockers before your morning standup."},
+        {"title": "One-Click Board Reports", "description": "Auto-generates investor and board-ready engineering metrics without touching a spreadsheet."}
+      ],
+      "brandVoice": {
+        "tone": ["technical but accessible", "confident not arrogant", "data-driven"],
+        "doList": ["Use specific numbers and metrics", "Reference real engineering workflows", "Show don't tell — use product screenshots"],
+        "dontList": ["Don't use corporate buzzwords like 'synergy' or 'leverage'", "Don't oversimplify — our audience is technical", "Don't bash competitors by name in public content"]
+      },
+      "soundbites": [
+        "Stop planning sprints. Start shipping them.",
+        "Your standup should surface surprises, not create them.",
+        "Board decks shouldn't take longer than the sprint itself."
+      ],
+      "guardrails": [
+        "Never claim we replace engineers — we amplify them",
+        "Always ground claims in data or customer quotes",
+        "Avoid 'AI' as a standalone selling point — show the specific outcome"
+      ]
+    },
+    "channels": [
+      {"name": "LinkedIn", "priority": "primary"},
+      {"name": "Hacker News / Reddit", "priority": "primary"},
+      {"name": "Email (cold outreach)", "priority": "secondary"},
+      {"name": "Developer conferences", "priority": "secondary"},
+      {"name": "Twitter/X", "priority": "experimental"}
+    ],
+    "market": {
+      "tam": "$7.2B (global project management software)",
+      "sam": "$1.8B (engineering-focused PM tools)",
+      "som": "$180M (AI-native PM for 50-500 person tech companies)",
+      "verticals": ["SaaS", "FinTech", "HealthTech", "DevTools"],
+      "geo": "US, UK, Germany, Canada"
+    }
+  }
+}

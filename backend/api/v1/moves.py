@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 router = APIRouter(prefix="/moves", tags=["moves"])
 
 
-def _require_tenant_id(x_workspace_id: Optional[str]) -> str:
+def _require_workspace_id(x_workspace_id: Optional[str]) -> str:
     if not x_workspace_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -121,13 +121,13 @@ class MoveListOut(BaseModel):
 async def list_moves(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> MoveListOut:
-    tenant_id = _require_tenant_id(x_workspace_id)
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
 
     result = (
         supabase.table("moves")
         .select("*")
-        .eq("tenant_id", tenant_id)
+        .eq("workspace_id", workspace_id)
         .order("created_at", desc=True)
         .execute()
     )
@@ -140,24 +140,22 @@ async def list_moves(
         if isinstance(ui_move, dict):
             ui_move = {**ui_move}
             ui_move["id"] = move_id
-            ui_move["workspaceId"] = tenant_id
+            ui_move["workspaceId"] = workspace_id
             ui_move.setdefault("createdAt", row.get("created_at") or _now_iso())
             ui_move.setdefault("name", row.get("title") or "Untitled Move")
             ui_move.setdefault("context", row.get("description") or "")
             ui_move.setdefault("status", row.get("status") or "draft")
             ui_move.setdefault("duration", row.get("duration_days") or 7)
-            ui_move.setdefault("execution", row.get("checklist", {}).get("execution") if isinstance(row.get("checklist"), dict) else [])
+            ui_move.setdefault("execution", [])
             try:
                 moves.append(MoveModel(**ui_move))
             except Exception as exc:
-                # Reconstruction mode: never silently drop/replace malformed stored JSON.
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=f"Malformed stored move JSON for move_id={move_id}: {exc}",
                 )
             continue
 
-        # Minimal shape from DB columns for legacy rows that don't include `tool_requirements.ui_move`.
         moves.append(
             MoveModel(
                 id=move_id,
@@ -170,7 +168,7 @@ async def list_moves(
                 context=row.get("description") or "",
                 createdAt=row.get("created_at") or _now_iso(),
                 execution=[],
-                workspaceId=tenant_id,
+                workspaceId=workspace_id,
             )
         )
 
@@ -182,7 +180,7 @@ async def create_move(
     move: MoveModel,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> MoveModel:
-    tenant_id = _require_tenant_id(x_workspace_id)
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
 
     move_id = _coerce_uuid(move.id) or str(uuid4())
@@ -190,7 +188,7 @@ async def create_move(
 
     db_row: Dict[str, Any] = {
         "id": move_id,
-        "tenant_id": tenant_id,
+        "workspace_id": workspace_id,
         "campaign_id": campaign_id,
         "title": move.name,
         "description": move.context,
@@ -198,17 +196,14 @@ async def create_move(
         "channel": "linkedin",
         "status": _map_ui_status_to_db(move.status),
         "duration_days": int(move.duration or 7),
-        "daily_effort_minutes": 30,
-        # Store the UI move and execution plan explicitly.
-        "checklist": {"execution": move.execution},
-        "tool_requirements": {"ui_move": {**move.model_dump(), "id": move_id, "workspaceId": tenant_id}},
+        "tool_requirements": {"ui_move": {**move.model_dump(), "id": move_id, "workspaceId": workspace_id}},
     }
 
     result = supabase.table("moves").insert(db_row).execute()
     if not result.data:
         raise HTTPException(status_code=500, detail="Failed to create move")
 
-    return MoveModel(**{**move.model_dump(), "id": move_id, "workspaceId": tenant_id})
+    return MoveModel(**{**move.model_dump(), "id": move_id, "workspaceId": workspace_id})
 
 
 class MovePatch(BaseModel):
@@ -235,7 +230,7 @@ async def update_move(
     patch: MovePatch,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> MoveModel:
-    tenant_id = _require_tenant_id(x_workspace_id)
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
     try:
         UUID(move_id)
@@ -246,7 +241,7 @@ async def update_move(
         supabase.table("moves")
         .select("*")
         .eq("id", move_id)
-        .eq("tenant_id", tenant_id)
+        .eq("workspace_id", workspace_id)
         .single()
         .execute()
     )
@@ -263,9 +258,8 @@ async def update_move(
     for k, v in patch.model_dump(exclude_unset=True).items():
         updated_ui[k] = v
 
-    # Ensure required UI fields exist.
     updated_ui.setdefault("id", move_id)
-    updated_ui.setdefault("workspaceId", tenant_id)
+    updated_ui.setdefault("workspaceId", workspace_id)
     updated_ui.setdefault("createdAt", row.get("created_at") or _now_iso())
     updated_ui.setdefault("execution", [])
     updated_ui.setdefault("status", row.get("status") or "draft")
@@ -282,7 +276,6 @@ async def update_move(
         "status": _map_ui_status_to_db(updated_ui.get("status")),
         "duration_days": int(updated_ui.get("duration") or 7),
         "goal": _map_ui_goal_to_db(updated_ui.get("goal"), updated_ui.get("category")),
-        "checklist": {"execution": updated_ui.get("execution") or []},
         "tool_requirements": {"ui_move": updated_ui},
     }
 
@@ -294,7 +287,7 @@ async def update_move(
         supabase.table("moves")
         .update(db_update)
         .eq("id", move_id)
-        .eq("tenant_id", tenant_id)
+        .eq("workspace_id", workspace_id)
         .execute()
     )
     if not result.data:
@@ -308,7 +301,7 @@ async def delete_move(
     move_id: str,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ):
-    tenant_id = _require_tenant_id(x_workspace_id)
+    workspace_id = _require_workspace_id(x_workspace_id)
     supabase = get_supabase_client()
     try:
         UUID(move_id)
@@ -319,7 +312,7 @@ async def delete_move(
         supabase.table("moves")
         .delete()
         .eq("id", move_id)
-        .eq("tenant_id", tenant_id)
+        .eq("workspace_id", workspace_id)
         .execute()
     )
     if result.data is None:

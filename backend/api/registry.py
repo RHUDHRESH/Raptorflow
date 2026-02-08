@@ -8,7 +8,7 @@ current Next.js UI.
 
 from fastapi import FastAPI
 
-from backend.api.v1 import campaigns, foundation, moves, muse, workspaces
+from backend.api.v1 import campaigns, context, foundation, moves, muse, workspaces
 
 UNIVERSAL_ROUTERS = [
     workspaces.router,
@@ -16,6 +16,7 @@ UNIVERSAL_ROUTERS = [
     moves.router,
     foundation.router,
     muse.router,
+    context.router,
 ]
 
 
