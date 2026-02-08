@@ -174,6 +174,11 @@ class Settings(BaseSettings):
     # Search Cluster
     SEARXNG_URL: str = Field(default="http://localhost:8080", env="SEARXNG_URL")
 
+    # Business Context Templates
+    DEFAULT_BUSINESS_TEMPLATE: Optional[str] = Field(
+        default=None, env="DEFAULT_BUSINESS_TEMPLATE"
+    )
+
     # External Data APIs
     ECONOMIC_INDICATORS_API_KEY: Optional[str] = Field(
         default=None, env="ECONOMIC_INDICATORS_API_KEY"
@@ -237,6 +242,17 @@ class Settings(BaseSettings):
                 return json.loads(v)
             except json.JSONDecodeError:
                 return {}
+        return v
+
+    @validator("DEFAULT_BUSINESS_TEMPLATE")
+    def validate_business_template(cls, v):
+        """Validate business template type."""
+        if v is None:
+            return None
+        v = v.lower()
+        valid_types = ["saas", "agency", "ecommerce"]
+        if v not in valid_types:
+            raise ValueError(f"Template must be one of: {', '.join(valid_types)}")
         return v
 
     class Config:

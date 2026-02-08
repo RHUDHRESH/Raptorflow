@@ -101,17 +101,3 @@ def extract_icps(template: Dict[str, Any]) -> list:
     """Extract ICPs (Ideal Customer Profiles) from template."""
     intelligence = template.get("intelligence", {})
     return intelligence.get("icps", [])
-
-
-def validate_template_type(template_type: Optional[str]) -> Optional[TemplateType]:
-    """Validate and return template type, or None if invalid."""
-    valid_types: list[TemplateType] = ["agency", "ecommerce", "saas"]
-    
-    if template_type is None:
-        return None
-    
-    if template_type.lower() in valid_types:
-        return template_type.lower()  # type: ignore
-    
-    logger.warning(f"Invalid template type: {template_type}. Valid options: {valid_types}")
-    return None
