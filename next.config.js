@@ -4,6 +4,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   // Your existing Next.js configuration
   reactStrictMode: true,
+  distDir: 'dist',
   experimental: {
     // `next build` uses jest-worker which forks processes on Windows by default and can fail with EPERM
     // (common under OneDrive/AV locked down environments). Worker threads avoid `child_process.spawn`.

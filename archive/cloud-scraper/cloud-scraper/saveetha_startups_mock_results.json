@@ -1,0 +1,96 @@
+{
+  "search_results": [
+    {
+      "title": "Saveetha Engineering College - Innovation & Entrepreneurship",
+      "url": "https://www.saveetha.edu/innovation",
+      "snippet": "Saveetha Engineering College fosters innovation and entrepreneurship through various startup initiatives and incubation programs.",
+      "source": "duckduckgo",
+      "relevance_score": 0.95
+    },
+    {
+      "title": "Saveetha Technology Business Incubator (STBI)",
+      "url": "https://stbi.saveetha.edu",
+      "snippet": "STBI supports student startups with mentorship, funding, and infrastructure to transform ideas into successful businesses.",
+      "source": "duckduckgo",
+      "relevance_score": 0.92
+    },
+    {
+      "title": "Student Startups from Saveetha Engineering College",
+      "url": "https://www.saveetha.edu/startups",
+      "snippet": "Showcasing successful startups founded by Saveetha Engineering College students and alumni in various technology domains.",
+      "source": "duckduckgo",
+      "relevance_score": 0.88
+    },
+    {
+      "title": "Saveetha Entrepreneurship Development Cell",
+      "url": "https://www.saveetha.edu/edc",
+      "snippet": "The Entrepreneurship Development Cell at Saveetha Engineering College provides platform for students to develop startup ideas.",
+      "source": "brave",
+      "relevance_score": 0.85
+    },
+    {
+      "title": "Tech Innovations from Saveetha College",
+      "url": "https://tech.saveetha.edu/innovations",
+      "snippet": "Latest technology innovations and startup projects from Saveetha Engineering College students and research teams.",
+      "source": "brave",
+      "relevance_score": 0.82
+    }
+  ],
+  "scraped_data": [
+    {
+      "url": "https://www.saveetha.edu/innovation",
+      "title": "Saveetha Engineering College - Innovation & Entrepreneurship",
+      "content_length": 8000,
+      "processing_time": 0.5,
+      "cost": 2.5e-05,
+      "content_preview": "Startup and innovation content from Saveetha Engineering College...",
+      "startup_indicators": [
+        "startup",
+        "innovation"
+      ],
+      "scraped_at": "2026-01-02T08:44:23.972172"
+    },
+    {
+      "url": "https://stbi.saveetha.edu",
+      "title": "Saveetha Technology Business Incubator (STBI)",
+      "content_length": 28950,
+      "processing_time": 0.89,
+      "cost": 5.8e-05,
+      "content_preview": "Saveetha Technology Business Incubator (STBI) is a state-of-the-art incubation facility that has nurtured over 30 successful startups. STBI provides 24/7 access to prototyping labs, mentorship from industry experts, and connections to venture capitalists. Notable startups include TechMed Solutions, AgriTech Innovations, and EduSmart Platforms...",
+      "startup_indicators": [
+        "incubator",
+        "startup",
+        "funding",
+        "venture",
+        "mentorship"
+      ],
+      "scraped_at": "2026-01-02T08:44:23.973708"
+    },
+    {
+      "url": "https://www.saveetha.edu/startups",
+      "title": "Student Startups from Saveetha Engineering College",
+      "content_length": 8000,
+      "processing_time": 0.5,
+      "cost": 2.5e-05,
+      "content_preview": "Startup and innovation content from Saveetha Engineering College...",
+      "startup_indicators": [
+        "startup",
+        "innovation"
+      ],
+      "scraped_at": "2026-01-02T08:44:23.973708"
+    }
+  ],
+  "analysis": {
+    "total_content": 44950,
+    "total_cost": 0.000108,
+    "avg_speed": 23783.068783068782,
+    "startup_indicators": [
+      "incubator",
+      "mentorship",
+      "startup",
+      "funding",
+      "venture",
+      "innovation"
+    ]
+  }
+}

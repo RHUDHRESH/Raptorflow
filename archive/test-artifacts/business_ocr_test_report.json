@@ -1,0 +1,275 @@
+{
+  "test_summary": {
+    "timestamp": "2026-01-16T07:48:08.877617",
+    "total_files_tested": 5,
+    "successful_downloads": 5,
+    "ocr_success": 0,
+    "parsing_success": 4,
+    "content_extracted": 3,
+    "download_success_rate": 1.0,
+    "ocr_success_rate": 0.0,
+    "content_extraction_rate": 0.6
+  },
+  "file_type_breakdown": {
+    "PDF": {
+      "total": 1,
+      "success": 1,
+      "ocr_success": 0
+    },
+    "PNG": {
+      "total": 1,
+      "success": 1,
+      "ocr_success": 0
+    },
+    "CSV": {
+      "total": 1,
+      "success": 1,
+      "ocr_success": 0
+    },
+    "JSON": {
+      "total": 1,
+      "success": 1,
+      "ocr_success": 0
+    },
+    "HTML": {
+      "total": 1,
+      "success": 1,
+      "ocr_success": 0
+    }
+  },
+  "quality_assessment": {
+    "high": 3,
+    "medium": 0,
+    "low": 0,
+    "unknown": 2
+  },
+  "business_insights_collected": [
+    "Core technical documentation",
+    "Content management data",
+    "User data structure",
+    "Real estate property data",
+    "Database record structure",
+    "XML specifications and standards",
+    "Sales/Financial data detected",
+    "W3C technical standards documentation"
+  ],
+  "detailed_results": [
+    {
+      "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "file_type": "PDF",
+      "description": "W3C Accessibility Test PDF",
+      "business_context": "Technical specification document",
+      "filename": "pdf_w3c_accessibility_test_pdf_20260116_074803.pdf",
+      "download_success": true,
+      "file_size": 13264,
+      "file_path": "C:\\Users\\hp\\OneDrive\\Desktop\\Raptorflow\\business_files_test\\pdf_w3c_accessibility_test_pdf_20260116_074803.pdf",
+      "processing_results": {
+        "parsing": {
+          "success": true,
+          "extracted_content": "PDF file detected (size: 13,264 bytes)\nOCR processing required for text extraction",
+          "interpretation": {
+            "file_type": "PDF",
+            "file_size": 13264,
+            "requires_ocr": true,
+            "business_context": "Document requires OCR processing"
+          },
+          "error": null,
+          "processing_time": 0.001079559326171875
+        }
+      },
+      "final_interpretation": {},
+      "error": "'business_insights'"
+    },
+    {
+      "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
+      "file_type": "PNG",
+      "description": "Google Brand Logo",
+      "business_context": "Company branding material",
+      "filename": "png_google_brand_logo_20260116_074803.png",
+      "download_success": true,
+      "file_size": 5969,
+      "file_path": "C:\\Users\\hp\\OneDrive\\Desktop\\Raptorflow\\business_files_test\\png_google_brand_logo_20260116_074803.png",
+      "processing_results": {
+        "ocr": {
+          "success": false,
+          "extracted_text": "",
+          "confidence": 0.0,
+          "interpretation": {},
+          "error": "OCR processing failed: (1, 'Error opening data file C:\\\\Users\\\\hp\\\\scoop\\\\persist\\\\tesseract\\\\tessdata/eng.traineddata Please make sure the TESSDATA_PREFIX environment variable is set to your \"tessdata\" directory. Failed loading language \\'eng\\' Tesseract couldn\\'t load any languages! Could not initialize tesseract.')",
+          "processing_time": 0.0
+        },
+        "parsing": {
+          "success": false,
+          "extracted_content": "",
+          "interpretation": {},
+          "error": null,
+          "processing_time": 0.0
+        }
+      },
+      "final_interpretation": {
+        "file_type": "PNG",
+        "business_context": "Company branding material",
+        "processing_methods_used": [],
+        "content_extracted": false,
+        "text_extracted": false,
+        "business_insights": [],
+        "data_quality": "unknown",
+        "recommendations": [
+          "Install PyMuPDF for PDF OCR processing",
+          "Check image quality for better OCR results"
+        ]
+      }
+    },
+    {
+      "url": "https://people.sc.fsu.edu/~jburkardt/data/csv/homes.csv",
+      "file_type": "CSV",
+      "description": "Real Estate Data CSV",
+      "business_context": "Sales and marketing data",
+      "filename": "csv_real_estate_data_csv_20260116_074805.csv",
+      "download_success": true,
+      "file_size": 2128,
+      "file_path": "C:\\Users\\hp\\OneDrive\\Desktop\\Raptorflow\\business_files_test\\csv_real_estate_data_csv_20260116_074805.csv",
+      "processing_results": {
+        "parsing": {
+          "success": true,
+          "extracted_content": "Headers: ['Sell', ' \"List\"', ' \"Living\"', ' \"Rooms\"', ' \"Beds\"', ' \"Baths\"', ' \"Age\"', ' \"Acres\"', ' \"Taxes\"']\n\nFirst 3 rows:\n[\n  {\n    \"Sell\": \"142\",\n    \" \\\"List\\\"\": \" 160\",\n    \" \\\"Living\\\"\": \" 28\",\n    \" \\\"Rooms\\\"\": \" 10\",\n    \" \\\"Beds\\\"\": \" 5\",\n    \" \\\"Baths\\\"\": \" 3\",\n    \" \\\"Age\\\"\": \"  60\",\n    \" \\\"Acres\\\"\": \" 0.28\",\n    \" \\\"Taxes\\\"\": \"  3167\"\n  },\n  {\n    \"Sell\": \"175\",\n    \" \\\"List\\\"\": \" 180\",\n    \" \\\"Living\\\"\": \" 18\",\n    \" \\\"Rooms\\\"\": \"  8\",\n    \" \\\"Beds\\\"\": \" 4\",\n    \" \\\"Baths\\\"\": \" 1\",\n    \" \\\"Age\\\"\": \"  12\",\n    \" \\\"Acres\\\"\": \" 0.43\",\n    \" \\\"Taxes\\\"\": \"  4033\"\n  },\n  {\n    \"Sell\": \"129\",\n    \" \\\"List\\\"\": \" 132\",\n    \" \\\"Living\\\"\": \" 13\",\n    \" \\\"Rooms\\\"\": \"  6\",\n    \" \\\"Beds\\\"\": \" 3\",\n    \" \\\"Baths\\\"\": \" 1\",\n    \" \\\"Age\\\"\": \"  41\",\n    \" \\\"Acres\\\"\": \" 0.33\",\n    \" \\\"Taxes\\\"\": \"  1471\"\n  }\n]",
+          "interpretation": {
+            "content_type": "csv",
+            "column_count": 9,
+            "row_count": 51,
+            "headers": [
+              "Sell",
+              " \"List\"",
+              " \"Living\"",
+              " \"Rooms\"",
+              " \"Beds\"",
+              " \"Baths\"",
+              " \"Age\"",
+              " \"Acres\"",
+              " \"Taxes\""
+            ],
+            "business_insights": [
+              "Sales/Financial data detected",
+              "Real estate property data"
+            ]
+          },
+          "error": null,
+          "processing_time": 0.019608259201049805
+        }
+      },
+      "final_interpretation": {
+        "file_type": "CSV",
+        "business_context": "Sales and marketing data",
+        "processing_methods_used": [
+          "File Parsing"
+        ],
+        "content_extracted": true,
+        "text_extracted": false,
+        "business_insights": [
+          "Real estate property data",
+          "Sales/Financial data detected"
+        ],
+        "data_quality": "high",
+        "recommendations": []
+      }
+    },
+    {
+      "url": "https://jsonplaceholder.typicode.com/posts/1",
+      "file_type": "JSON",
+      "description": "Blog Post API Response",
+      "business_context": "Content management data",
+      "filename": "json_blog_post_api_response_20260116_074808.json",
+      "download_success": true,
+      "file_size": 292,
+      "file_path": "C:\\Users\\hp\\OneDrive\\Desktop\\Raptorflow\\business_files_test\\json_blog_post_api_response_20260116_074808.json",
+      "processing_results": {
+        "parsing": {
+          "success": true,
+          "extracted_content": "{\n  \"userId\": 1,\n  \"id\": 1,\n  \"title\": \"sunt aut facere repellat provident occaecati excepturi optio reprehenderit\",\n  \"body\": \"quia et suscipit\\nsuscipit recusandae consequuntur expedita et cum\\nreprehenderit molestiae ut ut quas totam\\nnostrum rerum est autem sunt rem eveniet architecto\"\n}",
+          "interpretation": {
+            "content_type": "json",
+            "data_structure": "dict",
+            "business_insights": [
+              "User data structure",
+              "Content management data",
+              "Database record structure"
+            ],
+            "key_count": 4,
+            "keys": [
+              "userId",
+              "id",
+              "title",
+              "body"
+            ]
+          },
+          "error": null,
+          "processing_time": 0.017545461654663086
+        }
+      },
+      "final_interpretation": {
+        "file_type": "JSON",
+        "business_context": "Content management data",
+        "processing_methods_used": [
+          "File Parsing"
+        ],
+        "content_extracted": true,
+        "text_extracted": false,
+        "business_insights": [
+          "User data structure",
+          "Database record structure",
+          "Content management data"
+        ],
+        "data_quality": "high",
+        "recommendations": []
+      }
+    },
+    {
+      "url": "https://www.w3.org/standards/xml/core",
+      "file_type": "HTML",
+      "description": "W3C XML Standards Page",
+      "business_context": "Technical standards documentation",
+      "filename": "html_w3c_xml_standards_page_20260116_074808.html",
+      "download_success": true,
+      "file_size": 28117,
+      "file_path": "C:\\Users\\hp\\OneDrive\\Desktop\\Raptorflow\\business_files_test\\html_w3c_xml_standards_page_20260116_074808.html",
+      "processing_results": {
+        "parsing": {
+          "success": true,
+          "extracted_content": "Title: Web Standards | W3C\n\nHeadings: ['Standards &amp; groups', 'Get involved', 'Resources', 'News &amp; events', 'Support us']",
+          "interpretation": {
+            "content_type": "html",
+            "title": "Web Standards | W3C",
+            "character_count": 28063,
+            "business_insights": [
+              "W3C technical standards documentation",
+              "XML specifications and standards",
+              "Core technical documentation"
+            ]
+          },
+          "error": null,
+          "processing_time": 0.1115565299987793
+        }
+      },
+      "final_interpretation": {
+        "file_type": "HTML",
+        "business_context": "Technical standards documentation",
+        "processing_methods_used": [
+          "File Parsing"
+        ],
+        "content_extracted": true,
+        "text_extracted": false,
+        "business_insights": [
+          "W3C technical standards documentation",
+          "Core technical documentation",
+          "XML specifications and standards"
+        ],
+        "data_quality": "high",
+        "recommendations": []
+      }
+    }
+  ],
+  "recommendations": [
+    "OCR processing failed - check Tesseract installation and image quality",
+    "Install PyMuPDF for PDF OCR processing"
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "png_google_brand_logo_20260116_075145.png": {
+    "file_path": "enhanced_ocr_test\\png_google_brand_logo_20260116_075145.png",
+    "timestamp": "2026-01-16T08:05:36.331558",
+    "metadata": "ImageMetadata(width=272, height=92, channels=4, file_size=5969, format='PNG', dpi=None, color_space='RGBA')",
+    "image_analysis": {
+      "edge_density": 0.0632992327365729,
+      "average_color": [
+        43.16488171355499,
+        38.64554028132992,
+        44.4900895140665
+      ],
+      "color_variance": [
+        7373.893290360658,
+        3883.76062748858,
+        6782.7297611176755
+      ],
+      "texture_complexity": 4333.837171927163,
+      "num_shapes": 8,
+      "image_type": "chart",
+      "quality_metrics": {
+        "sharpness": 4333.837171927163,
+        "brightness": 40.94077685421995,
+        "contrast": 62.332878940145456,
+        "noise_level": 10.862926718552341,
+        "overall_quality": 70.9040399609462
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "branding"
+      ],
+      "use_cases": [
+        "marketing"
+      ],
+      "content_type": "logo",
+      "industry_relevance": 0.6
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "cool",
+      "complexity_score": 4.333837171927163,
+      "semantic_tags": [
+        "complex",
+        "calm"
+      ]
+    }
+  },
+  "png_google_brand_logo_20260116_075145_preprocessed.png": {
+    "file_path": "enhanced_ocr_test\\png_google_brand_logo_20260116_075145_preprocessed.png",
+    "timestamp": "2026-01-16T08:05:36.533972",
+    "metadata": "ImageMetadata(width=272, height=92, channels=1, file_size=2231, format='PNG', dpi=None, color_space='L')",
+    "image_analysis": {
+      "edge_density": 0.10489929667519182,
+      "average_color": [
+        195.4993206521739,
+        195.4993206521739,
+        195.4993206521739
+      ],
+      "color_variance": [
+        11632.342390841164,
+        11632.342390841164,
+        11632.342390841164
+      ],
+      "texture_complexity": 25504.330738550776,
+      "num_shapes": 16,
+      "image_type": "screenshot",
+      "quality_metrics": {
+        "sharpness": 25504.330738550776,
+        "brightness": 195.4993206521739,
+        "contrast": 107.85333741170385,
+        "noise_level": 25.652996242891057,
+        "overall_quality": 84.41733754096532
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "documentation",
+        "branding",
+        "ecommerce"
+      ],
+      "use_cases": [
+        "content_management",
+        "marketing",
+        "product_catalog"
+      ],
+      "content_type": "product",
+      "industry_relevance": 0.9
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "neutral",
+      "complexity_score": 25.504330738550777,
+      "semantic_tags": [
+        "complex"
+      ]
+    }
+  }
+}

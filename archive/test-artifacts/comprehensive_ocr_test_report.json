@@ -1,0 +1,283 @@
+{
+  "timestamp": "2026-01-16T08:21:24.945268",
+  "summary": {
+    "total_tests": 6,
+    "accurate_tests": 0,
+    "partial_tests": 0,
+    "failed_tests": 6,
+    "accuracy_rate": 0.0
+  },
+  "category_performance": {
+    "pdf_document": {
+      "total": 1,
+      "accurate": 0
+    },
+    "video_file": {
+      "total": 1,
+      "accurate": 0
+    },
+    "text_file": {
+      "total": 1,
+      "accurate": 0
+    },
+    "business_document": {
+      "total": 1,
+      "accurate": 0
+    },
+    "spreadsheet_image": {
+      "total": 1,
+      "accurate": 0
+    },
+    "invoice_document": {
+      "total": 1,
+      "accurate": 0
+    }
+  },
+  "method_performance": {
+    "pdf_failed": {
+      "total": 1,
+      "accurate": 0
+    },
+    "video_error": {
+      "total": 1,
+      "accurate": 0
+    },
+    "text_direct": {
+      "total": 1,
+      "accurate": 0
+    },
+    "image_ocr_error": {
+      "total": 3,
+      "accurate": 0
+    }
+  },
+  "detailed_results": [
+    {
+      "file_info": {
+        "filename": "pdf_document_20260116_082056_w3c_sample.pdf",
+        "filepath": "comprehensive_ocr_test\\pdf_document_20260116_082056_w3c_sample.pdf",
+        "size": 13264,
+        "category": "pdf_document",
+        "description": "W3C Sample PDF Document",
+        "expected_content": [
+          "PDF",
+          "document",
+          "sample",
+          "W3C"
+        ],
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        "content_type": "application/pdf; qs=0.001",
+        "success": true
+      },
+      "ocr_result": {
+        "method": "pdf_failed",
+        "error": "PDF extraction failed: Unable to get page count. Is poppler installed and in PATH?",
+        "processing_time": 0.006113767623901367
+      },
+      "expected_content": [
+        "PDF",
+        "document",
+        "sample",
+        "W3C"
+      ],
+      "accuracy_score": 0.0,
+      "content_matches": [],
+      "missing_content": [
+        "PDF",
+        "document",
+        "sample",
+        "W3C"
+      ],
+      "extra_content": [],
+      "is_accurate": false,
+      "assessment": "NO_TEXT_EXTRACTED"
+    },
+    {
+      "file_info": {
+        "filename": "video_file_20260116_082102_sample_video.mp4",
+        "filepath": "comprehensive_ocr_test\\video_file_20260116_082102_sample_video.mp4",
+        "size": 10546620,
+        "category": "video_file",
+        "description": "Sample MP4 Video File",
+        "expected_content": [
+          "video",
+          "sample",
+          "mp4"
+        ],
+        "url": "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4",
+        "content_type": "video/mp4",
+        "success": true
+      },
+      "ocr_result": {
+        "method": "video_error",
+        "error": "(1, 'Error opening data file C:\\\\Users\\\\hp\\\\scoop\\\\persist\\\\tesseract\\\\tessdata/eng.traineddata Please make sure the TESSDATA_PREFIX environment variable is set to your \"tessdata\" directory. Failed loading language \\'eng\\' Tesseract couldn\\'t load any languages! Could not initialize tesseract.')",
+        "processing_time": 3.2202510833740234
+      },
+      "expected_content": [
+        "video",
+        "sample",
+        "mp4"
+      ],
+      "accuracy_score": 0.0,
+      "content_matches": [],
+      "missing_content": [
+        "video",
+        "sample",
+        "mp4"
+      ],
+      "extra_content": [],
+      "is_accurate": false,
+      "assessment": "NO_TEXT_EXTRACTED"
+    },
+    {
+      "file_info": {
+        "filename": "text_file_20260116_082107_sample_text.txt",
+        "filepath": "comprehensive_ocr_test\\text_file_20260116_082107_sample_text.txt",
+        "size": 448,
+        "category": "text_file",
+        "description": "Sample Text File",
+        "expected_content": [
+          "text",
+          "file",
+          "sample"
+        ],
+        "url": "https://www.learningcontainer.com/wp-content/uploads/2020/04/sample-text-file.txt",
+        "content_type": "text/plain",
+        "success": true
+      },
+      "ocr_result": {
+        "method": "text_direct",
+        "extracted_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, \nquis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+        "confidence": 1.0,
+        "character_count": 448,
+        "processing_time": 0.0
+      },
+      "expected_content": [
+        "text",
+        "file",
+        "sample"
+      ],
+      "accuracy_score": 0.0,
+      "content_matches": [],
+      "missing_content": [
+        "text",
+        "file",
+        "sample"
+      ],
+      "extra_content": [],
+      "is_accurate": false,
+      "assessment": "INACCURATE"
+    },
+    {
+      "file_info": {
+        "filename": "business_document_20260116_082112_business_doc.jpg",
+        "filepath": "comprehensive_ocr_test\\business_document_20260116_082112_business_doc.jpg",
+        "size": 63109,
+        "category": "business_document",
+        "description": "Business Document Image",
+        "expected_content": [
+          "business",
+          "document",
+          "text"
+        ],
+        "url": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&h=600",
+        "content_type": "image/jpeg",
+        "success": true
+      },
+      "ocr_result": {
+        "method": "image_ocr_error",
+        "error": "(1, 'Error opening data file C:\\\\Users\\\\hp\\\\scoop\\\\persist\\\\tesseract\\\\tessdata/eng.traineddata Please make sure the TESSDATA_PREFIX environment variable is set to your \"tessdata\" directory. Failed loading language \\'eng\\' Tesseract couldn\\'t load any languages! Could not initialize tesseract.')",
+        "processing_time": 0.07308292388916016
+      },
+      "expected_content": [
+        "business",
+        "document",
+        "text"
+      ],
+      "accuracy_score": 0.0,
+      "content_matches": [],
+      "missing_content": [
+        "business",
+        "document",
+        "text"
+      ],
+      "extra_content": [],
+      "is_accurate": false,
+      "assessment": "NO_TEXT_EXTRACTED"
+    },
+    {
+      "file_info": {
+        "filename": "spreadsheet_image_20260116_082114_spreadsheet.jpg",
+        "filepath": "comprehensive_ocr_test\\spreadsheet_image_20260116_082114_spreadsheet.jpg",
+        "size": 58918,
+        "category": "spreadsheet_image",
+        "description": "Spreadsheet/Financial Data Image",
+        "expected_content": [
+          "spreadsheet",
+          "data",
+          "financial"
+        ],
+        "url": "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600",
+        "content_type": "image/jpeg",
+        "success": true
+      },
+      "ocr_result": {
+        "method": "image_ocr_error",
+        "error": "(1, 'Error opening data file C:\\\\Users\\\\hp\\\\scoop\\\\persist\\\\tesseract\\\\tessdata/eng.traineddata Please make sure the TESSDATA_PREFIX environment variable is set to your \"tessdata\" directory. Failed loading language \\'eng\\' Tesseract couldn\\'t load any languages! Could not initialize tesseract.')",
+        "processing_time": 0.06536412239074707
+      },
+      "expected_content": [
+        "spreadsheet",
+        "data",
+        "financial"
+      ],
+      "accuracy_score": 0.0,
+      "content_matches": [],
+      "missing_content": [
+        "spreadsheet",
+        "data",
+        "financial"
+      ],
+      "extra_content": [],
+      "is_accurate": false,
+      "assessment": "NO_TEXT_EXTRACTED"
+    },
+    {
+      "file_info": {
+        "filename": "invoice_document_20260116_082118_invoice.jpg",
+        "filepath": "comprehensive_ocr_test\\invoice_document_20260116_082118_invoice.jpg",
+        "size": 95734,
+        "category": "invoice_document",
+        "description": "Invoice/Billing Document",
+        "expected_content": [
+          "invoice",
+          "billing",
+          "document"
+        ],
+        "url": "https://images.unsplash.com/photo-1560185007-c5ca9d2c014d?w=800&h=600",
+        "content_type": "image/jpeg",
+        "success": true
+      },
+      "ocr_result": {
+        "method": "image_ocr_error",
+        "error": "(1, 'Error opening data file C:\\\\Users\\\\hp\\\\scoop\\\\persist\\\\tesseract\\\\tessdata/eng.traineddata Please make sure the TESSDATA_PREFIX environment variable is set to your \"tessdata\" directory. Failed loading language \\'eng\\' Tesseract couldn\\'t load any languages! Could not initialize tesseract.')",
+        "processing_time": 0.12074112892150879
+      },
+      "expected_content": [
+        "invoice",
+        "billing",
+        "document"
+      ],
+      "accuracy_score": 0.0,
+      "content_matches": [],
+      "missing_content": [
+        "invoice",
+        "billing",
+        "document"
+      ],
+      "extra_content": [],
+      "is_accurate": false,
+      "assessment": "NO_TEXT_EXTRACTED"
+    }
+  ]
+}

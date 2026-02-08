@@ -1,0 +1,173 @@
+{
+  "financial_analysis_20260116_080755_financial_stock_chart.png": {
+    "file_path": "tactical_content_test\\financial_analysis_20260116_080755_financial_stock_chart.png",
+    "timestamp": "2026-01-16T08:07:55.398072",
+    "metadata": "ImageMetadata(width=800, height=400, channels=3, file_size=7011, format='PNG', dpi=None, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.02911875,
+      "average_color": [
+        253.10628125,
+        251.26709375,
+        251.26709375
+      ],
+      "color_variance": [
+        356.10389179506797,
+        814.748285923549,
+        814.748285923549
+      ],
+      "texture_complexity": 2685.69229375,
+      "num_shapes": 102,
+      "image_type": "document",
+      "quality_metrics": {
+        "sharpness": 2685.69229375,
+        "brightness": 251.47625625,
+        "contrast": 26.751802602522616,
+        "noise_level": 8.08056917514942,
+        "overall_quality": 56.8645470268493
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management"
+      ],
+      "content_type": "document",
+      "industry_relevance": 0.7
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "warm",
+      "complexity_score": 2.68569229375,
+      "semantic_tags": [
+        "complex",
+        "energetic"
+      ]
+    }
+  },
+  "organizational_structure_20260116_080755_organizational_chart.png": {
+    "file_path": "tactical_content_test\\organizational_structure_20260116_080755_organizational_chart.png",
+    "timestamp": "2026-01-16T08:07:55.657293",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=7761, format='PNG', dpi=None, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.015095833333333333,
+      "average_color": [
+        251.8412,
+        250.54645416666668,
+        249.26883541666666
+      ],
+      "color_variance": [
+        306.4409492318372,
+        622.5412628537714,
+        687.2178504444415
+      ],
+      "texture_complexity": 2485.4048375,
+      "num_shapes": 129,
+      "image_type": "diagram",
+      "quality_metrics": {
+        "sharpness": 2485.4048375,
+        "brightness": 250.32183958333334,
+        "contrast": 23.858723258644808,
+        "noise_level": 7.068880325522436,
+        "overall_quality": 56.38175383858855
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management"
+      ],
+      "content_type": "document",
+      "industry_relevance": 0.7
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "warm",
+      "complexity_score": 2.4854048375000004,
+      "semantic_tags": [
+        "complex",
+        "energetic"
+      ]
+    }
+  },
+  "supply_chain_20260116_080755_supply_chain_diagram.png": {
+    "file_path": "tactical_content_test\\supply_chain_20260116_080755_supply_chain_diagram.png",
+    "timestamp": "2026-01-16T08:07:55.931476",
+    "metadata": "ImageMetadata(width=800, height=400, channels=3, file_size=6852, format='PNG', dpi=None, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.0138,
+      "average_color": [
+        252.4191875,
+        249.036321875,
+        246.166296875
+      ],
+      "color_variance": [
+        197.0098693394645,
+        867.2011276083693,
+        1178.5511609639452
+      ],
+      "texture_complexity": 1542.5409125,
+      "num_shapes": 114,
+      "image_type": "document",
+      "quality_metrics": {
+        "sharpness": 1542.5409125,
+        "brightness": 248.580246875,
+        "contrast": 28.228400555806417,
+        "noise_level": 7.642286910833693,
+        "overall_quality": 57.6746168031094
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management"
+      ],
+      "content_type": "document",
+      "industry_relevance": 0.7
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "warm",
+      "complexity_score": 1.5425409125,
+      "semantic_tags": [
+        "complex",
+        "energetic"
+      ]
+    }
+  }
+}

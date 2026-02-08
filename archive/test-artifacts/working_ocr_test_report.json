@@ -1,0 +1,460 @@
+{
+  "timestamp": "2026-01-16T08:22:54.348337",
+  "summary": {
+    "total_tests": 6,
+    "working_tests": 3,
+    "failed_tests": 3,
+    "working_rate": 50.0
+  },
+  "assessment_breakdown": {
+    "NOT_WORKING": 3,
+    "WORKING_POORLY": 3
+  },
+  "category_performance": {
+    "business_document": {
+      "total": 1,
+      "working": 0
+    },
+    "spreadsheet_data": {
+      "total": 1,
+      "working": 0
+    },
+    "invoice_document": {
+      "total": 1,
+      "working": 0
+    },
+    "business_letter": {
+      "total": 1,
+      "working": 1
+    },
+    "financial_report": {
+      "total": 1,
+      "working": 1
+    },
+    "technical_document": {
+      "total": 1,
+      "working": 1
+    }
+  },
+  "method_performance": {
+    "basic_ocr": {
+      "total": 5,
+      "confidence_sum": 1.3124444444444445
+    },
+    "preprocessed_ocr": {
+      "total": 1,
+      "confidence_sum": 0.3456410256410256
+    }
+  },
+  "detailed_results": [
+    {
+      "file_info": {
+        "filename": "business_document_20260116_082237_business_doc.jpg",
+        "filepath": "working_ocr_test\\business_document_20260116_082237_business_doc.jpg",
+        "size": 63109,
+        "category": "business_document",
+        "description": "Business Document with Text",
+        "expected_keywords": [
+          "business",
+          "document",
+          "text"
+        ],
+        "url": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&h=600",
+        "success": true
+      },
+      "ocr_results": {
+        "filepath": "working_ocr_test\\business_document_20260116_082237_business_doc.jpg",
+        "methods": [
+          {
+            "method": "basic_ocr",
+            "text": "",
+            "confidence": 0.19,
+            "word_count": 0,
+            "char_count": 0
+          },
+          {
+            "method": "preprocessed_ocr",
+            "text": "",
+            "confidence": 0.19,
+            "word_count": 0,
+            "char_count": 0
+          }
+        ],
+        "best_result": {
+          "method": "basic_ocr",
+          "text": "",
+          "confidence": 0.19,
+          "word_count": 0,
+          "char_count": 0
+        },
+        "errors": [
+          "Enhanced OCR failed: name 'ImageEnhance' is not defined"
+        ]
+      },
+      "expected_keywords": [
+        "business",
+        "document",
+        "text"
+      ],
+      "accuracy_assessment": "NOT_WORKING",
+      "keyword_matches": [],
+      "missing_keywords": [
+        "business",
+        "document",
+        "text"
+      ],
+      "confidence_score": 0.19,
+      "is_working": false,
+      "sample_text": "",
+      "assessment_details": {
+        "confidence": 0.19,
+        "keyword_accuracy": 0.0,
+        "text_length": 0,
+        "methods_tried": 2
+      }
+    },
+    {
+      "file_info": {
+        "filename": "spreadsheet_data_20260116_082239_spreadsheet.jpg",
+        "filepath": "working_ocr_test\\spreadsheet_data_20260116_082239_spreadsheet.jpg",
+        "size": 58918,
+        "category": "spreadsheet_data",
+        "description": "Spreadsheet/Financial Data",
+        "expected_keywords": [
+          "data",
+          "spreadsheet",
+          "financial"
+        ],
+        "url": "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600",
+        "success": true
+      },
+      "ocr_results": {
+        "filepath": "working_ocr_test\\spreadsheet_data_20260116_082239_spreadsheet.jpg",
+        "methods": [
+          {
+            "method": "basic_ocr",
+            "text": "",
+            "confidence": 0.19,
+            "word_count": 0,
+            "char_count": 0
+          },
+          {
+            "method": "preprocessed_ocr",
+            "text": "",
+            "confidence": 0.19,
+            "word_count": 0,
+            "char_count": 0
+          }
+        ],
+        "best_result": {
+          "method": "basic_ocr",
+          "text": "",
+          "confidence": 0.19,
+          "word_count": 0,
+          "char_count": 0
+        },
+        "errors": [
+          "Enhanced OCR failed: name 'ImageEnhance' is not defined"
+        ]
+      },
+      "expected_keywords": [
+        "data",
+        "spreadsheet",
+        "financial"
+      ],
+      "accuracy_assessment": "NOT_WORKING",
+      "keyword_matches": [],
+      "missing_keywords": [
+        "data",
+        "spreadsheet",
+        "financial"
+      ],
+      "confidence_score": 0.19,
+      "is_working": false,
+      "sample_text": "",
+      "assessment_details": {
+        "confidence": 0.19,
+        "keyword_accuracy": 0.0,
+        "text_length": 0,
+        "methods_tried": 2
+      }
+    },
+    {
+      "file_info": {
+        "filename": "invoice_document_20260116_082242_invoice.jpg",
+        "filepath": "working_ocr_test\\invoice_document_20260116_082242_invoice.jpg",
+        "size": 95734,
+        "category": "invoice_document",
+        "description": "Invoice/Billing Document",
+        "expected_keywords": [
+          "invoice",
+          "billing",
+          "payment"
+        ],
+        "url": "https://images.unsplash.com/photo-1560185007-c5ca9d2c014d?w=800&h=600",
+        "success": true
+      },
+      "ocr_results": {
+        "filepath": "working_ocr_test\\invoice_document_20260116_082242_invoice.jpg",
+        "methods": [
+          {
+            "method": "basic_ocr",
+            "text": "",
+            "confidence": 0.19,
+            "word_count": 0,
+            "char_count": 0
+          },
+          {
+            "method": "preprocessed_ocr",
+            "text": "",
+            "confidence": 0.19,
+            "word_count": 0,
+            "char_count": 0
+          }
+        ],
+        "best_result": {
+          "method": "basic_ocr",
+          "text": "",
+          "confidence": 0.19,
+          "word_count": 0,
+          "char_count": 0
+        },
+        "errors": [
+          "Enhanced OCR failed: name 'ImageEnhance' is not defined"
+        ]
+      },
+      "expected_keywords": [
+        "invoice",
+        "billing",
+        "payment"
+      ],
+      "accuracy_assessment": "NOT_WORKING",
+      "keyword_matches": [],
+      "missing_keywords": [
+        "invoice",
+        "billing",
+        "payment"
+      ],
+      "confidence_score": 0.19,
+      "is_working": false,
+      "sample_text": "",
+      "assessment_details": {
+        "confidence": 0.19,
+        "keyword_accuracy": 0.0,
+        "text_length": 0,
+        "methods_tried": 2
+      }
+    },
+    {
+      "file_info": {
+        "filename": "business_letter_20260116_082245.png",
+        "filepath": "working_ocr_test\\business_letter_20260116_082245.png",
+        "category": "business_letter",
+        "description": "Business Letter with Known Content",
+        "expected_keywords": [
+          "business",
+          "letter",
+          "proposal",
+          "solutions",
+          "corporation"
+        ],
+        "success": true
+      },
+      "ocr_results": {
+        "filepath": "working_ocr_test\\business_letter_20260116_082245.png",
+        "methods": [
+          {
+            "method": "basic_ocr",
+            "text": "BUSINESSLETTER\n\nDear Mr. Smith,\n\n|am writing to inform you aboutour new business proposal\n(Our company offers comprehensive solutionsfor your needs\n\nWe have been in businessfor over 10 years,\n\nkey Benefits\nCosteffective solutions\nProfessional service\n\nQuick turnaround time\n\nPlease contact usatyour earliestconvenience,\n\nsincerely,\nJohn Doo\n\nBusiness Manager\n\u2018ABC Corporation\nPhone: (556) 123-4567\n\nEmait john @abocorpcom",
+            "confidence": 0.37244444444444447,
+            "word_count": 54,
+            "char_count": 422
+          },
+          {
+            "method": "preprocessed_ocr",
+            "text": "BUSINESSLETTER\n\nDear Mr. Smith,\n\nlam writing to inform you about our new business proposal\n\u2018Ourcompany offers comprehensive solutions for your needs\n\nWe have been in businessforaver 10 years\n\nkey Benefit:\nCCesteffective solutions\nProfessional service\n\nQuick turnaround time\n\nPlease contact usat your earliestconvenience,\n\nsincerely\nJohn Doe\n\nBusiness Manager\n\u2018980 Corporation\nPhone: (556) 125-4567\n\nEmait john @abocorpcom",
+            "confidence": 0.3634065934065934,
+            "word_count": 55,
+            "char_count": 422
+          }
+        ],
+        "best_result": {
+          "method": "basic_ocr",
+          "text": "BUSINESSLETTER\n\nDear Mr. Smith,\n\n|am writing to inform you aboutour new business proposal\n(Our company offers comprehensive solutionsfor your needs\n\nWe have been in businessfor over 10 years,\n\nkey Benefits\nCosteffective solutions\nProfessional service\n\nQuick turnaround time\n\nPlease contact usatyour earliestconvenience,\n\nsincerely,\nJohn Doo\n\nBusiness Manager\n\u2018ABC Corporation\nPhone: (556) 123-4567\n\nEmait john @abocorpcom",
+          "confidence": 0.37244444444444447,
+          "word_count": 54,
+          "char_count": 422
+        },
+        "errors": [
+          "Enhanced OCR failed: name 'ImageEnhance' is not defined"
+        ]
+      },
+      "expected_keywords": [
+        "business",
+        "letter",
+        "proposal",
+        "solutions",
+        "corporation"
+      ],
+      "accuracy_assessment": "WORKING_POORLY",
+      "keyword_matches": [
+        "business",
+        "letter",
+        "proposal",
+        "solutions",
+        "corporation"
+      ],
+      "missing_keywords": [],
+      "confidence_score": 0.37244444444444447,
+      "is_working": true,
+      "sample_text": "businessletter\n\ndear mr. smith,\n\n|am writing to inform you aboutour new business proposal\n(our company offers comprehensive solutionsfor your needs\n\nwe have been in businessfor over 10 years,\n\nkey ben",
+      "assessment_details": {
+        "confidence": 0.37244444444444447,
+        "keyword_accuracy": 1.0,
+        "text_length": 421,
+        "methods_tried": 2
+      }
+    },
+    {
+      "file_info": {
+        "filename": "financial_report_20260116_082245.png",
+        "filepath": "working_ocr_test\\financial_report_20260116_082245.png",
+        "category": "financial_report",
+        "description": "Financial Report with Numbers",
+        "expected_keywords": [
+          "financial",
+          "report",
+          "revenue",
+          "profit",
+          "margin"
+        ],
+        "success": true
+      },
+      "ocr_results": {
+        "filepath": "working_ocr_test\\financial_report_20260116_082245.png",
+        "methods": [
+          {
+            "method": "basic_ocr",
+            "text": "FINANCIAL REPORT\n\n(042023 Results\n\nRevenue: $1,234587\nExpenses $890,123\n\nNetProfit $344.444\n\nevenue Breakdown:\nProduct Sales $800,000\nServices $400,000\n\nLicensing: $34567\n\nExpense Breakdown:\nSalaries $500,000\n\nOperations: $200,000\nMarketing: $160,123\n\nther: $40,000,\n\nKeyMetrics:\nGoss Margin: 678%\nNet Margin: 27.9%\n\nFOr 145.6%",
+            "confidence": 0.32064102564102565,
+            "word_count": 38,
+            "char_count": 328
+          },
+          {
+            "method": "preprocessed_ocr",
+            "text": "FINANCIAL REPORT\n\n042028 Results\n\nRevenue: $1,284587\nExpenses $890,123\n\nNetProfit $344.44\n\nRevenue Breakdown:\nProduct Sales: $800,000\nServices $400,000\n\nLicensing: $34567\n\nExpense Breakdown:\nSalaries $600,000\n\nOperations: $200,000\nMarketing: $160,123\n\nther. $40,000\n\nKeyMetrics\nGross Margin: 67.8%\nNet Margin: 279%\n\nPOL 145.6%",
+            "confidence": 0.3456410256410256,
+            "word_count": 38,
+            "char_count": 327
+          }
+        ],
+        "best_result": {
+          "method": "preprocessed_ocr",
+          "text": "FINANCIAL REPORT\n\n042028 Results\n\nRevenue: $1,284587\nExpenses $890,123\n\nNetProfit $344.44\n\nRevenue Breakdown:\nProduct Sales: $800,000\nServices $400,000\n\nLicensing: $34567\n\nExpense Breakdown:\nSalaries $600,000\n\nOperations: $200,000\nMarketing: $160,123\n\nther. $40,000\n\nKeyMetrics\nGross Margin: 67.8%\nNet Margin: 279%\n\nPOL 145.6%",
+          "confidence": 0.3456410256410256,
+          "word_count": 38,
+          "char_count": 327
+        },
+        "errors": [
+          "Enhanced OCR failed: name 'ImageEnhance' is not defined"
+        ]
+      },
+      "expected_keywords": [
+        "financial",
+        "report",
+        "revenue",
+        "profit",
+        "margin"
+      ],
+      "accuracy_assessment": "WORKING_POORLY",
+      "keyword_matches": [
+        "financial",
+        "report",
+        "revenue",
+        "profit",
+        "margin"
+      ],
+      "missing_keywords": [],
+      "confidence_score": 0.3456410256410256,
+      "is_working": true,
+      "sample_text": "financial report\n\n042028 results\n\nrevenue: $1,284587\nexpenses $890,123\n\nnetprofit $344.44\n\nrevenue breakdown:\nproduct sales: $800,000\nservices $400,000\n\nlicensing: $34567\n\nexpense breakdown:\nsalaries ",
+      "assessment_details": {
+        "confidence": 0.3456410256410256,
+        "keyword_accuracy": 1.0,
+        "text_length": 326,
+        "methods_tried": 2
+      }
+    },
+    {
+      "file_info": {
+        "filename": "technical_spec_20260116_082245.png",
+        "filepath": "working_ocr_test\\technical_spec_20260116_082245.png",
+        "category": "technical_document",
+        "description": "Technical Specification Document",
+        "expected_keywords": [
+          "technical",
+          "specification",
+          "system",
+          "architecture",
+          "ocr"
+        ],
+        "success": true
+      },
+      "ocr_results": {
+        "filepath": "working_ocr_test\\technical_spec_20260116_082245.png",
+        "methods": [
+          {
+            "method": "basic_ocr",
+            "text": "TECHNICAL SPECIFICATION\n\n\u2018Stem Architecture Document\n\noverview.\nThisdocumentdescribes the system architecture\n\nfor ouradvanced COR processing platform.\n\nComponents\n\u201cImage Precessing Madule\n2. Text Recognition Engine\n5. Data Validation Systom\n\n4.OutputGeneration\n\nTechnical Requirements\nPython 38+\nTessoractOORS5+\nOpencvas+\n\nPILPillow\n\nPerformance Metrics\nProcessing Speed: < 2 seconds per page\n\u2018Accuracy Rate: > 95%\n\nSupported Formats POF, JPG, PNG, TIFF",
+            "confidence": 0.37,
+            "word_count": 54,
+            "char_count": 455
+          },
+          {
+            "method": "preprocessed_ocr",
+            "text": "TECHNICAL SPECIFICATION\n\n\u2018System Architecture Document\n\nOverview.\nThisdocumentdescribes the system architecture\n\nforouradvanced COR processing platform.\n\nComponents\n\u201cImage Precessing Madule\n2. Text Recognition Engine\n8. Data Vidation System\n\n4.Outputeneration\n\nTechnical Requirements\nPython 38+\nTesseractOORSS+\nOpencvag+\n\nPILPillw\n\nPerformance Metrics\nProcessing Speed: < 2 seconds per page\n\u2018ocuracy Rate: > 96%\n\nSupported Formats POF, JPG, PNG, TIFF",
+            "confidence": 0.32978494623655913,
+            "word_count": 53,
+            "char_count": 451
+          }
+        ],
+        "best_result": {
+          "method": "basic_ocr",
+          "text": "TECHNICAL SPECIFICATION\n\n\u2018Stem Architecture Document\n\noverview.\nThisdocumentdescribes the system architecture\n\nfor ouradvanced COR processing platform.\n\nComponents\n\u201cImage Precessing Madule\n2. Text Recognition Engine\n5. Data Validation Systom\n\n4.OutputGeneration\n\nTechnical Requirements\nPython 38+\nTessoractOORS5+\nOpencvas+\n\nPILPillow\n\nPerformance Metrics\nProcessing Speed: < 2 seconds per page\n\u2018Accuracy Rate: > 95%\n\nSupported Formats POF, JPG, PNG, TIFF",
+          "confidence": 0.37,
+          "word_count": 54,
+          "char_count": 455
+        },
+        "errors": [
+          "Enhanced OCR failed: name 'ImageEnhance' is not defined"
+        ]
+      },
+      "expected_keywords": [
+        "technical",
+        "specification",
+        "system",
+        "architecture",
+        "ocr"
+      ],
+      "accuracy_assessment": "WORKING_POORLY",
+      "keyword_matches": [
+        "technical",
+        "specification",
+        "system",
+        "architecture"
+      ],
+      "missing_keywords": [
+        "ocr"
+      ],
+      "confidence_score": 0.37,
+      "is_working": true,
+      "sample_text": "technical specification\n\n\u2018stem architecture document\n\noverview.\nthisdocumentdescribes the system architecture\n\nfor ouradvanced cor processing platform.\n\ncomponents\n\u201cimage precessing madule\n2. text rec",
+      "assessment_details": {
+        "confidence": 0.37,
+        "keyword_accuracy": 0.8,
+        "text_length": 454,
+        "methods_tried": 2
+      }
+    }
+  ]
+}

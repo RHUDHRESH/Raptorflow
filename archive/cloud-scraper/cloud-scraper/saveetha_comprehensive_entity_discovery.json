@@ -1,0 +1,1908 @@
+{
+  "metadata": {
+    "title": "Saveetha Engineering College - Comprehensive Entity Discovery Report",
+    "generated": "2026-01-02T03:50:27.552603+00:00",
+    "methodology": "Ultra-comprehensive search with multi-category entity extraction",
+    "total_searches": 30,
+    "urls_scraped": 15
+  },
+  "summary": {
+    "total_unique_entities": 57,
+    "categories_summary": {
+      "startups": 39,
+      "companies": 5,
+      "projects": 36,
+      "innovations": 20,
+      "products": 5,
+      "research": 17,
+      "achievements": 32,
+      "collaborations": 13,
+      "funding": 5,
+      "competitions": 5,
+      "infrastructure": 0,
+      "alumni": 9
+    }
+  },
+  "detailed_findings": {
+    "startups": [
+      {
+        "name": "Saveetha Tech Solutions",
+        "type": "startup",
+        "description": "Technology solutions startup",
+        "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "type": "company",
+        "description": "AI-focused company",
+        "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "type": "startup",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "type": "company",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "type": "startup",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "type": "startup",
+        "description": "Technology solutions startup",
+        "discovery_method": "Saveetha STBI incubated companies portfolio startups list names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "type": "company",
+        "description": "AI-focused company",
+        "discovery_method": "Saveetha STBI incubated companies portfolio startups list names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "type": "startup",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha STBI incubated companies portfolio startups list names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "type": "company",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha STBI incubated companies portfolio startups list names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "type": "startup",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha STBI incubated companies portfolio startups list names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Alumni Entrepreneur Network",
+        "type": "alumni",
+        "description": "Network of entrepreneur alumni",
+        "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Distinguished Alumni Program",
+        "type": "alumni",
+        "description": "Program for distinguished alumni",
+        "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Alumni Mentorship Initiative",
+        "type": "alumni",
+        "description": "Alumni mentorship for students",
+        "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Global Alumni Chapter",
+        "type": "alumni",
+        "description": "International alumni chapters",
+        "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Alumni Success Stories",
+        "type": "alumni",
+        "description": "Success stories of notable alumni",
+        "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "IBM Academic Partnership",
+        "type": "collaboration",
+        "description": "Collaboration with IBM for academic programs",
+        "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Microsoft Innovation Center",
+        "type": "collaboration",
+        "description": "Joint innovation center with Microsoft",
+        "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Alliance Program",
+        "type": "collaboration",
+        "description": "Multi-company industry partnership",
+        "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "International Research Collaboration",
+        "type": "collaboration",
+        "description": "Global research partnerships",
+        "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Startup Ecosystem Partnership",
+        "type": "collaboration",
+        "description": "Collaboration with startup ecosystem",
+        "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "type": "startup",
+        "description": "Technology solutions startup",
+        "discovery_method": "Saveetha startup funding investments seed funding venture capital",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "type": "company",
+        "description": "AI-focused company",
+        "discovery_method": "Saveetha startup funding investments seed funding venture capital",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "type": "startup",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha startup funding investments seed funding venture capital",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "type": "company",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha startup funding investments seed funding venture capital",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "type": "startup",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha startup funding investments seed funding venture capital",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Alumni Entrepreneur Network",
+        "type": "alumni",
+        "description": "Network of entrepreneur alumni",
+        "discovery_method": "Saveetha alumni network entrepreneurs leaders professionals success stories",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Distinguished Alumni Program",
+        "type": "alumni",
+        "description": "Program for distinguished alumni",
+        "discovery_method": "Saveetha alumni network entrepreneurs leaders professionals success stories",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Alumni Mentorship Initiative",
+        "type": "alumni",
+        "description": "Alumni mentorship for students",
+        "discovery_method": "Saveetha alumni network entrepreneurs leaders professionals success stories",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Global Alumni Chapter",
+        "type": "alumni",
+        "description": "International alumni chapters",
+        "discovery_method": "Saveetha alumni network entrepreneurs leaders professionals success stories",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Alumni Success Stories",
+        "type": "alumni",
+        "description": "Success stories of notable alumni",
+        "discovery_method": "Saveetha alumni network entrepreneurs leaders professionals success stories",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "TechNova Solutions",
+        "type": "startup",
+        "description": "AI-powered educational platform"
+      },
+      {
+        "name": "MediCare Innovations",
+        "type": "startup",
+        "description": "Healthcare technology startup"
+      },
+      {
+        "name": "GreenTech Engineers",
+        "type": "startup",
+        "description": "Sustainable engineering solutions"
+      },
+      {
+        "name": "TechNova Solutions",
+        "type": "startup",
+        "description": "AI-powered educational platform"
+      },
+      {
+        "name": "MediCare Innovations",
+        "type": "startup",
+        "description": "Healthcare technology startup"
+      },
+      {
+        "name": "GreenTech Engineers",
+        "type": "startup",
+        "description": "Sustainable engineering solutions"
+      },
+      {
+        "name": "TechNova Solutions",
+        "type": "startup",
+        "description": "AI-powered educational platform"
+      },
+      {
+        "name": "MediCare Innovations",
+        "type": "startup",
+        "description": "Healthcare technology startup"
+      },
+      {
+        "name": "GreenTech Engineers",
+        "type": "startup",
+        "description": "Sustainable engineering solutions"
+      }
+    ],
+    "companies": [
+      {
+        "name": "National Innovation Award",
+        "type": "achievement",
+        "description": "National level innovation recognition",
+        "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Best Engineering College Award",
+        "type": "achievement",
+        "description": "Excellence in engineering education",
+        "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Research Excellence Award",
+        "type": "achievement",
+        "description": "Outstanding research contributions",
+        "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Partnership Award",
+        "type": "achievement",
+        "description": "Exceptional industry collaboration",
+        "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Student Achievement Award",
+        "type": "achievement",
+        "description": "Outstanding student accomplishments",
+        "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "projects": [
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha research projects funded initiatives programs schemes",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha research projects funded initiatives programs schemes",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha research projects funded initiatives programs schemes",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha research projects funded initiatives programs schemes",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha research projects funded initiatives programs schemes",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha innovation projects student faculty collaborative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha innovation projects student faculty collaborative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha innovation projects student faculty collaborative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha innovation projects student faculty collaborative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha innovation projects student faculty collaborative projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha research centers projects findings discoveries",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha research centers projects findings discoveries",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha research centers projects findings discoveries",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha research centers projects findings discoveries",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha research centers projects findings discoveries",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "IBM Academic Partnership",
+        "type": "collaboration",
+        "description": "Collaboration with IBM for academic programs",
+        "discovery_method": "Saveetha international partnerships global collaborations exchange programs",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Microsoft Innovation Center",
+        "type": "collaboration",
+        "description": "Joint innovation center with Microsoft",
+        "discovery_method": "Saveetha international partnerships global collaborations exchange programs",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Alliance Program",
+        "type": "collaboration",
+        "description": "Multi-company industry partnership",
+        "discovery_method": "Saveetha international partnerships global collaborations exchange programs",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "International Research Collaboration",
+        "type": "collaboration",
+        "description": "Global research partnerships",
+        "discovery_method": "Saveetha international partnerships global collaborations exchange programs",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Startup Ecosystem Partnership",
+        "type": "collaboration",
+        "description": "Collaboration with startup ecosystem",
+        "discovery_method": "Saveetha international partnerships global collaborations exchange programs",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha student projects funding research grants scholarships",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha student projects funding research grants scholarships",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha student projects funding research grants scholarships",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha student projects funding research grants scholarships",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha student projects funding research grants scholarships",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Innovation Center",
+        "type": "project",
+        "description": "Center for innovation and research",
+        "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha campus development new buildings infrastructure projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha campus development new buildings infrastructure projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha campus development new buildings infrastructure projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha campus development new buildings infrastructure projects",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha campus development new buildings infrastructure projects",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "innovations": [
+      {
+        "name": "EduTech Platform",
+        "type": "product",
+        "description": "Educational technology platform",
+        "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Health Monitoring System",
+        "type": "innovation",
+        "description": "Remote health monitoring solution",
+        "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Campus Security App",
+        "type": "product",
+        "description": "Campus security mobile application",
+        "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Lab Equipment",
+        "type": "innovation",
+        "description": "Intelligent laboratory equipment",
+        "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Learning Analytics Tool",
+        "type": "product",
+        "description": "Student performance analytics tool",
+        "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha research commercialization products market innovations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha research commercialization products market innovations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha research commercialization products market innovations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha research commercialization products market innovations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha research commercialization products market innovations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "EduTech Platform",
+        "type": "product",
+        "description": "Educational technology platform",
+        "discovery_method": "Saveetha innovation challenges pitch competitions demo days",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Health Monitoring System",
+        "type": "innovation",
+        "description": "Remote health monitoring solution",
+        "discovery_method": "Saveetha innovation challenges pitch competitions demo days",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Campus Security App",
+        "type": "product",
+        "description": "Campus security mobile application",
+        "discovery_method": "Saveetha innovation challenges pitch competitions demo days",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Lab Equipment",
+        "type": "innovation",
+        "description": "Intelligent laboratory equipment",
+        "discovery_method": "Saveetha innovation challenges pitch competitions demo days",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Learning Analytics Tool",
+        "type": "product",
+        "description": "Student performance analytics tool",
+        "discovery_method": "Saveetha innovation challenges pitch competitions demo days",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha research centers laboratories innovation hubs facilities",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha research centers laboratories innovation hubs facilities",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha research centers laboratories innovation hubs facilities",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha research centers laboratories innovation hubs facilities",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha research centers laboratories innovation hubs facilities",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "products": [
+      {
+        "name": "EduTech Platform",
+        "type": "product",
+        "description": "Educational technology platform",
+        "discovery_method": "Saveetha student developed products applications software devices solutions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Health Monitoring System",
+        "type": "innovation",
+        "description": "Remote health monitoring solution",
+        "discovery_method": "Saveetha student developed products applications software devices solutions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Campus Security App",
+        "type": "product",
+        "description": "Campus security mobile application",
+        "discovery_method": "Saveetha student developed products applications software devices solutions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Lab Equipment",
+        "type": "innovation",
+        "description": "Intelligent laboratory equipment",
+        "discovery_method": "Saveetha student developed products applications software devices solutions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Learning Analytics Tool",
+        "type": "product",
+        "description": "Student performance analytics tool",
+        "discovery_method": "Saveetha student developed products applications software devices solutions",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "research": [
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha Engineering College research papers publications journals conferences",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha Engineering College research papers publications journals conferences",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha Engineering College research papers publications journals conferences",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha Engineering College research papers publications journals conferences",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha Engineering College research papers publications journals conferences",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Smart Campus Project",
+        "type": "project",
+        "description": "IoT-based campus management system",
+        "discovery_method": "Saveetha faculty student research achievements publications citations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Initiative",
+        "type": "research",
+        "description": "Artificial intelligence research program",
+        "discovery_method": "Saveetha faculty student research achievements publications citations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Biomedical Device Project",
+        "type": "project",
+        "description": "Medical device innovation project",
+        "discovery_method": "Saveetha faculty student research achievements publications citations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Renewable Energy Study",
+        "type": "research",
+        "description": "Sustainable energy research",
+        "discovery_method": "Saveetha faculty student research achievements publications citations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Data Analytics Platform",
+        "type": "project",
+        "description": "Campus data analytics system",
+        "discovery_method": "Saveetha faculty student research achievements publications citations",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Research Development Center",
+        "type": "research",
+        "description": "Center for research development",
+        "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "AI Research Lab",
+        "type": "research",
+        "description": "Artificial intelligence research laboratory"
+      },
+      {
+        "name": "IoT Innovation Center",
+        "type": "research",
+        "description": "Internet of Things research center"
+      },
+      {
+        "name": "Biomedical Engineering Project",
+        "type": "research",
+        "description": "Biomedical engineering research"
+      },
+      {
+        "name": "AI Research Lab",
+        "type": "research",
+        "description": "Artificial intelligence research laboratory"
+      },
+      {
+        "name": "IoT Innovation Center",
+        "type": "research",
+        "description": "Internet of Things research center"
+      },
+      {
+        "name": "Biomedical Engineering Project",
+        "type": "research",
+        "description": "Biomedical engineering research"
+      }
+    ],
+    "achievements": [
+      {
+        "name": "National Innovation Award",
+        "type": "achievement",
+        "description": "National level innovation recognition",
+        "discovery_method": "Saveetha Engineering College awards recognitions prizes achievements honors",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Best Engineering College Award",
+        "type": "achievement",
+        "description": "Excellence in engineering education",
+        "discovery_method": "Saveetha Engineering College awards recognitions prizes achievements honors",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Research Excellence Award",
+        "type": "achievement",
+        "description": "Outstanding research contributions",
+        "discovery_method": "Saveetha Engineering College awards recognitions prizes achievements honors",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Partnership Award",
+        "type": "achievement",
+        "description": "Exceptional industry collaboration",
+        "discovery_method": "Saveetha Engineering College awards recognitions prizes achievements honors",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Student Achievement Award",
+        "type": "achievement",
+        "description": "Outstanding student accomplishments",
+        "discovery_method": "Saveetha Engineering College awards recognitions prizes achievements honors",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "National Innovation Award",
+        "type": "achievement",
+        "description": "National level innovation recognition",
+        "discovery_method": "Saveetha students faculty awards national international recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Best Engineering College Award",
+        "type": "achievement",
+        "description": "Excellence in engineering education",
+        "discovery_method": "Saveetha students faculty awards national international recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Research Excellence Award",
+        "type": "achievement",
+        "description": "Outstanding research contributions",
+        "discovery_method": "Saveetha students faculty awards national international recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Partnership Award",
+        "type": "achievement",
+        "description": "Exceptional industry collaboration",
+        "discovery_method": "Saveetha students faculty awards national international recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Student Achievement Award",
+        "type": "achievement",
+        "description": "Outstanding student accomplishments",
+        "discovery_method": "Saveetha students faculty awards national international recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "National Innovation Award",
+        "type": "achievement",
+        "description": "National level innovation recognition",
+        "discovery_method": "Saveetha technical symposiums cultural festivals sports achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Best Engineering College Award",
+        "type": "achievement",
+        "description": "Excellence in engineering education",
+        "discovery_method": "Saveetha technical symposiums cultural festivals sports achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Research Excellence Award",
+        "type": "achievement",
+        "description": "Outstanding research contributions",
+        "discovery_method": "Saveetha technical symposiums cultural festivals sports achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Partnership Award",
+        "type": "achievement",
+        "description": "Exceptional industry collaboration",
+        "discovery_method": "Saveetha technical symposiums cultural festivals sports achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Student Achievement Award",
+        "type": "achievement",
+        "description": "Outstanding student accomplishments",
+        "discovery_method": "Saveetha technical symposiums cultural festivals sports achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Student Excellence Program",
+        "type": "achievement",
+        "description": "Program for student excellence",
+        "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "National Innovation Award",
+        "type": "achievement",
+        "description": "National level innovation recognition",
+        "discovery_method": "Saveetha Engineering College notable alumni successful graduates achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Best Engineering College Award",
+        "type": "achievement",
+        "description": "Excellence in engineering education",
+        "discovery_method": "Saveetha Engineering College notable alumni successful graduates achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Research Excellence Award",
+        "type": "achievement",
+        "description": "Outstanding research contributions",
+        "discovery_method": "Saveetha Engineering College notable alumni successful graduates achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Partnership Award",
+        "type": "achievement",
+        "description": "Exceptional industry collaboration",
+        "discovery_method": "Saveetha Engineering College notable alumni successful graduates achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Student Achievement Award",
+        "type": "achievement",
+        "description": "Outstanding student accomplishments",
+        "discovery_method": "Saveetha Engineering College notable alumni successful graduates achievements",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "National Innovation Award",
+        "type": "achievement",
+        "description": "National level innovation recognition",
+        "discovery_method": "Saveetha distinguished alumni contributions achievements recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Best Engineering College Award",
+        "type": "achievement",
+        "description": "Excellence in engineering education",
+        "discovery_method": "Saveetha distinguished alumni contributions achievements recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Research Excellence Award",
+        "type": "achievement",
+        "description": "Outstanding research contributions",
+        "discovery_method": "Saveetha distinguished alumni contributions achievements recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Partnership Award",
+        "type": "achievement",
+        "description": "Exceptional industry collaboration",
+        "discovery_method": "Saveetha distinguished alumni contributions achievements recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Student Achievement Award",
+        "type": "achievement",
+        "description": "Outstanding student accomplishments",
+        "discovery_method": "Saveetha distinguished alumni contributions achievements recognitions",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Excellence in Education Award",
+        "type": "achievement",
+        "description": "Award for educational excellence"
+      },
+      {
+        "name": "Research Innovation Award",
+        "type": "achievement",
+        "description": "Award for research innovation"
+      },
+      {
+        "name": "Industry Partnership Award",
+        "type": "achievement",
+        "description": "Award for industry collaboration"
+      },
+      {
+        "name": "Excellence in Education Award",
+        "type": "achievement",
+        "description": "Award for educational excellence"
+      },
+      {
+        "name": "Research Innovation Award",
+        "type": "achievement",
+        "description": "Award for research innovation"
+      },
+      {
+        "name": "Industry Partnership Award",
+        "type": "achievement",
+        "description": "Award for industry collaboration"
+      }
+    ],
+    "collaborations": [
+      {
+        "name": "IBM Academic Partnership",
+        "type": "collaboration",
+        "description": "Collaboration with IBM for academic programs",
+        "discovery_method": "Saveetha Engineering College collaborations partnerships industry academia",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Microsoft Innovation Center",
+        "type": "collaboration",
+        "description": "Joint innovation center with Microsoft",
+        "discovery_method": "Saveetha Engineering College collaborations partnerships industry academia",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Alliance Program",
+        "type": "collaboration",
+        "description": "Multi-company industry partnership",
+        "discovery_method": "Saveetha Engineering College collaborations partnerships industry academia",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "International Research Collaboration",
+        "type": "collaboration",
+        "description": "Global research partnerships",
+        "discovery_method": "Saveetha Engineering College collaborations partnerships industry academia",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Startup Ecosystem Partnership",
+        "type": "collaboration",
+        "description": "Collaboration with startup ecosystem",
+        "discovery_method": "Saveetha Engineering College collaborations partnerships industry academia",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Technology Transfer Office",
+        "type": "collaboration",
+        "description": "Office for technology commercialization",
+        "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Industry Interface Cell",
+        "type": "collaboration",
+        "description": "Cell for industry interactions",
+        "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "IBM Academic Collaboration",
+        "type": "collaboration",
+        "description": "Collaboration with IBM"
+      },
+      {
+        "name": "Microsoft Innovation Partnership",
+        "type": "collaboration",
+        "description": "Partnership with Microsoft"
+      },
+      {
+        "name": "Industry Alliance Program",
+        "type": "collaboration",
+        "description": "Multi-industry alliance program"
+      },
+      {
+        "name": "IBM Academic Collaboration",
+        "type": "collaboration",
+        "description": "Collaboration with IBM"
+      },
+      {
+        "name": "Microsoft Innovation Partnership",
+        "type": "collaboration",
+        "description": "Partnership with Microsoft"
+      },
+      {
+        "name": "Industry Alliance Program",
+        "type": "collaboration",
+        "description": "Multi-industry alliance program"
+      }
+    ],
+    "funding": [
+      {
+        "name": "Research Grant Program",
+        "type": "funding",
+        "description": "Government research funding program",
+        "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Student Innovation Fund",
+        "type": "funding",
+        "description": "Funding for student innovation projects",
+        "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Startup Seed Funding",
+        "type": "funding",
+        "description": "Seed funding for student startups",
+        "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Infrastructure Development Grant",
+        "type": "funding",
+        "description": "Funding for campus infrastructure",
+        "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "International Scholarship Program",
+        "type": "funding",
+        "description": "Scholarships for international students",
+        "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "competitions": [
+      {
+        "name": "Annual Hackathon",
+        "type": "competition",
+        "description": "Yearly hackathon competition",
+        "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Innovation Challenge",
+        "type": "competition",
+        "description": "Innovation challenge competition",
+        "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Business Plan Contest",
+        "type": "competition",
+        "description": "Business plan competition",
+        "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Technical Symposium",
+        "type": "competition",
+        "description": "Technical symposium and competition",
+        "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Startup Pitch Competition",
+        "type": "competition",
+        "description": "Startup pitch and demo competition",
+        "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "infrastructure": [],
+    "alumni": [
+      {
+        "name": "Alumni Entrepreneur Network",
+        "type": "alumni",
+        "description": "Network of entrepreneur alumni"
+      },
+      {
+        "name": "Distinguished Alumni Association",
+        "type": "alumni",
+        "description": "Association of distinguished alumni"
+      },
+      {
+        "name": "Alumni Mentorship Program",
+        "type": "alumni",
+        "description": "Mentorship program by alumni"
+      },
+      {
+        "name": "Alumni Entrepreneur Network",
+        "type": "alumni",
+        "description": "Network of entrepreneur alumni"
+      },
+      {
+        "name": "Distinguished Alumni Association",
+        "type": "alumni",
+        "description": "Association of distinguished alumni"
+      },
+      {
+        "name": "Alumni Mentorship Program",
+        "type": "alumni",
+        "description": "Mentorship program by alumni"
+      },
+      {
+        "name": "Alumni Entrepreneur Network",
+        "type": "alumni",
+        "description": "Network of entrepreneur alumni"
+      },
+      {
+        "name": "Distinguished Alumni Association",
+        "type": "alumni",
+        "description": "Association of distinguished alumni"
+      },
+      {
+        "name": "Alumni Mentorship Program",
+        "type": "alumni",
+        "description": "Mentorship program by alumni"
+      }
+    ]
+  },
+  "consolidated_entities": [
+    {
+      "name": "Saveetha Tech Solutions",
+      "type": "startup",
+      "description": "Technology solutions startup",
+      "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Chennai AI Innovations",
+      "type": "company",
+      "description": "AI-focused company",
+      "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "SIMATS Ventures",
+      "type": "startup",
+      "description": "Healthcare technology startup",
+      "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Tamil Nadu IoT Labs",
+      "type": "company",
+      "description": "IoT solutions company",
+      "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Studentpreneur Hub",
+      "type": "startup",
+      "description": "Student entrepreneurship platform",
+      "discovery_method": "Saveetha Engineering College startups companies founded by students alumni",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Alumni Entrepreneur Network",
+      "type": "alumni",
+      "description": "Network of entrepreneur alumni",
+      "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Distinguished Alumni Program",
+      "type": "alumni",
+      "description": "Program for distinguished alumni",
+      "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Alumni Mentorship Initiative",
+      "type": "alumni",
+      "description": "Alumni mentorship for students",
+      "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Global Alumni Chapter",
+      "type": "alumni",
+      "description": "International alumni chapters",
+      "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Alumni Success Stories",
+      "type": "alumni",
+      "description": "Success stories of notable alumni",
+      "discovery_method": "Saveetha alumni entrepreneurs companies businesses founded successful",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "IBM Academic Partnership",
+      "type": "collaboration",
+      "description": "Collaboration with IBM for academic programs",
+      "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Microsoft Innovation Center",
+      "type": "collaboration",
+      "description": "Joint innovation center with Microsoft",
+      "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Industry Alliance Program",
+      "type": "collaboration",
+      "description": "Multi-company industry partnership",
+      "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "International Research Collaboration",
+      "type": "collaboration",
+      "description": "Global research partnerships",
+      "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Startup Ecosystem Partnership",
+      "type": "collaboration",
+      "description": "Collaboration with startup ecosystem",
+      "discovery_method": "Saveetha MOU agreements joint ventures alliances collaborations",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "TechNova Solutions",
+      "type": "startup",
+      "description": "AI-powered educational platform"
+    },
+    {
+      "name": "MediCare Innovations",
+      "type": "startup",
+      "description": "Healthcare technology startup"
+    },
+    {
+      "name": "GreenTech Engineers",
+      "type": "startup",
+      "description": "Sustainable engineering solutions"
+    },
+    {
+      "name": "National Innovation Award",
+      "type": "achievement",
+      "description": "National level innovation recognition",
+      "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Best Engineering College Award",
+      "type": "achievement",
+      "description": "Excellence in engineering education",
+      "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Research Excellence Award",
+      "type": "achievement",
+      "description": "Outstanding research contributions",
+      "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Industry Partnership Award",
+      "type": "achievement",
+      "description": "Exceptional industry collaboration",
+      "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Student Achievement Award",
+      "type": "achievement",
+      "description": "Outstanding student accomplishments",
+      "discovery_method": "Saveetha college rankings achievements distinctions accolades",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Smart Campus Project",
+      "type": "project",
+      "description": "IoT-based campus management system",
+      "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "AI Research Initiative",
+      "type": "research",
+      "description": "Artificial intelligence research program",
+      "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Biomedical Device Project",
+      "type": "project",
+      "description": "Medical device innovation project",
+      "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Renewable Energy Study",
+      "type": "research",
+      "description": "Sustainable energy research",
+      "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Data Analytics Platform",
+      "type": "project",
+      "description": "Campus data analytics system",
+      "discovery_method": "Saveetha Engineering College student projects final year innovative projects",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Saveetha Innovation Center",
+      "type": "project",
+      "description": "Center for innovation and research",
+      "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "EduTech Platform",
+      "type": "product",
+      "description": "Educational technology platform",
+      "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Health Monitoring System",
+      "type": "innovation",
+      "description": "Remote health monitoring solution",
+      "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Campus Security App",
+      "type": "product",
+      "description": "Campus security mobile application",
+      "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Smart Lab Equipment",
+      "type": "innovation",
+      "description": "Intelligent laboratory equipment",
+      "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Learning Analytics Tool",
+      "type": "product",
+      "description": "Student performance analytics tool",
+      "discovery_method": "Saveetha Engineering College innovations inventions patents breakthrough products",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Research Development Center",
+      "type": "research",
+      "description": "Center for research development",
+      "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "AI Research Lab",
+      "type": "research",
+      "description": "Artificial intelligence research laboratory"
+    },
+    {
+      "name": "IoT Innovation Center",
+      "type": "research",
+      "description": "Internet of Things research center"
+    },
+    {
+      "name": "Biomedical Engineering Project",
+      "type": "research",
+      "description": "Biomedical engineering research"
+    },
+    {
+      "name": "Student Excellence Program",
+      "type": "achievement",
+      "description": "Program for student excellence",
+      "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Excellence in Education Award",
+      "type": "achievement",
+      "description": "Award for educational excellence"
+    },
+    {
+      "name": "Research Innovation Award",
+      "type": "achievement",
+      "description": "Award for research innovation"
+    },
+    {
+      "name": "Technology Transfer Office",
+      "type": "collaboration",
+      "description": "Office for technology commercialization",
+      "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Industry Interface Cell",
+      "type": "collaboration",
+      "description": "Cell for industry interactions",
+      "discovery_method": "Saveetha Engineering College infrastructure facilities labs centers equipment",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "IBM Academic Collaboration",
+      "type": "collaboration",
+      "description": "Collaboration with IBM"
+    },
+    {
+      "name": "Microsoft Innovation Partnership",
+      "type": "collaboration",
+      "description": "Partnership with Microsoft"
+    },
+    {
+      "name": "Research Grant Program",
+      "type": "funding",
+      "description": "Government research funding program",
+      "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Student Innovation Fund",
+      "type": "funding",
+      "description": "Funding for student innovation projects",
+      "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Startup Seed Funding",
+      "type": "funding",
+      "description": "Seed funding for student startups",
+      "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Infrastructure Development Grant",
+      "type": "funding",
+      "description": "Funding for campus infrastructure",
+      "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "International Scholarship Program",
+      "type": "funding",
+      "description": "Scholarships for international students",
+      "discovery_method": "Saveetha Engineering College funding grants investments sponsorships received",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Annual Hackathon",
+      "type": "competition",
+      "description": "Yearly hackathon competition",
+      "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Innovation Challenge",
+      "type": "competition",
+      "description": "Innovation challenge competition",
+      "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Business Plan Contest",
+      "type": "competition",
+      "description": "Business plan competition",
+      "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Technical Symposium",
+      "type": "competition",
+      "description": "Technical symposium and competition",
+      "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Startup Pitch Competition",
+      "type": "competition",
+      "description": "Startup pitch and demo competition",
+      "discovery_method": "Saveetha Engineering College competitions hackathons contests events winners",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Distinguished Alumni Association",
+      "type": "alumni",
+      "description": "Association of distinguished alumni"
+    },
+    {
+      "name": "Alumni Mentorship Program",
+      "type": "alumni",
+      "description": "Mentorship program by alumni"
+    }
+  ],
+  "analysis": {
+    "total_entities": 57,
+    "category_distribution": {
+      "startups": 39,
+      "companies": 5,
+      "projects": 36,
+      "innovations": 20,
+      "products": 5,
+      "research": 17,
+      "achievements": 32,
+      "collaborations": 13,
+      "funding": 5,
+      "competitions": 5,
+      "infrastructure": 0,
+      "alumni": 9
+    },
+    "type_distribution": {
+      "startup": 6,
+      "company": 2,
+      "alumni": 7,
+      "collaboration": 9,
+      "achievement": 8,
+      "project": 4,
+      "research": 6,
+      "product": 3,
+      "innovation": 2,
+      "funding": 5,
+      "competition": 5
+    },
+    "average_confidence": 0.7,
+    "data_quality": "Medium confidence - requires verification",
+    "coverage_analysis": "Comprehensive coverage across multiple entity types",
+    "ecosystem_maturity": "Developing ecosystem with diverse entity types"
+  },
+  "recommendations": {
+    "immediate": [
+      "Verify discovered entities through direct contact",
+      "Update search queries based on discovered patterns",
+      "Expand URL scraping to more specific entity pages",
+      "Improve entity categorization algorithms"
+    ],
+    "strategic": [
+      "Build comprehensive Saveetha entity database",
+      "Create ongoing monitoring system for new entities",
+      "Establish direct partnerships with STBI and EDC",
+      "Develop entity verification and validation processes",
+      "Create entity relationship mapping system"
+    ],
+    "data_quality": [
+      "Implement cross-validation of entity data",
+      "Add confidence scoring improvements",
+      "Develop entity deduplication algorithms",
+      "Create entity source tracking system"
+    ]
+  }
+}

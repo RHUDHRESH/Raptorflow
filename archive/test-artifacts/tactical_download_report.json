@@ -1,0 +1,123 @@
+{
+  "timestamp": "2026-01-16T08:07:33.534228",
+  "total_attempts": 16,
+  "successful_downloads": 0,
+  "failed_downloads": 16,
+  "success_rate": 0.0,
+  "categories": {},
+  "files": [],
+  "errors": [
+    {
+      "success": false,
+      "url": "https://www.mckinsey.com/featured-insights/mckinsey-on-ai/the-economic-potential-of-generative-ai",
+      "error": "[WinError 121] The semaphore timeout period has expired",
+      "category": "business_strategy",
+      "description": "McKinsey AI Strategy Report"
+    },
+    {
+      "success": false,
+      "url": "https://hbr.org/2023/11/the-state-of-ai-in-business",
+      "error": "HTTP 404",
+      "category": "business_intelligence",
+      "description": "Harvard Business Review AI Analysis"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Sun_Tzu_art_of_war.jpg/800px-Sun_Tzu_art_of_war.jpg",
+      "error": "HTTP 403",
+      "category": "military_strategy",
+      "description": "Sun Tzu Art of War"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/NATO_Military_Symbol_For_Unit_Size.svg/500px-NATO_Military_Symbol_For_Unit_Size.svg.png",
+      "error": "HTTP 403",
+      "category": "military_symbols",
+      "description": "NATO Military Symbols"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Stock_chart_pattern.svg/800px-Stock_chart_pattern.svg.png",
+      "error": "HTTP 403",
+      "category": "financial_analysis",
+      "description": "Stock Chart Pattern Analysis"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Market_trend_chart.svg/800px-Market_trend_chart.svg.png",
+      "error": "HTTP 403",
+      "category": "market_trends",
+      "description": "Market Trend Analysis Chart"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/SWOT_analysis.svg/800px-SWOT_analysis.svg.png",
+      "error": "HTTP 403",
+      "category": "business_framework",
+      "description": "SWOT Analysis Framework"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Porter_five_forces.svg/800px-Porter_five_forces.svg.png",
+      "error": "HTTP 403",
+      "category": "competitive_analysis",
+      "description": "Porter's Five Forces Analysis"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Cloud_computing_architecture.svg/800px-Cloud_computing_architecture.svg.png",
+      "error": "HTTP 403",
+      "category": "tech_architecture",
+      "description": "Cloud Computing Architecture"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Network_diagram.svg/800px-Network_diagram.svg.png",
+      "error": "HTTP 403",
+      "category": "network_topology",
+      "description": "Network Topology Diagram"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Pie_chart.svg/800px-Pie_chart.svg.png",
+      "error": "HTTP 403",
+      "category": "data_visualization",
+      "description": "Business Data Pie Chart"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Bar_chart.svg/800px-Bar_chart.svg.png",
+      "error": "HTTP 403",
+      "category": "data_visualization",
+      "description": "Business Data Bar Chart"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/World_map_with_coordinates.svg/800px-World_map_with_coordinates.svg.png",
+      "error": "HTTP 403",
+      "category": "geographic_analysis",
+      "description": "World Strategic Map"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Supply_chain_diagram.svg/800px-Supply_chain_diagram.svg.png",
+      "error": "HTTP 403",
+      "category": "supply_chain",
+      "description": "Supply Chain Strategy Diagram"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Organizational_chart.svg/800px-Organizational_chart.svg.png",
+      "error": "HTTP 403",
+      "category": "organizational_structure",
+      "description": "Organizational Structure Chart"
+    },
+    {
+      "success": false,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Decision_tree.svg/800px-Decision_tree.svg.png",
+      "error": "HTTP 403",
+      "category": "decision_analysis",
+      "description": "Strategic Decision Tree"
+    }
+  ]
+}

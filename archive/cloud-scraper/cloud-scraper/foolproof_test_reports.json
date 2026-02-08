@@ -1,0 +1,97 @@
+{
+  "json_report": {
+    "metadata": {
+      "query": "Saveetha Engineering College programs",
+      "timestamp": "2026-01-02T03:39:01.578932+00:00",
+      "processing_time": 0.000506,
+      "confidence_score": 0.7,
+      "model_usage": {
+        "flashlight": 2,
+        "flash": 2,
+        "ultra": 0,
+        "fallback": 0
+      },
+      "cost_estimate": 0.00019999999999999998,
+      "status": "degraded",
+      "fallback_used": true
+    },
+    "findings": {
+      "key_findings": [
+        "Saveetha has active startup ecosystem",
+        "STBI provides incubation support",
+        "Multiple entrepreneurship programs available"
+      ],
+      "source_credibility_assessment": {
+        "high": 0.8,
+        "medium": 0.2
+      },
+      "confidence_score": 0.75,
+      "insights_and_patterns": [
+        "institutional_support",
+        "student_innovation"
+      ],
+      "recommendations": [
+        "leverage_existing_programs",
+        "expand_incubator"
+      ],
+      "sources_count": 0,
+      "data_points": 0
+    },
+    "sources": [],
+    "executive_summary": "Research completed with 70.0% confidence. Key findings include: Saveetha has active startup ecosystem; STBI provides incubation support; Multiple entrepreneurship programs available",
+    "errors": null
+  },
+  "ppt_outline": {
+    "title": "Research Report: Saveetha Engineering College programs",
+    "status": "degraded",
+    "slides": [
+      {
+        "title": "Executive Summary",
+        "content": "Research completed with 70.0% confidence. Key findings include: Saveetha has active startup ecosystem; STBI provides incubation support; Multiple entrepreneurship programs available"
+      },
+      {
+        "title": "Key Findings",
+        "content": [
+          "Saveetha has active startup ecosystem",
+          "STBI provides incubation support",
+          "Multiple entrepreneurship programs available"
+        ]
+      },
+      {
+        "title": "Research Status",
+        "content": "Status: degraded"
+      },
+      {
+        "title": "Methodology",
+        "content": "Completed in 0.00s"
+      }
+    ]
+  },
+  "pdf_content": {
+    "title": "Research Report: Saveetha Engineering College programs",
+    "metadata": {
+      "generated": "2026-01-02T03:39:01.578932+00:00",
+      "confidence": 0.7,
+      "status": "degraded",
+      "processing_time": 0.000506
+    },
+    "sections": [
+      {
+        "title": "Executive Summary",
+        "content": "Research completed with 70.0% confidence. Key findings include: Saveetha has active startup ecosystem; STBI provides incubation support; Multiple entrepreneurship programs available"
+      },
+      {
+        "title": "Research Findings",
+        "content": "{'key_findings': ['Saveetha has active startup ecosystem', 'STBI provides incubation support', 'Multiple entrepreneurship programs available'], 'source_credibility_assessment': {'high': 0.8, 'medium': 0.2}, 'confidence_score': 0.75, 'insights_and_patterns': ['institutional_support', 'student_innovation'], 'recommendations': ['leverage_existing_programs', 'expand_incubator'], 'sources_count': 0, 'data_points': 0}"
+      },
+      {
+        "title": "Source Analysis",
+        "content": "Analyzed 0 sources"
+      },
+      {
+        "title": "Status Report",
+        "content": "Research completed with status: degraded"
+      }
+    ]
+  }
+}

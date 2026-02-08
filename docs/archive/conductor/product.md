@@ -1,0 +1,62 @@
+<<<<<<< HEAD
+﻿# Initial Concept
+RaptorFlow is a "Founder Marketing Operating System" powered by a SOTA Cognitive Intelligence Engine. It converts messy business context into clear positioning, a 90-day marketing war plan, weekly execution moves, and tracked outcomes. It aims for a calm, expensive, and decisive feelΓÇö"ChatGPT simplicity + MasterClass polish + Editorial restraint."
+
+# Product Guide ΓÇö RaptorFlow
+
+## Vision
+RaptorFlow is the **Founder Marketing Operating System**. It is designed to replace "marketing by vibes" with a rigorous, surgical system powered by a consolidated, multi-tier backend architecture (Module > Service > Domain).
+
+## Target Audience
+- **Solo Founders:** Who need to execute high-level marketing without a full team.
+- **Early-stage Startup Teams:** Looking for a single source of truth for their marketing strategy and execution.
+
+## Core Goals
+1.  **Clarity:** Achieve absolute certainty in brand positioning, messaging, and ICP (Ideal Customer Profile) segments.
+2.  **Execution:** Automate the generation of weekly "Moves" using a production-grade autonomous engine and track them with surgical precision.
+3.  **Economy & Performance:** Minimize operational overhead via a comprehensive Redis caching layer that reduces redundant LLM and Research costs by >40% while maintaining sub-100ms retrieval.
+4.  **Minimalism:** Maintain a strictly personal-account model with a high-integrity identity system (UCID).
+
+## Identity Standard
+- **Auth:** Secure, single-tap Google OAuth.
+- **Payments:** Official PhonePe SDK Integration with Standard Checkout.
+- **ID System:** Unique Customer ID (UCID) in `RF-YYYY-XXXX` format for unified tracking.
+- **Security:** Zero-trust architecture with hardened multi-tenant isolation and strict workspace-level RLS.
+- **Monitoring:** Enterprise-grade Sentry integration with 100% error capture, high-fidelity performance metrics (CPU Profiling + Session Replay), and unified distributed tracing with strict PII protection.
+
+## Core Modules (Cognitive Intelligence Engine Complete)
+- **Foundation:** The source of truth for Brand Kit and positioning. Implements the **Precision Soundbite Framework 3.0** across four strategic phases: JTBD & Jobs, Brand Hierarchy, Mechanism Audit, and Soundbite Studio. Powered by a high-performance **Universal Agent** architecture for multi-step data ingestion and strategic synthesis. (Universal State Sync Implemented)
+- **Cohorts:** ICP and segmentation intelligence. Enhanced with behavioral science markers, psychographics, and market sophistication scoring via the **Rich ICP (RICP)** model. (Implemented)
+- **Moves:** Dynamic execution packets powered by the **Absolute Infinity** engine. Features fluid rescheduling (Breathing Arcs) and multi-vector context (DCM + MacM). (Consolidated Backend Implemented)
+- **Campaigns:** 90-day strategic arcs managed as hierarchical relational graphs. Orchestrates concurrent and subsequent moves toward a singular agenda. (Consolidated Backend Implemented)
+- **Muse:** An asset factory for content generation and repurposing.
+- **Matrix:** The "Boardroom View" dashboard with actionable operator skills (Throttling, Scaling, Cache Purge). (SOTA Actionable Dashboard Implemented)
+- **Blackbox:** The "Cognitive Spine" of the OS. A fully integrated AI engine that generates experimental, high-risk/high-reward strategic maneuvers ("Black Moves"). Features a 1-10 volatility control and direct conversion into actionable Moves with automated risk assessment and implementation planning. (End-to-End Production Engine Implemented)
+- **Titan:** The "Recursive Research Spine" (SOTA Intelligence Engine). Provides high-precision market intelligence, competitor auditing, and trend discovery via multi-tier research modes (LITE, RESEARCH, DEEP). Powered by a parallel Search Multiplexer and Stealth Scraper Pool. (Implemented)
+=======
+# Initial Concept
+RaptorFlow is a "Founder Marketing Operating System" powered by a SOTA Cognitive Intelligence Engine. It converts messy business context into clear positioning, a 90-day marketing war plan, weekly execution moves, and tracked outcomes. It aims for a calm, expensive, and decisive feel—"ChatGPT simplicity + MasterClass polish + Editorial restraint."
+
+# Product Guide — RaptorFlow
+
+## Vision
+RaptorFlow is the **Founder Marketing Operating System**. It is designed to replace "marketing by vibes" with a rigorous, surgical system that converts messy business context into a 90-day war plan and weekly execution moves.
+
+## Target Audience
+- **Solo Founders:** Who need to execute high-level marketing without a full team.
+- **Early-stage Startup Teams:** Looking for a single source of truth for their marketing strategy and execution.
+
+## Core Goals
+1.  **Clarity:** Achieve absolute certainty in brand positioning, messaging, and ICP (Ideal Customer Profile) segments.
+2.  **Execution:** Automate the generation of weekly "Moves" using a production-grade autonomous engine and track them with surgical precision.
+3.  **Consolidation:** Eliminate tool sprawl by centralizing strategy, asset generation, and performance tracking into one "Blackbox" industrial intelligence engine.
+
+## Core Modules (Cognitive Intelligence Engine Complete)
+- **Foundation:** The source of truth for Brand Kit and positioning. (Universal State Sync Implemented)
+- **Cohorts:** ICP and segmentation intelligence. (Implemented)
+- **Moves:** Weekly execution packets that drive momentum. (End-to-End Production Engine Implemented)
+- **Campaigns:** 90-day strategic arcs with transparent, step-by-step planning and human-in-the-loop approvals. (SOTA Proactive Engine Implemented)
+- **Muse:** An asset factory for content generation and repurposing.
+- **Matrix:** The "Boardroom View" dashboard with actionable operator skills (Throttling, Scaling, Cache Purge). (SOTA Actionable Dashboard Implemented)
+- **Blackbox:** The "Cognitive Spine" with hypothesis-driven experiments, integrated ROI analytics, and growth momentum hooks. (SOTA Hypothesis-Driven Engine Implemented)
+>>>>>>> origin/codex/implement-jwt-verification-in-auth.py

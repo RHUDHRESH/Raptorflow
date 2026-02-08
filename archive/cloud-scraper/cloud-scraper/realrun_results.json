@@ -1,0 +1,521 @@
+{
+  "analysis": {
+    "total_platforms": 5,
+    "total_content": 22,
+    "platform_stats": {
+      "reddit": {
+        "content_count": 5,
+        "avg_relevance": 0.16662,
+        "minnesota_related": 0,
+        "coffee_related": 5,
+        "success_rate": 1.0,
+        "source_count": 5
+      },
+      "news": {
+        "content_count": 2,
+        "avg_relevance": 0.33444999999999997,
+        "minnesota_related": 2,
+        "coffee_related": 0,
+        "success_rate": 1.0,
+        "source_count": 8
+      },
+      "blogs": {
+        "content_count": 5,
+        "avg_relevance": 0.31884,
+        "minnesota_related": 5,
+        "coffee_related": 0,
+        "success_rate": 1.0,
+        "source_count": 5
+      },
+      "social": {
+        "content_count": 5,
+        "avg_relevance": 0.22504,
+        "minnesota_related": 5,
+        "coffee_related": 0,
+        "success_rate": 1.0,
+        "source_count": 4
+      },
+      "forums": {
+        "content_count": 5,
+        "avg_relevance": 0.16662,
+        "minnesota_related": 0,
+        "coffee_related": 5,
+        "success_rate": 1.0,
+        "source_count": 3
+      }
+    },
+    "top_platforms": [
+      [
+        "reddit",
+        {
+          "content_count": 5,
+          "avg_relevance": 0.16662,
+          "minnesota_related": 0,
+          "coffee_related": 5,
+          "success_rate": 1.0,
+          "source_count": 5
+        }
+      ],
+      [
+        "blogs",
+        {
+          "content_count": 5,
+          "avg_relevance": 0.31884,
+          "minnesota_related": 5,
+          "coffee_related": 0,
+          "success_rate": 1.0,
+          "source_count": 5
+        }
+      ],
+      [
+        "social",
+        {
+          "content_count": 5,
+          "avg_relevance": 0.22504,
+          "minnesota_related": 5,
+          "coffee_related": 0,
+          "success_rate": 1.0,
+          "source_count": 4
+        }
+      ]
+    ],
+    "trending_topics": [
+      "coffee",
+      "minnesota",
+      "thread",
+      "what",
+      "daily",
+      "question",
+      "brewing"
+    ],
+    "confidence_score": 0.456925,
+    "latencies": {
+      "reddit": [
+        0.515512228012085,
+        1.657932996749878,
+        1.497605562210083,
+        2.9142510890960693,
+        1.4718501567840576,
+        1.3785059452056885,
+        1.5174074172973633,
+        1.5623133182525635,
+        1.7390666007995605
+      ],
+      "news": [
+        0.2462325096130371,
+        2.712071180343628,
+        0.36799168586730957,
+        0.20317697525024414,
+        0.18629670143127441
+      ],
+      "blogs": [
+        3.3447911739349365,
+        5.25285267829895,
+        9.739601850509644,
+        3.0457186698913574,
+        1.3756024837493896
+      ],
+      "social": [],
+      "forums": []
+    },
+    "failures": {
+      "reddit": 2,
+      "news": 6
+    },
+    "retries": {
+      "reddit": 1,
+      "news": 3
+    },
+    "insights": [
+      "Most active: reddit (5 items)",
+      "Minnesota-related: 12 items",
+      "Coffee-related: 10 items"
+    ]
+  },
+  "results": {
+    "reddit": [
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q3n92r/mod_the_daily_question_thread/",
+        "title": "[MOD] The Daily Question Thread",
+        "content": "Welcome to the daily\u00a0[/r/Coffee](https://www.reddit.com/r/Coffee)\u00a0question thread!\n\nThere are no stupid questions here, ask a question and get an answer! We all have to start somewhere and sometimes it is hard to figure out just what you are doing right or doing wrong. Luckily, the\u00a0[/r/Coffee](https://www.reddit.com/r/Coffee)\u00a0community loves to help out.\n\nDo you have a question about how to use a specific piece of gear or what gear you should be buying? Want to know how much coffee you should use or how you should grind it? Not sure about how much water you should use or how hot it should be? Wondering about your coffee's shelf life?\n\nDon't forget to use the resources in our\u00a0[wiki](http://www.reddit.com/r/Coffee/wiki)! We have some great starter guides on our\u00a0[wiki \"Guides\" page](https://www.reddit.com/r/Coffee/wiki/guides)\u00a0and\u00a0[here is the wiki \"Gear By Price\" page](http://www.reddit.com/r/Coffee/wiki/gear#wiki_coffee_gear_suggestions)\u00a0if you'd like to see coffee gear that\u00a0[/r/Coffee](https://www.reddit.com/r/Coffee)\u00a0members recommend.\n\nAs always, be nice!",
+        "author": "menschmaschine5",
+        "published_date": "2026-01-04 11:01:30+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.15,
+        "engagement_score": 0.07400000000000001,
+        "content_hash": "3f41b5cee4d07758f5f2c6025672c5d1",
+        "simhash": 1273313725691547249,
+        "token_count": 205,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q2330j/mod_what_have_you_been_brewing_this_week_coffee/",
+        "title": "[MOD] What have you been brewing this week?/ Coffee bean recommendations",
+        "content": "Hey everyone!\n\nWelcome back to the weekly /r/Coffee thread where you can share what you are brewing or ask for bean recommendations. This is a place to share and talk about your favorite coffee roasters or beans.\n\nHow was that new coffee you just picked up? Are you looking for a particular coffee or just want a recommendation for something new to try?\n\nFeel free to provide links for buying online. Also please add a little taste description and what gear you are brewing with. Please note that this thread is for peer-to-peer bean recommendations only. Please do not use this thread to promote a business you have a vested interest in.\n\nSo what have you been brewing this week?",
+        "author": "menschmaschine5",
+        "published_date": "2026-01-02 16:28:03+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.15,
+        "engagement_score": 0.13224,
+        "content_hash": "6fceaf88c26cf517318d570d37fc1fd0",
+        "simhash": 5972804028294190801,
+        "token_count": 134,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q43bxz/have_you_ever_had_a_coffee_that_tasted_like_cough/",
+        "title": "Have you ever had a coffee that tasted like cough medicine?",
+        "content": "This might sound kinda weird, but about every 1 in 100 cups of coffee I make, it comes out with this very bitter, almost medicine/cherry/Dr pepper kind of taste. I love it. There doesn't seem to be any rhyme or reason to it - it can happen just once in a batch of coffee beans/grinds and then when I try the same batch again it's not there anymore.\n\nI'm hoping someone here might know what I'm talking about and why exactly this happens.\nI'd really like to have it more often - for now I just call it a lucky day when it happens.\n\nI make coffee in a moka pot if that makes any difference.",
+        "author": "julio___stinky",
+        "published_date": "2026-01-04 22:14:52+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 2,
+        "relevance_score": 0.25,
+        "engagement_score": 0.0664,
+        "content_hash": "1e441a26bcf79a81eebaeb293522b033",
+        "simhash": 3514128340311369329,
+        "token_count": 133,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q42rvu/trader_joes_coffee/",
+        "title": "Trader Joe\u2019s Coffee",
+        "content": "I love Trader Joe\u2019s Columbia Supremo. It\u2019s my perfect cup, a medium roast with dark, fruity flavors that linger on the palate. It was my go-to coffee for years.\n\nNow I live somewhere where the nearest Trader Joe\u2019s is thousands of miles away. I\u2019ve been trying to find a comparable coffee locally that won\u2019t break the bank and come up empty. Does anyone know of any good Columbian coffees that I can order online without going broke?",
+        "author": "ohthird69",
+        "published_date": "2026-01-04 21:52:54+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.1451,
+        "engagement_score": 0.10010000000000002,
+        "content_hash": "74fe1c15ed2fdf2727f024332423168b",
+        "simhash": 3499221110420227681,
+        "token_count": 87,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q38hav/why_did_venezuela_not_become_a_coffee_powerhouse/",
+        "title": "Why did Venezuela not become a coffee powerhouse?",
+        "content": "With Brazil a neighboring country being the world\u2019s largest coffee producer and Colombia also being a massive producer, why did Venezuela not become a massive producer too? With the current events, this thought was just a little perplexing for me. It seems like they have a similar climate that would lead to big yields of coffee.",
+        "author": "Gamblinman97",
+        "published_date": "2026-01-03 22:40:21+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.13799999999999998,
+        "engagement_score": 0.86,
+        "content_hash": "5fba76d4a7223a26085afca76d793fef",
+        "simhash": 3662439741878920672,
+        "token_count": 65,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      }
+    ],
+    "news": [
+      {
+        "source_url": "https://www.startribune.com/",
+        "title": "Star Tribune",
+        "content": "URBAN PADDLING GUIDEDISCOVER THE ROUTESCanoe, kayak or paddleboard: Your ultimate guide to getting connected to the water in the Twin Cities metro area, whether you\u2019re a beginner or a seasoned pro.Explore",
+        "author": "",
+        "published_date": "2026-01-05 05:40:30.460105+00:00",
+        "minnesota_mentions": 2,
+        "coffee_mentions": 0,
+        "relevance_score": 0.42169999999999996,
+        "engagement_score": 0.0,
+        "content_hash": "2f5bd9fd9dfc457fd44d68750a180fb4",
+        "simhash": 3731543256958562131,
+        "token_count": 35,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://www.mprnews.org/minnesota/",
+        "title": "Minnesota News | MPR News",
+        "content": "By submitting, you consent that you are at least 18 years of age and to receive information about MPR's or APMG entities' programs and offerings. The personally identifying information you provide will not be sold, shared, or used for purposes other than to communicate with you about MPR, APMG entities, and its sponsors. You may opt-out at any time clicking the unsubscribe link at the bottom of any email communication. View ourPrivacy Policy.",
+        "author": "",
+        "published_date": "2026-01-05 05:40:34.646874+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.2472,
+        "engagement_score": 0.0,
+        "content_hash": "0ba02422f6999b58869ea5b414cd62e6",
+        "simhash": 2949765147895361405,
+        "token_count": 79,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      }
+    ],
+    "blogs": [
+      {
+        "source_url": "https://minnesotamonthly.com/",
+        "title": "Minnesota Monthly",
+        "content": "Things to do around Minnesota this week: World Junior Hockey Championship, Crystal Ball New Year's Eve Party, Land O'Lakes Dog Show, and more",
+        "author": "",
+        "published_date": "2026-01-05 05:40:45.595037+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.21589999999999998,
+        "engagement_score": 0.0,
+        "content_hash": "a732d8d7918918e30de27f69fc551187",
+        "simhash": 1424641091705261968,
+        "token_count": 27,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://www.mnopedia.org/",
+        "title": "MNopedia | Minnesota Encyclopedia",
+        "content": "Joseph R. Brownis born in Harford County, Maryland. A drummer boy atFort Snelling, he would learn theDakotalanguage and, later, become a trader, a member of the Wisconsin Territorial Legislature, a participant in both the Stillwater Convention and theMinnesota Constitutional Convention, the editor of theMinnesota Pioneerand theHenderson Democrat, and an officer during the US\u2013Dakota War. He would also be the first lumberman to float logs down the St. Croix River and would stake out the first road",
+        "author": "",
+        "published_date": "2026-01-05 05:40:52.615735+00:00",
+        "minnesota_mentions": 2,
+        "coffee_mentions": 0,
+        "relevance_score": 0.45,
+        "engagement_score": 0.0,
+        "content_hash": "85eb24b32a6bd95400e9c8e19843b8da",
+        "simhash": 4290743278562992759,
+        "token_count": 80,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://minnesotabrown.com/2026/01/looking-backwards-and-forwards-at-minnesotabrown.html",
+        "title": "Looking backwards and forwards at MinnesotaBrown",
+        "content": "Looking backwards and forwards at MinnesotaBrownThis post is for all you MinnesotaBrown readers who have stuck with me. I know things have changed since I took the new job at the Minnesota Star Tribune. A decade ago I was a veritable fire hose of Iron Range news and analysis. Then I started focusing on columns and long-form essays, and now\u2026January 4, 2026",
+        "author": "",
+        "published_date": "2026-01-05 05:41:03.450223+00:00",
+        "minnesota_mentions": 2,
+        "coffee_mentions": 0,
+        "relevance_score": 0.4406,
+        "engagement_score": 0.0,
+        "content_hash": "98d5e2d10bee69e8bbfbbd14af3ce238",
+        "simhash": 3660029439805368141,
+        "token_count": 70,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://minnesotabrown.com/2025/12/at-hospitals-crisis-abounds-and-so-does-danger.html",
+        "title": "At hospitals, crisis abounds, and so does danger",
+        "content": "At hospitals, crisis abounds, and so does dangerWe were at my dad\u2019s place in Chisago County over the post-Christmas weekend when we heard about the security officer killed at a nearby hospital. It was close to home, literally. But it also resonated because I spent time researching mental health for a column series earlier this year. We don\u2019t yet know all the\u2026December 30, 2025",
+        "author": "",
+        "published_date": "2026-01-05 05:41:03.451418+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.2427,
+        "engagement_score": 0.0,
+        "content_hash": "c2e43d0ffb5eb7feaf2cd8b444229a64",
+        "simhash": 4151412645784643177,
+        "token_count": 76,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://minnesotabrown.com/2025/12/bipartisan-friendship-finds-the-common-thread.html",
+        "title": "Bipartisan friendship finds the common thread",
+        "content": "Bipartisan friendship finds the common threadMerry Christmas and Happy New Year! Please enjoy this gift link to my Christmas column about a bipartisan friendship on the Iron Range. People often associate the Iron Range with its quirky political tradition, a northern gothic tableau replete with loud characters and a genial sort of corruption that somehow passes for lovable.\u00a0 I learned\u2026December 24, 2025",
+        "author": "",
+        "published_date": "2026-01-05 05:41:03.453284+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.24500000000000002,
+        "engagement_score": 0.0,
+        "content_hash": "7bcf64df19c301d25012b9af0ed5e28c",
+        "simhash": 4235294339136579441,
+        "token_count": 69,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      }
+    ],
+    "social": [
+      {
+        "source_url": "https://www.startribune.com/northstar-rail-train-end/601556437",
+        "title": "Minnesotans say they will miss the \u2018stress-free\u2019 Northstar as train takes its last ride",
+        "content": "The commuter rail ended service after 16 years on Jan. 4.",
+        "author": "",
+        "published_date": "2026-01-04 14:33:39+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.2145,
+        "engagement_score": 0.0,
+        "content_hash": "b7d7d4f52330faad79cfb4af766ea20b",
+        "simhash": 2858351914137368407,
+        "token_count": 26,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://www.startribune.com/minnesota-leaders-condemn-trump-post-promoting-false-theory-about-hortman-killing/601557552",
+        "title": "Hortman children condemn Trump post promoting false theory about their parents\u2019 killing",
+        "content": "Colin and Sophie Hortman are asking President Trump to remove a video he shared and to apologize.",
+        "author": "",
+        "published_date": "2026-01-04 13:01:38+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.2185,
+        "engagement_score": 0.0,
+        "content_hash": "254b57a3f7894e9e527413f091442112",
+        "simhash": 8236834570984142642,
+        "token_count": 29,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://www.startribune.com/minnesota-sba-loans-ppp-eidl-borrower-suspensions-suspected-fraud/601557209",
+        "title": "What we know about claims of SBA fraud in Minnesota as agency suspends borrowers",
+        "content": "The Minnesota Star Tribune has previously reported on pandemic-era fraudsters stealing from the Small Business Administration.",
+        "author": "",
+        "published_date": "2026-01-03 22:16:54+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.22069999999999998,
+        "engagement_score": 0.0,
+        "content_hash": "215ac361ebddfd7b157935e355cab563",
+        "simhash": 3463200870458082271,
+        "token_count": 31,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://www.minnesotamonthly.com/general/cheers-to-dry-january/",
+        "title": "Cheers to Dry January",
+        "content": "<p>Local picks for nonalcoholic beer, wine, mocktails, and more to ring in the new year</p>\n<p>The post <a href=\"https://www.minnesotamonthly.com/general/cheers-to-dry-january/\" rel=\"nofollow\">Cheers to Dry January</a> appeared first on <a href=\"https://www.minnesotamonthly.com\" rel=\"nofollow\">Minnesota Monthly</a>.</p>",
+        "author": "Jennifer Pitterle",
+        "published_date": "2026-01-02 10:08:49+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.2343,
+        "engagement_score": 0.0,
+        "content_hash": "9fd22ae492a344854096ca9214bc9ec9",
+        "simhash": 4542364897426106193,
+        "token_count": 57,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://www.minnesotamonthly.com/general/experience-north-house-folk-school/",
+        "title": "Experience North House Folk School",
+        "content": "<p>You don\u2019t need to take a class to feel part of this Grand Marais tradition</p>\n<p>The post <a href=\"https://www.minnesotamonthly.com/general/experience-north-house-folk-school/\" rel=\"nofollow\">Experience North House Folk School</a> appeared first on <a href=\"https://www.minnesotamonthly.com\" rel=\"nofollow\">Minnesota Monthly</a>.</p>",
+        "author": "Megan Padilla",
+        "published_date": "2026-01-02 09:30:31+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.2372,
+        "engagement_score": 0.0,
+        "content_hash": "0bcf7a705a5307c2f482fe4759a2b87b",
+        "simhash": 1083591690725975377,
+        "token_count": 61,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      }
+    ],
+    "forums": [
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q3n92r/mod_the_daily_question_thread/",
+        "title": "[MOD] The Daily Question Thread",
+        "content": "Welcome to the daily\u00a0[/r/Coffee](https://www.reddit.com/r/Coffee)\u00a0question thread!\n\nThere are no stupid questions here, ask a question and get an answer! We all have to start somewhere and sometimes it is hard to figure out just what you are doing right or doing wrong. Luckily, the\u00a0[/r/Coffee](https://www.reddit.com/r/Coffee)\u00a0community loves to help out.\n\nDo you have a question about how to use a specific piece of gear or what gear you should be buying? Want to know how much coffee you should use or how you should grind it? Not sure about how much water you should use or how hot it should be? Wondering about your coffee's shelf life?\n\nDon't forget to use the resources in our\u00a0[wiki](http://www.reddit.com/r/Coffee/wiki)! We have some great starter guides on our\u00a0[wiki \"Guides\" page](https://www.reddit.com/r/Coffee/wiki/guides)\u00a0and\u00a0[here is the wiki \"Gear By Price\" page](http://www.reddit.com/r/Coffee/wiki/gear#wiki_coffee_gear_suggestions)\u00a0if you'd like to see coffee gear that\u00a0[/r/Coffee](https://www.reddit.com/r/Coffee)\u00a0members recommend.\n\nAs always, be nice!",
+        "author": "menschmaschine5",
+        "published_date": "2026-01-04 11:01:30+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.15,
+        "engagement_score": 0.07400000000000001,
+        "content_hash": "3f41b5cee4d07758f5f2c6025672c5d1",
+        "simhash": 1273313725691547249,
+        "token_count": 205,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q2330j/mod_what_have_you_been_brewing_this_week_coffee/",
+        "title": "[MOD] What have you been brewing this week?/ Coffee bean recommendations",
+        "content": "Hey everyone!\n\nWelcome back to the weekly /r/Coffee thread where you can share what you are brewing or ask for bean recommendations. This is a place to share and talk about your favorite coffee roasters or beans.\n\nHow was that new coffee you just picked up? Are you looking for a particular coffee or just want a recommendation for something new to try?\n\nFeel free to provide links for buying online. Also please add a little taste description and what gear you are brewing with. Please note that this thread is for peer-to-peer bean recommendations only. Please do not use this thread to promote a business you have a vested interest in.\n\nSo what have you been brewing this week?",
+        "author": "menschmaschine5",
+        "published_date": "2026-01-02 16:28:03+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.15,
+        "engagement_score": 0.13224,
+        "content_hash": "6fceaf88c26cf517318d570d37fc1fd0",
+        "simhash": 5972804028294190801,
+        "token_count": 134,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q43bxz/have_you_ever_had_a_coffee_that_tasted_like_cough/",
+        "title": "Have you ever had a coffee that tasted like cough medicine?",
+        "content": "This might sound kinda weird, but about every 1 in 100 cups of coffee I make, it comes out with this very bitter, almost medicine/cherry/Dr pepper kind of taste. I love it. There doesn't seem to be any rhyme or reason to it - it can happen just once in a batch of coffee beans/grinds and then when I try the same batch again it's not there anymore.\n\nI'm hoping someone here might know what I'm talking about and why exactly this happens.\nI'd really like to have it more often - for now I just call it a lucky day when it happens.\n\nI make coffee in a moka pot if that makes any difference.",
+        "author": "julio___stinky",
+        "published_date": "2026-01-04 22:14:52+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 2,
+        "relevance_score": 0.25,
+        "engagement_score": 0.0664,
+        "content_hash": "1e441a26bcf79a81eebaeb293522b033",
+        "simhash": 3514128340311369329,
+        "token_count": 133,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q42rvu/trader_joes_coffee/",
+        "title": "Trader Joe\u2019s Coffee",
+        "content": "I love Trader Joe\u2019s Columbia Supremo. It\u2019s my perfect cup, a medium roast with dark, fruity flavors that linger on the palate. It was my go-to coffee for years.\n\nNow I live somewhere where the nearest Trader Joe\u2019s is thousands of miles away. I\u2019ve been trying to find a comparable coffee locally that won\u2019t break the bank and come up empty. Does anyone know of any good Columbian coffees that I can order online without going broke?",
+        "author": "ohthird69",
+        "published_date": "2026-01-04 21:52:54+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.1451,
+        "engagement_score": 0.10010000000000002,
+        "content_hash": "74fe1c15ed2fdf2727f024332423168b",
+        "simhash": 3499221110420227681,
+        "token_count": 87,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q38hav/why_did_venezuela_not_become_a_coffee_powerhouse/",
+        "title": "Why did Venezuela not become a coffee powerhouse?",
+        "content": "With Brazil a neighboring country being the world\u2019s largest coffee producer and Colombia also being a massive producer, why did Venezuela not become a massive producer too? With the current events, this thought was just a little perplexing for me. It seems like they have a similar climate that would lead to big yields of coffee.",
+        "author": "Gamblinman97",
+        "published_date": "2026-01-03 22:40:21+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.13799999999999998,
+        "engagement_score": 0.86,
+        "content_hash": "5fba76d4a7223a26085afca76d793fef",
+        "simhash": 3662439741878920672,
+        "token_count": 65,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      }
+    ]
+  }
+}

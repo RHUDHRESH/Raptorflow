@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-01-16T08:07:55.323253",
+  "total_generated": 3,
+  "files": [
+    {
+      "filename": "financial_analysis_20260116_080755_financial_stock_chart.png",
+      "filepath": "tactical_content_test\\financial_analysis_20260116_080755_financial_stock_chart.png",
+      "size": 7011,
+      "category": "financial_analysis",
+      "description": "Financial Stock Chart",
+      "success": true
+    },
+    {
+      "filename": "organizational_structure_20260116_080755_organizational_chart.png",
+      "filepath": "tactical_content_test\\organizational_structure_20260116_080755_organizational_chart.png",
+      "size": 7761,
+      "category": "organizational_structure",
+      "description": "Organizational Chart",
+      "success": true
+    },
+    {
+      "filename": "supply_chain_20260116_080755_supply_chain_diagram.png",
+      "filepath": "tactical_content_test\\supply_chain_20260116_080755_supply_chain_diagram.png",
+      "size": 6852,
+      "category": "supply_chain",
+      "description": "Supply Chain Diagram",
+      "success": true
+    }
+  ]
+}
