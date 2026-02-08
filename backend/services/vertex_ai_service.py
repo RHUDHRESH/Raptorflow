@@ -10,35 +10,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-_VERTEX_IMPORT_ERROR: Optional[Exception] = None
-try:
-    import vertexai  # type: ignore
-    from google.api_core import exceptions as gcp_exceptions  # type: ignore
-
-    VERTEX_SDK_AVAILABLE = True
-except Exception as exc:  # pragma: no cover - optional dependency
-    vertexai = None  # type: ignore
-    gcp_exceptions = None  # type: ignore
-    VERTEX_SDK_AVAILABLE = False
-    _VERTEX_IMPORT_ERROR = exc
-
-if VERTEX_SDK_AVAILABLE:
-    try:
-        from vertexai.generative_models import GenerativeModel  # type: ignore
-
-        GENERATIVE_MODEL_AVAILABLE = True
-    except Exception:  # pragma: no cover - optional dependency
-        GENERATIVE_MODEL_AVAILABLE = False
-
-    try:
-        from vertexai.preview.language_models import TextGenerationModel  # type: ignore
-
-        TEXT_MODEL_AVAILABLE = True
-    except Exception:  # pragma: no cover - optional dependency
-        TEXT_MODEL_AVAILABLE = False
-else:
-    GENERATIVE_MODEL_AVAILABLE = False
-    TEXT_MODEL_AVAILABLE = False
+import vertexai
+from google.api_core import exceptions as gcp_exceptions
+from vertexai.generative_models import GenerativeModel
 
 try:
     from backend.config.settings import get_settings
@@ -75,14 +49,10 @@ class VertexAIService:
     """Vertex AI integration with rate limiting and cost tracking"""
 
     def __init__(self):
-        if not VERTEX_SDK_AVAILABLE:
-            raise RuntimeError(
-                "Vertex AI SDK is not installed. "
-                "Install `google-cloud-aiplatform` and `vertexai` dependencies. "
-                f"Import error: {_VERTEX_IMPORT_ERROR}"
-            )
-
         self.project_id = settings.VERTEX_AI_PROJECT_ID
+        if not self.project_id:
+            raise RuntimeError("VERTEX_AI_PROJECT_ID is required but not configured")
+        
         self.location = settings.VERTEX_AI_LOCATION
         self.model_name = getattr(settings, "VERTEX_AI_MODEL", "gemini-2.0-flash-exp")
 
@@ -103,18 +73,12 @@ class VertexAIService:
         try:
             vertexai.init(project=self.project_id, location=self.location)
 
-            # Try to initialize the appropriate model
-            if "gemini" in self.model_name.lower() and GENERATIVE_MODEL_AVAILABLE:
+            # Initialize the model - no fallbacks
+            if "gemini" in self.model_name.lower():
                 self.model = GenerativeModel(self.model_name)
                 self.model_type = "generative"
-            elif "text-bison" in self.model_name.lower() and TEXT_MODEL_AVAILABLE:
-                self.model = TextGenerationModel.from_pretrained(self.model_name)
-                self.model_type = "text"
             else:
-                # Fallback to text model
-                self.model = TextGenerationModel.from_pretrained("text-bison@002")
-                self.model_type = "text"
-                self.model_name = "text-bison@002"
+                raise ValueError(f"Unsupported model: {self.model_name}. Only Gemini models are supported.")
 
             logger.info(
                 f"Vertex AI initialized: {self.model_name} (type: {self.model_type}) in {self.location}"
@@ -186,39 +150,22 @@ class VertexAIService:
             # Track request time
             self.request_times.append(datetime.now())
 
-            # Generate content based on model type
+            # Generate content
             start_time = time.time()
 
-            if self.model_type == "generative":
-                # Use Gemini-style API
-                response = await self.model.generate_content_async(
-                    prompt,
-                    generation_config={
-                        "max_output_tokens": max_tokens,
-                        "temperature": temperature,
-                    },
-                )
+            response = await self.model.generate_content_async(
+                prompt,
+                generation_config={
+                    "max_output_tokens": max_tokens,
+                    "temperature": temperature,
+                },
+            )
 
-                # Extract token usage
-                usage = response.usage_metadata
-                input_tokens = usage.prompt_token_count if usage else 0
-                output_tokens = usage.candidates_token_count if usage else 0
-                text = response.text
-
-            else:
-                # Use text-bison style API
-                response = self.model.predict(
-                    prompt, max_output_tokens=max_tokens, temperature=temperature
-                )
-
-                # Extract token usage (text-bison provides different metadata)
-                input_tokens = getattr(response, "token_count", {}).get(
-                    "input_tokens", 0
-                )
-                output_tokens = getattr(response, "token_count", {}).get(
-                    "output_tokens", 0
-                )
-                text = response.text
+            # Extract token usage
+            usage = response.usage_metadata
+            input_tokens = usage.prompt_token_count if usage else 0
+            output_tokens = usage.candidates_token_count if usage else 0
+            text = response.text
 
             # Track cost
             await self._track_cost(input_tokens, output_tokens, workspace_id, user_id)
@@ -240,14 +187,14 @@ class VertexAIService:
                 "model_type": self.model_type,
             }
 
+        except gcp_exceptions.GoogleAPICallError as e:
+            logger.error(f"Vertex AI API error: {e}")
+            return {
+                "status": "error",
+                "error": f"Vertex AI API error: {str(e)}",
+                "error_type": "api_error",
+            }
         except Exception as e:
-            if gcp_exceptions and isinstance(e, gcp_exceptions.GoogleAPICallError):
-                logger.error(f"Vertex AI API error: {e}")
-                return {
-                    "status": "error",
-                    "error": f"Vertex AI API error: {str(e)}",
-                    "error_type": "api_error",
-                }
             logger.error(f"Unexpected error in Vertex AI: {e}")
             return {
                 "status": "error",
@@ -256,11 +203,7 @@ class VertexAIService:
             }
 
 
-# Global service instance (optional)
+# Global service instance - initialized at startup
 vertex_ai_service: Optional[VertexAIService] = None
-if VERTEX_SDK_AVAILABLE and getattr(settings, "VERTEX_AI_PROJECT_ID", ""):
-    try:
-        vertex_ai_service = VertexAIService()
-    except Exception as e:  # pragma: no cover - runtime/config dependent
-        logger.error(f"Failed to initialize Vertex AI service: {e}")
-        vertex_ai_service = None
+if getattr(settings, "VERTEX_AI_PROJECT_ID", ""):
+    vertex_ai_service = VertexAIService()

@@ -139,6 +139,16 @@ async def seed_bcm(
     )
 
 
+@router.delete("/")
+async def clear_bcm(
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> Dict[str, str]:
+    """Eject/clear all BCM manifests for the workspace (dev/testing use)."""
+    workspace_id = _require_workspace_id(x_workspace_id)
+    deleted = bcm_service.clear_all(workspace_id)
+    return {"status": "cleared", "deleted_count": str(deleted), "workspace_id": workspace_id}
+
+
 @router.get("/versions", response_model=List[VersionSummary])
 async def list_bcm_versions(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),

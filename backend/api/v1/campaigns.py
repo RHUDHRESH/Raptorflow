@@ -157,13 +157,13 @@ async def get_campaign(
         .select("*")
         .eq("id", campaign_id)
         .eq("workspace_id", workspace_id)
-        .single()
+        .limit(1)
         .execute()
     )
     if not result.data:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
-    return CampaignOut(**result.data)
+    return CampaignOut(**result.data[0])
 
 
 @router.patch("/{campaign_id}", response_model=CampaignOut)

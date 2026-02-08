@@ -242,13 +242,13 @@ async def update_move(
         .select("*")
         .eq("id", move_id)
         .eq("workspace_id", workspace_id)
-        .single()
+        .limit(1)
         .execute()
     )
     if not existing.data:
         raise HTTPException(status_code=404, detail="Move not found")
 
-    row = existing.data
+    row = existing.data[0]
     tool_req = row.get("tool_requirements") or {}
     ui_move = tool_req.get("ui_move") if isinstance(tool_req, dict) else None
     if not isinstance(ui_move, dict):

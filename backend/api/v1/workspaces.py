@@ -7,21 +7,31 @@ Auth is intentionally not required; this is for scorched-earth reconstruction.
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
 from backend.core.supabase_mgr import get_supabase_client
+from backend.services.business_context_templates import (
+    TemplateType,
+    extract_foundation_data,
+    get_template,
+    validate_template_type,
+)
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
+
+logger = logging.getLogger(__name__)
 
 
 class WorkspaceCreate(BaseModel):
     name: str = Field(..., min_length=1)
     slug: Optional[str] = None
     settings: Optional[Dict[str, Any]] = None
+    template: Optional[TemplateType] = Field(None, description="Business context template: saas, agency, or ecommerce")
 
 
 class WorkspaceUpdate(BaseModel):
@@ -71,14 +81,19 @@ async def _insert_workspace(payload: Dict[str, Any]) -> Dict[str, Any]:
 @router.post("/", response_model=WorkspaceResponse, status_code=status.HTTP_201_CREATED)
 async def create_workspace(workspace: WorkspaceCreate) -> WorkspaceResponse:
     """
-    Create a workspace.
-    No auth required. A workspace is the tenant boundary.
+    Create a workspace with optional business context template.
+    
+    Templates: "saas", "agency", "ecommerce"
+    When a template is provided, the workspace is automatically seeded with
+    foundation data and business context from the template.
     """
     base_slug = workspace.slug or _slugify(workspace.name)
     settings = workspace.settings or {}
 
     # Try to insert, retrying slug collisions with a suffix.
     last_error: Optional[Exception] = None
+    created_workspace: Optional[Dict[str, Any]] = None
+    
     for attempt in range(0, 6):
         slug = base_slug if attempt == 0 else f"{base_slug}-{uuid4().hex[:6]}"
         payload = {
@@ -88,18 +103,54 @@ async def create_workspace(workspace: WorkspaceCreate) -> WorkspaceResponse:
             "settings": settings,
         }
         try:
-            row = await _insert_workspace(payload)
-            return WorkspaceResponse(**row)
+            created_workspace = await _insert_workspace(payload)
+            break
         except Exception as e:
             last_error = e
             if _is_slug_collision_error(e):
                 continue
             raise
+    
+    if not created_workspace:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create workspace (slug collision). Last error: {last_error}",
+        )
+    
+    # Seed foundation data if template specified
+    if workspace.template:
+        await _seed_workspace_foundation(
+            workspace_id=created_workspace["id"],
+            template_type=workspace.template
+        )
+    
+    return WorkspaceResponse(**created_workspace)
 
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail=f"Failed to create workspace (slug collision). Last error: {last_error}",
-    )
+
+async def _seed_workspace_foundation(
+    workspace_id: str,
+    template_type: TemplateType
+) -> None:
+    """Seed foundation data for a workspace from template."""
+    try:
+        supabase = get_supabase_client()
+        
+        # Load and extract template data
+        template = get_template(template_type)
+        foundation_data = extract_foundation_data(template)
+        foundation_data["workspace_id"] = workspace_id
+        
+        # Insert into foundations table
+        result = supabase.table("foundations").insert(foundation_data).execute()
+        
+        if result.data:
+            logger.info(f"Seeded foundation for workspace {workspace_id} from {template_type} template")
+        else:
+            logger.warning(f"Failed to seed foundation for workspace {workspace_id}")
+            
+    except Exception as e:
+        # Log error but don't fail workspace creation
+        logger.error(f"Error seeding foundation for workspace {workspace_id}: {e}")
 
 
 @router.get("/{workspace_id}", response_model=WorkspaceResponse)
@@ -113,12 +164,12 @@ async def get_workspace(workspace_id: str) -> WorkspaceResponse:
         )
 
     result = (
-        supabase.table("workspaces").select("*").eq("id", workspace_id).single().execute()
+        supabase.table("workspaces").select("*").eq("id", workspace_id).limit(1).execute()
     )
     if not result.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
 
-    return WorkspaceResponse(**result.data)
+    return WorkspaceResponse(**result.data[0])
 
 
 @router.patch("/{workspace_id}", response_model=WorkspaceResponse)

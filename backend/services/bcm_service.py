@@ -139,3 +139,12 @@ def seed_from_business_context(
     )
 
     return store_manifest(workspace_id, manifest, business_context)
+
+
+def clear_all(workspace_id: str) -> int:
+    """Delete all BCM manifests for a workspace. Returns count deleted."""
+    client = get_supabase_client()
+    result = client.table(TABLE).delete().eq("workspace_id", workspace_id).execute()
+    deleted_count = len(result.data) if result.data else 0
+    logger.info("Cleared %d BCM manifests for workspace %s", deleted_count, workspace_id)
+    return deleted_count

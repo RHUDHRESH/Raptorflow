@@ -16,7 +16,8 @@ interface BCMStoreState {
   fetchBCM: (workspaceId: string) => Promise<void>;
   rebuildBCM: (workspaceId: string) => Promise<void>;
   fetchVersions: (workspaceId: string) => Promise<void>;
-  reset: () => void;
+  isSeeding: boolean;
+  seedBCM: (workspaceId: string, businessContext: Record<string, unknown>) => Promise<void>;
 }
 
 const INITIAL: Pick<
@@ -39,7 +40,7 @@ const INITIAL: Pick<
   isLoading: false,
   isRebuilding: false,
   error: null,
-  versions: [],
+  isSeeding: false,
 };
 
 function applyResponse(resp: BCMResponse) {
@@ -87,5 +88,14 @@ export const useBCMStore = create<BCMStoreState>((set) => ({
     }
   },
 
-  reset: () => set(INITIAL),
+  seedBCM: async (workspaceId: string, businessContext: Record<string, unknown>) => {
+    set({ isSeeding: true, error: null });
+    try {
+      const resp = await bcmService.seed(workspaceId, businessContext);
+      set({ ...applyResponse(resp), isSeeding: false });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to seed BCM";
+      set({ isSeeding: false, error: msg });
+    }
+  },
 }));
