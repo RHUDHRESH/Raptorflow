@@ -17,33 +17,53 @@ logger = logging.getLogger(__name__)
 async def startup():
     """Startup checks for the canonical reconstruction stack.
 
-    This must not import optional integrations (Redis, auth, payments, etc) at
-    module import time; missing optional dependencies should not prevent the API
-    from starting.
+    Services: Supabase (DB+Storage), Vertex AI, Upstash Redis, Resend, Sentry.
+    Optional services log warnings but do not prevent startup.
     """
 
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
 
-    # Database (required)
+    # Supabase Database (required)
     try:
         supabase = get_supabase_client()
         supabase.table("workspaces").select("id").limit(1).execute()
-        logger.info("Database: healthy")
+        logger.info("Supabase DB: healthy")
     except Exception as e:
-        logger.error(f"Database health check failed: {e}")
+        logger.error(f"Supabase DB health check failed: {e}")
         raise
 
-    # Muse/Vertex AI (optional)
+    # Upstash Redis (optional)
+    try:
+        from backend.core.redis_mgr import get_redis_client  # noqa: PLC0415
+
+        redis = get_redis_client()
+        logger.info("Redis: %s", "healthy" if redis else "unconfigured")
+    except Exception as e:
+        logger.warning(f"Redis health check failed: {e}")
+
+    # Vertex AI (optional)
     try:
         from backend.services.vertex_ai_service import vertex_ai_service  # noqa: PLC0415
 
         logger.info(
-            "Muse: %s",
-            "configured (vertex_ai)" if vertex_ai_service else "unconfigured",
+            "Vertex AI: %s",
+            "configured" if vertex_ai_service else "unconfigured",
         )
     except Exception as e:
-        logger.warning(f"Muse health check failed: {e}")
+        logger.warning(f"Vertex AI health check failed: {e}")
+
+    # Resend (optional)
+    logger.info(
+        "Resend: %s",
+        "configured" if settings.RESEND_API_KEY else "unconfigured",
+    )
+
+    # Sentry (optional)
+    logger.info(
+        "Sentry: %s",
+        "configured" if settings.SENTRY_DSN else "unconfigured",
+    )
 
     logger.info("Startup complete")
 

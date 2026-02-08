@@ -37,11 +37,14 @@ export default function BCMStatusPanel({
     checksum,
     createdAt,
     completionPct,
+    synthesized,
     isLoading,
     isRebuilding,
+    isReflecting,
     error,
     fetchBCM,
     rebuildBCM,
+    reflectBCM,
   } = useBCMStore();
 
   useEffect(() => {
@@ -87,23 +90,57 @@ export default function BCMStatusPanel({
           >
             {badge.label}
           </span>
+          {synthesized && (
+            <span
+              style={{
+                fontSize: "10px",
+                fontWeight: 700,
+                padding: "2px 6px",
+                borderRadius: "4px",
+                background: "#8b5cf620",
+                color: "#a78bfa",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              AI+
+            </span>
+          )}
         </div>
-        <button
-          onClick={() => workspaceId && rebuildBCM(workspaceId)}
-          disabled={isRebuilding || isLoading}
-          style={{
-            fontSize: "12px",
-            padding: "4px 10px",
-            borderRadius: "4px",
-            border: "1px solid var(--border, #27272a)",
-            background: "transparent",
-            color: "var(--foreground, #fafafa)",
-            cursor: isRebuilding ? "wait" : "pointer",
-            opacity: isRebuilding ? 0.5 : 1,
-          }}
-        >
-          {isRebuilding ? "Rebuilding..." : "Rebuild"}
-        </button>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button
+            onClick={() => workspaceId && reflectBCM(workspaceId)}
+            disabled={isReflecting || isLoading || !manifest}
+            style={{
+              fontSize: "12px",
+              padding: "4px 10px",
+              borderRadius: "4px",
+              border: "1px solid var(--border, #27272a)",
+              background: "transparent",
+              color: "var(--foreground, #fafafa)",
+              cursor: isReflecting ? "wait" : "pointer",
+              opacity: isReflecting || !manifest ? 0.5 : 1,
+            }}
+          >
+            {isReflecting ? "Reflecting..." : "Reflect"}
+          </button>
+          <button
+            onClick={() => workspaceId && rebuildBCM(workspaceId)}
+            disabled={isRebuilding || isLoading}
+            style={{
+              fontSize: "12px",
+              padding: "4px 10px",
+              borderRadius: "4px",
+              border: "1px solid var(--border, #27272a)",
+              background: "transparent",
+              color: "var(--foreground, #fafafa)",
+              cursor: isRebuilding ? "wait" : "pointer",
+              opacity: isRebuilding ? 0.5 : 1,
+            }}
+          >
+            {isRebuilding ? "Rebuilding..." : "Rebuild"}
+          </button>
+        </div>
       </div>
 
       {/* Loading / Error states */}
@@ -141,6 +178,18 @@ export default function BCMStatusPanel({
           {/* Metrics grid */}
           <div
             style={{
+            {synthesized && meta?.memory_count !== undefined && (
+              <div>
+                <div style={{ color: "#6b7280", marginBottom: "2px" }}>Memories</div>
+                <div style={{ fontWeight: 600 }}>{meta.memory_count}</div>
+              </div>
+            )}
+            {synthesized && meta?.last_reflection_at && (
+              <div>
+                <div style={{ color: "#6b7280", marginBottom: "2px" }}>Last Reflection</div>
+                <div style={{ fontWeight: 600 }}>{timeAgo(meta.last_reflection_at)}</div>
+              </div>
+            )}
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
               gap: "var(--spacing-sm, 8px)",

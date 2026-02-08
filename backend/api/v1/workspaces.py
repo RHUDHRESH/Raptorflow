@@ -17,8 +17,8 @@ from backend.services.business_context_templates import (
     TemplateType,
     extract_foundation_data,
     get_template,
-    validate_template_type,
 )
+from backend.config.settings import get_settings
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
@@ -31,7 +31,6 @@ class WorkspaceCreate(BaseModel):
     name: str = Field(..., min_length=1)
     slug: Optional[str] = None
     settings: Optional[Dict[str, Any]] = None
-    template: Optional[TemplateType] = Field(None, description="Business context template: saas, agency, or ecommerce")
 
 
 class WorkspaceUpdate(BaseModel):
@@ -81,11 +80,10 @@ async def _insert_workspace(payload: Dict[str, Any]) -> Dict[str, Any]:
 @router.post("/", response_model=WorkspaceResponse, status_code=status.HTTP_201_CREATED)
 async def create_workspace(workspace: WorkspaceCreate) -> WorkspaceResponse:
     """
-    Create a workspace with optional business context template.
+    Create a workspace with automatic foundation seeding.
     
-    Templates: "saas", "agency", "ecommerce"
-    When a template is provided, the workspace is automatically seeded with
-    foundation data and business context from the template.
+    If DEFAULT_BUSINESS_TEMPLATE environment variable is set (saas, agency, or ecommerce),
+    the workspace is automatically seeded with foundation data from that template.
     """
     base_slug = workspace.slug or _slugify(workspace.name)
     settings = workspace.settings or {}
@@ -117,11 +115,12 @@ async def create_workspace(workspace: WorkspaceCreate) -> WorkspaceResponse:
             detail=f"Failed to create workspace (slug collision). Last error: {last_error}",
         )
     
-    # Seed foundation data if template specified
-    if workspace.template:
+    # Seed foundation data from default template if configured
+    config = get_settings()
+    if config.DEFAULT_BUSINESS_TEMPLATE:
         await _seed_workspace_foundation(
             workspace_id=created_workspace["id"],
-            template_type=workspace.template
+            template_type=config.DEFAULT_BUSINESS_TEMPLATE
         )
     
     return WorkspaceResponse(**created_workspace)

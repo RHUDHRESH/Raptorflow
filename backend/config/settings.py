@@ -1,5 +1,7 @@
 ﻿"""
 Application settings and configuration management.
+
+Canonical services: Supabase (DB+Storage), Vertex AI, Upstash Redis, Resend, Sentry.
 """
 
 from enum import Enum
@@ -27,16 +29,6 @@ class ModelTier(str, Enum):
     PRO = "gemini-1.5-pro"
 
 
-class LLMProvider(str, Enum):
-    """Supported LLM providers."""
-
-    OPENAI = "openai"
-    GOOGLE = "google"
-    ANTHROPIC = "anthropic"
-    HUGGINGFACE = "huggingface"
-    CUSTOM = "custom"
-
-
 class Settings(BaseSettings):
     """Application settings with validation and environment-specific defaults."""
 
@@ -59,33 +51,24 @@ class Settings(BaseSettings):
     JWT_EXPIRE_MINUTES: int = Field(default=30, env="JWT_EXPIRE_MINUTES")
     ALLOW_HEADER_AUTH: bool = Field(default=False, env="ALLOW_HEADER_AUTH")
 
-    # Database
-    DATABASE_URL: str = Field(default="", env="DATABASE_URL")
-    DATABASE_HOST: Optional[str] = Field(default=None, env="DATABASE_HOST")
-    DATABASE_NAME: Optional[str] = Field(default=None, env="DATABASE_NAME")
-    DATABASE_USER: Optional[str] = Field(default=None, env="DATABASE_USER")
-    DATABASE_PASSWORD: Optional[str] = Field(default=None, env="DATABASE_PASSWORD")
-    DATABASE_PORT: int = Field(default=5432, env="DATABASE_PORT")
-    DATABASE_POOL_SIZE: int = Field(default=10, env="DATABASE_POOL_SIZE")
-    DATABASE_MAX_OVERFLOW: int = Field(default=20, env="DATABASE_MAX_OVERFLOW")
+    # Supabase (Database + Storage)
+    SUPABASE_URL: Optional[str] = Field(default=None, env="SUPABASE_URL")
+    SUPABASE_KEY: Optional[str] = Field(default=None, env="SUPABASE_KEY")
+    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = Field(
+        default=None, env="SUPABASE_SERVICE_ROLE_KEY"
+    )
+    SUPABASE_STORAGE_BUCKET: str = Field(default="uploads", env="SUPABASE_STORAGE_BUCKET")
 
-    # Redis
-    UPSTASH_REDIS_URL: str = Field(default="", env="UPSTASH_REDIS_URL")
-    UPSTASH_REDIS_TOKEN: str = Field(default="", env="UPSTASH_REDIS_TOKEN")
+    # Upstash Redis
     UPSTASH_REDIS_REST_URL: str = Field(default="", env="UPSTASH_REDIS_REST_URL")
     UPSTASH_REDIS_REST_TOKEN: str = Field(default="", env="UPSTASH_REDIS_REST_TOKEN")
-    REDIS_URL: str = Field(default="", env="REDIS_URL")
     REDIS_KEY_PREFIX: str = Field(default="raptorflow:", env="REDIS_KEY_PREFIX")
     REDIS_DEFAULT_TTL: int = Field(default=3600, env="REDIS_DEFAULT_TTL")
-    REDIS_MAX_CONNECTIONS: int = Field(default=10, env="REDIS_MAX_CONNECTIONS")
 
-    # AI/ML Services
+    # Vertex AI
     VERTEX_AI_PROJECT_ID: str = Field(default="", env="VERTEX_AI_PROJECT_ID")
     VERTEX_AI_LOCATION: str = Field(default="us-central1", env="VERTEX_AI_LOCATION")
     VERTEX_AI_MODEL: str = Field(default="gemini-2.0-flash-exp", env="VERTEX_AI_MODEL")
-    VERTEX_AI_CREDENTIALS_PATH: Optional[str] = Field(
-        default=None, env="VERTEX_AI_CREDENTIALS_PATH"
-    )
 
     # AI Rate Limiting
     AI_REQUESTS_PER_MINUTE: int = Field(default=60, env="AI_REQUESTS_PER_MINUTE")
@@ -95,37 +78,9 @@ class Settings(BaseSettings):
     DAILY_AI_BUDGET: float = Field(default=10.0, env="DAILY_AI_BUDGET")
     MONTHLY_AI_BUDGET: float = Field(default=100.0, env="MONTHLY_AI_BUDGET")
 
-    # OpenAI (optional)
-    OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
-    OPENAI_ORG_ID: Optional[str] = Field(default=None, env="OPENAI_ORG_ID")
-    OPENAI_MODEL: str = Field(default="gpt-4", env="OPENAI_MODEL")
-
-    # Google Cloud Platform
-    GCP_PROJECT_ID: str = Field(default="", env="GCP_PROJECT_ID")
-    GCP_REGION: str = Field(default="us-central1", env="GCP_REGION")
-    GCP_LOCATION: str = Field(default="us-central1", env="GCP_LOCATION")
-    GCP_CREDENTIALS_PATH: Optional[str] = Field(
-        default=None, env="GCP_CREDENTIALS_PATH"
-    )
-
-    # Cloud Storage
-    EVIDENCE_BUCKET: str = Field(default="raptorflow-evidence", env="EVIDENCE_BUCKET")
-    EXPORTS_BUCKET: str = Field(default="raptorflow-exports", env="EXPORTS_BUCKET")
-    ASSETS_BUCKET: str = Field(default="raptorflow-assets", env="ASSETS_BUCKET")
-
-    # BigQuery
-    BIGQUERY_DATASET: str = Field(
-        default="raptorflow_analytics", env="BIGQUERY_DATASET"
-    )
-
-    # Email
-    SMTP_HOST: Optional[str] = Field(default=None, env="SMTP_HOST")
-    SMTP_PORT: int = Field(default=587, env="SMTP_PORT")
-    SMTP_USERNAME: Optional[str] = Field(default=None, env="SMTP_USERNAME")
-    SMTP_PASSWORD: Optional[str] = Field(default=None, env="SMTP_PASSWORD")
-    SMTP_USE_TLS: bool = Field(default=True, env="SMTP_USE_TLS")
-    EMAIL_FROM: Optional[str] = Field(default=None, env="EMAIL_FROM")
-    SLACK_WEBHOOK_URL: Optional[str] = Field(default=None, env="SLACK_WEBHOOK_URL")
+    # Resend (Email)
+    RESEND_API_KEY: str = Field(default="", env="RESEND_API_KEY")
+    EMAIL_FROM: str = Field(default="noreply@raptorflow.com", env="EMAIL_FROM")
 
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = Field(default=True, env="RATE_LIMIT_ENABLED")
@@ -136,13 +91,9 @@ class Settings(BaseSettings):
         default=1000, env="RATE_LIMIT_REQUESTS_PER_HOUR"
     )
 
-    # Usage Limits
-    DEFAULT_TOKEN_LIMIT: int = Field(default=100000, env="DEFAULT_TOKEN_LIMIT")
-    DEFAULT_COST_LIMIT: float = Field(default=100.0, env="DEFAULT_COST_LIMIT")
-
     # Monitoring & Logging
     LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
-    LOG_FORMAT: str = Field(default="json", env="LOG_FORMAT")  # json or pretty
+    LOG_FORMAT: str = Field(default="json", env="LOG_FORMAT")
     SENTRY_DSN: Optional[str] = Field(default=None, env="SENTRY_DSN")
 
     # CORS
@@ -167,45 +118,12 @@ class Settings(BaseSettings):
     CACHE_TTL: int = Field(default=3600, env="CACHE_TTL")
     CACHE_MAX_SIZE: int = Field(default=1000, env="CACHE_MAX_SIZE")
 
-    # Background Jobs
-    JOB_ENABLED: bool = Field(default=True, env="JOB_ENABLED")
-    JOB_CONCURRENCY: int = Field(default=10, env="JOB_CONCURRENCY")
-
-    # Search Cluster
-    SEARXNG_URL: str = Field(default="http://localhost:8080", env="SEARXNG_URL")
-
-    # External Data APIs
-    ECONOMIC_INDICATORS_API_KEY: Optional[str] = Field(
-        default=None, env="ECONOMIC_INDICATORS_API_KEY"
-    )
-    FINANCIAL_DATA_API_KEY: Optional[str] = Field(
-        default=None, env="FINANCIAL_DATA_API_KEY"
-    )
-    MARKET_RESEARCH_API_KEY: Optional[str] = Field(
-        default=None, env="MARKET_RESEARCH_API_KEY"
-    )
-    NEWS_API_KEY: Optional[str] = Field(default=None, env="NEWS_API_KEY")
-
-    # Document Service
-    MAX_FILE_SIZE: int = Field(default=100 * 1024 * 1024, env="MAX_FILE_SIZE")  # 100MB
-    DOCUMENT_UPLOAD_PATH: str = Field(
-        default="uploads/documents", env="DOCUMENT_UPLOAD_PATH"
-    )
-    VIRUS_SCAN_ENABLED: bool = Field(default=False, env="VIRUS_SCAN_ENABLED")
-    VIRUS_SCAN_PROVIDER: str = Field(default="gcp", env="VIRUS_SCAN_PROVIDER")
-    CLAMAV_URL: str = Field(default="http://localhost:3310", env="CLAMAV_URL")
-
-    # Supabase
-    SUPABASE_URL: Optional[str] = Field(default=None, env="SUPABASE_URL")
-    SUPABASE_KEY: Optional[str] = Field(default=None, env="SUPABASE_KEY")
-    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = Field(
-        default=None, env="SUPABASE_SERVICE_ROLE_KEY"
+    # Business Context Templates
+    DEFAULT_BUSINESS_TEMPLATE: Optional[str] = Field(
+        default=None, env="DEFAULT_BUSINESS_TEMPLATE"
     )
 
-    # LLM Provider
-    LLM_PROVIDER: LLMProvider = Field(default=LLMProvider.GOOGLE, env="LLM_PROVIDER")
-
-    # Validators (on the class, not inside Config)
+    # Validators
     @validator("CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v):
         """Parse CORS origins from string or list."""
@@ -239,6 +157,17 @@ class Settings(BaseSettings):
                 return {}
         return v
 
+    @validator("DEFAULT_BUSINESS_TEMPLATE")
+    def validate_business_template(cls, v):
+        """Validate business template type."""
+        if v is None:
+            return None
+        v = v.lower()
+        valid_types = ["saas", "agency", "ecommerce"]
+        if v not in valid_types:
+            raise ValueError(f"Template must be one of: {', '.join(valid_types)}")
+        return v
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -259,11 +188,6 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Check if running in production environment."""
         return self.ENVIRONMENT in {Environment.PROD, Environment.PRODUCTION}
-
-    @property
-    def database_url_sync(self) -> str:
-        """Get synchronous database URL."""
-        return self.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
 
     def get_cors_origins(self) -> List[str]:
         """Get CORS origins based on environment."""
@@ -292,27 +216,17 @@ class Settings(BaseSettings):
         self.FEATURE_FLAGS[flag_name] = value
 
     def get_llm_config(self) -> Dict[str, Any]:
-        """Get LLM provider configuration."""
+        """Get Vertex AI configuration."""
         import os
 
-        provider = os.getenv("LLM_PROVIDER", self.LLM_PROVIDER.value)
-
-        if provider == "openai":
-            return {
-                "provider": "openai",
-                "api_key": self.OPENAI_API_KEY,
-                "model": self.OPENAI_MODEL,
-            }
-        else:
-            # Default to Google Vertex AI
-            return {
-                "provider": "google",
-                "api_key": os.getenv("VERTEX_AI_API_KEY")
-                or os.getenv("GOOGLE_API_KEY"),
-                "project_id": self.VERTEX_AI_PROJECT_ID,
-                "location": self.VERTEX_AI_LOCATION,
-                "model": self.VERTEX_AI_MODEL,
-            }
+        return {
+            "provider": "google",
+            "api_key": os.getenv("VERTEX_AI_API_KEY")
+            or os.getenv("GOOGLE_API_KEY"),
+            "project_id": self.VERTEX_AI_PROJECT_ID,
+            "location": self.VERTEX_AI_LOCATION,
+            "model": self.VERTEX_AI_MODEL,
+        }
 
     # Compatibility properties for lower-case accessors used across the codebase
     @property
@@ -344,12 +258,8 @@ class Settings(BaseSettings):
         return self.CORS_ORIGINS
 
     @property
-    def database_url(self) -> str:
-        return self.DATABASE_URL
-
-    @property
     def redis_url(self) -> str:
-        return self.REDIS_URL or self.UPSTASH_REDIS_URL or self.UPSTASH_REDIS_REST_URL
+        return self.UPSTASH_REDIS_REST_URL
 
     def get(self, key: str, default: Any = None) -> Any:
         if hasattr(self, key):

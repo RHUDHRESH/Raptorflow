@@ -1,6 +1,0 @@
-- [ ] Implement PhonePe integration client (`backend/src/integrations/phonepe/client.ts`)
-- [ ] Implement PhonePe service (`backend/src/integrations/phonepe/service.ts`)
-- [ ] Implement PhonePe types (`backend/src/integrations/phonepe/types.ts`)
-- [ ] Implement PhonePe API routes (`backend/src/routes/payments.ts`)
-- [ ] Register payment routes in `backend/src/index.ts`
-- [ ] Create documentation for PhonePe integration (`docs/phonepe-integration.md`)

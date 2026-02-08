@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, StopCircle, Sparkles } from "lucide-react";
+import { Send, Bot, User, StopCircle, Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BlueprintButton } from "@/components/ui/BlueprintButton";
 import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 import { museService } from "@/services/muse.service";
+import { feedbackService } from "@/services/feedback.service";
 import { useBCMStore } from "@/stores/bcmStore";
 
 interface Message {
@@ -16,6 +17,8 @@ interface Message {
     tokens_used?: number;
     cost_usd?: number;
     suggestions?: string[];
+    generation_id?: string;
+    feedback?: 'positive' | 'negative';
 }
 
 interface MuseChatProps {
@@ -124,7 +127,8 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                     timestamp: Date.now(),
                     tokens_used: data.tokens_used,
                     cost_usd: data.cost_usd,
-                    suggestions: data.suggestions || []
+                    suggestions: data.suggestions || [],
+                    generation_id: data.metadata?.generation_id,
                 };
 
                 setMessages(prev => [...prev, assistantMessage]);
@@ -371,6 +375,41 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
                                     {message.content}
                                 </div>
+
+                                {/* Feedback buttons (assistant messages with generation_id only) */}
+                                {message.role === 'assistant' && message.generation_id && (
+                                    <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-[var(--muted)]">Helpful?</span>
+                                            <button
+                                                onClick={() => handleFeedback(message.id, true)}
+                                                disabled={!!message.feedback}
+                                                className={cn(
+                                                    "p-1.5 rounded border transition-colors",
+                                                    message.feedback === 'positive'
+                                                        ? "bg-green-500/20 border-green-500 text-green-500"
+                                                        : "border-[var(--border)] text-[var(--muted)] hover:text-green-500 hover:border-green-500",
+                                                    message.feedback && "opacity-50 cursor-not-allowed"
+                                                )}
+                                            >
+                                                <ThumbsUp className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleFeedback(message.id, false)}
+                                                disabled={!!message.feedback}
+                                                className={cn(
+                                                    "p-1.5 rounded border transition-colors",
+                                                    message.feedback === 'negative'
+                                                        ? "bg-red-500/20 border-red-500 text-red-500"
+                                                        : "border-[var(--border)] text-[var(--muted)] hover:text-red-500 hover:border-red-500",
+                                                    message.feedback && "opacity-50 cursor-not-allowed"
+                                                )}
+                                            >
+                                                <ThumbsDown className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Metadata */}
                                 {(message.tokens_used || message.cost_usd) && (

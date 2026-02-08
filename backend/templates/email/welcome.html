@@ -1,0 +1,9 @@
+{% extends "_base.html" %}
+{% block title %}Welcome to Raptorflow{% endblock %}
+{% block content %}
+<h1>Welcome aboard, {{ user_name }}!</h1>
+<p>Your Raptorflow account is ready. Start building your business context, define your ideal customer profiles, and let AI-powered agents craft content that converts.</p>
+<a href="{{ app_url }}" class="btn">Get Started</a>
+<hr class="divider">
+<p style="font-size: 13px;">If the button doesn't work, copy this link into your browser:<br><a href="{{ app_url }}" style="color: #6366f1;">{{ app_url }}</a></p>
+{% endblock %}

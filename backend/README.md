@@ -46,12 +46,12 @@ Required (database):
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
-Optional (Muse):
+Optional:
 
-- `VERTEX_AI_PROJECT_ID`
-- `VERTEX_AI_LOCATION`
-- `VERTEX_AI_MODEL`
-- `GOOGLE_APPLICATION_CREDENTIALS` (or another supported GCP auth method)
+- `VERTEX_AI_PROJECT_ID`, `VERTEX_AI_LOCATION`, `VERTEX_AI_MODEL` (Muse/AI)
+- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (caching)
+- `RESEND_API_KEY`, `EMAIL_FROM` (email)
+- `SENTRY_DSN` (monitoring)
 
-See `backend/.env.example` and repo-root `.env.example`.
+See `backend/.env.example`.
 

@@ -1,0 +1,9 @@
+{% extends "_base.html" %}
+{% block title %}Your Export is Ready{% endblock %}
+{% block content %}
+<h1>Your export is ready</h1>
+<p>The export <strong>{{ export_name }}</strong> has finished processing and is ready to download.</p>
+<a href="{{ download_url }}" class="btn">Download Export</a>
+<hr class="divider">
+<p style="font-size: 13px;">This download link expires in <strong>{{ expires_in }}</strong>. After that, you'll need to generate a new export.</p>
+{% endblock %}

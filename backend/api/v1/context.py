@@ -41,6 +41,7 @@ class BCMResponse(BaseModel):
     token_estimate: int = 0
     created_at: Optional[str] = None
     completion_pct: int = 0
+    synthesized: bool = False
 
 
 class SeedRequest(BaseModel):
@@ -57,7 +58,10 @@ class VersionSummary(BaseModel):
 
 def _compute_completion(manifest: Dict[str, Any]) -> int:
     """Compute completion percentage based on populated BCM sections."""
-    sections = ["foundation", "icps", "competitive", "messaging", "channels", "market"]
+    sections = [
+        "foundation", "icps", "competitive", "messaging", "channels", "market",
+        "identity", "prompt_kit", "guardrails_v2",
+    ]
     filled = 0
     for section in sections:
         val = manifest.get(section)
@@ -91,6 +95,7 @@ async def get_latest_bcm(
         token_estimate=row.get("token_estimate", 0),
         created_at=row.get("created_at"),
         completion_pct=_compute_completion(manifest),
+        synthesized=manifest.get("meta", {}).get("synthesized", False),
     )
 
 
@@ -98,9 +103,9 @@ async def get_latest_bcm(
 async def rebuild_bcm(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> BCMResponse:
-    """Rebuild BCM from the latest stored source business context."""
+    """Rebuild BCM with AI synthesis from the latest stored source business context."""
     workspace_id = _require_workspace_id(x_workspace_id)
-    row = bcm_service.rebuild(workspace_id)
+    row = await bcm_service.rebuild_async(workspace_id)
 
     if not row:
         raise HTTPException(
@@ -116,6 +121,7 @@ async def rebuild_bcm(
         token_estimate=row.get("token_estimate", 0),
         created_at=row.get("created_at"),
         completion_pct=_compute_completion(manifest),
+        synthesized=manifest.get("meta", {}).get("synthesized", False),
     )
 
 
@@ -124,9 +130,11 @@ async def seed_bcm(
     payload: SeedRequest,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> BCMResponse:
-    """Seed a BCM from a raw business_context.json (dev/test use)."""
+    """Seed a BCM with AI synthesis from a raw business_context.json."""
     workspace_id = _require_workspace_id(x_workspace_id)
-    row = bcm_service.seed_from_business_context(workspace_id, payload.business_context)
+    row = await bcm_service.seed_from_business_context_async(
+        workspace_id, payload.business_context,
+    )
 
     manifest = row["manifest"]
     return BCMResponse(
@@ -136,6 +144,7 @@ async def seed_bcm(
         token_estimate=row.get("token_estimate", 0),
         created_at=row.get("created_at"),
         completion_pct=_compute_completion(manifest),
+        synthesized=manifest.get("meta", {}).get("synthesized", False),
     )
 
 
@@ -166,3 +175,14 @@ async def list_bcm_versions(
         )
         for r in rows
     ]
+
+
+@router.post("/reflect")
+async def reflect_bcm(
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> Dict[str, Any]:
+    """Trigger manual BCM reflection — analyzes feedback and creates new memories."""
+    workspace_id = _require_workspace_id(x_workspace_id)
+    from backend.services import bcm_reflector
+    result = await bcm_reflector.reflect(workspace_id)
+    return result

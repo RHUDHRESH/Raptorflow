@@ -12,7 +12,6 @@ __path__ = [str(Path(__file__).with_name("config"))]
 
 from backend.config.settings import (  # noqa: E402
     Environment,
-    LLMProvider,
     ModelTier,
     Settings,
     get_settings,
@@ -36,7 +35,6 @@ def validate_config() -> bool:
 __all__ = [
     "Settings",
     "Environment",
-    "LLMProvider",
     "ModelTier",
     "get_settings",
     "reload_settings",

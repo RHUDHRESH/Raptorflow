@@ -178,10 +178,45 @@ class BCMMeta(BaseModel):
     facts_count: int = 0
     icps_count: int = 0
     competitors_count: int = 0
+    synthesized: bool = False
+    memory_count: int = 0
+    last_reflection_at: Optional[str] = None
+
+
+# ── BCM Cognitive Identity models ────────────────────────────────────────────
+
+class BCMIdentity(BaseModel):
+    """Synthesized brand DNA — the BCM's 'personality'."""
+
+    voice_archetype: str = ""
+    communication_style: str = ""
+    emotional_register: str = ""
+    vocabulary_dna: List[str] = Field(default_factory=list)
+    anti_vocabulary: List[str] = Field(default_factory=list)
+    sentence_patterns: List[str] = Field(default_factory=list)
+    perspective: str = ""
+
+
+class BCMPromptKit(BaseModel):
+    """Pre-built prompt templates per content type."""
+
+    system_prompt: str = ""
+    content_templates: Dict[str, str] = Field(default_factory=dict)
+    few_shot_examples: Dict[str, List[str]] = Field(default_factory=dict)
+    icp_voice_map: Dict[str, str] = Field(default_factory=dict)
+
+
+class BCMGuardrailsV2(BaseModel):
+    """Evolved guardrails — positive patterns, not just negatives."""
+
+    positive_patterns: List[str] = Field(default_factory=list)
+    negative_patterns: List[str] = Field(default_factory=list)
+    competitive_rules: List[str] = Field(default_factory=list)
+    tone_calibration: Dict[str, float] = Field(default_factory=dict)
 
 
 class BCMManifest(BaseModel):
-    """Compact Business Context Manifest (target: <=4KB, ~1200 tokens)."""
+    """Business Context Manifest with cognitive identity."""
 
     version: int = 1
     generated_at: str = ""
@@ -194,3 +229,6 @@ class BCMManifest(BaseModel):
     channels: List[BCMChannel] = Field(default_factory=list)
     market: BCMMarket = Field(default_factory=BCMMarket)
     meta: BCMMeta = Field(default_factory=BCMMeta)
+    identity: Optional[BCMIdentity] = None
+    prompt_kit: Optional[BCMPromptKit] = None
+    guardrails_v2: Optional[BCMGuardrailsV2] = None

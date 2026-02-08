@@ -6,7 +6,7 @@ Canonical routers for the Next.js UI including unified scraper and search.
 
 from fastapi import FastAPI
 
-from backend.api.v1 import campaigns, context, foundation, moves, muse, workspaces, scraper, search
+from backend.api.v1 import bcm_feedback, campaigns, context, foundation, moves, muse, workspaces, scraper, search
 
 UNIVERSAL_ROUTERS = [
     workspaces.router,
@@ -15,6 +15,7 @@ UNIVERSAL_ROUTERS = [
     foundation.router,
     muse.router,
     context.router,
+    bcm_feedback.router,
     scraper.router,
     search.router,
 ]

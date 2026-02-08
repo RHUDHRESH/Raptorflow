@@ -8,16 +8,19 @@ interface BCMStoreState {
   checksum: string | null;
   createdAt: string | null;
   completionPct: number;
+  synthesized: boolean;
   isLoading: boolean;
   isRebuilding: boolean;
+  isSeeding: boolean;
+  isReflecting: boolean;
   error: string | null;
   versions: BCMVersionSummary[];
 
   fetchBCM: (workspaceId: string) => Promise<void>;
   rebuildBCM: (workspaceId: string) => Promise<void>;
   fetchVersions: (workspaceId: string) => Promise<void>;
-  isSeeding: boolean;
   seedBCM: (workspaceId: string, businessContext: Record<string, unknown>) => Promise<void>;
+  reflectBCM: (workspaceId: string) => Promise<void>;
 }
 
 const INITIAL: Pick<
@@ -27,8 +30,11 @@ const INITIAL: Pick<
   | "checksum"
   | "createdAt"
   | "completionPct"
+  | "synthesized"
   | "isLoading"
   | "isRebuilding"
+  | "isSeeding"
+  | "isReflecting"
   | "error"
   | "versions"
 > = {
@@ -37,10 +43,13 @@ const INITIAL: Pick<
   checksum: null,
   createdAt: null,
   completionPct: 0,
+  synthesized: false,
   isLoading: false,
   isRebuilding: false,
-  error: null,
   isSeeding: false,
+  isReflecting: false,
+  error: null,
+  versions: [],
 };
 
 function applyResponse(resp: BCMResponse) {
@@ -50,6 +59,7 @@ function applyResponse(resp: BCMResponse) {
     checksum: resp.checksum,
     createdAt: resp.created_at,
     completionPct: resp.completion_pct,
+    synthesized: resp.synthesized,
     error: null,
   };
 }
@@ -96,6 +106,19 @@ export const useBCMStore = create<BCMStoreState>((set) => ({
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to seed BCM";
       set({ isSeeding: false, error: msg });
+    }
+  },
+
+  reflectBCM: async (workspaceId: string) => {
+    set({ isReflecting: true, error: null });
+    try {
+      await bcmService.reflect(workspaceId);
+      // Refetch BCM to pick up updated memory_count + last_reflection_at
+      const resp = await bcmService.get(workspaceId);
+      set({ ...applyResponse(resp), isReflecting: false });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to reflect BCM";
+      set({ isReflecting: false, error: msg });
     }
   },
 }));

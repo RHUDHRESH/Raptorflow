@@ -29,4 +29,11 @@ export const bcmService = {
       workspaceId,
     });
   },
+
+  async reflect(workspaceId: string): Promise<Record<string, unknown>> {
+    return apiRequest<Record<string, unknown>>("/context/reflect", {
+      method: "POST",
+      workspaceId,
+    });
+  },
 };
