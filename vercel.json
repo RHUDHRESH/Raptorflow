@@ -96,45 +96,11 @@
       ]
     }
   ],
-  "rewrites": [
-    {
-      "source": "/admin/:path*",
-      "destination": "/admin/:path*"
-    },
-    {
-      "source": "/api/admin/:path*",
-      "destination": "/api/admin/:path*"
-    }
-  ],
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
-    },
-    "src/app/api/payments/**/*.ts": {
-      "maxDuration": 60
-    },
-    "src/app/api/gdpr/data-export/route.ts": {
-      "maxDuration": 300
     }
   },
-  "crons": [
-    {
-      "path": "/api/billing/dunning",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/subscriptions/change-plan",
-      "schedule": "0 10 * * *"
-    },
-    {
-      "path": "/api/cleanup/sessions",
-      "schedule": "0 */6 * * *"
-    },
-    {
-      "path": "/api/cleanup/exports",
-      "schedule": "0 2 * * *"
-    }
-  ],
   "env": {
     "NODE_ENV": "production"
   },

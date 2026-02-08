@@ -107,13 +107,14 @@ export function MovesCalendarPro({ moves, onMoveClick, onCreateMove }: MovesCale
                     start: startOfWeek(currentDate, { weekStartsOn: 1 }),
                     end: endOfWeek(currentDate, { weekStartsOn: 1 })
                 };
-            case "month":
+            case "month": {
                 const monthStart = startOfMonth(currentDate);
                 const monthEnd = endOfMonth(currentDate);
                 return {
                     start: startOfWeek(monthStart, { weekStartsOn: 1 }),
                     end: endOfWeek(monthEnd, { weekStartsOn: 1 })
                 };
+            }
             case "agenda":
                 return { start: currentDate, end: addDays(currentDate, 30) };
         }

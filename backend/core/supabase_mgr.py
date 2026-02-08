@@ -19,7 +19,6 @@ def _get_supabase_url() -> str:
     return (
         os.getenv("SUPABASE_URL")
         or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-        or os.getenv("DATABASE_URL")
         or ""
     )
 
@@ -44,7 +43,8 @@ def _get_supabase_service_role_key() -> str:
 def get_supabase_client() -> Client:
     """Get a Supabase client suitable for server-side calls.
 
-    Prefers service-role key if available, otherwise falls back to anon key.
+    Reconstruction mode requires a service-role key so no user auth/RLS blocks
+    core CRUD flows.
     """
 
     global _supabase_client
@@ -53,11 +53,11 @@ def get_supabase_client() -> Client:
         return _supabase_client
 
     url = _get_supabase_url()
-    key = _get_supabase_service_role_key() or _get_supabase_anon_key()
+    key = _get_supabase_service_role_key()
 
     if not url or not key:
         raise ValueError(
-            "Supabase credentials not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY)."
+            "Supabase credentials not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
         )
 
     _supabase_client = create_client(url, key)

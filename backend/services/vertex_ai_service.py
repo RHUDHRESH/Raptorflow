@@ -10,24 +10,35 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-import vertexai
-
+_VERTEX_IMPORT_ERROR: Optional[Exception] = None
 try:
-    from vertexai.generative_models import GenerativeModel
+    import vertexai  # type: ignore
+    from google.api_core import exceptions as gcp_exceptions  # type: ignore
 
-    GENERATIVE_MODEL_AVAILABLE = True
-except ImportError:
+    VERTEX_SDK_AVAILABLE = True
+except Exception as exc:  # pragma: no cover - optional dependency
+    vertexai = None  # type: ignore
+    gcp_exceptions = None  # type: ignore
+    VERTEX_SDK_AVAILABLE = False
+    _VERTEX_IMPORT_ERROR = exc
+
+if VERTEX_SDK_AVAILABLE:
+    try:
+        from vertexai.generative_models import GenerativeModel  # type: ignore
+
+        GENERATIVE_MODEL_AVAILABLE = True
+    except Exception:  # pragma: no cover - optional dependency
+        GENERATIVE_MODEL_AVAILABLE = False
+
+    try:
+        from vertexai.preview.language_models import TextGenerationModel  # type: ignore
+
+        TEXT_MODEL_AVAILABLE = True
+    except Exception:  # pragma: no cover - optional dependency
+        TEXT_MODEL_AVAILABLE = False
+else:
     GENERATIVE_MODEL_AVAILABLE = False
-
-try:
-    from vertexai.preview.language_models import TextGenerationModel
-
-    TEXT_MODEL_AVAILABLE = True
-except ImportError:
     TEXT_MODEL_AVAILABLE = False
-
-import google.cloud.aiplatform as aiplatform
-from google.api_core import exceptions as gcp_exceptions
 
 try:
     from backend.config.settings import get_settings
@@ -64,6 +75,13 @@ class VertexAIService:
     """Vertex AI integration with rate limiting and cost tracking"""
 
     def __init__(self):
+        if not VERTEX_SDK_AVAILABLE:
+            raise RuntimeError(
+                "Vertex AI SDK is not installed. "
+                "Install `google-cloud-aiplatform` and `vertexai` dependencies. "
+                f"Import error: {_VERTEX_IMPORT_ERROR}"
+            )
+
         self.project_id = settings.VERTEX_AI_PROJECT_ID
         self.location = settings.VERTEX_AI_LOCATION
         self.model_name = getattr(settings, "VERTEX_AI_MODEL", "gemini-2.0-flash-exp")
@@ -146,80 +164,6 @@ class VertexAIService:
         # Store cost tracking (implement in database later)
         logger.info(f"AI Request tracked: {request}")
 
-        # Check budget alerts
-        await self._check_budget_alerts(workspace_id, cost)
-
-    async def _check_budget_limits(self, workspace_id: str) -> bool:
-        """
-        Check if workspace is within budget limits by querying real usage data.
-        Returns True if within budget, False otherwise.
-        """
-        try:
-            from core.supabase_mgr import get_supabase_client
-
-            supabase = get_supabase_client()
-
-            # 1. Fetch Limits from Workspace
-            ws_res = (
-                await supabase.table("workspaces")
-                .select("settings")
-                .eq("id", workspace_id)
-                .single()
-                .execute()
-            )
-            settings = ws_res.data.get("settings", {}) if ws_res.data else {}
-
-            daily_budget = settings.get("daily_ai_budget", 10.0)
-            monthly_budget = settings.get("monthly_ai_budget", 100.0)
-
-            # 2. Query actual costs for today and this month
-            today = datetime.now().date().isoformat()
-            first_of_month = datetime.now().replace(day=1).date().isoformat()
-
-            # Monthly query
-            monthly_res = (
-                await supabase.table("agent_executions")
-                .select("cost_estimate")
-                .eq("workspace_id", workspace_id)
-                .gte("created_at", f"{first_of_month}T00:00:00")
-                .execute()
-            )
-
-            total_monthly_cost = sum(
-                [e.get("cost_estimate", 0) or 0 for e in monthly_res.data or []]
-            )
-
-            if total_monthly_cost >= monthly_budget:
-                logger.error(
-                    f"Workspace {workspace_id} exceeded monthly AI budget: ${total_monthly_cost:.2f}"
-                )
-                return False
-
-            # Daily query
-            daily_res = (
-                await supabase.table("agent_executions")
-                .select("cost_estimate")
-                .eq("workspace_id", workspace_id)
-                .gte("created_at", f"{today}T00:00:00")
-                .execute()
-            )
-
-            total_daily_cost = sum(
-                [e.get("cost_estimate", 0) or 0 for e in daily_res.data or []]
-            )
-
-            if total_daily_cost >= daily_budget:
-                logger.error(
-                    f"Workspace {workspace_id} exceeded daily AI budget: ${total_daily_cost:.2f}"
-                )
-                return False
-
-            return True
-
-        except Exception as e:
-            logger.warning(f"Budget check failed, allowing request by default: {e}")
-            return True
-
     async def generate_text(
         self,
         prompt: str,
@@ -228,7 +172,7 @@ class VertexAIService:
         max_tokens: int = 1000,
         temperature: float = 0.7,
     ) -> Dict[str, Any]:
-        """Generate text using Vertex AI with rate limiting and budget enforcement"""
+        """Generate text using Vertex AI with rate limiting."""
 
         # 1. Check rate limits (per instance)
         if not self._check_rate_limit():
@@ -236,14 +180,6 @@ class VertexAIService:
                 "status": "error",
                 "error": "Rate limit exceeded. Please try again later.",
                 "retry_after": 60,
-            }
-
-        # 2. Check budget limits (per workspace)
-        if not await self._check_budget_limits(workspace_id):
-            return {
-                "status": "error",
-                "error": "AI Budget exceeded for this workspace. Please upgrade your plan.",
-                "error_type": "budget_exceeded",
             }
 
         try:
@@ -304,14 +240,14 @@ class VertexAIService:
                 "model_type": self.model_type,
             }
 
-        except gcp_exceptions.GoogleAPICallError as e:
-            logger.error(f"Vertex AI API error: {e}")
-            return {
-                "status": "error",
-                "error": f"Vertex AI API error: {str(e)}",
-                "error_type": "api_error",
-            }
         except Exception as e:
+            if gcp_exceptions and isinstance(e, gcp_exceptions.GoogleAPICallError):
+                logger.error(f"Vertex AI API error: {e}")
+                return {
+                    "status": "error",
+                    "error": f"Vertex AI API error: {str(e)}",
+                    "error_type": "api_error",
+                }
             logger.error(f"Unexpected error in Vertex AI: {e}")
             return {
                 "status": "error",
@@ -320,9 +256,11 @@ class VertexAIService:
             }
 
 
-# Global service instance
-try:
-    vertex_ai_service = VertexAIService()
-except Exception as e:
-    logger.error(f"Failed to initialize Vertex AI service: {e}")
-    vertex_ai_service = None
+# Global service instance (optional)
+vertex_ai_service: Optional[VertexAIService] = None
+if VERTEX_SDK_AVAILABLE and getattr(settings, "VERTEX_AI_PROJECT_ID", ""):
+    try:
+        vertex_ai_service = VertexAIService()
+    except Exception as e:  # pragma: no cover - runtime/config dependent
+        logger.error(f"Failed to initialize Vertex AI service: {e}")
+        vertex_ai_service = None

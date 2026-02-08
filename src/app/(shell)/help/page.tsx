@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
@@ -24,52 +24,44 @@ import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButto
 import { PageHeader } from "@/components/ui/PageHeader";
 import { notify } from "@/lib/notifications";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   HELP CENTER — Documentation & Support
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   HELP CENTER â€” Documentation & Support
    Clean blueprint style, no emojis, Lucide icons only
-   ══════════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const QUICK_LINKS = [
-  { title: "Getting Started", desc: "New to RaptorFlow? Start here.", icon: Book, href: "/welcome" },
-  { title: "Moves & Campaigns", desc: "Learn tactical execution", icon: Zap, href: "/moves" },
-  { title: "Foundation Setup", desc: "Define your brand positioning", icon: Target, href: "/foundation" },
-  { title: "Analytics & Tracking", desc: "Measure what matters", icon: BarChart3, href: "/analytics" },
-  { title: "Cohorts & ICPs", desc: "Segment your audience", icon: Users, href: "/foundation#icp" },
-  { title: "Video Tutorials", desc: "Watch step-by-step guides", icon: Video, href: "#", action: "coming_soon" },
+  { title: "Dashboard", desc: "Workspace overview and status.", icon: Book, href: "/dashboard" },
+  { title: "Campaigns", desc: "90-day arcs that hold your moves.", icon: BarChart3, href: "/campaigns" },
+  { title: "Moves", desc: "Create tactical plans and execute.", icon: Zap, href: "/moves" },
+  { title: "Foundation", desc: "Positioning, ICPs, messaging, channels.", icon: Target, href: "/foundation" },
+  { title: "Muse", desc: "AI content assistant (optional).", icon: MessageCircle, href: "/muse" },
+  { title: "Settings", desc: "Workspace settings and tenant id.", icon: Users, href: "/settings" },
 ];
 
 const FAQS = [
   {
     q: "What is RaptorFlow?",
-    a: "RaptorFlow is a Marketing Operating System (MOS) designed for founders. It helps you define positioning, create tactical marketing moves, track campaigns, and measure results — all in one place."
+    a: "RaptorFlow is a marketing operating system for founders. In reconstruction mode there is no login or paywall; everything is scoped to your current workspace."
+  },
+  {
+    q: "What is a Workspace?",
+    a: "A Workspace is the tenant boundary. The UI stores a workspace id in localStorage and sends it as the x-workspace-id header on API calls."
+  },
+  {
+    q: "How do Campaigns work?",
+    a: "Campaigns are 90-day strategic arcs that contain multiple Moves. Campaign CRUD is persisted per workspace."
   },
   {
     q: "How do Moves work?",
-    a: "A Move is a tactical marketing action lasting 3-14 days. You select a category (like Ignite for launches or Defend for retention), set your objective, and RaptorFlow generates a day-by-day execution plan with specific tasks."
-  },
-  {
-    q: "What's the difference between Moves and Campaigns?",
-    a: "Campaigns are 90-day strategic arcs that contain multiple Moves. Think of a Campaign as your quarterly strategy, and Moves as the weekly/bi-weekly tactics that execute that strategy."
-  },
-  {
-    q: "Can I track results from external platforms?",
-    a: "RaptorFlow tracks channel mix, clicks, CTR, and cost data that flows through our system. For impression-level metrics, you'll need to reference your native platform analytics and manually input key numbers."
-  },
-  {
-    q: "What is the Black Box?",
-    a: "Black Box is an experimental move generator. Set your focus area, desired outcome, and volatility level, and it creates high-risk/high-reward tactical suggestions. Great for breaking out of marketing ruts."
-  },
-  {
-    q: "How do Daily Wins work?",
-    a: "Daily Wins is a lottery-style content opportunity generator. Spin the wheel to get a trending topic paired with a content template. Execute it immediately for timely, relevant content that rides current waves."
+    a: "A Move is a tactical plan (usually 3-14 days). You can create a move, track execution tasks, and persist updates to the database."
   },
   {
     q: "What is Foundation?",
-    a: "Foundation is where you define your marketing fundamentals: positioning statement, ideal customer profiles (ICPs), core messaging, and channel strategy. Everything else in RaptorFlow builds on these foundations."
+    a: "Foundation stores positioning inputs: ICPs (RICPs), messaging, and channels. It is saved per workspace."
   },
   {
-    q: "Can I export my data?",
-    a: "Yes! You can export campaign reports, move execution data, and analytics from their respective sections. Look for the Export button in the header of each module."
+    q: "Why does Muse say unavailable?",
+    a: "Muse requires a working Vertex AI configuration. If it is not configured, the API returns an explicit 503 instead of silently falling back."
   },
 ];
 
@@ -122,11 +114,7 @@ export default function HelpPage() {
               <div
                 key={i}
                 onClick={() => {
-                  if (link.action === "coming_soon") {
-                    notify.info("Video tutorials coming soon!", "Check back later for step-by-step guides.");
-                  } else {
-                    window.location.href = link.href;
-                  }
+                  window.location.href = link.href;
                 }}
                 className="group p-6 bg-[var(--paper)] border border-[var(--structure)] rounded-[var(--radius)] hover:border-[var(--blueprint)] hover:shadow-md transition-all cursor-pointer"
               >
@@ -226,3 +214,4 @@ export default function HelpPage() {
     </div>
   );
 }
+

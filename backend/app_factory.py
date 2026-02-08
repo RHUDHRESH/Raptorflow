@@ -6,11 +6,9 @@ Creates a single, consistent backend app with unified middleware and routers.
 import logging
 from typing import Optional
 
-from api.dependencies import RequestContextMiddleware
-from api.system import router as system_router
-from app.auth_middleware import JWTAuthMiddleware, WorkspaceContextMiddleware
-from app.lifespan import lifespan
-from app.middleware import add_middleware
+from backend.api.system import router as system_router
+from backend.app.lifespan import lifespan
+from backend.app.middleware import add_middleware
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -52,7 +50,6 @@ def create_app(
     enable_legacy_v1: bool | None = None,
     enable_docs: bool | None = None,
     enable_legacy_paths: bool | None = None,
-    enable_legacy_experimental: bool | None = None,
 ) -> FastAPI:
     """Create the FastAPI app with unified configuration."""
     _configure_logging()
@@ -63,8 +60,6 @@ def create_app(
         enable_legacy_v1 = settings.ENABLE_LEGACY_V1
     if enable_legacy_paths is None:
         enable_legacy_paths = settings.ENABLE_LEGACY_API_PATHS
-    if enable_legacy_experimental is None:
-        enable_legacy_experimental = settings.ENABLE_LEGACY_EXPERIMENTAL_ROUTES
 
     app = FastAPI(
         title=settings.APP_NAME,
@@ -74,13 +69,6 @@ def create_app(
         redoc_url="/redoc" if enable_docs else None,
         lifespan=lifespan,
     )
-
-    # Request context (innermost; runs after auth + workspace middleware)
-    app.add_middleware(RequestContextMiddleware)
-
-    # Auth + workspace middleware (explicit ordering)
-    app.add_middleware(JWTAuthMiddleware)
-    app.add_middleware(WorkspaceContextMiddleware)
 
     # Core middleware stack
     add_middleware(app)
@@ -96,15 +84,14 @@ def create_app(
 
     # System routes
     app.include_router(system_router)
+    # Also expose system routes under `/api/*` so `/api/v1/*` (rewritten to `/api/*`)
+    # keeps working via LegacyApiPathMiddleware.
+    app.include_router(system_router, prefix="/api")
 
     # API routes
     include_universal(app, prefix="/api")
     if enable_legacy_v1:
         include_legacy_v1(app, prefix="/api/v1")
-    if enable_legacy_experimental:
-        from backend.api.legacy_registry import include_legacy
-
-        include_legacy(app, prefix="/api/legacy")
 
     # Legacy path rewrite (outermost; runs first)
     if enable_legacy_paths:

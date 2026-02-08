@@ -1,484 +1,371 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import gsap from "gsap";
-import {
-  Plus,
-  Search,
-  Calendar,
-  TrendingUp,
-  Play,
-  Pause,
-  LayoutGrid,
-  List,
-  Flag,
-  CheckCircle2,
-  Layers,
-  ArrowRight,
-  ArrowLeft,
-  Target,
-  Clock,
-  MoreHorizontal,
-  Trash2,
-  Edit3
-} from "lucide-react";
+import { Edit3, Plus, Search, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { notify } from "@/lib/notifications";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { useCampaignStore, type Campaign } from "@/stores/campaignStore";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
-import { useCampaignStore, CampaignMove, MoveStatus } from "@/stores/campaignStore";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { BCMIndicator } from "@/components/bcm/BCMIndicator";
-import { BCMExportButton } from "@/components/bcm/BCMExportButton";
-import { CampaignWizard } from "@/components/campaigns/CampaignWizard";
-import { CampaignTimeline } from "@/components/campaigns/CampaignTimeline";
+import { BlueprintModal } from "@/components/ui/BlueprintModal";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   CAMPAIGNS — Quiet Luxury Redesign
-   Matches Moves page styling for consistent experience
-   ══════════════════════════════════════════════════════════════════════════════ */
+const OBJECTIVES = [
+  { value: "acquire", label: "Acquire" },
+  { value: "convert", label: "Convert" },
+  { value: "launch", label: "Launch" },
+  { value: "proof", label: "Proof" },
+  { value: "retain", label: "Retain" },
+  { value: "reposition", label: "Reposition" },
+];
 
-type ViewTab = "active" | "all" | "completed";
+const STATUSES = [
+  { value: "planned", label: "Planned" },
+  { value: "active", label: "Active" },
+  { value: "paused", label: "Paused" },
+  { value: "wrapup", label: "Wrap-up" },
+  { value: "archived", label: "Archived" },
+];
+
+function statusVariant(status: string): "default" | "success" | "warning" | "info" {
+  switch ((status || "").toLowerCase()) {
+    case "active":
+      return "success";
+    case "paused":
+    case "wrapup":
+      return "warning";
+    case "planned":
+      return "info";
+    case "archived":
+    default:
+      return "default";
+  }
+}
+
+function statusLabel(status: string): string {
+  const found = STATUSES.find((s) => s.value === (status || "").toLowerCase());
+  return found?.label || (status || "unknown");
+}
 
 export default function CampaignsPage() {
   const router = useRouter();
-  const pageRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
-
+  const { workspaceId } = useWorkspace();
   const {
     campaigns,
-    view,
-    activeCampaignId,
-    setView,
-    setActiveCampaign,
-    updateCampaignMoveStatus,
-    addCampaign,
-    createCampaign,
+    isLoading,
+    error,
+    clearError,
     fetchCampaigns,
-    getActiveCampaign
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
   } = useCampaignStore();
 
-  const { profileStatus } = useAuth();
-
-  const [activeTab, setActiveTab] = useState<ViewTab>("active");
   const [searchQuery, setSearchQuery] = useState("");
-  const [draggedMove, setDraggedMove] = useState<CampaignMove | null>(null);
-  const [showTimeline, setShowTimeline] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Campaign | null>(null);
 
-  const activeCampaign = getActiveCampaign();
+  const [title, setTitle] = useState("");
+  const [objective, setObjective] = useState("acquire");
+  const [status, setStatus] = useState("active");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!workspaceId) return;
+    fetchCampaigns(workspaceId);
+  }, [workspaceId, fetchCampaigns]);
 
-  useEffect(() => {
-    if (profileStatus?.workspaceId) {
-      fetchCampaigns(profileStatus.workspaceId);
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return campaigns;
+    return campaigns.filter((c) => {
+      return (
+        c.title.toLowerCase().includes(q) ||
+        (c.description || "").toLowerCase().includes(q) ||
+        (c.objective || "").toLowerCase().includes(q)
+      );
+    });
+  }, [campaigns, searchQuery]);
+
+  function openCreate() {
+    clearError();
+    setEditing(null);
+    setTitle("");
+    setObjective("acquire");
+    setStatus("active");
+    setDescription("");
+    setIsModalOpen(true);
+  }
+
+  function openEdit(campaign: Campaign) {
+    clearError();
+    setEditing(campaign);
+    setTitle(campaign.title);
+    setObjective((campaign.objective || "acquire").toLowerCase());
+    setStatus((campaign.status || "active").toLowerCase());
+    setDescription(campaign.description || "");
+    setIsModalOpen(true);
+  }
+
+  async function submit() {
+    if (!workspaceId) {
+      notify.error("Workspace not initialized yet");
+      return;
     }
-  }, [profileStatus?.workspaceId, fetchCampaigns]);
 
-  useEffect(() => {
-    if (!pageRef.current || !mounted) return;
-    gsap.fromTo(pageRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
-  }, [mounted, view]);
+    const name = title.trim();
+    if (!name) {
+      notify.error("Campaign name is required");
+      return;
+    }
 
-  // Filter campaigns based on tab and search
-  const filteredCampaigns = campaigns.filter(camp => {
-    // Tab filter
-    if (activeTab === "active" && camp.status !== "Active") return false;
-    if (activeTab === "completed" && camp.status !== "Completed") return false;
-    // Search filter
-    if (searchQuery && !camp.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
-
-  // Stats
-  const stats = {
-    active: campaigns.filter(c => c.status === "Active").length,
-    total: campaigns.length,
-    completed: campaigns.filter(c => c.status === "Completed").length
-  };
-
-  // Drag handlers for kanban
-  const handleDragStart = (e: React.DragEvent, move: CampaignMove) => {
-    setDraggedMove(move);
-    e.dataTransfer.effectAllowed = 'move';
-    (e.target as HTMLElement).classList.add('opacity-50');
-  };
-
-  const handleDragEnd = (e: React.DragEvent) => {
-    setDraggedMove(null);
-    (e.target as HTMLElement).classList.remove('opacity-50');
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent, status: MoveStatus) => {
-    e.preventDefault();
-    if (!draggedMove || !activeCampaign) return;
-    if (draggedMove.status === status) return;
-    updateCampaignMoveStatus(activeCampaign.id, draggedMove.id, status);
-  };
-
-  // Wizard completion
-  const handleWizardComplete = async (data: {
-    name: string;
-    goal: string;
-    objective: string;
-    duration: string;
-    intensity: string;
-    icp: string;
-    channels: string[];
-  }) => {
-    if (profileStatus?.workspaceId) {
-      const created = await createCampaign(data, profileStatus.workspaceId);
-      if (created) {
-        setActiveCampaign(created.id);
-        setView("DETAIL");
+    try {
+      if (editing) {
+        await updateCampaign(workspaceId, editing.id, {
+          name,
+          objective,
+          status,
+          description: description.trim() || undefined,
+        });
+        notify.success("Campaign updated");
+        setIsModalOpen(false);
         return;
       }
+
+      const created = await createCampaign(workspaceId, {
+        name,
+        objective,
+        status,
+        description: description.trim() || undefined,
+      });
+      notify.success("Campaign created");
+      setIsModalOpen(false);
+      router.push(`/campaigns/${created.id}`);
+    } catch (e: any) {
+      notify.error(e?.message || "Request failed");
     }
-    const newCampaign = {
-      id: `CMP-${Math.floor(Math.random() * 1000)}`,
-      name: data.name,
-      status: "Active" as const,
-      progress: 0,
-      goal: data.goal,
-      moves: [
-        { id: `M-${Date.now()}-1`, title: "Strategy Definition", type: "Positioning", status: "Active" as const, start: "Today", end: "Week 2", items_done: 0, items_total: 3, desc: `Initial strategy alignment based on ${data.objective}` },
-        { id: `M-${Date.now()}-2`, title: "Asset Creation", type: "Production", status: "Planned" as const, start: "Week 3", end: "Week 5", items_done: 0, items_total: 10, desc: `Producing content for ${data.channels.join(", ")}` }
-      ]
-    };
-    addCampaign(newCampaign);
-    setActiveCampaign(newCampaign.id);
-    setView("DETAIL");
-  };
+  }
 
-  // Progress Ring Component
-  const ProgressRing = ({ progress, size = 44 }: { progress: number; size?: number }) => {
-    const radius = (size - 4) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference - (progress / 100) * circumference;
-
-    return (
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg className="rotate-[-90deg]" width={size} height={size}>
-          <circle cx={size / 2} cy={size / 2} r={radius} stroke="var(--border)" strokeWidth="3" fill="none" />
-          <circle
-            cx={size / 2} cy={size / 2} r={radius}
-            stroke={progress >= 75 ? "var(--success)" : progress >= 40 ? "var(--ink)" : "var(--muted)"}
-            strokeWidth="3" fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            className="transition-all duration-500"
-          />
-        </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-[var(--ink)]">
-          {progress}%
-        </span>
-      </div>
-    );
-  };
-
-  if (!mounted) return null;
+  async function removeCampaign(campaign: Campaign) {
+    if (!workspaceId) return;
+    if (!window.confirm(`Delete campaign "${campaign.title}"? This cannot be undone.`)) return;
+    try {
+      await deleteCampaign(workspaceId, campaign.id);
+      notify.success("Campaign deleted");
+    } catch (e: any) {
+      notify.error(e?.message || "Delete failed");
+    }
+  }
 
   return (
-    <div ref={pageRef} className="min-h-screen bg-[var(--canvas)]" style={{ opacity: 0 }}>
-      {/* VIEW: LIST */}
-      {view === "LIST" && (
-        <>
-          {/* Page Header */}
-          <div className="border-b border-[var(--border)] bg-[var(--paper)]">
-            <div className="max-w-6xl mx-auto px-6 py-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h1 className="font-serif text-3xl text-[var(--ink)]">Campaigns</h1>
-                  <p className="text-sm text-[var(--muted)] mt-1">Strategic initiatives & 90-day war rooms</p>
-                </div>
-
-                {/* BCM Controls */}
-                <div className="flex items-center gap-3 ml-6">
-                  <BCMIndicator workspaceId={profileStatus?.workspaceId || ""} compact={true} />
-                  <BCMExportButton workspaceId={profileStatus?.workspaceId || ""} />
-                  <button
-                    onClick={() => setView("WIZARD")}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium text-sm"
-                  >
-                    <Plus size={16} />
-                    New Campaign
-                  </button>
-                </div>
-              </div>
-
-              {/* Tabs */}
-              <div className="flex items-center gap-6 mt-6">
-                {[
-                  { id: "active", label: "Active", count: stats.active },
-                  { id: "all", label: "All Campaigns", count: stats.total },
-                  { id: "completed", label: "Completed", count: stats.completed }
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as ViewTab)}
-                    className={cn(
-                      "pb-3 text-sm font-medium border-b-2 transition-colors",
-                      activeTab === tab.id
-                        ? "text-[var(--ink)] border-[var(--ink)]"
-                        : "text-[var(--muted)] border-transparent hover:text-[var(--ink)]"
-                    )}
-                  >
-                    {tab.label}
-                    <span className={cn(
-                      "ml-2 px-1.5 py-0.5 text-xs rounded",
-                      activeTab === tab.id ? "bg-[var(--ink)] text-white" : "bg-[var(--surface)] text-[var(--muted)]"
-                    )}>
-                      {tab.count}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+    <div className="min-h-screen bg-[var(--canvas)]">
+      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+        <header className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="font-serif text-3xl text-[var(--ink)]">Campaigns</h1>
+            <p className="text-sm text-[var(--muted)]">
+              Real campaigns, persisted to the database. No paywalls.
+            </p>
           </div>
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 px-4 py-2 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium hover:bg-[var(--ink)]/90"
+          >
+            <Plus className="w-4 h-4" />
+            New Campaign
+          </button>
+        </header>
 
-          {/* Search & Content */}
-          <div className="max-w-6xl mx-auto px-6 py-8">
-            {/* Search Bar */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search campaigns..."
-                  className="pl-10 pr-4 py-2 w-64 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] focus:outline-none focus:border-[var(--ink)]"
-                />
-              </div>
-              <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
-                <Layers size={14} />
-                {filteredCampaigns.length} campaigns
-              </div>
-            </div>
-
-            {/* Campaign Grid */}
-            {filteredCampaigns.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 mx-auto mb-6 rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center">
-                  <Flag size={24} className="text-[var(--muted)]" />
-                </div>
-                <h2 className="font-serif text-xl text-[var(--ink)] mb-2">No campaigns found</h2>
-                <p className="text-[var(--muted)] max-w-sm mx-auto mb-6">
-                  {campaigns.length === 0
-                    ? "Launch your first campaign to start tracking strategic initiatives."
-                    : "No campaigns match your current filters."}
-                </p>
-                {campaigns.length === 0 && (
-                  <button
-                    onClick={() => setView("WIZARD")}
-                    className="flex items-center gap-2 px-5 py-2.5 mx-auto bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium text-sm"
-                  >
-                    <Plus size={16} />
-                    Launch Campaign
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredCampaigns.map((camp, idx) => (
-                  <BlueprintCard
-                    key={camp.id}
-                    showCorners
-                    padding="none"
-                    className="cursor-pointer hover:border-[var(--ink)] transition-all group overflow-hidden"
-                    onClick={() => { setActiveCampaign(camp.id); setView("DETAIL"); }}
-                  >
-                    <div className="p-5">
-                      <div className="flex items-start gap-4">
-                        <ProgressRing progress={camp.progress} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <BlueprintBadge
-                              variant={camp.status === 'Active' ? 'success' : camp.status === 'Completed' ? 'info' : 'default'}
-                              size="sm"
-                            >
-                              {camp.status === 'Active' && <Play size={10} className="mr-1" />}
-                              {camp.status}
-                            </BlueprintBadge>
-                          </div>
-                          <h3 className="font-medium text-[var(--ink)] group-hover:text-[var(--ink)] transition-colors truncate">
-                            {camp.name}
-                          </h3>
-                          <p className="text-xs text-[var(--muted)] line-clamp-1 mt-1">{camp.goal}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--surface)] flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
-                          <Layers size={12} />
-                          {camp.moves.length} moves
-                        </span>
-                        <span className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
-                          <CheckCircle2 size={12} />
-                          {camp.moves.filter(m => m.status === "Completed").length} done
-                        </span>
-                      </div>
-                      <ArrowRight size={14} className="text-[var(--muted)] group-hover:text-[var(--ink)] transition-colors" />
-                    </div>
-                  </BlueprintCard>
-                ))}
-              </div>
-            )}
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search campaigns..."
+              className="w-full h-10 pl-9 pr-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--paper)] text-sm text-[var(--ink)]"
+            />
           </div>
-        </>
-      )}
-
-      {/* VIEW: DETAIL (KANBAN) */}
-      {view === "DETAIL" && activeCampaign && (
-        <div className="min-h-screen">
-          {/* Header */}
-          <div className="border-b border-[var(--border)] bg-[var(--paper)]">
-            <div className="max-w-7xl mx-auto px-6 py-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setView("LIST")}
-                    className="p-2 hover:bg-[var(--surface)] rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
-                  >
-                    <ArrowLeft size={18} />
-                  </button>
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h1 className="font-serif text-2xl text-[var(--ink)]">{activeCampaign.name}</h1>
-                      <BlueprintBadge variant="success" size="sm">
-                        <Play size={10} className="mr-1" />
-                        Active
-                      </BlueprintBadge>
-                    </div>
-                    <p className="text-sm text-[var(--muted)]">{activeCampaign.goal}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowTimeline(true)}
-                    className="flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[var(--ink)] rounded-[var(--radius)] hover:border-[var(--ink)] transition-colors text-sm"
-                  >
-                    <Calendar size={14} />
-                    Timeline
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all text-sm font-medium">
-                    <Plus size={14} />
-                    Add Move
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Kanban Board */}
-          <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="flex items-start gap-6 overflow-x-auto pb-4">
-              {(['Planned', 'Active', 'Completed'] as MoveStatus[]).map(status => {
-                const movesInColumn = activeCampaign.moves.filter(m => m.status === status);
-                const isActiveCol = status === 'Active';
-                const isCompletedCol = status === 'Completed';
-
-                return (
-                  <div
-                    key={status}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, status)}
-                    className="w-80 flex-shrink-0"
-                  >
-                    {/* Column Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          isActiveCol ? "bg-[var(--ink)] animate-pulse" :
-                            isCompletedCol ? "bg-green-500" : "bg-[var(--muted)]"
-                        )} />
-                        <h3 className="text-sm font-medium text-[var(--ink)] uppercase tracking-wide">{status}</h3>
-                      </div>
-                      <span className="text-xs text-[var(--muted)]">{movesInColumn.length}</span>
-                    </div>
-
-                    {/* Column Content */}
-                    <div className="space-y-3">
-                      {movesInColumn.map(move => (
-                        <div
-                          key={move.id}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, move)}
-                          onDragEnd={handleDragEnd}
-                          className={cn(
-                            "p-4 bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius)] cursor-grab active:cursor-grabbing hover:border-[var(--ink)] transition-all group",
-                            isCompletedCol && "opacity-75 hover:opacity-100"
-                          )}
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <span className="px-2 py-0.5 text-xs bg-[var(--surface)] border border-[var(--border)] rounded text-[var(--muted)]">
-                              {move.type}
-                            </span>
-                            <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[var(--surface)] rounded transition-all">
-                              <MoreHorizontal size={14} className="text-[var(--muted)]" />
-                            </button>
-                          </div>
-                          <h4 className="font-medium text-sm text-[var(--ink)] mb-1">{move.title}</h4>
-                          <p className="text-xs text-[var(--muted)] line-clamp-2 mb-3">{move.desc}</p>
-
-                          <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
-                            <div className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
-                              <Clock size={12} />
-                              {move.start}
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(`/moves?highlight=${move.id}`);
-                              }}
-                              className="text-xs font-medium text-[var(--ink)] hover:underline flex items-center gap-1"
-                            >
-                              Open
-                              <ArrowRight size={12} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-
-                      {movesInColumn.length === 0 && (
-                        <div className="h-24 border-2 border-dashed border-[var(--border)] rounded-[var(--radius)] flex items-center justify-center text-[var(--muted)] text-xs">
-                          Drop moves here
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <button
+            onClick={() => workspaceId && fetchCampaigns(workspaceId)}
+            disabled={!workspaceId || isLoading}
+            className="h-10 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--paper)] text-sm text-[var(--ink)] disabled:opacity-50"
+          >
+            {isLoading ? "Loading..." : "Refresh"}
+          </button>
         </div>
-      )}
 
-      {/* Wizard Overlay */}
-      <CampaignWizard
-        isOpen={view === "WIZARD"}
-        onClose={() => setView("LIST")}
-        onComplete={handleWizardComplete}
-      />
+        {error ? (
+          <div className="p-3 rounded-[var(--radius)] border border-[var(--error)]/30 bg-[var(--error-bg)] text-[var(--error)] text-sm">
+            {error}
+          </div>
+        ) : null}
 
-      {/* Timeline Modal */}
-      {showTimeline && activeCampaign && (
-        <CampaignTimeline
-          campaign={activeCampaign}
-          onClose={() => setShowTimeline(false)}
-        />
-      )}
+        {filtered.length === 0 && !isLoading ? (
+          <BlueprintCard showCorners padding="lg">
+            <div className="space-y-2">
+              <h2 className="font-serif text-xl text-[var(--ink)]">No campaigns yet</h2>
+              <p className="text-sm text-[var(--muted)]">
+                Create your first campaign. It will be saved to the database and visible across reloads.
+              </p>
+              <div>
+                <button
+                  onClick={openCreate}
+                  className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Campaign
+                </button>
+              </div>
+            </div>
+          </BlueprintCard>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filtered.map((campaign) => (
+              <BlueprintCard
+                key={campaign.id}
+                showCorners
+                padding="md"
+                className="group cursor-pointer hover:border-[var(--blueprint)] transition-colors"
+                onClick={() => router.push(`/campaigns/${campaign.id}`)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <BlueprintBadge variant={statusVariant(campaign.status)} dot>
+                        {statusLabel(campaign.status)}
+                      </BlueprintBadge>
+                      <span className="font-mono text-[10px] text-[var(--muted)]">
+                        {campaign.objective}
+                      </span>
+                    </div>
+                    <h3 className="font-serif text-xl text-[var(--ink)]">{campaign.title}</h3>
+                    {campaign.description ? (
+                      <p className="text-sm text-[var(--secondary)] line-clamp-2">
+                        {campaign.description}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-[var(--muted)] italic">No description</p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEdit(campaign);
+                      }}
+                      className="p-2 rounded-[var(--radius-sm)] hover:bg-[var(--surface-hover)]"
+                      aria-label="Edit campaign"
+                    >
+                      <Edit3 className="w-4 h-4 text-[var(--muted)]" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void removeCampaign(campaign);
+                      }}
+                      className="p-2 rounded-[var(--radius-sm)] hover:bg-[var(--error-bg)]"
+                      aria-label="Delete campaign"
+                    >
+                      <Trash2 className="w-4 h-4 text-[var(--error)]" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between text-[10px] font-mono text-[var(--muted)]">
+                  <span>ID</span>
+                  <span className={cn("truncate max-w-[70%]")}>{campaign.id}</span>
+                </div>
+              </BlueprintCard>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <BlueprintModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editing ? "Edit Campaign" : "New Campaign"}
+        size="md"
+        footer={
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="h-9 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--paper)] text-sm text-[var(--ink)]"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => void submit()}
+              disabled={isLoading}
+              className="h-9 px-3 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium disabled:opacity-50"
+            >
+              {isLoading ? "Saving..." : editing ? "Save" : "Create"}
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-[var(--ink)]">Name</span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full h-10 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
+              placeholder="Campaign name"
+            />
+          </label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-[var(--ink)]">Objective</span>
+              <select
+                value={objective}
+                onChange={(e) => setObjective(e.target.value)}
+                className="w-full h-10 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
+              >
+                {OBJECTIVES.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-[var(--ink)]">Status</span>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full h-10 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
+              >
+                {STATUSES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-[var(--ink)]">Description</span>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full min-h-24 px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
+              placeholder="What is this campaign doing?"
+            />
+          </label>
+
+          {error ? (
+            <div className="text-sm text-[var(--error)]">{error}</div>
+          ) : null}
+        </div>
+      </BlueprintModal>
     </div>
   );
 }

@@ -110,7 +110,7 @@ export function Pricing() {
   };
 
   const handlePlanSelect = (planName: string) => {
-    router.push(`/signup?plan=${planName.toLowerCase()}`);
+    router.push("/dashboard");
   };
 
   return (

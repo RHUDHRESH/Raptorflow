@@ -1,246 +1,163 @@
-import { create } from 'zustand';
-import { supabase } from '@/lib/supabaseClient';
-import {
-    RICP,
-    CoreMessaging,
-    Channel,
-    FoundationState
-} from '@/types/foundation';
+"use client";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   FOUNDATION STORE — Supabase-backed
-   Syncs RICPs, Messaging, and Channels to 'business_context_manifests' table.
-   ══════════════════════════════════════════════════════════════════════════════ */
+import { create } from "zustand";
+import type { Channel, CoreMessaging, RICP } from "@/types/foundation";
+import { foundationService, type FoundationState } from "@/services/foundation.service";
 
-interface FoundationStore extends FoundationState {
-    isLoading: boolean;
-    error: string | null;
+/* ════════════════════════════════════════════════════════════════════════════════════════
+   FOUNDATION STORE — No-Auth Reconstruction
+   Source of truth: backend `/api/v1/foundation` (via Next proxy) scoped by `X-Workspace-Id`.
+   No Supabase browser client, no onboarding sync, no silent fallbacks.
+   ════════════════════════════════════════════════════════════════════════════════════════ */
 
-    // Actions
-    fetchFoundation: (userId: string) => Promise<void>;
-    saveFoundation: (userId: string) => Promise<void>;
+interface FoundationStoreState extends FoundationState {
+  positioningConfidence: number;
+  isLoading: boolean;
+  error: string | null;
 
-    // RICP Actions
-    addRICP: (ricp: RICP, userId: string) => Promise<void>;
-    updateRICP: (id: string, updates: Partial<RICP>, userId: string) => Promise<void>;
-    deleteRICP: (id: string, userId: string) => Promise<void>;
-    getRICPById: (id: string) => RICP | undefined;
+  fetchFoundation: (workspaceId: string) => Promise<void>;
+  saveFoundation: (workspaceId: string) => Promise<void>;
 
-    // Messaging Actions
-    updateMessaging: (updates: Partial<CoreMessaging>, userId: string) => Promise<void>;
+  addRICP: (ricp: RICP, workspaceId: string) => Promise<void>;
+  updateRICP: (id: string, updates: Partial<RICP>, workspaceId: string) => Promise<void>;
+  deleteRICP: (id: string, workspaceId: string) => Promise<void>;
+  getRICPById: (id: string) => RICP | undefined;
 
-    // Channel Actions
-    addChannel: (channel: Channel, userId: string) => Promise<void>;
-    updateChannel: (id: string, updates: Partial<Channel>, userId: string) => Promise<void>;
-    deleteChannel: (id: string, userId: string) => Promise<void>;
+  updateMessaging: (updates: Partial<CoreMessaging>, workspaceId: string) => Promise<void>;
 
-    // Sync from Onboarding (Migration)
-    syncFromOnboarding: (userId: string) => Promise<void>;
+  addChannel: (channel: Channel, workspaceId: string) => Promise<void>;
+  updateChannel: (id: string, updates: Partial<Channel>, workspaceId: string) => Promise<void>;
+  deleteChannel: (id: string, workspaceId: string) => Promise<void>;
 
-    // Utility
-    reset: () => void;
+  reset: () => void;
 }
 
-export const useFoundationStore = create<FoundationStore>((set, get) => ({
-    // Initial State
-    ricps: [],
-    messaging: null,
-    channels: [],
-    positioningConfidence: 0,
-    isLoading: false,
-    error: null,
+const EMPTY_STATE: FoundationState = {
+  ricps: [],
+  messaging: null,
+  channels: [],
+};
 
-    // Fetch from Supabase
-    fetchFoundation: async (userId: string) => {
-        set({ isLoading: true, error: null });
-        try {
-            const { data, error } = await supabase
-                .from('business_context_manifests')
-                .select('ricps, messaging, channels')
-                .eq('user_id', userId)
-                .single();
+export const useFoundationStore = create<FoundationStoreState>((set, get) => ({
+  ...EMPTY_STATE,
+  positioningConfidence: 0,
+  isLoading: false,
+  error: null,
 
-            if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "Row not found"
+  fetchFoundation: async (workspaceId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await foundationService.get(workspaceId);
+      set({
+        ricps: data.ricps || [],
+        messaging: data.messaging || null,
+        channels: data.channels || [],
+      });
+    } catch (err: any) {
+      console.error("Error fetching foundation:", err);
+      set({ error: err?.message || "Failed to fetch foundation" });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
-            if (data) {
-                set({
-                    ricps: (data.ricps as unknown as RICP[]) || [],
-                    messaging: (data.messaging as unknown as CoreMessaging) || null,
-                    channels: (data.channels as unknown as Channel[]) || []
-                });
-            } else {
-                // If no data in Supabase, try to sync from Onboarding
-                await get().syncFromOnboarding(userId);
-            }
+  saveFoundation: async (workspaceId: string) => {
+    const { ricps, messaging, channels } = get();
+    try {
+      await foundationService.save(workspaceId, { ricps, messaging, channels });
+    } catch (err: any) {
+      console.error("Error saving foundation:", err);
+      set({ error: err?.message || "Failed to save foundation" });
+      throw err;
+    }
+  },
 
-        } catch (err: any) {
-            console.error('Error fetching foundation:', err);
-            set({ error: err.message });
-        } finally {
-            set({ isLoading: false });
-        }
-    },
+  addRICP: async (ricp: RICP, workspaceId: string) => {
+    set((state) => ({
+      ricps: [...state.ricps, { ...ricp, createdAt: Date.now(), updatedAt: Date.now() }],
+      error: null,
+    }));
+    await get().saveFoundation(workspaceId);
+  },
 
-    // Sync from Onboarding (local storage -> Supabase)
-    syncFromOnboarding: async (userId: string) => {
-        try {
-            const stored = localStorage.getItem("raptorflow-onboarding");
-            if (!stored) return;
+  updateRICP: async (id, updates, workspaceId) => {
+    set((state) => ({
+      ricps: state.ricps.map((r) => (r.id === id ? { ...r, ...updates, updatedAt: Date.now() } : r)),
+      error: null,
+    }));
+    await get().saveFoundation(workspaceId);
+  },
 
-            const parsed = JSON.parse(stored);
-            const steps = parsed.state?.steps || [];
-            if (!steps.length) return;
+  deleteRICP: async (id, workspaceId) => {
+    set((state) => ({ ricps: state.ricps.filter((r) => r.id !== id), error: null }));
+    await get().saveFoundation(workspaceId);
+  },
 
-            // Extract Data
-            const ricpStep = steps.find((s: any) => s.id === 16);
-            const positioningStep = steps.find((s: any) => s.id === 14);
-            const messagingStep = steps.find((s: any) => s.id === 18);
-            const channelStep = steps.find((s: any) => s.id === 20);
+  getRICPById: (id) => get().ricps.find((r) => r.id === id),
 
-            // Map RICPs
-            const newRicps: RICP[] = [];
-            if (ricpStep?.data?.personas && Array.isArray(ricpStep.data.personas)) {
-                // Assuming step data matches RICP structure or mapping needed
-                // For now, assume it might need robust mapping or is empty
-                // This is a placeholder for actual mapping logic based on step data shape
-            }
+  updateMessaging: async (updates, workspaceId) => {
+    set((state) => ({
+      messaging: state.messaging
+        ? { ...state.messaging, ...updates, updatedAt: Date.now() }
+        : {
+            id: `msg-${Date.now()}`,
+            oneLiner: "",
+            positioningStatement: {
+              target: "",
+              situation: "",
+              product: "",
+              category: "",
+              keyBenefit: "",
+              alternatives: "",
+              differentiator: "",
+            },
+            valueProps: [],
+            brandVoice: { tone: [], doList: [], dontList: [] },
+            storyBrand: {
+              character: "",
+              problemExternal: "",
+              problemInternal: "",
+              problemPhilosophical: "",
+              guide: "",
+              plan: [],
+              callToAction: "",
+              transitionalCTA: "",
+              avoidFailure: [],
+              success: [],
+            },
+            updatedAt: Date.now(),
+            confidence: 0,
+            ...updates,
+          },
+      error: null,
+    }));
+    await get().saveFoundation(workspaceId);
+  },
 
-            // Map Messaging
-            let newMessaging: CoreMessaging | null = null;
-            if (positioningStep?.data || messagingStep?.data) {
-                newMessaging = {
-                    id: `msg-${Date.now()}`,
-                    oneLiner: (positioningStep?.data?.statement as string) || "RaptorFlow: Marketing Operating System",
-                    positioningStatement: {
-                        target: (positioningStep?.data?.target as string) || "",
-                        situation: (positioningStep?.data?.situation as string) || "",
-                        product: (positioningStep?.data?.product as string) || "",
-                        category: (positioningStep?.data?.category as string) || "",
-                        keyBenefit: (positioningStep?.data?.benefit as string) || "",
-                        alternatives: "",
-                        differentiator: ""
-                    },
-                    valueProps: [],
-                    brandVoice: { tone: [], doList: [], dontList: [] },
-                    storyBrand: { character: '', problemExternal: '', problemInternal: '', problemPhilosophical: '', guide: '', plan: [], callToAction: '', transitionalCTA: '', avoidFailure: [], success: [] },
-                    updatedAt: Date.now(),
-                    confidence: 50
-                };
-            }
+  addChannel: async (channel, workspaceId) => {
+    set((state) => ({ channels: [...state.channels, channel], error: null }));
+    await get().saveFoundation(workspaceId);
+  },
 
-            // Update State if we found data
-            const updates: Partial<FoundationState> = {};
-            if (newRicps.length > 0) updates.ricps = newRicps;
-            if (newMessaging) updates.messaging = newMessaging;
-            // Channels mapping...
+  updateChannel: async (id, updates, workspaceId) => {
+    set((state) => ({
+      channels: state.channels.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+      error: null,
+    }));
+    await get().saveFoundation(workspaceId);
+  },
 
-            if (Object.keys(updates).length > 0) {
-                set((state) => ({ ...state, ...updates }));
-                await get().saveFoundation(userId); // Persist to Supabase
-                console.log("Synced onboarding data to Supabase");
-            }
+  deleteChannel: async (id, workspaceId) => {
+    set((state) => ({ channels: state.channels.filter((c) => c.id !== id), error: null }));
+    await get().saveFoundation(workspaceId);
+  },
 
-        } catch (err) {
-            console.error("Error syncing onboarding data:", err);
-        }
-    },
-
-    // Save entire state to Supabase (Upsert)
-    saveFoundation: async (userId: string) => {
-        const { ricps, messaging, channels } = get();
-        try {
-            const { error } = await supabase
-                .from('business_context_manifests')
-                .upsert(
-                    { user_id: userId, ricps, messaging, channels },
-                    { onConflict: 'user_id' }
-                );
-
-            if (error) throw error;
-        } catch (err: any) {
-            console.error('Error saving foundation:', err);
-            set({ error: err.message });
-        }
-    },
-
-    // RICP Actions
-    addRICP: async (ricp, userId) => {
-        set((state) => ({
-            ricps: [...state.ricps, { ...ricp, createdAt: Date.now(), updatedAt: Date.now() }]
-        }));
-        await get().saveFoundation(userId);
-    },
-
-    updateRICP: async (id, updates, userId) => {
-        set((state) => ({
-            ricps: state.ricps.map((r) =>
-                r.id === id ? { ...r, ...updates, updatedAt: Date.now() } : r
-            )
-        }));
-        await get().saveFoundation(userId);
-    },
-
-    deleteRICP: async (id, userId) => {
-        set((state) => ({
-            ricps: state.ricps.filter((r) => r.id !== id)
-        }));
-        await get().saveFoundation(userId);
-    },
-
-    getRICPById: (id) => get().ricps.find((r) => r.id === id),
-
-    // Messaging Actions
-    updateMessaging: async (updates, userId) => {
-        set((state) => ({
-            messaging: state.messaging
-                ? { ...state.messaging, ...updates, updatedAt: Date.now() }
-                : {
-                    id: `msg-${Date.now()}`,
-                    oneLiner: '',
-                    positioningStatement: { target: '', situation: '', product: '', category: '', keyBenefit: '', alternatives: '', differentiator: '' },
-                    valueProps: [],
-                    brandVoice: { tone: [], doList: [], dontList: [] },
-                    storyBrand: { character: '', problemExternal: '', problemInternal: '', problemPhilosophical: '', guide: '', plan: [], callToAction: '', transitionalCTA: '', avoidFailure: [], success: [] },
-                    updatedAt: Date.now(),
-                    confidence: 0,
-                    ...updates
-                }
-        }));
-        await get().saveFoundation(userId);
-    },
-
-    // Channel Actions
-    addChannel: async (channel, userId) => {
-        set((state) => ({
-            channels: [...state.channels, channel]
-        }));
-        await get().saveFoundation(userId);
-    },
-
-    updateChannel: async (id, updates, userId) => {
-        set((state) => ({
-            channels: state.channels.map((c) =>
-                c.id === id ? { ...c, ...updates } : c
-            )
-        }));
-        await get().saveFoundation(userId);
-    },
-
-    deleteChannel: async (id, userId) => {
-        set((state) => ({
-            channels: state.channels.filter((c) => c.id !== id)
-        }));
-        await get().saveFoundation(userId);
-    },
-
-    // Utility
-    reset: () => set({
-        ricps: [],
-        messaging: null,
-        channels: [],
-        positioningConfidence: 0,
-        error: null
+  reset: () =>
+    set({
+      ...EMPTY_STATE,
+      positioningConfidence: 0,
+      isLoading: false,
+      error: null,
     }),
 }));
 
-export type { RICP, CoreMessaging, Channel, MarketSophisticationStage };

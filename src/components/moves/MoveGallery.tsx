@@ -8,6 +8,8 @@ import { Search, Play, MoreVertical, Trash2, Pause, Check, Calendar, ChevronRigh
 import { cn } from "@/lib/utils";
 import { useMovesStore } from "@/stores/movesStore";
 import { MoveCategoryIcon } from "./MoveCategoryIcon";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { toast } from "sonner";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    MOVE GALLERY — QUIET LUXURY REDESIGN
@@ -26,6 +28,7 @@ export function MoveGallery({ moves, searchQuery = "" }: MoveGalleryProps) {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
     const { updateMove, deleteMove } = useMovesStore();
+    const { workspaceId } = useWorkspace();
 
     // Filter moves
     const filteredMoves = moves
@@ -47,19 +50,31 @@ export function MoveGallery({ moves, searchQuery = "" }: MoveGalleryProps) {
 
     const handleStartMove = (e: React.MouseEvent, move: Move) => {
         e.stopPropagation();
-        updateMove(move.id, { status: 'active', startDate: new Date().toISOString() });
+        if (!workspaceId) return toast.error("Workspace not initialized");
+        void updateMove(move.id, { status: 'active', startDate: new Date().toISOString() }, workspaceId).catch((err: any) => {
+            console.error("Failed to start move:", err);
+            toast.error(err?.message || "Failed to start move");
+        });
         setOpenMenuId(null);
     };
 
     const handlePauseMove = (e: React.MouseEvent, move: Move) => {
         e.stopPropagation();
-        updateMove(move.id, { status: 'paused' });
+        if (!workspaceId) return toast.error("Workspace not initialized");
+        void updateMove(move.id, { status: 'paused' }, workspaceId).catch((err: any) => {
+            console.error("Failed to pause move:", err);
+            toast.error(err?.message || "Failed to pause move");
+        });
         setOpenMenuId(null);
     };
 
     const handleDeleteMove = (e: React.MouseEvent, move: Move) => {
         e.stopPropagation();
-        deleteMove(move.id);
+        if (!workspaceId) return toast.error("Workspace not initialized");
+        void deleteMove(move.id, workspaceId).catch((err: any) => {
+            console.error("Failed to delete move:", err);
+            toast.error(err?.message || "Failed to delete move");
+        });
         setOpenMenuId(null);
     };
 

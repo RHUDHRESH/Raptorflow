@@ -4,9 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, StopCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BlueprintButton } from "@/components/ui/BlueprintButton";
-import { useAuth } from "@/components/auth/AuthProvider";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { museService } from "@/services/muse.service";
 
 interface Message {
     id: string;
@@ -27,11 +26,11 @@ interface MuseChatProps {
 }
 
 export default function MuseChat({ initialContext }: MuseChatProps) {
-    const { user, profile, session } = useAuth();
+    const { workspaceId } = useWorkspace();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [apiStatus, setApiStatus] = useState<'loading' | 'connected' | 'error'>('connected'); // Default to connected
+    const [apiStatus, setApiStatus] = useState<'loading' | 'connected' | 'error'>('loading');
     const [hasAutoSent, setHasAutoSent] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -40,10 +39,26 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // Skip status check as endpoint doesn't exist
-    // useEffect(() => {
-    //     checkApiStatus();
-    // }, []);
+    useEffect(() => {
+        let cancelled = false;
+        async function check(id: string) {
+            try {
+                await museService.health(id);
+                if (!cancelled) setApiStatus('connected');
+            } catch (err) {
+                console.error("[muse] health check failed:", err);
+                if (!cancelled) setApiStatus('error');
+            }
+        }
+
+        if (workspaceId) {
+            check(workspaceId);
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, [workspaceId]);
 
     // Auto-send initial message when context is provided
     useEffect(() => {
@@ -55,6 +70,15 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
 
     const sendMessage = async (messageText: string) => {
         if (!messageText.trim() || isLoading) return;
+        if (!workspaceId) {
+            setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                role: 'assistant',
+                content: "Error: Workspace not initialized yet. Refresh the page.",
+                timestamp: Date.now()
+            }]);
+            return;
+        }
 
         const userMessage: Message = {
             id: Date.now().toString(),
@@ -68,33 +92,16 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
         setInput("");
 
         try {
-            // Call REAL Muse API with auth context
-            // Redirecting chat to generate endpoint as /chat doesn't exist
-            const authHeader = session?.access_token
-                ? { Authorization: `Bearer ${session.access_token}` }
-                : {};
-            const workspaceHeader = profile?.workspace_id
-                ? { "x-workspace-id": profile.workspace_id }
-                : {};
-            const response = await fetch(`${API_BASE_URL}/api/v1/muse/generate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...authHeader, ...workspaceHeader },
-                body: JSON.stringify({
-                    topic: messageText, // Treat message as topic/task
-                    task: messageText,
-                    content_type: "general", // generic type
-                    context: { platform: "Raptorflow" },
-                    user_id: user?.id || "anonymous",
-                    workspace_id: profile?.workspace_id || "default",
-                    max_tokens: 800,
-                    temperature: 0.7
-                })
+            const data = await museService.generate(workspaceId, {
+                task: messageText,
+                content_type: "general",
+                context: { platform: "Raptorflow" },
+                max_tokens: 800,
+                temperature: 0.7,
             });
 
-            const data = await response.json();
-
             if (data.success) {
-                const responseText = data.content || data.message || '';
+                const responseText = data.content || '';
                 const assistantMessage: Message = {
                     id: Date.now().toString(),
                     role: 'assistant',
@@ -119,7 +126,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'assistant',
-                content: 'Network error. Please try again.',
+                content: `Error: ${error instanceof Error ? error.message : "Request failed"}`,
                 timestamp: Date.now()
             }]);
         } finally {
@@ -128,36 +135,31 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
     };
 
     const generateContent = async (task: string, contentType: string) => {
+        if (!workspaceId) {
+            setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                role: 'assistant',
+                content: "Error: Workspace not initialized yet. Refresh the page.",
+                timestamp: Date.now()
+            }]);
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            const authHeader = session?.access_token
-                ? { Authorization: `Bearer ${session.access_token}` }
-                : {};
-            const workspaceHeader = profile?.workspace_id
-                ? { "x-workspace-id": profile.workspace_id }
-                : {};
-            const response = await fetch(`${API_BASE_URL}/api/v1/muse/generate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...authHeader, ...workspaceHeader },
-                body: JSON.stringify({
-                    topic: task,
-                    task: task, // Some backends might use task
-                    context: { platform: "Raptorflow" },
-                    user_id: user?.id || "anonymous",
-                    workspace_id: profile?.workspace_id || "default",
-                    content_type: contentType,
-                    tone: 'professional',
-                    target_audience: 'marketing professionals',
-                    max_tokens: 1000,
-                    temperature: 0.7
-                })
+            const data = await museService.generate(workspaceId, {
+                task,
+                content_type: contentType,
+                tone: "professional",
+                target_audience: "marketing professionals",
+                context: { platform: "Raptorflow" },
+                max_tokens: 1000,
+                temperature: 0.7,
             });
 
-            const data = await response.json();
-
             if (data.success) {
-                const responseText = data.content || data.message || '';
+                const responseText = data.content || '';
                 setMessages(prev => [...prev, {
                     id: Date.now().toString(),
                     role: 'assistant',
@@ -180,7 +182,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'assistant',
-                content: 'Network error. Please try again.',
+                content: `Error: ${error instanceof Error ? error.message : "Request failed"}`,
                 timestamp: Date.now()
             }]);
         } finally {
@@ -227,8 +229,8 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                                     apiStatus === 'connected' ? "text-[var(--success)]" :
                                         apiStatus === 'error' ? "text-[var(--error)]" : "text-[var(--warning)]"
                                 )}>
-                                    {apiStatus === 'connected' ? 'Connected to Gemini 2.0 Flash' :
-                                        apiStatus === 'error' ? 'API Connection Error' : 'Connecting...'}
+                                    {apiStatus === 'connected' ? 'Muse API reachable' :
+                                        apiStatus === 'error' ? 'Muse API unavailable' : 'Checking API...'}
                                 </span>
                             </div>
                         </div>
@@ -239,7 +241,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                         <BlueprintButton
                             size="sm"
                             onClick={() => generateContent("Create a blog post about marketing automation", "blog")}
-                            disabled={isLoading || apiStatus !== 'connected'}
+                            disabled={isLoading}
                             className="flex items-center gap-2"
                         >
                             <Sparkles className="w-4 h-4" />
@@ -248,7 +250,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                         <BlueprintButton
                             size="sm"
                             onClick={() => generateContent("Write a professional email campaign", "email")}
-                            disabled={isLoading || apiStatus !== 'connected'}
+                            disabled={isLoading}
                             className="flex items-center gap-2"
                         >
                             <Sparkles className="w-4 h-4" />
@@ -470,19 +472,19 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                                 placeholder="Ask Muse anything about marketing..."
                                 className={cn(
                                     "w-full px-4 py-3 pr-12 bg-[var(--paper)] border border-[var(--ink)] rounded-[var(--radius)] text-[var(--ink)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--blueprint)] focus:ring-2 focus:ring-[var(--blueprint)]/20 transition-all text-sm",
-                                    isLoading || apiStatus !== 'connected' ? "opacity-50 cursor-not-allowed" : ""
+                                    isLoading ? "opacity-50 cursor-not-allowed" : ""
                                 )}
-                                disabled={isLoading || apiStatus !== 'connected'}
+                                disabled={isLoading}
                             />
                             <button
                                 type="submit"
                                 className={cn(
                                     "absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-[var(--radius)] flex items-center justify-center transition-all",
-                                    input.trim() && !isLoading && apiStatus === 'connected'
+                                    input.trim() && !isLoading
                                         ? "bg-[var(--blueprint)] text-[var(--paper)] hover:bg-[var(--blueprint)]/90"
                                         : "bg-[var(--muted)] text-[var(--ink)]"
                                 )}
-                                disabled={!input.trim() || isLoading || apiStatus !== 'connected'}
+                                disabled={!input.trim() || isLoading}
                             >
                                 {isLoading ? (
                                     <StopCircle className="w-4 h-4" />

@@ -75,7 +75,7 @@ export function FinalCTA() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/dashboard")}
             className="group magnetic-button px-8 py-4 bg-[var(--accent)] text-white font-medium rounded-full hover:bg-[var(--accent-dark)] transition-all flex items-center gap-2"
           >
             Start Free Trial

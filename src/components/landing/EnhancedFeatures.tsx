@@ -4,51 +4,15 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Compass, Brain, PenTool, Target, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { MagneticButton } from "@/components/effects/MagneticButton";
 import { RevealOnScroll } from "@/components/effects/RevealOnScroll";
 import { ParallaxImage } from "@/components/effects/ParallaxImage";
+import { MARKETING_FEATURES } from "@/lib/marketingFeatures";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FEATURES = [
-  {
-    icon: Compass,
-    title: "Marketing Foundation",
-    subtitle: "Lay Your Strategic Groundwork",
-    description:
-      "Define your positioning, ideal customer profile, and messaging framework. Build the strategic foundation that guides all your marketing decisions.",
-    highlights: ["ICP Definition", "Positioning Strategy", "Messaging Framework", "Channel Strategy"],
-    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&q=80",
-  },
-  {
-    icon: Brain,
-    title: "Cognitive Engine",
-    subtitle: "AI That Understands Your Business",
-    description:
-      "Our stateful LangGraph-based engine performs deep business analysis. SWOT, PESTEL, Value Chain, and competitive intelligence—automated.",
-    highlights: ["Business Analysis", "SWOT & PESTEL", "Competitive Intel", "Brand Archetypes"],
-    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80",
-  },
-  {
-    icon: PenTool,
-    title: "Muse",
-    subtitle: "Create Content That Converts",
-    description:
-      "AI-powered content generation trained on your voice. LinkedIn posts, emails, blog posts, and campaigns—crafted in minutes, not hours.",
-    highlights: ["Voice Training", "Multi-Channel Content", "Template Library", "Engagement Tracking"],
-    image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80",
-  },
-  {
-    icon: Target,
-    title: "Moves & Campaigns",
-    subtitle: "Execute With Precision",
-    description:
-      "Weekly marketing moves and multi-channel campaigns. Track progress, measure results, and optimize your execution for maximum impact.",
-    highlights: ["Weekly Moves", "Campaign Planning", "Performance Analytics", "Budget Tracking"],
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
-  },
-];
+const FEATURES = MARKETING_FEATURES;
 
 export function EnhancedFeatures() {
   const router = useRouter();
@@ -174,7 +138,7 @@ export function EnhancedFeatures() {
                 {/* Learn more link with magnetic effect */}
                 <MagneticButton
                   strength={0.2}
-                  onClick={() => router.push(`/features/${feature.title.toLowerCase().replace(/\s+/g, "-")}`)}
+                  onClick={() => router.push(`/features/${feature.slug}`)}
                   className="group/link inline-flex items-center gap-2 text-sm font-medium text-[var(--accent)] hover:text-[var(--accent-dark)] transition-colors"
                 >
                   Learn more

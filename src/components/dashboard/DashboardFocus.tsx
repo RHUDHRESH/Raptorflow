@@ -82,7 +82,9 @@ export function DashboardFocus({ move, className }: DashboardFocusProps) {
                         </div>
                     </div>
 
-                    <BlueprintButton onClick={() => router.push(`/moves/${move.id}`)}>
+                    <BlueprintButton
+                        onClick={() => router.push(`/moves?moveId=${encodeURIComponent(move.id)}`)}
+                    >
                         Execute Protocol <ArrowRight size={16} className="ml-1" />
                     </BlueprintButton>
                 </div>

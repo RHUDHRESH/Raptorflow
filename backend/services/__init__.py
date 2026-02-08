@@ -9,18 +9,10 @@ from __future__ import annotations
 
 from typing import Any
 
-__all__ = ["EmailService", "PaymentService", "vertex_ai_service"]
+__all__ = ["vertex_ai_service"]
 
 
 def __getattr__(name: str) -> Any:
-    if name == "EmailService":
-        from .email_service import EmailService  # noqa: PLC0415
-
-        return EmailService
-    if name == "PaymentService":
-        from .payment_service import PaymentService  # noqa: PLC0415
-
-        return PaymentService
     if name == "vertex_ai_service":
         try:
             from .vertex_ai_service import vertex_ai_service  # noqa: PLC0415

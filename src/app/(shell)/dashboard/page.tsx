@@ -8,9 +8,9 @@ import { DashboardFocus } from "@/components/dashboard/DashboardFocus";
 import { DashboardActivity, ActivityItem } from "@/components/dashboard/DashboardActivity";
 import { useMovesStore } from "@/stores/movesStore";
 import { useCampaignStore } from "@/stores/campaignStore";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { BCMIndicator } from "@/components/bcm/BCMIndicator";
-import { Activity, Target, Users, Zap } from "lucide-react";
+import { useFoundationStore } from "@/stores/foundationStore";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { Target, Users, Zap, Layers } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    DASHBOARD — Founder Command Center
@@ -21,23 +21,22 @@ export default function DashboardPage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const { moves, fetchMoves } = useMovesStore();
   const { campaigns, fetchCampaigns } = useCampaignStore();
-  const { user, profileStatus } = useAuth();
+  const { ricps, channels, fetchFoundation } = useFoundationStore();
+  const { workspaceId, workspace } = useWorkspace();
 
   // Fetch data on mount
   useEffect(() => {
-    if (user?.id) {
-      fetchMoves(user.id);
-    }
-    if (profileStatus?.workspaceId) {
-      fetchCampaigns(profileStatus.workspaceId);
-    }
-  }, [user?.id, profileStatus?.workspaceId, fetchMoves, fetchCampaigns]);
+    if (!workspaceId) return;
+    fetchMoves(workspaceId);
+    fetchCampaigns(workspaceId);
+    fetchFoundation(workspaceId);
+  }, [workspaceId, fetchMoves, fetchCampaigns, fetchFoundation]);
 
   // Calculate active items
   const activeMoves = moves.filter(
     (m) => m.status === "active" || m.status === "draft"
   );
-  const activeCampaigns = campaigns.filter((c) => c.status === "Active");
+  const activeCampaigns = campaigns.filter((c) => c.status === "active");
 
   // Determine system status
   const systemStatus =
@@ -48,11 +47,7 @@ export default function DashboardPage() {
   // Primary focus move (first active)
   const primaryMove = activeMoves.length > 0 ? activeMoves[0] : null;
 
-  // Extract user name
-  const userName = user?.fullName || (user?.email
-    ? user.email.split("@")[0].charAt(0).toUpperCase() +
-    user.email.split("@")[0].slice(1)
-    : "Founder");
+  const displayName = workspace?.name || "Workspace";
 
   // Metrics data
   const metrics: Metric[] = [
@@ -69,47 +64,19 @@ export default function DashboardPage() {
       icon: Target,
     },
     {
-      label: "Est. Reach",
-      value: "12.4k",
-      trend: "up",
-      trendValue: "+12%",
+      label: "Cohorts (ICPs)",
+      value: ricps.length,
       icon: Users,
     },
     {
-      label: "Engagement",
-      value: "2.8%",
-      trend: "up",
-      trendValue: "+0.4%",
-      icon: Activity,
+      label: "Channels",
+      value: channels.length,
+      icon: Layers,
     },
   ];
 
-  // Recent activity (mock for now - would come from real data)
-  const recentActivity: ActivityItem[] = [
-    {
-      id: "1",
-      type: "campaign",
-      title: "Q1 Launch campaign activated",
-      timestamp: "2h ago",
-      status: "active",
-      href: "/campaigns",
-    },
-    {
-      id: "2",
-      type: "move",
-      title: "Welcome Sequence protocol completed",
-      timestamp: "1d ago",
-      status: "completed",
-      href: "/moves",
-    },
-    {
-      id: "3",
-      type: "cohort",
-      title: "New segment added: Enterprise Early Adopters",
-      timestamp: "2d ago",
-      href: "/cohorts",
-    },
-  ];
+  // No fake "recent activity" without an event log.
+  const recentActivity: ActivityItem[] = [];
 
   // Entrance animation
   useEffect(() => {
@@ -134,16 +101,9 @@ export default function DashboardPage() {
         {/* Header */}
         <div data-fade className="flex items-center justify-between">
           <DashboardHeader
-            userName={userName}
+            userName={displayName}
             systemStatus={systemStatus}
           />
-          {profileStatus?.workspaceId && (
-            <BCMIndicator
-              workspaceId={profileStatus.workspaceId}
-              className="ml-4"
-              showDetails={true}
-            />
-          )}
         </div>
 
         {/* Metrics row */}
@@ -169,7 +129,7 @@ export default function DashboardPage() {
           data-fade
           className="mt-16 text-center text-[10px] font-mono text-[var(--ink-muted)] uppercase tracking-widest"
         >
-          RaptorFlow OS v4.2 • Secure
+          RaptorFlow | Reconstruction mode (no auth, no paywalls)
         </div>
       </div>
     </div>

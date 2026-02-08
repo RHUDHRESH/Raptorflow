@@ -1,128 +1,231 @@
-import logging
-from typing import Any, Dict
+"""
+Campaigns API (No-Auth Reconstruction Mode)
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+This is the canonical CRUD surface used by the Next.js frontend.
+All operations are scoped by the tenant/workspace via `X-Workspace-Id`.
+"""
 
-from core.auth import get_current_user
-from core.exceptions import RaptorFlowError
-from models.campaigns import GanttChart
-from models.requests import CampaignCreateRequest, CampaignUpdateRequest
-from models.responses import BaseResponseModel, CampaignResponse
-from services.campaign_service import CampaignService, get_campaign_service
+from __future__ import annotations
 
-logger = logging.getLogger("raptorflow.api.campaigns")
-router = APIRouter(prefix="/v1/campaigns", tags=["campaigns"])
+from typing import Any, Dict, List, Optional
+from uuid import UUID, uuid4
+
+from backend.core.supabase_mgr import get_supabase_client
+from fastapi import APIRouter, Header, HTTPException, status
+from pydantic import BaseModel, Field
+
+router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
 
-@router.get("/{campaign_id}/gantt", response_model=GanttChart)
-async def get_campaign_gantt(
-    campaign_id: str,
-    _current_user: dict = Depends(get_current_user),
-    service: CampaignService = Depends(get_campaign_service),
-):
-    """SOTA Endpoint: Retrieves Gantt chart data for a campaign."""
-    try:
-        gantt = await service.get_gantt_chart(campaign_id)
-        if not gantt:
-            raise HTTPException(status_code=404, detail="Gantt data not found.")
-        return gantt
-    except RaptorFlowError as e:
-        raise HTTPException(status_code=e.status_code, detail=e.message)
-    except Exception as e:
-        logger.error(
-            f"Unexpected error getting Gantt chart for campaign {campaign_id}: {e}"
+def _require_tenant_id(x_workspace_id: Optional[str]) -> str:
+    if not x_workspace_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing X-Workspace-Id header",
         )
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-
-@router.post("/generate-arc/{campaign_id}")
-async def generate_campaign_arc(
-    campaign_id: str,
-    background_tasks: BackgroundTasks,
-    _current_user: dict = Depends(get_current_user),
-    service: CampaignService = Depends(get_campaign_service),
-):
-    """SOTA Endpoint: Triggers agentic inference for a 90-day strategic arc in the background."""
     try:
-        # Check if campaign exists
-        campaign = await service.get_campaign(campaign_id)
-        if not campaign:
-            raise HTTPException(status_code=404, detail="Campaign not found.")
-
-        # Run in background
-        background_tasks.add_task(service.generate_90_day_arc, campaign_id)
-
-        return {
-            "status": "started",
-            "campaign_id": campaign_id,
-            "message": "90-day arc generation started in background.",
-        }
-    except RaptorFlowError as e:
-        raise HTTPException(status_code=e.status_code, detail=e.message)
-    except Exception as e:
-        logger.error(f"Unexpected error generating arc for campaign {campaign_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-
-@router.get("/generate-arc/{campaign_id}/status")
-async def get_campaign_arc_status(
-    campaign_id: str,
-    _current_user: dict = Depends(get_current_user),
-    service: CampaignService = Depends(get_campaign_service),
-):
-    """SOTA Endpoint: Retrieves status of the agentic inference for a campaign."""
-    try:
-        result = await service.get_arc_generation_status(campaign_id)
-        if not result:
-            raise HTTPException(
-                status_code=404, detail="Status not found for this campaign."
-            )
-        return result
-    except RaptorFlowError as e:
-        raise HTTPException(status_code=e.status_code, detail=e.message)
-    except Exception as e:
-        logger.error(
-            f"Unexpected error getting arc status for campaign {campaign_id}: {e}"
+        UUID(x_workspace_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid X-Workspace-Id header (must be UUID)",
         )
-        raise HTTPException(status_code=500, detail="Internal server error")
+    return x_workspace_id
 
 
-@router.post("/{campaign_id}/pivot")
-async def apply_campaign_pivot(
-    campaign_id: str,
-    pivot_data: CampaignUpdateRequest,
-    _current_user: dict = Depends(get_current_user),
-    service: CampaignService = Depends(get_campaign_service),
-):
-    """SOTA Endpoint: Applies a strategic pivot to a campaign's 90-day arc."""
-    try:
-        result = await service.apply_pivot(
-            campaign_id, pivot_data.dict(exclude_unset=True)
+class CampaignCreate(BaseModel):
+    name: str = Field(..., min_length=1)
+    description: Optional[str] = None
+    objective: Optional[str] = None
+    status: Optional[str] = None
+
+
+class CampaignUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    objective: Optional[str] = None
+    status: Optional[str] = None
+
+
+class CampaignOut(BaseModel):
+    id: str
+    tenant_id: str
+    title: str
+    description: Optional[str] = None
+    objective: str
+    status: str
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
+class CampaignListOut(BaseModel):
+    campaigns: List[CampaignOut]
+
+
+_DEFAULT_OBJECTIVE = "acquire"
+_DEFAULT_STATUS = "active"
+_ALLOWED_OBJECTIVES = {"acquire", "convert", "launch", "proof", "retain", "reposition"}
+_ALLOWED_STATUSES = {"planned", "active", "paused", "wrapup", "archived"}
+
+
+def _normalize_objective(obj: Optional[str]) -> str:
+    if not obj:
+        return _DEFAULT_OBJECTIVE
+    value = obj.strip().lower()
+    if value not in _ALLOWED_OBJECTIVES:
+        allowed = ", ".join(sorted(_ALLOWED_OBJECTIVES))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid objective '{obj}'. Allowed values: {allowed}",
         )
-        if not result:
-            raise HTTPException(status_code=404, detail="Campaign not found.")
-        return result
-    except RaptorFlowError as e:
-        raise HTTPException(status_code=e.status_code, detail=e.message)
-    except Exception as e:
-        logger.error(f"Unexpected error applying pivot to campaign {campaign_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+    return value
 
 
-@router.post("/", response_model=BaseResponseModel)
+def _normalize_status(status_value: Optional[str]) -> str:
+    if not status_value:
+        return _DEFAULT_STATUS
+    value = status_value.strip().lower()
+    if value not in _ALLOWED_STATUSES:
+        allowed = ", ".join(sorted(_ALLOWED_STATUSES))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid status '{status_value}'. Allowed values: {allowed}",
+        )
+    return value
+
+
+@router.get("/", response_model=CampaignListOut)
+async def list_campaigns(
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> CampaignListOut:
+    tenant_id = _require_tenant_id(x_workspace_id)
+    supabase = get_supabase_client()
+
+    result = (
+        supabase.table("campaigns")
+        .select("*")
+        .eq("tenant_id", tenant_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    campaigns = [CampaignOut(**row) for row in (result.data or [])]
+    return CampaignListOut(campaigns=campaigns)
+
+
+@router.post("/", response_model=CampaignOut, status_code=status.HTTP_201_CREATED)
 async def create_campaign(
-    campaign_data: CampaignCreateRequest,
-    _current_user: dict = Depends(get_current_user),
-    service: CampaignService = Depends(get_campaign_service),
-):
-    """SOTA Endpoint: Creates a new campaign."""
-    try:
-        result = await service.create_campaign(campaign_data.dict())
-        return BaseResponseModel(
-            success=True, message="Campaign created successfully", data=result
+    payload: CampaignCreate,
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> CampaignOut:
+    tenant_id = _require_tenant_id(x_workspace_id)
+    supabase = get_supabase_client()
+
+    insert_row: Dict[str, Any] = {
+        "id": str(uuid4()),
+        "tenant_id": tenant_id,
+        "title": payload.name,
+        "description": payload.description,
+        "objective": _normalize_objective(payload.objective),
+        "status": _normalize_status(payload.status),
+    }
+
+    result = supabase.table("campaigns").insert(insert_row).execute()
+    if not result.data:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create campaign",
         )
-    except RaptorFlowError as e:
-        raise HTTPException(status_code=e.status_code, detail=e.message)
-    except Exception as e:
-        logger.error(f"Unexpected error creating campaign: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return CampaignOut(**result.data[0])
+
+
+@router.get("/{campaign_id}", response_model=CampaignOut)
+async def get_campaign(
+    campaign_id: str,
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> CampaignOut:
+    tenant_id = _require_tenant_id(x_workspace_id)
+    supabase = get_supabase_client()
+    try:
+        UUID(campaign_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid campaign_id")
+
+    result = (
+        supabase.table("campaigns")
+        .select("*")
+        .eq("id", campaign_id)
+        .eq("tenant_id", tenant_id)
+        .single()
+        .execute()
+    )
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+
+    return CampaignOut(**result.data)
+
+
+@router.patch("/{campaign_id}", response_model=CampaignOut)
+async def update_campaign(
+    campaign_id: str,
+    updates: CampaignUpdate,
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> CampaignOut:
+    tenant_id = _require_tenant_id(x_workspace_id)
+    supabase = get_supabase_client()
+    try:
+        UUID(campaign_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid campaign_id")
+
+    update_row: Dict[str, Any] = {}
+    if updates.name is not None:
+        update_row["title"] = updates.name
+    if updates.description is not None:
+        update_row["description"] = updates.description
+    if updates.objective is not None:
+        update_row["objective"] = _normalize_objective(updates.objective)
+    if updates.status is not None:
+        update_row["status"] = _normalize_status(updates.status)
+
+    if not update_row:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    result = (
+        supabase.table("campaigns")
+        .update(update_row)
+        .eq("id", campaign_id)
+        .eq("tenant_id", tenant_id)
+        .execute()
+    )
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+
+    return CampaignOut(**result.data[0])
+
+
+@router.delete("/{campaign_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_campaign(
+    campaign_id: str,
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+):
+    tenant_id = _require_tenant_id(x_workspace_id)
+    supabase = get_supabase_client()
+    try:
+        UUID(campaign_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid campaign_id")
+
+    result = (
+        supabase.table("campaigns")
+        .delete()
+        .eq("id", campaign_id)
+        .eq("tenant_id", tenant_id)
+        .execute()
+    )
+    if result.data is None:
+        # Supabase returns [] on no rows, but be defensive.
+        raise HTTPException(status_code=404, detail="Campaign not found")
+
+    return None

@@ -18,12 +18,13 @@ import { BlueprintProgress } from "@/components/ui/BlueprintProgress";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { FoundationSkeleton } from "@/components/ui/DashboardSkeletons";
 import { useFoundationStore } from "@/stores/foundationStore";
-import { useAuth } from "@/components/auth/AuthProvider"; // IMPORT AUTH
 import { RICPDetailModal } from "@/components/foundation/RICPDetailModal";
 import { MessagingDetailModal } from "@/components/foundation/MessagingDetailModal";
 import { GlossaryTerm } from "@/components/foundation/StrategicGlossary";
 import { BlueprintEmptyState } from "@/components/ui/BlueprintEmptyState";
 import { RICP, CoreMessaging, MARKET_SOPHISTICATION_LABELS } from "@/types/foundation";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { toast } from "sonner";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    FOUNDATION PAGE — RICP & Messaging System
@@ -33,14 +34,14 @@ import { RICP, CoreMessaging, MARKET_SOPHISTICATION_LABELS } from "@/types/found
 export default function FoundationPage() {
   const pageRef = useRef<HTMLDivElement>(null);
 
-  // Auth Integration
-  const { user } = useAuth();
+  const { workspaceId } = useWorkspace();
 
-  const { ricps, messaging, channels, fetchFoundation, updateRICP, updateMessaging, addRICP, isLoading } = useFoundationStore();
+  const { ricps, messaging, channels, fetchFoundation, updateRICP, updateMessaging, addRICP, isLoading, error } = useFoundationStore();
 
   // Modal state
   const [selectedRICP, setSelectedRICP] = useState<RICP | null>(null);
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
+  const [isCreateRICPOpen, setIsCreateRICPOpen] = useState(false);
 
   useEffect(() => {
     if (!pageRef.current) return;
@@ -50,10 +51,13 @@ export default function FoundationPage() {
 
   // Fetch data on mount/auth
   useEffect(() => {
-    if (user?.id) {
-      fetchFoundation(user.id);
-    }
-  }, [user?.id, fetchFoundation]);
+    if (!workspaceId) return;
+    fetchFoundation(workspaceId);
+  }, [workspaceId, fetchFoundation]);
+
+  useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
 
   if (isLoading) {
     return <FoundationSkeleton />;
@@ -121,8 +125,7 @@ export default function FoundationPage() {
               <div className="h-px w-12 bg-[var(--structure)]" />
               <span className="font-technical text-[var(--ink-muted)]">ICP</span>
             </div>
-            {/* TODO: Wire up Add Cohort */}
-            <SecondaryButton className="h-9 text-xs">
+            <SecondaryButton className="h-9 text-xs" onClick={() => setIsCreateRICPOpen(true)}>
               <span>+</span>
               Add Cohort
             </SecondaryButton>
@@ -147,7 +150,7 @@ export default function FoundationPage() {
                   code="FNDN-RICP-00"
                   action={{
                     label: "Create First ICP",
-                    onClick: () => {} // TODO: Wire up
+                    onClick: () => setIsCreateRICPOpen(true)
                   }}
                 />
               </div>
@@ -264,23 +267,42 @@ export default function FoundationPage() {
         </div>
       </div>
 
+      <CreateRICPModal
+        isOpen={isCreateRICPOpen}
+        onClose={() => setIsCreateRICPOpen(false)}
+        onCreate={async (ricp) => {
+          if (!workspaceId) {
+            toast.error("Workspace not initialized");
+            return;
+          }
+          try {
+            await addRICP(ricp, workspaceId);
+            toast.success("ICP created");
+            setIsCreateRICPOpen(false);
+            setSelectedRICP(ricp);
+          } catch (err: any) {
+            toast.error(err?.message || "Failed to create ICP");
+          }
+        }}
+      />
+
       {/* RICP Detail Modal */}
-      {selectedRICP && user?.id && (
+      {selectedRICP && workspaceId && (
         <RICPDetailModal
           ricp={selectedRICP}
           isOpen={true}
           onClose={() => setSelectedRICP(null)}
-          onUpdate={(updates) => updateRICP(selectedRICP.id, updates, user.id)}
+          onUpdate={(updates) => updateRICP(selectedRICP.id, updates, workspaceId)}
         />
       )}
 
       {/* Messaging Detail Modal */}
-      {messaging && user?.id && (
+      {messaging && workspaceId && (
         <MessagingDetailModal
           messaging={messaging}
           isOpen={isMessagingOpen}
           onClose={() => setIsMessagingOpen(false)}
-          onUpdate={(updates) => updateMessaging(updates, user.id)}
+          onUpdate={(updates) => updateMessaging(updates, workspaceId)}
         />
       )}
     </div>
@@ -360,6 +382,204 @@ function RICPCard({ ricp, index, onClick }: RICPCardProps) {
         <Eye size={16} strokeWidth={1.5} />
         <span className="text-xs font-medium">View Full RICP</span>
         <span className="group-hover:translate-x-1 transition-transform text-xs">→</span>
+      </div>
+    </div>
+  );
+}
+
+type CreateRICPModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreate: (ricp: RICP) => Promise<void> | void;
+};
+
+function CreateRICPModal({ isOpen, onClose, onCreate }: CreateRICPModalProps) {
+  const [name, setName] = useState("");
+  const [personaName, setPersonaName] = useState("");
+  const [role, setRole] = useState("");
+  const [stage, setStage] = useState("");
+  const [location, setLocation] = useState("");
+  const [marketSophistication, setMarketSophistication] = useState<1 | 2 | 3 | 4 | 5>(3);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setName("");
+    setPersonaName("");
+    setRole("");
+    setStage("");
+    setLocation("");
+    setMarketSophistication(3);
+    setError(null);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  async function handleCreate() {
+    const trimmedName = name.trim();
+    const trimmedRole = role.trim();
+    const trimmedStage = stage.trim();
+    if (!trimmedName) {
+      setError("Name is required");
+      return;
+    }
+    if (!trimmedRole) {
+      setError("Role is required");
+      return;
+    }
+    if (!trimmedStage) {
+      setError("Stage is required");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const ricp: RICP = {
+        id: crypto.randomUUID(),
+        name: trimmedName,
+        personaName: personaName.trim() || undefined,
+        avatar: "👤",
+        demographics: {
+          ageRange: "",
+          income: "",
+          location: location.trim(),
+          role: trimmedRole,
+          stage: trimmedStage,
+        },
+        psychographics: {
+          beliefs: "",
+          identity: "",
+          becoming: "",
+          fears: "",
+          values: [],
+          hangouts: [],
+          contentConsumed: [],
+          whoTheyFollow: [],
+          language: [],
+          timing: [],
+          triggers: [],
+        },
+        marketSophistication,
+        painPoints: [],
+        goals: [],
+        objections: [],
+      };
+
+      await onCreate(ricp);
+    } catch (e: any) {
+      setError(e?.message || "Failed to create ICP");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-lg)] p-6 shadow-2xl">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h3 className="font-serif text-xl text-[var(--ink)]">Create ICP</h3>
+            <p className="text-sm text-[var(--ink-muted)]">This is stored in Foundation and scoped to your workspace.</p>
+          </div>
+          <button
+            className="px-3 py-1.5 text-sm rounded-[var(--radius)] border border-[var(--border)]"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="grid gap-4">
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-[var(--ink)]">Name</span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]"
+              placeholder="e.g. Bootstrap B2B Founder"
+            />
+          </label>
+
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-[var(--ink)]">Persona (optional)</span>
+            <input
+              value={personaName}
+              onChange={(e) => setPersonaName(e.target.value)}
+              className="w-full px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]"
+              placeholder="e.g. Sam the Solo Founder"
+            />
+          </label>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-[var(--ink)]">Role</span>
+              <input
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]"
+                placeholder="e.g. Founder"
+              />
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-[var(--ink)]">Stage</span>
+              <input
+                value={stage}
+                onChange={(e) => setStage(e.target.value)}
+                className="w-full px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]"
+                placeholder="e.g. Pre-PMF"
+              />
+            </label>
+          </div>
+
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-[var(--ink)]">Location (optional)</span>
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]"
+              placeholder="e.g. United States"
+            />
+          </label>
+
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-[var(--ink)]">Market Sophistication</span>
+            <select
+              value={marketSophistication}
+              onChange={(e) => setMarketSophistication(Number(e.target.value) as any)}
+              className="w-full px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]"
+            >
+              <option value={1}>1 - First to Market</option>
+              <option value={2}>2 - Competition Arrives</option>
+              <option value={3}>3 - Feature Wars</option>
+              <option value={4}>4 - Market Saturation</option>
+              <option value={5}>5 - Identity/Belief</option>
+            </select>
+          </label>
+
+          {error ? <div className="text-sm text-[var(--error)]">{error}</div> : null}
+
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={() => void handleCreate()}
+              disabled={isSubmitting}
+              className="px-4 py-2 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium disabled:opacity-50"
+            >
+              {isSubmitting ? "Creating..." : "Create"}
+            </button>
+            <button
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="px-4 py-2 rounded-[var(--radius)] border border-[var(--border)] text-sm font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

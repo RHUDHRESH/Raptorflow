@@ -121,7 +121,7 @@ export function ExecutionGrid({ days, onTaskStatusChange, className, compact = f
 function TaskNode({ task, icon, isMain = false }: { task: TaskItem, icon: React.ReactNode, isMain?: boolean }) {
     if (!task) return null;
 
-    // Simple mock status toggle logic could go here if we wired up interactivity
+    // Status toggle logic could be wired here once interactivity is enabled.
     const isDone = task.status === 'done';
 
     return (

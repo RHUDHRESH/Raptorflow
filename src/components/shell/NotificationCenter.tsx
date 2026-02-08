@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Bell, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -22,24 +22,8 @@ const ICONS = {
 };
 
 export function NotificationBell() {
-  const { notifications, markAsRead, removeNotification, clearNotifications, addNotification } = useNotificationStore();
+  const { notifications, markAsRead, removeNotification, clearNotifications } = useNotificationStore();
   const unreadCount = notifications.filter(n => !n.read).length;
-
-  // Add welcome notifications if empty
-  useEffect(() => {
-    if (notifications.length === 0) {
-      addNotification({
-        type: 'success',
-        title: 'Welcome to RaptorFlow!',
-        message: 'Your Marketing Operating System is ready. Start by defining your Brand Foundation.',
-      });
-      addNotification({
-        type: 'info',
-        title: 'New: Command Palette',
-        message: 'Press Ctrl+K anywhere to jump between modules quickly.',
-      });
-    }
-  }, [notifications.length, addNotification]);
 
   return (
     <DropdownMenu>

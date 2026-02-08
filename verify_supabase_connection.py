@@ -1,19 +1,39 @@
-import os
-from supabase import create_client, Client
+﻿import os
 
-url: str = "https://vpwwzsanuyhpkvgorcnc.supabase.co"
-key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd3d6c2FudXlocGt2Z29yY25jIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjM5OTU5MSwiZXhwIjoyMDc3OTc1NTkxfQ.6Q7hAvurQR04cYXg0MZPv7-OMBTMqNKV1N02rC_OOnw"
+from supabase import Client, create_client
 
-def verify_supabase():
+
+def _get_supabase_url() -> str:
+    return os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL") or ""
+
+
+def _get_supabase_service_role_key() -> str:
+    return (
+        os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        or os.getenv("SUPABASE_SERVICE_KEY")
+        or os.getenv("SERVICE_ROLE_KEY")
+        or ""
+    )
+
+
+def verify_supabase() -> None:
+    url = _get_supabase_url()
+    key = _get_supabase_service_role_key()
+
+    if not url or not key:
+        raise SystemExit(
+            "Supabase credentials not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+        )
+
     print(f"Connecting to Supabase at {url}...")
-    try:
-        supabase: Client = create_client(url, key)
-        # Try to list some tables or just a simple query
-        response = supabase.table("users").select("count", count="exact").limit(1).execute()
-        print(f"✅ Supabase connection successful!")
-        print(f"Users count (test): {response.count}")
-    except Exception as e:
-        print(f"❌ Supabase connection failed: {e}")
+
+    supabase: Client = create_client(url, key)
+    response = supabase.table("workspaces").select("id", count="exact").limit(1).execute()
+
+    print("Supabase connection OK.")
+    if getattr(response, "count", None) is not None:
+        print(f"workspaces count (exact): {response.count}")
+
 
 if __name__ == "__main__":
     verify_supabase()

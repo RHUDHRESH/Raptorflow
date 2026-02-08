@@ -5,9 +5,14 @@ const root = process.cwd();
 
 const checks = [
   ["package.json", "Root package.json exists"],
+  ["REPO_MAP.md", "Repo map exists (AGENTS.md requirement)"],
+  ["API_INVENTORY.md", "API inventory exists (AGENTS.md requirement)"],
+  ["AUTH_INVENTORY.md", "Auth inventory exists (AGENTS.md requirement)"],
   ["src/app", "Canonical frontend app exists"],
-  ["backend/app.py", "Backend entrypoint exists"],
-  ["docs/ARCHITECTURE.md", "Architecture doc exists"],
+  ["src/app/api/[...path]/route.ts", "Canonical Next API proxy exists"],
+  ["backend/main.py", "Backend ASGI entrypoint exists"],
+  ["backend/app_factory.py", "Backend app factory exists"],
+  ["backend/api/registry.py", "Backend router registry exists"],
 ];
 
 const archivedChecks = [

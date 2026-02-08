@@ -22,6 +22,7 @@ function MusePageContent() {
 
     // Parse context from URL if provided (from Daily Wins, BlackBox, etc.)
     const initialContext = useMemo(() => {
+        if (!searchParams) return null;
         const contextParam = searchParams.get("context");
         if (!contextParam) return null;
 

@@ -6,11 +6,9 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 from fastapi import APIRouter
-from infrastructure.cache import get_cache
-from infrastructure.database import get_supabase
-from infrastructure.llm import get_llm
 
 from backend.config import settings
+from backend.core.supabase_mgr import get_supabase_client
 
 router = APIRouter()
 
@@ -29,23 +27,39 @@ async def root() -> Dict[str, Any]:
 
 @router.get("/health")
 async def health_check() -> Dict[str, Any]:
-    """Health check covering core infrastructure."""
+    """Health check for the canonical reconstruction stack.
+
+    This endpoint must not import optional integrations (Redis, payments, etc)
+    at module import time; missing optional dependencies should not prevent the
+    API from starting.
+    """
+
     services: Dict[str, Any] = {}
     overall_status = "healthy"
 
-    async def safe_check(name: str, coro) -> None:
-        nonlocal overall_status
-        try:
-            result = await coro
-        except Exception as exc:
-            result = {"status": "unhealthy", "message": str(exc)}
-        services[name] = result
-        if result.get("status") != "healthy":
-            overall_status = "degraded"
+    # Database (required for core product flows).
+    try:
+        supabase = get_supabase_client()
+        supabase.table("workspaces").select("id").limit(1).execute()
+        services["database"] = {"status": "healthy"}
+    except Exception as exc:
+        services["database"] = {"status": "unhealthy", "message": str(exc)}
+        overall_status = "unhealthy"
 
-    await safe_check("database", get_supabase().health_check())
-    await safe_check("cache", get_cache().health_check())
-    await safe_check("llm", get_llm().health_check())
+    # Muse (optional).
+    try:
+        from backend.services.vertex_ai_service import vertex_ai_service  # noqa: PLC0415
+
+        services["muse"] = {
+            "status": "healthy" if vertex_ai_service else "unconfigured",
+            "engine": "vertex_ai" if vertex_ai_service else "none",
+        }
+        if not vertex_ai_service and overall_status == "healthy":
+            overall_status = "degraded"
+    except Exception as exc:
+        services["muse"] = {"status": "unavailable", "message": str(exc)}
+        if overall_status == "healthy":
+            overall_status = "degraded"
 
     return {
         "status": overall_status,

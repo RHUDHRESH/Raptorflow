@@ -1,26 +1,10 @@
-# Core module exports
-from .unified_inference_engine import (
-    BaseInferenceEngine,
-    InferenceContext,
-    InferenceMode,
-    RealInferenceEngine,
-    ResponseStyle,
-    SimulatedInferenceEngine,
-    UnifiedInferenceEngine,
-    UnifiedRequest,
-    UnifiedResponse,
-    get_inference_engine,
-)
+"""
+Backend core utilities.
 
-__all__ = [
-    "UnifiedInferenceEngine",
-    "UnifiedRequest",
-    "UnifiedResponse",
-    "InferenceMode",
-    "InferenceContext",
-    "ResponseStyle",
-    "BaseInferenceEngine",
-    "SimulatedInferenceEngine",
-    "RealInferenceEngine",
-    "get_inference_engine",
-]
+In reconstruction mode, this package must remain lightweight to avoid importing
+legacy/broken modules at startup. Import specific modules directly (e.g.
+`core.supabase_mgr`) instead of relying on package-level exports.
+"""
+
+__all__: list[str] = []
+

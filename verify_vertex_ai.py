@@ -1,26 +1,28 @@
-import os
-import google.auth
-from google.cloud import aiplatform
+﻿import os
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./raptorflow-storage-key.json"
-os.environ["VERTEX_AI_API_KEY"] = "AQ.Ab8RN6IUsXQOIdywX4O_vrP6lSO5JS-fY_bQG4o84BajiSrIPg"
-project_id = "raptorflow-481505"
-location = "us-central1"
 
-def verify_vertex_ai():
-    print(f"Initializing Vertex AI for project {project_id} in {location}...")
+def verify_vertex_ai() -> None:
+    api_key = os.getenv("VERTEX_AI_API_KEY") or os.getenv("GOOGLE_API_KEY") or ""
+    project_id = os.getenv("VERTEX_AI_PROJECT_ID") or os.getenv("GCP_PROJECT_ID") or ""
+    location = os.getenv("VERTEX_AI_LOCATION") or os.getenv("GCP_REGION") or "us-central1"
+
+    if not api_key:
+        raise SystemExit("Set VERTEX_AI_API_KEY (or GOOGLE_API_KEY) to run this check.")
+
     try:
-        # aiplatform.init(project=project_id, location=location)
-        # Using GenAI library might be better to test the API key
         import google.generativeai as genai
-        genai.configure(api_key=os.environ["VERTEX_AI_API_KEY"])
-        model = genai.GenerativeModel('gemini-pro')
-        # Simple test generation
-        # response = model.generate_content("Ping")
-        print("✅ Vertex AI (GenAI) configured with API Key!")
-        print(f"Model: {model.model_name}")
-    except Exception as e:
-        print(f"❌ Vertex AI initialization failed: {e}")
+    except Exception as exc:  # pragma: no cover
+        raise SystemExit(f"google-generativeai is not available: {exc}")
+
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-pro")
+
+    print("Vertex AI (GenAI) configured.")
+    if project_id:
+        print(f"project_id: {project_id}")
+    print(f"location: {location}")
+    print(f"model: {model.model_name}")
+
 
 if __name__ == "__main__":
     verify_vertex_ai()

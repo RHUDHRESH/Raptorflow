@@ -3,6 +3,7 @@ import "./globals.css";
 import { CustomCursor } from "@/components/effects/CustomCursor";
 import { GrainEffect } from "@/components/effects/GrainEffect";
 import { SmoothScrollProvider } from "@/components/effects/SmoothScroll";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "RaptorFlow - Navigate Your Marketing",
@@ -39,6 +40,7 @@ export default function RootLayout({
 
           {children}
         </SmoothScrollProvider>
+        <Toaster />
       </body>
     </html>
   );

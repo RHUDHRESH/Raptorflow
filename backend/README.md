@@ -1,104 +1,57 @@
-# RaptorFlow Agentic Spine
+# Raptorflow Backend (Reconstruction Mode)
 
-This is the Python-based creative engine for RaptorFlow, built with FastAPI and LangGraph.
+This backend is the canonical FastAPI API used by the current Next.js frontend.
 
-## Tech Stack
-- **Framework:** FastAPI
-- **Orchestration:** LangGraph
-- **Inference:** Vertex AI (Gemini 2.5 Flash/Flash-Lite)
-- **Database:** Supabase (PostgreSQL + pgvector)
+Status: no-auth, no-payments. Tenant boundary is a workspace id passed via `x-workspace-id`.
 
-## Setup
-1. Use Python 3.11-3.13 (Python 3.14 is not supported by current LangChain/Pydantic compatibility layers).
-1. Install dependencies:
-   ```bash
-   poetry install
-   ```
-2. Set environment variables:
-   - `DATABASE_URL`: Supabase postgres connection string.
-   - `SERPER_API_KEY`: Search API key.
-   - `INFERENCE_PROVIDER`: "google" (default).
-   - `RF_INTERNAL_KEY`: Secret key for API auth.
+## Run
 
-### PhonePe Standard Checkout v2
-Set the following environment variables for PhonePe checkout:
-- `PHONEPE_CLIENT_ID`: Client ID from PhonePe dashboard.
-- `PHONEPE_CLIENT_SECRET`: Client secret from PhonePe dashboard.
-- `PHONEPE_CLIENT_VERSION`: Client version (e.g., `1`).
-- `PHONEPE_ENV`: `SANDBOX` for UAT or `PRODUCTION` for live payments.
-- `PHONEPE_WEBHOOK_USERNAME`: Webhook username configured in the PhonePe portal.
-- `PHONEPE_WEBHOOK_PASSWORD`: Webhook password configured in the PhonePe portal.
+From repo root (recommended):
 
-**SANDBOX vs PRODUCTION**
-- Use `PHONEPE_ENV=SANDBOX` for testing against the sandbox environment.
-- Use `PHONEPE_ENV=PRODUCTION` when going live; ensure webhook credentials and redirect URLs are updated.
-
-### How to test locally (PhonePe)
-1. Run the backend:
-   ```bash
-   uvicorn backend.main:app --reload
-   ```
-2. Start an ngrok tunnel for the webhook endpoint:
-   ```bash
-   ngrok http 8000
-   ```
-3. Configure the PhonePe webhook URL to:
-   ```
-   https://<ngrok-subdomain>.ngrok.io/v1/payments/webhook
-   ```
-4. Initiate a payment:
-   ```bash
-   curl -X POST "http://localhost:8000/v1/payments/initiate?user_id=test&amount=10.5&transaction_id=order-123&redirect_url=http://localhost:3000/success"
-   ```
-5. Check order status after redirect (optional):
-   ```bash
-   curl "http://localhost:8000/v1/payments/status/order-123"
-   ```
-
-## Deployment
-Deploy to Google Cloud Run:
-```bash
-gcloud run deploy raptorflow-spine --source .
+```powershell
+.\.venv\Scripts\python backend\run_simple.py
 ```
 
-## Health checks (Ops)
-The public `/health` endpoint returns a minimal response:
-```json
-{"status": "ok"}
+Health:
+
+```powershell
+curl http://localhost:8000/health
 ```
 
-For deep component checks, include the internal key:
-```bash
-curl -H "X-RF-Internal-Key: $RF_INTERNAL_KEY" http://localhost:8000/health
-```
+## Canonical API Surface
 
-## Blackbox Architecture
-The Blackbox is the "Cognitive Spine" of RaptorFlow, handling industrial-scale telemetry and automated learning.
+Routers are registered in `backend/api/registry.py` and mounted by `backend/app_factory.py`.
 
-```mermaid
-graph TD
-    A[Move Execution] --> B(Telemetry Collector)
-    B --> C{Data Tier}
-    C -->|Sync| D[Supabase Postgres]
-    C -->|Stream| E[BigQuery Analytics]
+System:
 
-    F[External Outcomes] --> G(Outcome Ingestion)
-    G --> D
-    G --> E
+- `GET /`
+- `GET /health`
 
-    H[Learning Flywheel] -->|Triggers| I(LangGraph Analysis)
-    I -->|Fetches| B
-    I -->|Fetches| G
-    I -->|Extracts| J[Strategic Learnings]
-    J -->|Persists| K[Supabase pgvector]
+API (canonical prefix: `/api/*`):
 
-    L[Frontend] -->|Visualizes| D
-    L -->|Visualizes| E
-    L -->|Visualizes| K
-```
+- Workspaces: `POST /api/workspaces`, `GET/PATCH /api/workspaces/{id}`
+- Campaigns: `GET/POST /api/campaigns`, `GET/PATCH/DELETE /api/campaigns/{id}` (requires `x-workspace-id`)
+- Moves: `GET/POST /api/moves`, `PATCH/DELETE /api/moves/{id}` (requires `x-workspace-id`)
+- Foundation: `GET/PUT /api/foundation` (requires `x-workspace-id`)
+- Muse: `GET /api/muse/health`, `POST /api/muse/generate` (requires `x-workspace-id`, optional integration)
 
-### Core Components
-- **Telemetry System:** High-throughput capture of agent traces.
-- **ROI Engine:** Probabilistic attribution of outcomes to moves.
-- **Learning Flywheel:** Multi-agentic reflection extracting strategic pivots from raw data.
-- **Memory Layer:** Dual-tier storage (Redis for session, pgvector for long-term).
+Compatibility:
+
+- `/api/v1/*` is supported via path rewrite to `/api/*` when `ENABLE_LEGACY_API_PATHS=true`.
+
+## Environment Variables
+
+Required (database):
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Optional (Muse):
+
+- `VERTEX_AI_PROJECT_ID`
+- `VERTEX_AI_LOCATION`
+- `VERTEX_AI_MODEL`
+- `GOOGLE_APPLICATION_CREDENTIALS` (or another supported GCP auth method)
+
+See `backend/.env.example` and repo-root `.env.example`.
+

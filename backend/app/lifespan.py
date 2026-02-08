@@ -7,39 +7,43 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from infrastructure.cache import get_cache
-from infrastructure.database import get_supabase
-from infrastructure.email import get_email
-from infrastructure.llm import get_llm
 
 from backend.config import settings
+from backend.core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
 
 async def startup():
-    """Initialize all services on startup"""
+    """Startup checks for the canonical reconstruction stack.
+
+    This must not import optional integrations (Redis, auth, payments, etc) at
+    module import time; missing optional dependencies should not prevent the API
+    from starting.
+    """
+
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
 
-    # Health checks (non-blocking)
+    # Database (required)
     try:
-        db_health = await get_supabase().health_check()
-        logger.info(f"Database: {db_health['status']}")
+        supabase = get_supabase_client()
+        supabase.table("workspaces").select("id").limit(1).execute()
+        logger.info("Database: healthy")
     except Exception as e:
-        logger.warning(f"Database health check failed: {e}")
+        logger.error(f"Database health check failed: {e}")
+        raise
 
+    # Muse/Vertex AI (optional)
     try:
-        cache_health = await get_cache().health_check()
-        logger.info(f"Cache: {cache_health['status']}")
-    except Exception as e:
-        logger.warning(f"Cache health check failed: {e}")
+        from backend.services.vertex_ai_service import vertex_ai_service  # noqa: PLC0415
 
-    try:
-        llm_health = await get_llm().health_check()
-        logger.info(f"LLM: {llm_health['status']}")
+        logger.info(
+            "Muse: %s",
+            "configured (vertex_ai)" if vertex_ai_service else "unconfigured",
+        )
     except Exception as e:
-        logger.warning(f"LLM health check failed: {e}")
+        logger.warning(f"Muse health check failed: {e}")
 
     logger.info("Startup complete")
 

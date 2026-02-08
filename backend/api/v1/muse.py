@@ -1,85 +1,115 @@
-from typing import Optional
+"""
+Muse API (No-Auth Reconstruction Mode)
+
+Goal: keep a single, minimal, working Muse endpoint that the Next.js UI can call.
+No user auth. Tenant boundary is `x-workspace-id`.
+"""
+
+from __future__ import annotations
+
+import json
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Header, HTTPException, status
+from pydantic import BaseModel, Field
 
-from core.auth import get_current_user, get_tenant_id
-from graphs.muse_create import build_muse_spine
-from models.cognitive import CognitiveStatus, LifecycleState
+from backend.services.vertex_ai_service import vertex_ai_service
 
-router = APIRouter(prefix="/v1/muse", tags=["muse"])
+router = APIRouter(prefix="/muse", tags=["muse"])
 
 
-class MuseCreateRequest(BaseModel):
-    prompt: str
-    workspace_id: str
-    thread_id: Optional[str] = None
-
-
-class MuseResponse(BaseModel):
-    status: str
-    asset_content: Optional[str] = None
-    thread_id: str
-    quality_score: float = 0.0
-
-
-@router.post("/create", response_model=MuseResponse)
-async def create_muse_asset(
-    request: MuseCreateRequest,
-    tenant_id: UUID = Depends(get_tenant_id),
-    _current_user: dict = Depends(get_current_user),
-):
-    """
-    SOTA Endpoint: Triggers the full Muse Cognitive Spine.
-    """
+def _require_tenant_id(x_workspace_id: Optional[str]) -> str:
+    if not x_workspace_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing X-Workspace-Id header",
+        )
     try:
-        spine = build_muse_spine()
-
-        # Initialize state
-        initial_state = {
-            "raw_prompt": request.prompt,
-            "workspace_id": request.workspace_id,
-            "tenant_id": str(tenant_id),
-            "messages": [],
-            "generated_assets": [],
-            "reflection_log": [],
-            "status": CognitiveStatus.IDLE,
-            "lifecycle_state": LifecycleState.IDLE,
-            "lifecycle_transitions": [],
-            "cost_accumulator": 0.0,
-            "token_usage": {},
-            "brief": {},
-            "research_bundle": {},
-            "quality_score": 0.0,
-            "error": None,
-        }
-
-        # Configuration for LangGraph (thread_id for persistence)
-        config = {"configurable": {"thread_id": request.thread_id or "default"}}
-
-        # Execute the graph
-        # For a production build, this might be backgrounded or streamed.
-        # Here we invoke it synchronously for simplicity in the current endpoint.
-        result = await spine.ainvoke(initial_state, config=config)
-
-        final_asset = (
-            result["generated_assets"][-1]["content"]
-            if result["generated_assets"]
-            else "Generation failed."
+        UUID(x_workspace_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid X-Workspace-Id header (must be UUID)",
         )
+    return x_workspace_id
 
-        return MuseResponse(
-            status=result["status"],
-            asset_content=final_asset,
-            thread_id=request.thread_id or "default",
-            quality_score=result.get("quality_score", 0.0),
-        )
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+class MuseGenerateRequest(BaseModel):
+    task: str = Field(..., min_length=1)
+    context: Dict[str, Any] = Field(default_factory=dict)
+    content_type: str = "general"
+    tone: str = "professional"
+    target_audience: str = "general"
+    max_tokens: int = 800
+    temperature: float = 0.7
+
+
+class MuseGenerateResponse(BaseModel):
+    success: bool
+    content: str = ""
+    tokens_used: int = 0
+    cost_usd: float = 0.0
+    suggestions: List[str] = Field(default_factory=list)
+    error: str = ""
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 @router.get("/health")
-async def muse_health():
-    return {"status": "healthy", "engine": "Muse Creative Engine"}
+async def muse_health(
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> Dict[str, Any]:
+    _require_tenant_id(x_workspace_id)
+    return {
+        "status": "ok",
+        "engine": "vertex_ai" if vertex_ai_service else "unconfigured",
+        "vertex_ai_configured": bool(vertex_ai_service),
+    }
+
+
+@router.post("/generate", response_model=MuseGenerateResponse)
+async def generate(
+    payload: MuseGenerateRequest,
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> MuseGenerateResponse:
+    workspace_id = _require_tenant_id(x_workspace_id)
+
+    if not vertex_ai_service:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Vertex AI unavailable. Configure VERTEX_AI_PROJECT_ID/credentials.",
+        )
+
+    prompt = "\n".join(
+        [
+            f"Task: {payload.task}",
+            f"Type: {payload.content_type}",
+            f"Tone: {payload.tone}",
+            f"Target audience: {payload.target_audience}",
+            f"Context: {json.dumps(payload.context)}",
+        ]
+    )
+
+    result = await vertex_ai_service.generate_text(
+        prompt=prompt,
+        workspace_id=workspace_id,
+        user_id="reconstruction",
+        max_tokens=payload.max_tokens,
+        temperature=payload.temperature,
+    )
+
+    if result.get("status") != "success":
+        error = result.get("error") or "Muse generation failed"
+        raise HTTPException(status_code=502, detail=error)
+
+    return MuseGenerateResponse(
+        success=True,
+        content=result.get("text") or "",
+        tokens_used=int(result.get("total_tokens") or 0),
+        cost_usd=float(result.get("cost_usd") or 0.0),
+        metadata={
+            "model": result.get("model"),
+            "model_type": result.get("model_type"),
+            "generation_time_seconds": result.get("generation_time_seconds"),
+        },
+    )

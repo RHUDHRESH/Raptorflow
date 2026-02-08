@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Plus, Calendar as CalendarIcon, Search, X, LayoutGrid, ListTodo, Zap } from "lucide-react";
 
 import { Move, MoveCategory, ExecutionDay, MoveBriefData } from "@/components/moves/types";
@@ -13,9 +14,8 @@ import { BlueprintModal } from "@/components/ui/BlueprintModal";
 import { MoveIntelCenter } from "@/components/moves/MoveIntelCenter";
 import { MovesSkeleton } from "@/components/ui/DashboardSkeletons";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/components/auth/AuthProvider"; // IMPORT AUTH
-import { BCMIndicator } from "@/components/bcm/BCMIndicator";
-import { BCMRebuildDialog } from "@/components/bcm/BCMRebuildDialog";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { toast } from "sonner";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    MOVES PAGE — QUIET LUXURY REDESIGN
@@ -25,23 +25,72 @@ import { BCMRebuildDialog } from "@/components/bcm/BCMRebuildDialog";
 type ViewTab = 'agenda' | 'gallery' | 'calendar';
 
 export default function MovesPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const didAttemptFetchRef = useRef(false);
+  const missingMoveToastRef = useRef<string | null>(null);
+
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
   const [selectedMove, setSelectedMove] = useState<Move | null>(null);
   const [activeTab, setActiveTab] = useState<ViewTab>('agenda');
 
-  // Auth Integration
-  const { user, profileStatus } = useAuth();
+  const { workspaceId } = useWorkspace();
 
-  const { moves, addMove, fetchMoves, isLoading } = useMovesStore();
+  const { moves, addMove, fetchMoves, isLoading, error } = useMovesStore();
 
   useEffect(() => {
     setMounted(true);
-    if (user?.id) {
-      fetchMoves(user.id);
+    if (!workspaceId) return;
+    didAttemptFetchRef.current = true;
+    fetchMoves(workspaceId);
+  }, [workspaceId, fetchMoves]);
+
+  useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
+
+  const linkedCampaignId = searchParams?.get("campaignId") || undefined;
+  const autoOpenWizard =
+    searchParams?.get("new") === "1" ||
+    (searchParams?.get("create") || "").toLowerCase() === "true";
+  const linkedMoveId = searchParams?.get("moveId") || undefined;
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (autoOpenWizard) setIsWizardOpen(true);
+  }, [autoOpenWizard, mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (!workspaceId) return;
+    if (!linkedMoveId) return;
+    if (error) return;
+
+    const found = moves.find((m) => m.id === linkedMoveId);
+    if (found) {
+      missingMoveToastRef.current = null;
+      setSelectedMove(found);
+      return;
     }
-  }, [user?.id, fetchMoves]);
+
+    if (isLoading) return;
+    if (!didAttemptFetchRef.current) return;
+    if (missingMoveToastRef.current === linkedMoveId) return;
+
+    missingMoveToastRef.current = linkedMoveId;
+    toast.error("Move not found.");
+  }, [mounted, workspaceId, linkedMoveId, moves, isLoading, error]);
+
+  const clearMoveIdFromUrl = () => {
+    const params = new URLSearchParams(searchParams?.toString());
+    if (!params.has("moveId")) return;
+    params.delete("moveId");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  };
 
   // Calculate stats
   const stats = {
@@ -59,7 +108,7 @@ export default function MovesPage() {
   );
 
   const handleWizardComplete = async (data: { category: MoveCategory; context: string; brief: MoveBriefData; execution: ExecutionDay[] }) => {
-    if (!user?.id) return;
+    if (!workspaceId) return;
 
     const newMove: Move = {
       id: crypto.randomUUID(),
@@ -76,11 +125,11 @@ export default function MovesPage() {
       execution: data.execution || [],
       icp: data.brief.icp || "General Audience",
       metrics: data.brief.metrics || [],
-      campaignId: undefined,
-      workspaceId: profileStatus?.workspaceId || undefined
+      campaignId: linkedCampaignId,
+      workspaceId: workspaceId
     };
 
-    await addMove(newMove, user.id, profileStatus?.workspaceId || undefined);
+    await addMove(newMove, workspaceId);
     setIsWizardOpen(false);
   };
 
@@ -115,11 +164,7 @@ export default function MovesPage() {
               </p>
             </div>
 
-            {/* BCM Controls */}
-            <div className="flex items-center gap-4 ml-6">
-              <BCMIndicator workspaceId={profileStatus?.workspaceId || ""} />
-              <BCMRebuildDialog workspaceId={profileStatus?.workspaceId || ""} />
-            </div>
+
           </div>
 
           {/* Action Bar */}
@@ -220,7 +265,10 @@ export default function MovesPage() {
       {/* Move Detail Modal */}
       <BlueprintModal
         isOpen={!!selectedMove}
-        onClose={() => setSelectedMove(null)}
+        onClose={() => {
+          setSelectedMove(null);
+          clearMoveIdFromUrl();
+        }}
         title={selectedMove?.name || "Move Details"}
         size="lg"
       >

@@ -333,8 +333,11 @@ export function CompassSpinner({ size = 40, className = "" }: { size?: number; c
   useEffect(() => {
     if (!spinnerRef.current) return;
 
+    const needle = spinnerRef.current.querySelector("#spinner-needle");
+    if (!needle) return;
+
     const ctx = gsap.context(() => {
-      gsap.to(spinnerRef.current?.querySelector("#spinner-needle"), {
+      gsap.to(needle, {
         rotation: 360,
         transformOrigin: "center center",
         duration: 2,

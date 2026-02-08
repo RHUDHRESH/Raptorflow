@@ -78,17 +78,17 @@ export function Navbar() {
               <ThemeToggle />
 
               <button
-                onClick={() => router.push("/signin")}
+                onClick={() => router.push("/dashboard")}
                 className="hidden md:block text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
-                Sign In
+                Dashboard
               </button>
 
               <button
-                onClick={() => router.push("/signup")}
+                onClick={() => router.push("/dashboard")}
                 className="magnetic-button px-5 py-2.5 bg-[var(--accent)] text-white text-sm font-medium rounded-full hover:bg-[var(--accent-dark)] transition-colors"
               >
-                Get Started
+                Open App
               </button>
 
               {/* Mobile menu button */}
@@ -127,16 +127,16 @@ export function Navbar() {
             ))}
             <hr className="border-[var(--border)] my-2" />
             <button
-              onClick={() => router.push("/signin")}
+              onClick={() => router.push("/dashboard")}
               className="text-lg font-display text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-left py-2"
             >
-              Sign In
+              Dashboard
             </button>
             <button
-              onClick={() => router.push("/signup")}
+              onClick={() => router.push("/dashboard")}
               className="mt-2 w-full py-3 bg-[var(--accent)] text-white font-medium rounded-full hover:bg-[var(--accent-dark)] transition-colors"
             >
-              Get Started
+              Open App
             </button>
           </div>
         </div>

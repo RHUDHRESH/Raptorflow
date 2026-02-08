@@ -6,6 +6,8 @@ import { useMovesStore } from "@/stores/movesStore"; // Import store
 import { MoveCategoryIcon } from "@/components/moves/MoveCategoryIcon";
 import { Check, Zap, Share2, MessageSquare, Layout, Activity, Calendar, Layers, ChevronDown, ChevronRight, Target, Lightbulb, Users, Megaphone, ArrowRight, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { toast } from "sonner";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    MOVE INTEL CENTER — QUIET LUXURY REDESIGN
@@ -18,6 +20,7 @@ interface MoveIntelCenterProps {
 
 export function MoveIntelCenter({ move }: MoveIntelCenterProps) {
     const { updateMove } = useMovesStore(); // Connect to store
+    const { workspaceId } = useWorkspace();
     const [activeTab, setActiveTab] = useState<"strategy" | "execution">("strategy");
     const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([1]));
     const [isCompleting, setIsCompleting] = useState(false); // For animation state
@@ -52,8 +55,18 @@ export function MoveIntelCenter({ move }: MoveIntelCenterProps) {
 
         // Optimistic update styling
         setTimeout(() => {
-            updateMove(move.id, { status: 'completed', progress: 100 });
-            setIsCompleting(false);
+            if (!workspaceId) {
+                setIsCompleting(false);
+                toast.error("Workspace not initialized");
+                return;
+            }
+
+            void updateMove(move.id, { status: 'completed', progress: 100 }, workspaceId).catch((err: any) => {
+                console.error("Failed to complete move:", err);
+                toast.error(err?.message || "Failed to complete move");
+            }).finally(() => {
+                setIsCompleting(false);
+            });
             // Trigger confetti if we had it, or just rely on the UI transition
         }, 600);
     };

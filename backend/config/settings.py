@@ -52,16 +52,12 @@ class Settings(BaseSettings):
     PORT: int = Field(default=8000, env="PORT")
     ENABLE_LEGACY_V1: bool = Field(default=False, env="ENABLE_LEGACY_V1")
     ENABLE_LEGACY_API_PATHS: bool = Field(default=True, env="ENABLE_LEGACY_API_PATHS")
-    ENABLE_LEGACY_EXPERIMENTAL_ROUTES: bool = Field(
-        default=False, env="ENABLE_LEGACY_EXPERIMENTAL_ROUTES"
-    )
 
     # Security
     SECRET_KEY: str = Field(default="", env="SECRET_KEY")
     JWT_ALGORITHM: str = Field(default="HS256", env="JWT_ALGORITHM")
     JWT_EXPIRE_MINUTES: int = Field(default=30, env="JWT_EXPIRE_MINUTES")
     ALLOW_HEADER_AUTH: bool = Field(default=False, env="ALLOW_HEADER_AUTH")
-    INTERNAL_API_TOKEN: Optional[str] = Field(default=None, env="INTERNAL_API_TOKEN")
 
     # Database
     DATABASE_URL: str = Field(default="", env="DATABASE_URL")
@@ -130,18 +126,6 @@ class Settings(BaseSettings):
     SMTP_USE_TLS: bool = Field(default=True, env="SMTP_USE_TLS")
     EMAIL_FROM: Optional[str] = Field(default=None, env="EMAIL_FROM")
     SLACK_WEBHOOK_URL: Optional[str] = Field(default=None, env="SLACK_WEBHOOK_URL")
-
-    # Webhooks
-    WEBHOOK_SECRET: str = Field(default="", env="WEBHOOK_SECRET")
-    SUPABASE_WEBHOOK_SECRET: Optional[str] = Field(
-        default=None, env="SUPABASE_WEBHOOK_SECRET"
-    )
-    STRIPE_WEBHOOK_SECRET: Optional[str] = Field(
-        default=None, env="STRIPE_WEBHOOK_SECRET"
-    )
-    PHONEPE_WEBHOOK_SECRET: Optional[str] = Field(
-        default=None, env="PHONEPE_WEBHOOK_SECRET"
-    )
 
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = Field(default=True, env="RATE_LIMIT_ENABLED")

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Search, LayoutGrid, Zap, Flag, Target, BarChart3, Settings, HelpCircle, FileText } from "lucide-react";
+import { Search, LayoutGrid, Zap, Flag, Target, Lightbulb, Settings, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -27,9 +27,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 { icon: LayoutGrid, label: "Dashboard", href: "/dashboard", desc: "Overview" },
                 { icon: Zap, label: "Moves", href: "/moves", desc: "Tactical execution" },
                 { icon: Flag, label: "Campaigns", href: "/campaigns", desc: "Strategic command" },
-                { icon: Flag, label: "Daily Wins", href: "/daily-wins", desc: "Quick content" },
                 { icon: Target, label: "Foundation", href: "/foundation", desc: "Brand positioning" },
-                { icon: BarChart3, label: "Analytics", href: "/analytics", desc: "Performance tracking" },
+                { icon: Lightbulb, label: "Muse", href: "/muse", desc: "AI content assistant" },
             ]
         },
         {

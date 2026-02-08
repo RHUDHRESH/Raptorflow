@@ -68,11 +68,10 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 status_code=500,
                 content={
                     "error": "Internal server error",
-                    "detail": (
-                        str(exc)
-                        if logger.isEnabledFor(logging.DEBUG)
-                        else "Something went wrong"
-                    ),
+                    # Reconstruction mode: never hide the underlying exception.
+                    "detail": str(exc),
+                    "type": exc.__class__.__name__,
+                    "path": request.url.path,
                 },
             )
 

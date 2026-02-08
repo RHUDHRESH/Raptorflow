@@ -1,12 +1,10 @@
 "use client";
 
 import React from "react";
-import { MoveRight, Play, TrendingUp, Target, Zap, Compass, ArrowUpRight } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { BlueprintCard, CardFooter } from "@/components/ui/BlueprintCard";
-import { useAuth } from "@/components/auth/AuthProvider";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    INTERACTIVE HERO SECTION - Client Component
@@ -14,19 +12,14 @@ import { useAuth } from "@/components/auth/AuthProvider";
    ═════════════════════════════════════════════════════════════════════════════ */
 
 export function InteractiveHero() {
-  const { user } = useAuth();
   const router = useRouter();
 
   const handleGetStarted = () => {
-    if (user) {
-      router.push('/dashboard');
-    } else {
-      router.push('/signup');
-    }
+    router.push('/dashboard');
   };
 
-  const handleSignIn = () => {
-    router.push('/signin');
+  const handleOpenApp = () => {
+    router.push('/dashboard');
   };
 
   return (
@@ -43,11 +36,11 @@ export function InteractiveHero() {
           DOCS
         </Link>
         <div className="w-px h-4 bg-[var(--border)]" />
-        <button onClick={handleSignIn} className="font-technical text-[var(--secondary)] hover:text-[var(--ink)] transition-colors cursor-pointer">
-          SIGN IN
+        <button onClick={handleOpenApp} className="font-technical text-[var(--secondary)] hover:text-[var(--ink)] transition-colors cursor-pointer">
+          DASHBOARD
         </button>
         <BlueprintButton size="sm" label="BTN-01" onClick={handleGetStarted}>
-          Get Started
+          Open App
         </BlueprintButton>
       </nav>
 

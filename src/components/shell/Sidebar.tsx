@@ -7,21 +7,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     LayoutDashboard,
     Target,
-    Users,
     Zap,
     BarChart2,
     Lightbulb,
-    Trophy,
-    Layers,
-    Box,
-    Search,
     ChevronDown,
     Settings,
     HelpCircle,
     LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    PAPER TERMINAL — Sidebar Navigation
@@ -34,9 +29,6 @@ const navItems = [
     { name: "Moves", href: "/moves", icon: Zap, code: "MOVE" },
     { name: "Campaigns", href: "/campaigns", icon: BarChart2, code: "CAMP" },
     { name: "Muse", href: "/muse", icon: Lightbulb, code: "MUSE", badge: "AI" },
-    { name: "Daily Wins", href: "/daily-wins", icon: Trophy, code: "WINS" },
-    { name: "Analytics", href: "/analytics", icon: Layers, code: "ANLT" },
-    { name: "Blackbox", href: "/blackbox", icon: Box, code: "BBOX" },
 ];
 
 const secondaryItems = [
@@ -46,14 +38,17 @@ const secondaryItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, profile, logout } = useAuth();
+  const { workspaceId, workspace, reset } = useWorkspace();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // Extract user info for display
-  const displayName = user?.email ?
-    user.email!.split('@')[0].charAt(0).toUpperCase() + user.email!.split('@')[0].slice(1) :
-    "User";
-  const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const workspaceName = workspace?.name || "Workspace";
+  const initials = workspaceName
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <aside className="fixed left-0 top-0 hidden lg:flex flex-col h-screen w-64 bg-[var(--paper)] border-r border-[var(--structure)] z-50 overflow-y-auto">
@@ -152,22 +147,16 @@ export function Sidebar() {
                 className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-[var(--surface-hover)] transition-colors text-left group border border-transparent hover:border-[var(--border-subtle)]"
             >
                 {/* Avatar */}
-                {user?.id && profile?.avatar_url ? (
-                    <div className="w-8 h-8 rounded-md bg-[var(--ink)] overflow-hidden">
-                        <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                    </div>
-                ) : (
-                    <div className="w-8 h-8 rounded-md bg-[var(--ink)] flex items-center justify-center text-[var(--paper)] font-medium text-xs">
-                        {initials}
-                    </div>
-                )}
+                <div className="w-8 h-8 rounded-md bg-[var(--ink)] flex items-center justify-center text-[var(--paper)] font-medium text-xs">
+                    {initials}
+                </div>
 
                 <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-[var(--ink)] truncate">
-                        {profile?.full_name || displayName}
+                        {workspaceName}
                     </div>
                     <div className="text-xs text-[var(--ink-muted)] truncate">
-                        {user?.email || "Signed In"}
+                        {workspace?.slug || workspaceId || "No workspace"}
                     </div>
                 </div>
 
@@ -192,11 +181,11 @@ export function Sidebar() {
                         <span>Settings</span>
                     </Link>
                     <button
-                        onClick={logout}
+                        onClick={() => reset()}
                         className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--error)] hover:bg-[var(--error-bg)] rounded-md transition-colors"
                     >
                         <LogOut size={14} strokeWidth={1.5} />
-                        <span>Sign Out</span>
+                        <span>Reset Workspace</span>
                     </button>
                 </div>
             )}

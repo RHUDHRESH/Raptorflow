@@ -310,7 +310,7 @@ def detect_external_calls(source: str) -> List[str]:
     patterns = [
         r"from\s+(supabase|requests|httpx|vertexai|google\.)",
         r"import\s+(supabase|requests|httpx|vertexai)",
-        r"phonepe|resend|openai|anthropic",
+        r"resend|openai|anthropic",
     ]
 
     import re

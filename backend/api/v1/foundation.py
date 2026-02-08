@@ -1,88 +1,89 @@
+"""
+Foundation API (No-Auth Reconstruction Mode)
+
+Stores the frontend Foundation state as JSON scoped by tenant/workspace.
+This intentionally avoids Supabase Auth/RLS by using the service role on the backend.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from backend.core.supabase_mgr import get_supabase_client
+from fastapi import APIRouter, Header, HTTPException, status
+from pydantic import BaseModel, Field
 
-from core.auth import get_current_user, get_tenant_id
-from core.vault import Vault
-from models.foundation import BrandKit, FoundationState, Positioning
-from services.foundation_service import FoundationService
-
-router = APIRouter(prefix="/v1/foundation", tags=["foundation"])
+router = APIRouter(prefix="/foundation", tags=["foundation"])
 
 
-async def get_foundation_service():
-    return FoundationService(Vault())
+def _require_tenant_id(x_workspace_id: Optional[str]) -> str:
+    if not x_workspace_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing X-Workspace-Id header",
+        )
+    try:
+        UUID(x_workspace_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid X-Workspace-Id header (must be UUID)",
+        )
+    return x_workspace_id
 
 
-@router.post("/state", response_model=FoundationState)
-async def save_foundation_state(
-    state: FoundationState,
-    tenant_id: UUID = Depends(get_tenant_id),
-    _current_user: dict = Depends(get_current_user),
-    service: FoundationService = Depends(get_foundation_service),
-):
-    """Saves the comprehensive onboarding state JSON."""
-    if state.tenant_id != tenant_id:
-        raise HTTPException(status_code=403, detail="Tenant ID mismatch.")
-    return await service.save_state(state)
+class FoundationState(BaseModel):
+    ricps: List[Dict[str, Any]] = Field(default_factory=list)
+    messaging: Optional[Dict[str, Any]] = None
+    channels: List[Dict[str, Any]] = Field(default_factory=list)
 
 
-@router.get("/state", response_model=FoundationState)
-async def get_foundation_state(
-    tenant_id: UUID = Depends(get_tenant_id),
-    _current_user: dict = Depends(get_current_user),
-    service: FoundationService = Depends(get_foundation_service),
-):
-    """Retrieves the comprehensive onboarding state JSON."""
-    state = await service.get_state(tenant_id)
-    if not state:
-        raise HTTPException(status_code=404, detail="Foundation state not found")
-    return state
+@router.get("/", response_model=FoundationState)
+async def get_foundation(
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> FoundationState:
+    tenant_id = _require_tenant_id(x_workspace_id)
+    supabase = get_supabase_client()
+
+    result = (
+        supabase.table("foundation_state")
+        .select("phase_progress")
+        .eq("tenant_id", tenant_id)
+        .single()
+        .execute()
+    )
+
+    if not result.data:
+        return FoundationState()
+
+    phase_progress = result.data.get("phase_progress") or {}
+    return FoundationState(
+        ricps=phase_progress.get("ricps") or [],
+        messaging=phase_progress.get("messaging"),
+        channels=phase_progress.get("channels") or [],
+    )
 
 
-@router.post("/brand-kit", response_model=BrandKit, status_code=status.HTTP_201_CREATED)
-async def create_brand_kit(
-    brand_kit: BrandKit,
-    _current_user: dict = Depends(get_current_user),
-    service: FoundationService = Depends(get_foundation_service),
-):
-    """Creates a new brand kit."""
-    return await service.create_brand_kit(brand_kit)
+@router.put("/", response_model=FoundationState)
+async def save_foundation(
+    payload: FoundationState,
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> FoundationState:
+    tenant_id = _require_tenant_id(x_workspace_id)
+    supabase = get_supabase_client()
 
+    row = {
+        "tenant_id": tenant_id,
+        "phase_progress": {
+            "ricps": payload.ricps,
+            "messaging": payload.messaging,
+            "channels": payload.channels,
+        },
+    }
 
-@router.get("/brand-kit/{id}", response_model=BrandKit)
-async def get_brand_kit(
-    id: UUID,
-    _current_user: dict = Depends(get_current_user),
-    service: FoundationService = Depends(get_foundation_service),
-):
-    """Retrieves a brand kit by ID."""
-    bk = await service.get_brand_kit(id)
-    if not bk:
-        raise HTTPException(status_code=404, detail="Brand kit not found")
-    return bk
+    result = supabase.table("foundation_state").upsert(row).execute()
+    if result.data is None:
+        raise HTTPException(status_code=500, detail="Failed to save foundation state")
 
-
-@router.post(
-    "/positioning", response_model=Positioning, status_code=status.HTTP_201_CREATED
-)
-async def create_positioning(
-    positioning: Positioning,
-    _current_user: dict = Depends(get_current_user),
-    service: FoundationService = Depends(get_foundation_service),
-):
-    """Creates a new positioning entry."""
-    return await service.create_positioning(positioning)
-
-
-@router.get("/positioning/active/{brand_kit_id}", response_model=Positioning)
-async def get_active_positioning(
-    brand_kit_id: UUID,
-    _current_user: dict = Depends(get_current_user),
-    service: FoundationService = Depends(get_foundation_service),
-):
-    """Retrieves the active positioning for a brand kit."""
-    pos = await service.get_active_positioning(brand_kit_id)
-    if not pos:
-        raise HTTPException(status_code=404, detail="Active positioning not found")
-    return pos
+    return payload

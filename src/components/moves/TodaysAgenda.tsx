@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { useMovesStore } from "@/stores/movesStore";
 import { Move, TaskItem, MOVE_CATEGORIES } from "./types";
 import { TaskDetailPopup } from "./TaskDetailPopup";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { toast } from "sonner";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    TODAY'S AGENDA — Command Center with Task Popup
@@ -29,8 +31,9 @@ interface FlattenedTask {
 }
 
 export function TodaysAgenda({ onMoveClick }: TodaysAgendaProps) {
-    const { moves, updateMove } = useMovesStore();
-    const [selectedTask, setSelectedTask] = useState<FlattenedTask | null>(null);
+  const { moves, updateMove } = useMovesStore();
+  const { workspaceId } = useWorkspace();
+  const [selectedTask, setSelectedTask] = useState<FlattenedTask | null>(null);
 
     // Get today's date for comparison
     const today = useMemo(() => {
@@ -100,9 +103,9 @@ export function TodaysAgenda({ onMoveClick }: TodaysAgendaProps) {
         };
     }, [allTasks]);
 
-    const toggleTaskStatus = (moveId: string, taskId: string, currentStatus: string) => {
-        const move = moves.find(m => m.id === moveId);
-        if (!move) return;
+  const toggleTaskStatus = (moveId: string, taskId: string, currentStatus: string) => {
+    const move = moves.find(m => m.id === moveId);
+    if (!move || !workspaceId) return;
 
         const updatedExecution = move.execution.map(day => ({
             ...day,
@@ -119,7 +122,10 @@ export function TodaysAgenda({ onMoveClick }: TodaysAgendaProps) {
                 : day.networkAction
         }));
 
-        updateMove(moveId, { execution: updatedExecution });
+        void updateMove(moveId, { execution: updatedExecution }, workspaceId).catch((err: any) => {
+            console.error("Failed to update move execution:", err);
+            toast.error(err?.message || "Failed to update task");
+        });
     };
 
     const getTaskIcon = (type: 'pillar' | 'cluster' | 'network') => {

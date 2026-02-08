@@ -1,71 +1,89 @@
-// Quick check of current Supabase state
-import { createClient } from '@supabase/supabase-js';
+﻿// Minimal health check for the scorched-earth reconstruction stack.
+// No auth. No payment. No Supabase browser client. No hardcoded secrets.
 
-const supabaseUrl = 'https://vpwwzsanuyhpkvgorcnc.supabase.co';
-const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd3d6c2FudXlocGt2Z29yY25jIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjM5OTU5MSwiZXhwIjoyMDc3OTc1NTkxfQ.6Q7hAvurQR04cYXg0MZPv7-OMBTMqNKV1N02rC_OOnw';
+const backendBase =
+  process.env.BACKEND_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8000";
 
-const supabase = createClient(supabaseUrl, serviceRoleKey, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
+const nextBase = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-async function quickCheck() {
-  console.log('⚡ Quick Supabase Status Check\n');
+function wantsJson() {
+  return process.argv.includes("--json");
+}
 
-  const tables = ['profiles', 'workspaces', 'subscriptions', 'payments', 'email_logs'];
-  const results = {};
-
-  for (const table of tables) {
-    try {
-      const { data, error } = await supabase
-        .from(table)
-        .select('count')
-        .limit(1);
-
-      if (error && error.code === 'PGRST116') {
-        results[table] = '❌ NOT FOUND';
-      } else if (error) {
-        results[table] = `⚠️ ERROR: ${error.message}`;
-      } else {
-        results[table] = '✅ EXISTS';
-      }
-    } catch (err) {
-      results[table] = `❌ FAILED: ${err.message}`;
-    }
-  }
-
-  console.log('📋 Table Status:');
-  Object.entries(results).forEach(([table, status]) => {
-    console.log(`  ${status} ${table}`);
-  });
-
-  const existing = Object.values(results).filter(s => s.includes('✅')).length;
-  const missing = Object.values(results).filter(s => s.includes('❌')).length;
-
-  console.log(`\n📊 Summary: ${existing}/5 tables exist, ${missing}/5 missing`);
-
-  if (missing > 0) {
-    console.log('\n🔧 Next: Execute SQL from MANUAL_DEPLOYMENT_STEPS.md');
-  } else {
-    console.log('\n🎉 All tables exist! Test authentication flow.');
-  }
-
-  // Test the critical workspace query
-  console.log('\n🧪 Testing workspace query...');
+async function getJson(url) {
+  const res = await fetch(url, { method: "GET" });
+  const text = await res.text();
+  let json = null;
   try {
-    const { data, error } = await supabase
-      .from('workspaces')
-      .select('id, owner_id')
-      .eq('owner_id', '00000000-0000-0000-0000-000000000000')
-      .limit(1);
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    json = null;
+  }
+  return { ok: res.ok, status: res.status, url, json, text: json ? null : text };
+}
 
-    if (error && error.message.includes('user_id')) {
-      console.log('❌ Workspace query still has user_id reference');
-    } else {
-      console.log('✅ Workspace query works correctly');
-    }
-  } catch (err) {
-    console.log('⚠️ Workspace query test inconclusive');
+async function run() {
+  const results = {
+    backend: null,
+    proxy: null,
+  };
+
+  // Backend direct check
+  try {
+    const url = `${backendBase.replace(/\/$/, "")}/health`;
+    results.backend = await getJson(url);
+  } catch (e) {
+    results.backend = {
+      ok: false,
+      status: 0,
+      url: `${backendBase.replace(/\/$/, "")}/health`,
+      error: e instanceof Error ? e.message : String(e),
+    };
+  }
+
+  // Next.js proxy check (requires Next dev server running)
+  try {
+    const url = `${nextBase.replace(/\/$/, "")}/api/proxy/v1/health`;
+    results.proxy = await getJson(url);
+  } catch (e) {
+    results.proxy = {
+      ok: false,
+      status: 0,
+      url: `${nextBase.replace(/\/$/, "")}/api/proxy/v1/health`,
+      error: e instanceof Error ? e.message : String(e),
+    };
+  }
+
+  if (wantsJson()) {
+    process.stdout.write(`${JSON.stringify(results, null, 2)}\n`);
+    return;
+  }
+
+  console.log("RaptorFlow reconstruction health check");
+  console.log(
+    `- Backend: ${results.backend.ok ? "OK" : "FAIL"} (${results.backend.status}) ${results.backend.url}`
+  );
+  if (!results.backend.ok) {
+    console.log(
+      `  detail: ${results.backend.error || results.backend.json?.detail || results.backend.text || "unknown"}`
+    );
+  }
+
+  console.log(
+    `- Next proxy: ${results.proxy.ok ? "OK" : "FAIL"} (${results.proxy.status}) ${results.proxy.url}`
+  );
+  if (!results.proxy.ok) {
+    console.log(
+      `  detail: ${results.proxy.error || results.proxy.json?.detail || results.proxy.text || "unknown"}`
+    );
+    console.log("  note: This check requires Next.js to be running (npm run dev).");
   }
 }
 
-quickCheck().catch(console.error);
+run().catch((e) => {
+  console.error("health-check failed:", e);
+  process.exitCode = 1;
+});

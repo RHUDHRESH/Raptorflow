@@ -1,7 +1,7 @@
 "use client";
 
 import { Shell } from "@/components/shell/Shell";
-import { BlueprintCommandPrompt } from "@/components/ui/BlueprintCommandPrompt";
+import { WorkspaceProvider } from "@/components/workspace/WorkspaceProvider";
 
 export default function ShellLayout({
     children,
@@ -9,9 +9,10 @@ export default function ShellLayout({
     children: React.ReactNode;
 }) {
     return (
-        <Shell>
-            <BlueprintCommandPrompt />
-            {children}
-        </Shell>
+        <WorkspaceProvider>
+            <Shell>
+                {children}
+            </Shell>
+        </WorkspaceProvider>
     );
 }

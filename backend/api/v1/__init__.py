@@ -1,49 +1,11 @@
-# from . import admin
-# from . import agents
-# from . import analytics
-# from . import approvals
-# from . import audit
-# from . import auth
-# from . import blackbox
-# from . import campaigns
-# from . import campaigns_new
-# from . import config
-# from . import context
-# from . import council
-# from . import database_automation
-# from . import database_health
-# from . import episodes
-# from . import foundation
-# from . import graph
-# from . import health
-# from . import health_comprehensive
-# from . import health_simple
-# from . import icps
-# from . import memory
-# from . import metrics
-# from . import middleware
-# from . import moves
-# from . import moves_new
-# from . import muse
-# from . import muse_new
-# from . import muse_vertex_ai
-# from . import ocr
-# from . import onboarding
-# from . import onboarding_sync
-# from . import onboarding_universal
-# from . import onboarding_v2
-# from . import payments
-# from . import payments_enhanced
+"""
+Canonical v1 routers package.
 
-# from . import rate_limit
-# from . import redis_metrics
-# from . import search
-# from . import sessions
-# from . import storage
-# from . import strategic_command
-# from . import titan
-# from . import usage
-# from . import users
-# from . import validation
-# from . import workspaces
-# from . import ai_proxy
+In scorched-earth reconstruction mode, only these routers are supported:
+- workspaces
+- campaigns
+- moves
+- foundation
+- muse
+"""
+
