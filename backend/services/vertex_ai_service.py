@@ -14,6 +14,10 @@ import vertexai
 from google.api_core import exceptions as gcp_exceptions
 from vertexai.generative_models import GenerativeModel
 
+from backend.services.base_service import BaseService
+from backend.services.registry import registry
+from backend.services.exceptions import ServiceError, ServiceUnavailableError, ExternalServiceError
+
 try:
     from backend.config.settings import get_settings
 except ImportError:
@@ -45,13 +49,15 @@ class AIRequest:
     user_id: str
 
 
-class VertexAIService:
+class VertexAIService(BaseService):
     """Vertex AI integration with rate limiting and cost tracking"""
 
     def __init__(self):
+        super().__init__("vertex_ai_service")
         self.project_id = settings.VERTEX_AI_PROJECT_ID
         if not self.project_id:
-            raise RuntimeError("VERTEX_AI_PROJECT_ID is required but not configured")
+            # We don't raise here to allow service registry to load, but health check will fail
+            logger.warning("VERTEX_AI_PROJECT_ID is required but not configured")
         
         self.location = settings.VERTEX_AI_LOCATION
         self.model_name = getattr(settings, "VERTEX_AI_MODEL", "gemini-2.0-flash-exp")
@@ -69,7 +75,14 @@ class VertexAIService:
             0.00015  # $0.00015 per 1K output tokens (Gemini 2.0 Flash)
         )
 
-        # Initialize Vertex AI
+        self.model = None
+        self.model_type = "unknown"
+
+    async def initialize(self) -> None:
+        """Initialize Vertex AI connection."""
+        if not self.project_id:
+            return
+
         try:
             vertexai.init(project=self.project_id, location=self.location)
 
@@ -83,9 +96,20 @@ class VertexAIService:
             logger.info(
                 f"Vertex AI initialized: {self.model_name} (type: {self.model_type}) in {self.location}"
             )
+            await super().initialize()
         except Exception as e:
             logger.error(f"Failed to initialize Vertex AI: {e}")
-            raise
+            # Don't raise, just log. Health check will report unhealthy.
+
+    async def check_health(self) -> Dict[str, Any]:
+        """Check service health status."""
+        if not self.project_id:
+             return {"status": "disabled", "detail": "VERTEX_AI_PROJECT_ID not set"}
+        
+        if not self.model:
+             return {"status": "unhealthy", "detail": "Model not initialized"}
+
+        return {"status": "healthy", "model": self.model_name}
 
     def _check_rate_limit(self) -> bool:
         """Check if request is within rate limits"""
@@ -146,7 +170,14 @@ class VertexAIService:
                 "retry_after": 60,
             }
 
-        try:
+        async def _execute_generate():
+            if not self.model:
+                 if not self.project_id:
+                     raise ServiceUnavailableError("Vertex AI not configured")
+                 # Try lazy init if not initialized
+                 vertexai.init(project=self.project_id, location=self.location)
+                 self.model = GenerativeModel(self.model_name)
+
             # Track request time
             self.request_times.append(datetime.now())
 
@@ -187,12 +218,17 @@ class VertexAIService:
                 "model_type": self.model_type,
             }
 
-        except gcp_exceptions.GoogleAPICallError as e:
-            logger.error(f"Vertex AI API error: {e}")
+        try:
+            return await self.execute_with_retry(
+                _execute_generate,
+                retryable_exceptions=(gcp_exceptions.GoogleAPICallError, gcp_exceptions.RetryError)
+            )
+        except ServiceError as e:
+            logger.error(f"Vertex AI Service Error: {e}")
             return {
                 "status": "error",
-                "error": f"Vertex AI API error: {str(e)}",
-                "error_type": "api_error",
+                "error": str(e),
+                "error_type": "service_error",
             }
         except Exception as e:
             logger.error(f"Unexpected error in Vertex AI: {e}")
@@ -202,8 +238,32 @@ class VertexAIService:
                 "error_type": "system_error",
             }
 
+    async def generate_with_system(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        workspace_id: str,
+        user_id: str,
+        max_tokens: int = 1000,
+        temperature: float = 0.7,
+    ) -> Dict[str, Any]:
+        """Generate text using a system prompt (if supported) + user prompt."""
+        # For Gemini, we can combine them or use system instructions if the SDK supports it nicely.
+        # For now, simplistic concatenation is often robust enough, or passing system_instruction to model init.
+        # But we reused the same model instance.
+        # Let's concatenate for this implementation to keep it stateless per request.
+        full_prompt = f"{system_prompt}\n\nUser: {user_prompt}"
+        return await self.generate_text(
+            prompt=full_prompt,
+            workspace_id=workspace_id,
+            user_id=user_id,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+
 
 # Global service instance - initialized at startup
 vertex_ai_service: Optional[VertexAIService] = None
 if getattr(settings, "VERTEX_AI_PROJECT_ID", ""):
     vertex_ai_service = VertexAIService()
+    registry.register(vertex_ai_service)

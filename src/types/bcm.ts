@@ -54,6 +54,8 @@ export interface BCMMeta {
   facts_count: number;
   icps_count: number;
   competitors_count: number;
+  memory_count?: number;
+  last_reflection_at?: string | null;
 }
 
 export interface BCMManifest {
@@ -77,6 +79,7 @@ export interface BCMResponse {
   token_estimate: number;
   created_at: string | null;
   completion_pct: number;
+  synthesized?: boolean;
 }
 
 export interface BCMVersionSummary {

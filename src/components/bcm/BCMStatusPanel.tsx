@@ -178,18 +178,6 @@ export default function BCMStatusPanel({
           {/* Metrics grid */}
           <div
             style={{
-            {synthesized && meta?.memory_count !== undefined && (
-              <div>
-                <div style={{ color: "#6b7280", marginBottom: "2px" }}>Memories</div>
-                <div style={{ fontWeight: 600 }}>{meta.memory_count}</div>
-              </div>
-            )}
-            {synthesized && meta?.last_reflection_at && (
-              <div>
-                <div style={{ color: "#6b7280", marginBottom: "2px" }}>Last Reflection</div>
-                <div style={{ fontWeight: 600 }}>{timeAgo(meta.last_reflection_at)}</div>
-              </div>
-            )}
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
               gap: "var(--spacing-sm, 8px)",
@@ -224,6 +212,18 @@ export default function BCMStatusPanel({
                 {checksum?.slice(0, 8) ?? "—"}
               </div>
             </div>
+            {synthesized && meta?.memory_count !== undefined && (
+              <div>
+                <div style={{ color: "#6b7280", marginBottom: "2px" }}>Memories</div>
+                <div style={{ fontWeight: 600 }}>{meta.memory_count}</div>
+              </div>
+            )}
+            {synthesized && meta?.last_reflection_at && (
+              <div>
+                <div style={{ color: "#6b7280", marginBottom: "2px" }}>Last Reflection</div>
+                <div style={{ fontWeight: 600 }}>{timeAgo(meta.last_reflection_at)}</div>
+              </div>
+            )}
           </div>
 
           {/* Company one-liner */}

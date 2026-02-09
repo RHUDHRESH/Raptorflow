@@ -10,6 +10,10 @@ from fastapi import FastAPI
 
 from backend.config import settings
 from backend.core.supabase_mgr import get_supabase_client
+from backend.services.registry import registry
+
+# Import services package to trigger service registration
+import backend.services  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +28,9 @@ async def startup():
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
 
+    # Initialize all registered services via Registry
+    await registry.initialize_all()
+
     # Supabase Database (required)
     try:
         supabase = get_supabase_client()
@@ -32,32 +39,6 @@ async def startup():
     except Exception as e:
         logger.error(f"Supabase DB health check failed: {e}")
         raise
-
-    # Upstash Redis (optional)
-    try:
-        from backend.core.redis_mgr import get_redis_client  # noqa: PLC0415
-
-        redis = get_redis_client()
-        logger.info("Redis: %s", "healthy" if redis else "unconfigured")
-    except Exception as e:
-        logger.warning(f"Redis health check failed: {e}")
-
-    # Vertex AI (optional)
-    try:
-        from backend.services.vertex_ai_service import vertex_ai_service  # noqa: PLC0415
-
-        logger.info(
-            "Vertex AI: %s",
-            "configured" if vertex_ai_service else "unconfigured",
-        )
-    except Exception as e:
-        logger.warning(f"Vertex AI health check failed: {e}")
-
-    # Resend (optional)
-    logger.info(
-        "Resend: %s",
-        "configured" if settings.RESEND_API_KEY else "unconfigured",
-    )
 
     # Sentry (optional)
     logger.info(
@@ -71,6 +52,7 @@ async def startup():
 async def shutdown():
     """Cleanup on shutdown"""
     logger.info("Shutting down...")
+    await registry.shutdown_all()
     logger.info("Shutdown complete")
 
 

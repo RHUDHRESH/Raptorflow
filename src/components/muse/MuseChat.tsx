@@ -128,7 +128,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                     tokens_used: data.tokens_used,
                     cost_usd: data.cost_usd,
                     suggestions: data.suggestions || [],
-                    generation_id: data.metadata?.generation_id,
+                    generation_id: data.metadata?.generation_id as string | undefined,
                 };
 
                 setMessages(prev => [...prev, assistantMessage]);
@@ -230,6 +230,26 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
     const handleSuggestionClick = (suggestion: string) => {
         setInput(suggestion);
         inputRef.current?.focus();
+    };
+
+    const handleFeedback = async (messageId: string, isPositive: boolean) => {
+        const message = messages.find(m => m.id === messageId);
+        if (!message?.generation_id || !workspaceId) return;
+
+        try {
+            await feedbackService.submitFeedback(
+                workspaceId,
+                message.generation_id,
+                isPositive ? 1 : -1,
+            );
+            setMessages(prev => prev.map(m => 
+                m.id === messageId 
+                    ? { ...m, feedback: isPositive ? 'positive' as const : 'negative' as const }
+                    : m
+            ));
+        } catch (error) {
+            console.error('Failed to submit feedback:', error);
+        }
     };
 
     return (

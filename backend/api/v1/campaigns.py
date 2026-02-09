@@ -10,9 +10,11 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
-from backend.core.supabase_mgr import get_supabase_client
 from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
+
+from backend.services.campaign_service import campaign_service
+from backend.services.exceptions import ResourceNotFoundError, ServiceError
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
@@ -99,18 +101,14 @@ async def list_campaigns(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignListOut:
     workspace_id = _require_workspace_id(x_workspace_id)
-    supabase = get_supabase_client()
-
-    result = (
-        supabase.table("campaigns")
-        .select("*")
-        .eq("workspace_id", workspace_id)
-        .order("created_at", desc=True)
-        .execute()
-    )
-
-    campaigns = [CampaignOut(**row) for row in (result.data or [])]
-    return CampaignListOut(campaigns=campaigns)
+    
+    try:
+        # Service call (sync wrapper internally)
+        campaigns_data = campaign_service.list_campaigns(workspace_id)
+        campaigns = [CampaignOut(**row) for row in campaigns_data]
+        return CampaignListOut(campaigns=campaigns)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/", response_model=CampaignOut, status_code=status.HTTP_201_CREATED)
@@ -119,25 +117,19 @@ async def create_campaign(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignOut:
     workspace_id = _require_workspace_id(x_workspace_id)
-    supabase = get_supabase_client()
 
     insert_row: Dict[str, Any] = {
-        "id": str(uuid4()),
-        "workspace_id": workspace_id,
         "title": payload.name,
         "description": payload.description,
         "objective": _normalize_objective(payload.objective),
         "status": _normalize_status(payload.status),
     }
 
-    result = supabase.table("campaigns").insert(insert_row).execute()
-    if not result.data:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create campaign",
-        )
-
-    return CampaignOut(**result.data[0])
+    try:
+        result = campaign_service.create_campaign(workspace_id, insert_row)
+        return CampaignOut(**result)
+    except ServiceError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{campaign_id}", response_model=CampaignOut)
@@ -146,24 +138,16 @@ async def get_campaign(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignOut:
     workspace_id = _require_workspace_id(x_workspace_id)
-    supabase = get_supabase_client()
     try:
         UUID(campaign_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid campaign_id")
 
-    result = (
-        supabase.table("campaigns")
-        .select("*")
-        .eq("id", campaign_id)
-        .eq("workspace_id", workspace_id)
-        .limit(1)
-        .execute()
-    )
-    if not result.data:
+    result = campaign_service.get_campaign(workspace_id, campaign_id)
+    if not result:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
-    return CampaignOut(**result.data[0])
+    return CampaignOut(**result)
 
 
 @router.patch("/{campaign_id}", response_model=CampaignOut)
@@ -173,7 +157,6 @@ async def update_campaign(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignOut:
     workspace_id = _require_workspace_id(x_workspace_id)
-    supabase = get_supabase_client()
     try:
         UUID(campaign_id)
     except ValueError:
@@ -192,17 +175,11 @@ async def update_campaign(
     if not update_row:
         raise HTTPException(status_code=400, detail="No fields to update")
 
-    result = (
-        supabase.table("campaigns")
-        .update(update_row)
-        .eq("id", campaign_id)
-        .eq("workspace_id", workspace_id)
-        .execute()
-    )
-    if not result.data:
+    result = campaign_service.update_campaign(workspace_id, campaign_id, update_row)
+    if not result:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
-    return CampaignOut(**result.data[0])
+    return CampaignOut(**result)
 
 
 @router.delete("/{campaign_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -211,20 +188,14 @@ async def delete_campaign(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ):
     workspace_id = _require_workspace_id(x_workspace_id)
-    supabase = get_supabase_client()
     try:
         UUID(campaign_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid campaign_id")
 
-    result = (
-        supabase.table("campaigns")
-        .delete()
-        .eq("id", campaign_id)
-        .eq("workspace_id", workspace_id)
-        .execute()
-    )
-    if result.data is None:
+    deleted = campaign_service.delete_campaign(workspace_id, campaign_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
     return None
+
