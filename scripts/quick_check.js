@@ -1,4 +1,4 @@
-﻿// Minimal health check for the scorched-earth reconstruction stack.
+// Minimal health check for the RaptorFlow stack.
 // No auth. No payment. No Supabase browser client. No hardcoded secrets.
 
 const backendBase =
@@ -62,7 +62,7 @@ async function run() {
     return;
   }
 
-  console.log("RaptorFlow reconstruction health check");
+  console.log("RaptorFlow health check");
   console.log(
     `- Backend: ${results.backend.ok ? "OK" : "FAIL"} (${results.backend.status}) ${results.backend.url}`
   );
