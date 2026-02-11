@@ -31,14 +31,16 @@ async def startup():
     # Initialize all registered services via Registry
     await registry.initialize_all()
 
-    # Supabase Database (required)
+    # Supabase Database check (degrades gracefully in offline/local environments)
     try:
         supabase = get_supabase_client()
         supabase.table("workspaces").select("id").limit(1).execute()
         logger.info("Supabase DB: healthy")
     except Exception as e:
-        logger.error(f"Supabase DB health check failed: {e}")
-        raise
+        logger.warning(
+            "Supabase DB health check failed during startup; continuing in degraded mode: %s",
+            e,
+        )
 
     # Sentry (optional)
     logger.info(

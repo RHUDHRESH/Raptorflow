@@ -28,6 +28,10 @@ def _configure_logging() -> None:
 
 def _init_sentry() -> None:
     """Initialize Sentry if DSN is configured."""
+    if settings.is_development:
+        logging.getLogger(__name__).info("Sentry disabled in development environment")
+        return
+
     dsn = settings.SENTRY_DSN
     if not dsn:
         logging.getLogger(__name__).info("Sentry disabled: no SENTRY_DSN configured")

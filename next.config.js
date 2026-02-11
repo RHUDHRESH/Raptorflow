@@ -1,9 +1,4 @@
-import bundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
-
-const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === "true",
-});
 
 const nextConfig = {
   reactStrictMode: true,
@@ -24,20 +19,18 @@ const nextConfig = {
   },
 };
 
-export default withBundleAnalyzer(
-  withSentryConfig(
-    nextConfig,
-    {
-      silent: true,
-      org: "raptorflow",
-      project: "raptorflow-nextjs",
-    },
-    {
-      widenClientFileUpload: true,
-      transpileClientSDK: false,
-      tunnelRoute: "/monitoring",
-      hideSourceMaps: true,
-      disableLogger: true,
-    }
-  )
+export default withSentryConfig(
+  nextConfig,
+  {
+    silent: true,
+    org: "raptorflow",
+    project: "raptorflow-nextjs",
+  },
+  {
+    widenClientFileUpload: true,
+    transpileClientSDK: false,
+    tunnelRoute: "/monitoring",
+    hideSourceMaps: true,
+    disableLogger: true,
+  }
 );
