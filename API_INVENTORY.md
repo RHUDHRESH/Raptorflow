@@ -1,90 +1,134 @@
-# API_INVENTORY.md (Updated 2026-02-08)
+# API_INVENTORY.md
 
-This inventory describes the *canonical runtime API surface* used by the current Next.js UI.
+Updated: 2026-02-09. Source: `backend/api/registry.py`, `backend/api/system.py`, `backend/api/v1/*.py`.
 
-## Frontend (Next.js) Route Handlers
+## Frontend Route Handler
 
-Present route handlers (`src/app/api/**/route.ts`):
+| Route | File | Purpose |
+|-------|------|---------|
+| `/api/*` | `src/app/api/[...path]/route.ts` | Proxies all requests to backend |
 
-| Route | File | Notes |
-| --- | --- | --- |
-| `/api/*` (proxy; recommended base: `/api/proxy/v1/*`) | `src/app/api/[...path]/route.ts` | Proxies requests to backend `/api/v1/*` (see `src/services/http.ts`) |
+This is the only Next.js route handler. All API logic lives in the backend.
 
-There are no other supported Next route handlers. Auth/onboarding/payments handlers were deleted.
+## Backend System Routes
 
-## Backend (FastAPI) Active Routes (Registered)
+Source: `backend/api/system.py` (mounted at `/` and `/api/`)
 
-The canonical backend mounts:
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/` | Service info (name, version, env, status) |
+| `GET` | `/health` | Health check with service registry status |
+| `GET` | `/api/` | Same as `/` |
+| `GET` | `/api/health` | Same as `/health` |
 
-- System routes: `backend/api/system.py`
-  - `GET /`
-  - `GET /health`
-  - Also available under `/api/*` as `GET /api/` and `GET /api/health`
-- API routes: registered via `backend/api/registry.py` and included in `backend/app_factory.py`
-  - Canonical prefix: `/api/*`
-  - Compatibility prefix: `/api/v1/*` (same routers)
+## Backend API Routes
 
-### Workspaces (No Auth)
+Source: `backend/api/registry.py` — all mounted under `/api` prefix.
 
-Prefix: `/api/workspaces`
+### Workspaces (`backend/api/v1/workspaces.py`)
 
-- `POST /api/workspaces/` (create workspace)
-- `GET /api/workspaces/{workspace_id}`
-- `PATCH /api/workspaces/{workspace_id}`
+No auth required. Workspace is the tenant boundary.
 
-### Campaigns (Scoped By Tenant)
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/workspaces/` | Create workspace |
+| `GET` | `/api/workspaces/{workspace_id}` | Get workspace |
+| `PATCH` | `/api/workspaces/{workspace_id}` | Update workspace |
 
-Prefix: `/api/campaigns` (requires header `x-workspace-id`)
+### Campaigns (`backend/api/v1/campaigns.py`)
 
-- `GET /api/campaigns/`
-- `POST /api/campaigns/`
-- `GET /api/campaigns/{campaign_id}`
-- `PATCH /api/campaigns/{campaign_id}`
-- `DELETE /api/campaigns/{campaign_id}`
+Requires header: `x-workspace-id`
 
-### Moves (Scoped By Tenant)
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/campaigns/` | List campaigns |
+| `POST` | `/api/campaigns/` | Create campaign |
+| `GET` | `/api/campaigns/{campaign_id}` | Get campaign |
+| `PATCH` | `/api/campaigns/{campaign_id}` | Update campaign |
+| `DELETE` | `/api/campaigns/{campaign_id}` | Delete campaign |
 
-Prefix: `/api/moves` (requires header `x-workspace-id`)
+### Moves (`backend/api/v1/moves.py`)
 
-- `GET /api/moves/`
-- `POST /api/moves/`
-- `PATCH /api/moves/{move_id}`
-- `DELETE /api/moves/{move_id}`
+Requires header: `x-workspace-id`
 
-### Foundation (Scoped By Tenant)
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/moves/` | List moves |
+| `POST` | `/api/moves/` | Create move |
+| `PATCH` | `/api/moves/{move_id}` | Update move |
+| `DELETE` | `/api/moves/{move_id}` | Delete move |
 
-Prefix: `/api/foundation` (requires header `x-workspace-id`)
+### Foundation (`backend/api/v1/foundation.py`)
 
-- `GET /api/foundation/`
-- `PUT /api/foundation/`
+Requires header: `x-workspace-id`
 
-### Muse (Scoped By Tenant)
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/foundation/` | Get foundation data |
+| `PUT` | `/api/foundation/` | Save foundation data |
 
-Prefix: `/api/muse` (requires header `x-workspace-id`)
+### Muse (`backend/api/v1/muse.py`)
 
-- `GET /api/muse/health`
-- `POST /api/muse/generate`
+Requires header: `x-workspace-id`
 
-### Context / BCM (Scoped By Tenant)
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/muse/health` | Muse service health |
+| `POST` | `/api/muse/generate` | Generate AI content |
 
-Prefix: `/api/context` (requires header `x-workspace-id`)
+### Context / BCM (`backend/api/v1/context.py`)
 
-- `GET /api/context/` — Get latest BCM manifest
-- `POST /api/context/rebuild` — Rebuild BCM from stored source context
-- `POST /api/context/seed` — Seed BCM from raw business_context.json
-- `GET /api/context/versions` — List all BCM versions
+Requires header: `x-workspace-id`
 
-## Legacy Routers / Duplicate API Layers
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/context/` | Get latest BCM manifest |
+| `POST` | `/api/context/rebuild` | Rebuild BCM from stored context |
+| `POST` | `/api/context/seed` | Seed BCM from raw JSON |
+| `GET` | `/api/context/versions` | List BCM versions |
 
-Historical router modules and payment/auth API layers were removed during scorched-earth reconstruction.
-Only the routers registered by `backend/api/registry.py` are considered supported.
+### BCM Feedback (`backend/api/v1/bcm_feedback.py`)
 
-Any code path related to auth, onboarding, or payments should be treated as legacy and is a deletion target.
-- `cloud-scraper/free_web_search.py`
-- `cloud-scraper/visual_intelligence_extractor.py`
+Requires header: `x-workspace-id`
 
-Previously-present alternate backend entrypoints were deleted during reconstruction:
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/feedback/` | Submit feedback on generation |
+| `GET` | `/api/feedback/memories` | Get accumulated memories |
+| `GET` | `/api/feedback/history` | Get generation history |
 
-- `minimal_gemini_backend.py` (deleted)
-- `secure_gemini_backend.py` (deleted)
-- `unlimited_backend.py` (deleted)
+### Scraper (`backend/api/v1/scraper.py`)
+
+Unified web scraping endpoint.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/scraper/scrape` | Scrape URL(s) with configurable strategy |
+
+### Search (`backend/api/v1/search.py`)
+
+Unified web search endpoint.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/search/` | Web search with multiple backends |
+
+## Router Registration
+
+All routers are registered in `backend/api/registry.py`:
+
+```python
+UNIVERSAL_ROUTERS = [
+    workspaces.router,
+    campaigns.router,
+    moves.router,
+    foundation.router,
+    muse.router,
+    context.router,
+    bcm_feedback.router,
+    scraper.router,
+    search.router,
+]
+```
+
+Mounted by `backend/app_factory.py` via `include_universal(app, prefix="/api")`.

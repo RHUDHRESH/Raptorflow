@@ -40,11 +40,14 @@ def _get_supabase_service_role_key() -> str:
     )
 
 
-def get_supabase_client() -> Client:
+def get_supabase_client(pool_size: int = 10) -> Client:
     """Get a Supabase client suitable for server-side calls.
 
     Reconstruction mode requires a service-role key so no user auth/RLS blocks
     core CRUD flows.
+    
+    Args:
+        pool_size: Connection pool size (default: 10)
     """
 
     global _supabase_client

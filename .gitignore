@@ -3,15 +3,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 venv/
-.env
 .venv
 env/
 .pytest_cache/
 .coverage
+*.log
+
+# Prevent test file pollution at repo root
+/test_*.py
+/test_*.js
+/test_*.json
+/test_*.html
+/test_*.bat
+/debug_*.py
+/verify_*.py
 htmlcov/
 *.egg-info/
-# Logs
-*.log
 
 # Node.js
 node_modules/
@@ -20,6 +27,7 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
 # Playwright
 playwright-report/
@@ -28,13 +36,10 @@ test-results/
 # TypeScript build cache
 tsconfig.tsbuildinfo
 
-# Bun (not used in canonical workflow)
+# Bun (not used)
 bun.lock
 
-# Local agent outputs
-.orchids/
-
-# Environment Secrets
+# Environment / Secrets
 .env
 .env.local
 .env.development.local
@@ -43,19 +48,31 @@ bun.lock
 .env.production
 .env.universal-gemini
 .gcloud/
+raptorflow-storage-key.json
+rhudhreshr_json/
+mcp-config.json
 
-# OS Specific
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
 Thumbs.db
 nul
 
-# Pre-commit cache
-.pre-commit-cache/
+# Databases
+*.db
+*.sqlite
+*.sqlite3
 
-# Google Credentials
-raptorflow-storage-key.json
-rhudhreshr_json/
-mcp-config.json
-update_gemini_settings.py
-manual_auth_session.js
-verify_google_token.js
+# Agent / AI tool outputs
+.orchids/
+.agent/
+.claude/
+.gemini/
+.opencode/
+.zenflow/
+.pre-commit-cache/

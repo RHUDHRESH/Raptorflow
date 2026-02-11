@@ -1,57 +1,58 @@
-# Raptorflow Backend (Reconstruction Mode)
+# RaptorFlow Backend
 
-This backend is the canonical FastAPI API used by the current Next.js frontend.
+FastAPI backend for the RaptorFlow marketing operating system.
 
-Status: no-auth, no-payments. Tenant boundary is a workspace id passed via `x-workspace-id`.
+## Setup
 
-## Run
-
-From repo root (recommended):
-
-```powershell
-.\.venv\Scripts\python backend\run_simple.py
+```bash
+cp .env.example .env
+pip install -r requirements.txt
+python -m backend.run_simple    # http://localhost:8000
 ```
 
-Health:
+Production: `uvicorn backend.main:app --host 0.0.0.0 --port 8080`
 
-```powershell
-curl http://localhost:8000/health
+## Structure
+
+```
+backend/
+├── main.py               # ASGI entrypoint (imports create_app)
+├── app_factory.py         # App factory (middleware, CORS, routers, Sentry)
+├── config.py              # Config module
+├── run_simple.py          # Dev runner
+├── api/
+│   ├── registry.py        # Mounts all v1 routers under /api
+│   ├── system.py          # GET / and GET /health
+│   └── v1/
+│       ├── workspaces.py  # Workspace CRUD
+│       ├── campaigns.py   # Campaign CRUD (x-workspace-id)
+│       ├── moves.py       # Move CRUD (x-workspace-id)
+│       ├── foundation.py  # Foundation get/save (x-workspace-id)
+│       ├── muse.py        # AI content generation (x-workspace-id)
+│       ├── context.py     # BCM manifest (x-workspace-id)
+│       ├── bcm_feedback.py # Feedback + memories (x-workspace-id)
+│       ├── scraper.py     # Unified web scraper
+│       └── search.py      # Unified web search
+├── app/
+│   ├── lifespan.py        # Startup/shutdown lifecycle
+│   └── middleware.py      # Request middleware
+├── core/
+│   ├── supabase_mgr.py    # Supabase client
+│   ├── redis_mgr.py       # Upstash Redis client
+│   └── storage_mgr.py     # GCS storage
+├── services/              # Business logic (BCM orchestration, caching, memory)
+├── schemas/               # Pydantic models (BusinessContext)
+├── config/settings.py     # App settings (Pydantic BaseSettings)
+├── fixtures/              # Seed data (JSON)
+├── templates/email/       # Email templates (HTML)
+└── tests/                 # Unit + integration tests
 ```
 
-## Canonical API Surface
+## Auth
 
-Routers are registered in `backend/api/registry.py` and mounted by `backend/app_factory.py`.
+No auth. Tenant isolation is via `x-workspace-id` header. See `AUTH_INVENTORY.md` at repo root.
 
-System:
+## Docker
 
-- `GET /`
-- `GET /health`
-
-API (canonical prefix: `/api/*`):
-
-- Workspaces: `POST /api/workspaces`, `GET/PATCH /api/workspaces/{id}`
-- Campaigns: `GET/POST /api/campaigns`, `GET/PATCH/DELETE /api/campaigns/{id}` (requires `x-workspace-id`)
-- Moves: `GET/POST /api/moves`, `PATCH/DELETE /api/moves/{id}` (requires `x-workspace-id`)
-- Foundation: `GET/PUT /api/foundation` (requires `x-workspace-id`)
-- Muse: `GET /api/muse/health`, `POST /api/muse/generate` (requires `x-workspace-id`, optional integration)
-
-Compatibility:
-
-- `/api/v1/*` is supported via path rewrite to `/api/*` when `ENABLE_LEGACY_API_PATHS=true`.
-
-## Environment Variables
-
-Required (database):
-
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-Optional:
-
-- `VERTEX_AI_PROJECT_ID`, `VERTEX_AI_LOCATION`, `VERTEX_AI_MODEL` (Muse/AI)
-- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (caching)
-- `RESEND_API_KEY`, `EMAIL_FROM` (email)
-- `SENTRY_DSN` (monitoring)
-
-See `backend/.env.example`.
-
+- `Dockerfile` — dev image (gunicorn)
+- `Dockerfile.production` — production image (uvicorn, health check on `/health`)

@@ -1,3 +1,7 @@
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 /** @type {import('next').NextConfig} */
 import { withSentryConfig } from '@sentry/nextjs';
 
@@ -27,7 +31,7 @@ const nextConfig = {
   },
 };
 
-export default withSentryConfig(
+export default withBundleAnalyzer(withSentryConfig(
   nextConfig,
   {
     // For all available options, see:
@@ -57,4 +61,4 @@ export default withSentryConfig(
     // Automatically tree-shake Sentry logger statements to reduce bundle size
     disableLogger: true,
   }
-);
+));
