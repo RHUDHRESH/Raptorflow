@@ -23,7 +23,7 @@ const FORWARDED_HEADERS = ["x-workspace-id", "x-request-id", "x-idempotency-key"
 
 function resolveBackendPath(pathSegments: string[]): string {
   if (!pathSegments || pathSegments.length === 0) {
-    return "/";
+    return "/api/";
   }
 
   let segments = [...pathSegments];
@@ -31,11 +31,17 @@ function resolveBackendPath(pathSegments: string[]): string {
     segments = segments.slice(1);
   }
 
+  // Backward compatibility: old clients may call /api/proxy/v1/*.
+  // Canonical backend now serves under /api/*, not /api/v1/*.
   if (segments[0] === "v1" || segments[0] === "v2") {
-    return `/api/${segments.join("/")}`;
+    segments = segments.slice(1);
   }
 
-  return `/api/v1/${segments.join("/")}`;
+  if (segments.length === 0) {
+    return "/api/";
+  }
+
+  return `/api/${segments.join("/")}`;
 }
 
 async function proxyRequest(

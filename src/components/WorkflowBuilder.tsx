@@ -21,10 +21,6 @@ import {
   Settings,
   Zap,
   Brain,
-  TrendingUp,
-  BarChart3,
-  Users,
-  ArrowRight,
   Circle,
   Diamond,
   Square as SquareIcon,
@@ -95,7 +91,6 @@ interface WorkflowTemplate {
 }
 
 export default function WorkflowBuilder() {
-  const [workflows, setWorkflows] = useState<Workflow[]>([])
   const [currentWorkflow, setCurrentWorkflow] = useState<Workflow | null>(null)
   const [templates, setTemplates] = useState<WorkflowTemplate[]>([])
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null)
@@ -116,7 +111,8 @@ export default function WorkflowBuilder() {
     try {
       const response = await fetch('/api/workflows')
       const data = await response.json()
-      setWorkflows(data)
+      // Workflows loaded but not stored in state - component needs refactoring
+      console.log('Workflows loaded:', data)
     } catch (error) {
       console.error('Failed to load workflows:', error)
     }

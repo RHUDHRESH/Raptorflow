@@ -1,36 +1,41 @@
-# AUTH_INVENTORY.md (Updated 2026-02-08)
+# AUTH_INVENTORY.md
 
-Status: scorched-earth reconstruction mode (no auth, no payments).
+Updated: 2026-02-11
 
-## Canonical Identity/Tenant Model (No-Auth)
+Status: **no-auth reconstruction mode** (no login, no payments).
 
-- No login, no Supabase Auth session, no JWT.
-- Tenant boundary is the workspace id (UUID).
-  - Frontend persists it in `localStorage` under `raptorflow.workspace_id`.
-  - Backend scopes data using the request header `x-workspace-id` (UUID).
+## Current Identity Model
 
-## Frontend (Next.js)
+- No user login/session enforcement.
+- No JWT validation middleware.
+- Tenant boundary is `x-workspace-id` (workspace UUID).
+- Frontend persists workspace id in local storage key `raptorflow.workspace_id`.
 
-- No auth middleware / guards / redirects.
-  - `src/middleware.ts` is deleted in the working tree.
-- Workspace bootstrap (required for app modules):
+## Frontend
+
+- No auth guards/redirects are part of canonical app flow.
+- Workspace bootstrap is handled by:
   - `src/components/workspace/WorkspaceProvider.tsx`
-  - Wired in `src/app/(shell)/layout.tsx`
+  - wired in `src/app/(shell)/layout.tsx`
 
-## Backend (FastAPI)
+## Backend
 
-- No auth middleware/dependencies; requests are not authenticated.
-- Multi-tenant scoping is done via `x-workspace-id` header on the canonical routers:
-  - `backend/api/v1/workspaces.py` (create/get/update; no auth)
-  - `backend/api/v1/campaigns.py` (CRUD; requires `x-workspace-id`)
-  - `backend/api/v1/moves.py` (CRUD; requires `x-workspace-id`)
-  - `backend/api/v1/foundation.py` (get/save; requires `x-workspace-id`)
-  - `backend/api/v1/muse.py` (health/generate; requires `x-workspace-id`)
+- No `require_auth` dependency in canonical router stack.
+- Workspace-scoped routes require `x-workspace-id`:
+  - `backend/api/v1/campaigns.py`
+  - `backend/api/v1/moves.py`
+  - `backend/api/v1/foundation.py`
+  - `backend/api/v1/muse.py`
+  - `backend/api/v1/context.py`
+  - `backend/api/v1/bcm_feedback.py`
+- Workspace CRUD remains open (no header required):
+  - `backend/api/v1/workspaces.py`
 
-## Regression Checklist (Must Stay Gone)
+## Regression Checklist
 
-If any of these reappear, it is a regression against reconstruction mode:
+If any of these reappear, treat as regression:
 
-- Any `useAuth()` flow, auth guard, or redirect to `/login`/`/signup`/`/signin`
-- Any Next route handler under `src/app/api/auth/**` or `src/app/api/payments/**`
-- Any backend JWT verification middleware or `require_auth` dependency
+- `useAuth()` hooks or redirects to `/login`, `/signup`, `/signin`
+- Next handlers under `src/app/api/auth/**` or `src/app/api/payments/**`
+- Backend JWT verification middleware/dependencies on canonical routes
+- PhonePe payment integration restored into active runtime flow

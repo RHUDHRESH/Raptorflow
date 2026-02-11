@@ -1,4 +1,4 @@
-﻿// Minimal health check for the scorched-earth reconstruction stack.
+// Minimal health check for the RaptorFlow stack.
 // No auth. No payment. No Supabase browser client. No hardcoded secrets.
 
 const backendBase =
@@ -46,13 +46,13 @@ async function run() {
 
   // Next.js proxy check (requires Next dev server running)
   try {
-    const url = `${nextBase.replace(/\/$/, "")}/api/proxy/v1/health`;
+    const url = `${nextBase.replace(/\/$/, "")}/api/health`;
     results.proxy = await getJson(url);
   } catch (e) {
     results.proxy = {
       ok: false,
       status: 0,
-      url: `${nextBase.replace(/\/$/, "")}/api/proxy/v1/health`,
+      url: `${nextBase.replace(/\/$/, "")}/api/health`,
       error: e instanceof Error ? e.message : String(e),
     };
   }
@@ -62,7 +62,7 @@ async function run() {
     return;
   }
 
-  console.log("RaptorFlow reconstruction health check");
+  console.log("RaptorFlow health check");
   console.log(
     `- Backend: ${results.backend.ok ? "OK" : "FAIL"} (${results.backend.status}) ${results.backend.url}`
   );

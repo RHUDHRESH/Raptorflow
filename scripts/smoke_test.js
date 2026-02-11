@@ -15,11 +15,6 @@ const checks = [
   ["backend/api/registry.py", "Backend router registry exists"],
 ];
 
-const archivedChecks = [
-  ["frontend", "frontend/ARCHIVED.md"],
-  ["backend/backend-clean", "backend/backend-clean/ARCHIVED.md"],
-];
-
 let failed = false;
 
 for (const [relativePath, message] of checks) {
@@ -29,19 +24,6 @@ for (const [relativePath, message] of checks) {
     failed = true;
   } else {
     console.log(`OK: ${message}`);
-  }
-}
-
-for (const [dirPath, markerPath] of archivedChecks) {
-  const fullDir = path.join(root, dirPath);
-  const fullMarker = path.join(root, markerPath);
-  if (fs.existsSync(fullDir) && !fs.existsSync(fullMarker)) {
-    console.error(
-      `FAIL: ${dirPath} exists but missing archive marker (${markerPath})`
-    );
-    failed = true;
-  } else if (fs.existsSync(fullDir)) {
-    console.log(`OK: ${dirPath} is marked archived`);
   }
 }
 

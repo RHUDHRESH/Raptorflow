@@ -1,90 +1,133 @@
-# API_INVENTORY.md (Updated 2026-02-08)
+# API_INVENTORY.md
 
-This inventory describes the *canonical runtime API surface* used by the current Next.js UI.
+Updated: 2026-02-11
+Source of truth:
+- `backend/api/system.py`
+- `backend/api/registry.py`
+- `backend/api/v1/*.py`
+- `src/app/api/**/route.ts`
 
-## Frontend (Next.js) Route Handlers
+## Frontend Route Handlers
 
-Present route handlers (`src/app/api/**/route.ts`):
+| Method | Path | File | Purpose |
+|---|---|---|---|
+| ALL | `/api/[...path]` | `src/app/api/[...path]/route.ts` | Canonical proxy to backend API |
+| POST | `/api/analytics/vitals` | `src/app/api/analytics/vitals/route.ts` | Web vitals ingestion |
+| POST | `/api/analytics/metrics` | `src/app/api/analytics/metrics/route.ts` | Custom frontend metric ingestion |
 
-| Route | File | Notes |
-| --- | --- | --- |
-| `/api/*` (proxy; recommended base: `/api/proxy/v1/*`) | `src/app/api/[...path]/route.ts` | Proxies requests to backend `/api/v1/*` (see `src/services/http.ts`) |
+## Backend System Routes
 
-There are no other supported Next route handlers. Auth/onboarding/payments handlers were deleted.
+Mounted directly and under `/api` in `backend/app_factory.py`.
 
-## Backend (FastAPI) Active Routes (Registered)
+| Method | Path |
+|---|---|
+| GET | `/` |
+| GET | `/health` |
+| GET | `/api/` |
+| GET | `/api/health` |
 
-The canonical backend mounts:
+## Backend Canonical API Routers
 
-- System routes: `backend/api/system.py`
-  - `GET /`
-  - `GET /health`
-  - Also available under `/api/*` as `GET /api/` and `GET /api/health`
-- API routes: registered via `backend/api/registry.py` and included in `backend/app_factory.py`
-  - Canonical prefix: `/api/*`
-  - Compatibility prefix: `/api/v1/*` (same routers)
+All of the following are mounted under `/api` by `include_universal(..., prefix="/api")`.
 
-### Workspaces (No Auth)
+### Ops Health (`backend/api/v1/health.py`)
 
-Prefix: `/api/workspaces`
+| Method | Path |
+|---|---|
+| GET | `/api/ops/health` |
+| GET | `/api/ops/health/db` |
+| GET | `/api/ops/health/cache` |
 
-- `POST /api/workspaces/` (create workspace)
-- `GET /api/workspaces/{workspace_id}`
-- `PATCH /api/workspaces/{workspace_id}`
+### Workspaces (`backend/api/v1/workspaces.py`)
 
-### Campaigns (Scoped By Tenant)
+| Method | Path |
+|---|---|
+| POST | `/api/workspaces/` |
+| GET | `/api/workspaces/{workspace_id}` |
+| PATCH | `/api/workspaces/{workspace_id}` |
 
-Prefix: `/api/campaigns` (requires header `x-workspace-id`)
+### Campaigns (`backend/api/v1/campaigns.py`)
 
-- `GET /api/campaigns/`
-- `POST /api/campaigns/`
-- `GET /api/campaigns/{campaign_id}`
-- `PATCH /api/campaigns/{campaign_id}`
-- `DELETE /api/campaigns/{campaign_id}`
+Requires header: `x-workspace-id`
 
-### Moves (Scoped By Tenant)
+| Method | Path |
+|---|---|
+| GET | `/api/campaigns/` |
+| POST | `/api/campaigns/` |
+| GET | `/api/campaigns/{campaign_id}` |
+| PATCH | `/api/campaigns/{campaign_id}` |
+| DELETE | `/api/campaigns/{campaign_id}` |
 
-Prefix: `/api/moves` (requires header `x-workspace-id`)
+### Moves (`backend/api/v1/moves.py`)
 
-- `GET /api/moves/`
-- `POST /api/moves/`
-- `PATCH /api/moves/{move_id}`
-- `DELETE /api/moves/{move_id}`
+Requires header: `x-workspace-id`
 
-### Foundation (Scoped By Tenant)
+| Method | Path |
+|---|---|
+| GET | `/api/moves/` |
+| POST | `/api/moves/` |
+| PATCH | `/api/moves/{move_id}` |
+| DELETE | `/api/moves/{move_id}` |
 
-Prefix: `/api/foundation` (requires header `x-workspace-id`)
+### Foundation (`backend/api/v1/foundation.py`)
 
-- `GET /api/foundation/`
-- `PUT /api/foundation/`
+Requires header: `x-workspace-id`
 
-### Muse (Scoped By Tenant)
+| Method | Path |
+|---|---|
+| GET | `/api/foundation/` |
+| PUT | `/api/foundation/` |
 
-Prefix: `/api/muse` (requires header `x-workspace-id`)
+### Muse (`backend/api/v1/muse.py`)
 
-- `GET /api/muse/health`
-- `POST /api/muse/generate`
+Requires header: `x-workspace-id`
 
-### Context / BCM (Scoped By Tenant)
+| Method | Path |
+|---|---|
+| GET | `/api/muse/health` |
+| POST | `/api/muse/generate` |
 
-Prefix: `/api/context` (requires header `x-workspace-id`)
+### Context / BCM (`backend/api/v1/context.py`)
 
-- `GET /api/context/` — Get latest BCM manifest
-- `POST /api/context/rebuild` — Rebuild BCM from stored source context
-- `POST /api/context/seed` — Seed BCM from raw business_context.json
-- `GET /api/context/versions` — List all BCM versions
+Requires header: `x-workspace-id`
 
-## Legacy Routers / Duplicate API Layers
+| Method | Path |
+|---|---|
+| GET | `/api/context/` |
+| POST | `/api/context/rebuild` |
+| POST | `/api/context/seed` |
+| DELETE | `/api/context/` |
+| GET | `/api/context/versions` |
+| POST | `/api/context/reflect` |
 
-Historical router modules and payment/auth API layers were removed during scorched-earth reconstruction.
-Only the routers registered by `backend/api/registry.py` are considered supported.
+### BCM Feedback (`backend/api/v1/bcm_feedback.py`)
 
-Any code path related to auth, onboarding, or payments should be treated as legacy and is a deletion target.
-- `cloud-scraper/free_web_search.py`
-- `cloud-scraper/visual_intelligence_extractor.py`
+Requires header: `x-workspace-id`
 
-Previously-present alternate backend entrypoints were deleted during reconstruction:
+| Method | Path |
+|---|---|
+| POST | `/api/context/feedback/` |
+| GET | `/api/context/feedback/memories` |
+| GET | `/api/context/feedback/memories/summary` |
+| DELETE | `/api/context/feedback/memories/{memory_id}` |
+| GET | `/api/context/feedback/generations` |
 
-- `minimal_gemini_backend.py` (deleted)
-- `secure_gemini_backend.py` (deleted)
-- `unlimited_backend.py` (deleted)
+### Scraper (`backend/api/v1/scraper.py`)
+
+| Method | Path |
+|---|---|
+| POST | `/api/scraper/` |
+| GET | `/api/scraper/health` |
+| GET | `/api/scraper/analytics` |
+| GET | `/api/scraper/stats` |
+| GET | `/api/scraper/strategies` |
+| POST | `/api/scraper/strategy` |
+
+### Search (`backend/api/v1/search.py`)
+
+| Method | Path |
+|---|---|
+| GET | `/api/search/` |
+| GET | `/api/search/health` |
+| GET | `/api/search/engines` |
+| GET | `/api/search/status` |
