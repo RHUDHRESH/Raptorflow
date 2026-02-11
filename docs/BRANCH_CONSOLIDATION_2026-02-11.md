@@ -4,6 +4,7 @@
 
 - Branch audited: `main`
 - Integration commit: `681cce0f7`
+- Runtime hardening commit: `9e7dc825d`
 - Remote fetch status: blocked in this environment (`Could not resolve host: github.com`)
 
 ## What Was Integrated
@@ -29,6 +30,18 @@ Branches were reviewed against current architecture constraints:
 Result:
 - no additional branch merge was performed after `681cce0f7`
 - unmerged branches were either duplicate aliases, stale, or architecturally regressive
+
+## Post-Integration Runtime Fixes
+
+Committed on `main`:
+
+- `9e7dc825d` - `fix: harden startup in offline dev and simplify Next config`
+
+Scope:
+
+- backend startup no longer hard-fails when Supabase DNS is unavailable in local/offline runs
+- Sentry initialization is skipped in development mode
+- `next.config.js` no longer hard-requires `@next/bundle-analyzer`
 
 ## Duplicate Branch Prune (Completed)
 
@@ -63,3 +76,24 @@ These duplicates could not be deleted because they are currently checked out by 
 - `cascade/you-are-in-ultraplan-mode-your-job-is-cf97e1`
 
 To prune these, remove their linked worktrees first, then re-run `git branch -D <branch>`.
+
+## Archive + Prune (Stale Branch Hygiene)
+
+Performed an additional safe prune pass for branches not attached to active worktrees and at least `100` commits behind `main`.
+
+Actions:
+
+- created rollback tags for each stale branch under `archive/2026-02-11/<branch-name>`
+- deleted `65` local stale/duplicate branches after tagging
+
+Validation:
+
+- `git tag --list "archive/2026-02-11/*"` returns `65` tags
+- all remaining unmerged local branches are attached to linked worktrees
+
+Rollback:
+
+- restore any pruned branch:
+  - `git branch <branch-name> archive/2026-02-11/<branch-name>`
+- inspect archived branch tip before restore:
+  - `git show archive/2026-02-11/<branch-name> --stat`
