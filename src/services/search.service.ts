@@ -59,20 +59,27 @@ export const searchService = {
   async search(
     workspaceId: string,
     query: string,
-    engines: SearchEngine[] = ["duckduckgo", "brave"],
-    maxResults: number = 20,
+    engines?: SearchEngine[],
+    maxResults?: number,
     opts: {
       intensity?: "low" | "medium" | "high";
       executionMode?: "single" | "council" | "swarm";
       summarize?: boolean;
     } = {}
   ): Promise<SearchResponse> {
-    const enginesParam = engines.join(",");
+    const params = new URLSearchParams();
+    params.set("q", query);
+    if (engines && engines.length > 0) {
+      params.set("engines", engines.join(","));
+    }
+    if (typeof maxResults === "number") {
+      params.set("max_results", String(maxResults));
+    }
     const intensityParam = opts.intensity ? `&intensity=${opts.intensity}` : "";
     const executionModeParam = opts.executionMode ? `&execution_mode=${opts.executionMode}` : "";
     const summarizeParam = opts.summarize === false ? "&summarize=false" : "";
     return apiRequest<SearchResponse>(
-      `/search/?q=${encodeURIComponent(query)}&engines=${enginesParam}&max_results=${maxResults}${intensityParam}${executionModeParam}${summarizeParam}`,
+      `/search/?${params.toString()}${intensityParam}${executionModeParam}${summarizeParam}`,
       {
         method: "GET",
         workspaceId,

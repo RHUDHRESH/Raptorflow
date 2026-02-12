@@ -8,6 +8,7 @@ import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 import { museService } from "@/services/muse.service";
 import { feedbackService } from "@/services/feedback.service";
 import { useBCMStore } from "@/stores/bcmStore";
+import { readRuntimeProfile, writeRuntimeProfile } from "@/lib/aiRuntimeProfile";
 
 interface Message {
     id: string;
@@ -45,6 +46,19 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    useEffect(() => {
+        const runtime = readRuntimeProfile();
+        setReasoningDepth(runtime.intensity);
+        setExecutionMode(runtime.executionMode);
+    }, []);
+
+    useEffect(() => {
+        writeRuntimeProfile({
+            intensity: reasoningDepth,
+            executionMode,
+        });
+    }, [reasoningDepth, executionMode]);
 
     useEffect(() => {
         let cancelled = false;

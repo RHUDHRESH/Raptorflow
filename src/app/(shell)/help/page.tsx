@@ -6,7 +6,6 @@ import {
   Search,
   Book,
   MessageCircle,
-  Video,
   ArrowRight,
   Zap,
   Target,
@@ -23,6 +22,10 @@ import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { notify } from "@/lib/notifications";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { searchService, type SearchResponse } from "@/services/search.service";
+import { scraperService, type ScrapeResult } from "@/services/scraper.service";
+import { readRuntimeProfile, writeRuntimeProfile } from "@/lib/aiRuntimeProfile";
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    HELP CENTER â€” Documentation & Support
@@ -66,14 +69,39 @@ const FAQS = [
 ];
 
 export default function HelpPage() {
+  const { workspaceId } = useWorkspace();
   const pageRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const [runtimeIntensity, setRuntimeIntensity] = useState<"low" | "medium" | "high">("medium");
+  const [runtimeMode, setRuntimeMode] = useState<"single" | "council" | "swarm">("council");
+
+  const [labSearchQuery, setLabSearchQuery] = useState("");
+  const [labSearchResult, setLabSearchResult] = useState<SearchResponse | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const [labScrapeUrl, setLabScrapeUrl] = useState("");
+  const [labScrapeResult, setLabScrapeResult] = useState<ScrapeResult | null>(null);
+  const [isScraping, setIsScraping] = useState(false);
 
   useEffect(() => {
     if (!pageRef.current) return;
     gsap.fromTo(pageRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
   }, []);
+
+  useEffect(() => {
+    const runtime = readRuntimeProfile();
+    setRuntimeIntensity(runtime.intensity);
+    setRuntimeMode(runtime.executionMode);
+  }, []);
+
+  useEffect(() => {
+    writeRuntimeProfile({
+      intensity: runtimeIntensity,
+      executionMode: runtimeMode,
+    });
+  }, [runtimeIntensity, runtimeMode]);
 
   const filteredFaqs = searchQuery
     ? FAQS.filter(f =>
@@ -81,6 +109,65 @@ export default function HelpPage() {
       f.a.toLowerCase().includes(searchQuery.toLowerCase())
     )
     : FAQS;
+
+  async function runSearchLab() {
+    if (!workspaceId) {
+      notify.error("Workspace not ready");
+      return;
+    }
+    if (!labSearchQuery.trim()) {
+      notify.error("Enter a search query");
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await searchService.search(
+        workspaceId,
+        labSearchQuery.trim(),
+        undefined,
+        undefined,
+        {
+          intensity: runtimeIntensity,
+          executionMode: runtimeMode,
+          summarize: true,
+        }
+      );
+      setLabSearchResult(response);
+      notify.success("Search completed");
+    } catch (error: any) {
+      notify.error(error?.message || "Search failed");
+    } finally {
+      setIsSearching(false);
+    }
+  }
+
+  async function runScraperLab() {
+    if (!workspaceId) {
+      notify.error("Workspace not ready");
+      return;
+    }
+    if (!labScrapeUrl.trim()) {
+      notify.error("Enter a URL to scrape");
+      return;
+    }
+
+    setIsScraping(true);
+    try {
+      const response = await scraperService.scrape(workspaceId, {
+        url: labScrapeUrl.trim(),
+        user_id: workspaceId,
+        intensity: runtimeIntensity,
+        execution_mode: runtimeMode,
+      });
+      setLabScrapeResult(response);
+      notify.success("Scrape completed");
+    } catch (error: any) {
+      notify.error(error?.message || "Scrape failed");
+    } finally {
+      setIsScraping(false);
+    }
+  }
 
   return (
     <div ref={pageRef} className="max-w-5xl mx-auto pb-12" style={{ opacity: 0 }}>
@@ -167,6 +254,122 @@ export default function HelpPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* AI Runtime Lab */}
+      <div className="mb-12 space-y-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold text-[var(--ink)]">AI Runtime Lab</h2>
+            <p className="text-sm text-[var(--ink-secondary)]">
+              Validate `single/council/swarm` and low/medium/high behavior for search and scraper.
+            </p>
+          </div>
+          <div className="text-xs text-[var(--ink-muted)] font-mono">
+            Workspace: {workspaceId || "uninitialized"}
+          </div>
+        </div>
+
+        <BlueprintCard showCorners padding="lg" className="space-y-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-1 rounded-[var(--radius)] border border-[var(--border)] p-1">
+              {(["low", "medium", "high"] as const).map((level) => (
+                <button
+                  key={level}
+                  onClick={() => setRuntimeIntensity(level)}
+                  className={`px-2 py-1 text-xs rounded-[var(--radius)] uppercase tracking-wide ${
+                    runtimeIntensity === level
+                      ? "bg-[var(--blueprint)] text-[var(--paper)]"
+                      : "text-[var(--muted)] hover:text-[var(--ink)]"
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1 rounded-[var(--radius)] border border-[var(--border)] p-1">
+              {(["single", "council", "swarm"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setRuntimeMode(mode)}
+                  className={`px-2 py-1 text-xs rounded-[var(--radius)] uppercase tracking-wide ${
+                    runtimeMode === mode
+                      ? "bg-[var(--ink)] text-[var(--paper)]"
+                      : "text-[var(--muted)] hover:text-[var(--ink)]"
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <h3 className="font-semibold text-[var(--ink)]">Web Search (Vertex summary)</h3>
+              <div className="flex gap-2">
+                <input
+                  value={labSearchQuery}
+                  onChange={(event) => setLabSearchQuery(event.target.value)}
+                  placeholder="e.g. vertex ai model pricing 2026"
+                  className="flex-1 h-10 px-3 bg-[var(--paper)] border border-[var(--structure)] rounded-[var(--radius)] text-sm"
+                />
+                <BlueprintButton
+                  className="h-10 px-4"
+                  onClick={() => void runSearchLab()}
+                  disabled={isSearching}
+                >
+                  {isSearching ? "Running..." : "Run"}
+                </BlueprintButton>
+              </div>
+              {labSearchResult ? (
+                <div className="text-xs text-[var(--ink-muted)] space-y-2 border border-[var(--structure-subtle)] rounded-[var(--radius)] p-3 bg-[var(--surface)]">
+                  <div>
+                    Results: <span className="text-[var(--ink)]">{labSearchResult.total_results}</span> |
+                    Engines: <span className="text-[var(--ink)]"> {labSearchResult.engines_used.join(", ")}</span>
+                  </div>
+                  {labSearchResult.summary?.text ? (
+                    <p className="text-[var(--ink-secondary)] whitespace-pre-wrap">{labSearchResult.summary.text}</p>
+                  ) : (
+                    <p>No summary returned.</p>
+                  )}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-semibold text-[var(--ink)]">Scraper (profile-driven)</h3>
+              <div className="flex gap-2">
+                <input
+                  value={labScrapeUrl}
+                  onChange={(event) => setLabScrapeUrl(event.target.value)}
+                  placeholder="https://example.com"
+                  className="flex-1 h-10 px-3 bg-[var(--paper)] border border-[var(--structure)] rounded-[var(--radius)] text-sm"
+                />
+                <BlueprintButton
+                  className="h-10 px-4"
+                  onClick={() => void runScraperLab()}
+                  disabled={isScraping}
+                >
+                  {isScraping ? "Running..." : "Run"}
+                </BlueprintButton>
+              </div>
+              {labScrapeResult ? (
+                <div className="text-xs text-[var(--ink-muted)] space-y-2 border border-[var(--structure-subtle)] rounded-[var(--radius)] p-3 bg-[var(--surface)]">
+                  <div>
+                    Status: <span className="text-[var(--ink)]">{labScrapeResult.status}</span> |
+                    Strategy: <span className="text-[var(--ink)]"> {labScrapeResult.strategy}</span>
+                  </div>
+                  {labScrapeResult.title ? (
+                    <p className="text-[var(--ink-secondary)]">
+                      <span className="font-medium">Title:</span> {labScrapeResult.title}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </BlueprintCard>
       </div>
 
       {/* Contact Section */}
