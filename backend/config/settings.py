@@ -101,19 +101,15 @@ class Settings(BaseSettings):
     SENTRY_DSN: Optional[str] = Field(default=None, env="SENTRY_DSN")
 
     # CORS
-    CORS_ORIGINS: List[str] = Field(
-        default_factory=lambda: [
-            "https://raptorflow.com",
-            "https://www.raptorflow.com",
-            "https://app.raptorflow.com",
-        ],
+    CORS_ORIGINS: str = Field(
+        default="http://localhost:3000,http://localhost:3001",
         env="CORS_ORIGINS",
     )
     CORS_ALLOW_CREDENTIALS: bool = Field(default=True, env="CORS_ALLOW_CREDENTIALS")
-    CORS_ALLOW_METHODS: List[str] = Field(
-        default=["GET", "POST", "PUT", "DELETE", "OPTIONS"], env="CORS_ALLOW_METHODS"
+    CORS_ALLOW_METHODS: str = Field(
+        default="GET,POST,PUT,DELETE,OPTIONS", env="CORS_ALLOW_METHODS"
     )
-    CORS_ALLOW_HEADERS: List[str] = Field(default=["*"], env="CORS_ALLOW_HEADERS")
+    CORS_ALLOW_HEADERS: str = Field(default="*", env="CORS_ALLOW_HEADERS")
 
     # Feature Flags
     FEATURE_FLAGS: Dict[str, bool] = Field(default_factory=dict, env="FEATURE_FLAGS")
@@ -131,27 +127,6 @@ class Settings(BaseSettings):
     )
 
     # Validators
-    @validator("CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v):
-        """Parse CORS origins from string or list."""
-        if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
-        return v
-
-    @validator("CORS_ALLOW_METHODS", pre=True)
-    def assemble_cors_methods(cls, v):
-        """Parse CORS methods from string or list."""
-        if isinstance(v, str):
-            return [method.strip() for method in v.split(",")]
-        return v
-
-    @validator("CORS_ALLOW_HEADERS", pre=True)
-    def assemble_cors_headers(cls, v):
-        """Parse CORS headers from string or list."""
-        if isinstance(v, str):
-            return [header.strip() for header in v.split(",")]
-        return v
-
     @validator("FEATURE_FLAGS", pre=True)
     def assemble_feature_flags(cls, v):
         """Parse feature flags from JSON string."""
@@ -216,6 +191,10 @@ class Settings(BaseSettings):
 
     def get_cors_origins(self) -> List[str]:
         """Get CORS origins based on environment."""
+        configured = [origin.strip() for origin in (self.CORS_ORIGINS or "").split(",") if origin.strip()]
+        if configured:
+            return configured
+
         if self.is_development:
             return ["http://localhost:3000", "http://localhost:3001"]
         elif self.is_staging:
@@ -280,7 +259,7 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> List[str]:
-        return self.CORS_ORIGINS
+        return self.get_cors_origins()
 
     @property
     def redis_url(self) -> str:
