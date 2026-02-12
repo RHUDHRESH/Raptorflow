@@ -1,29 +1,21 @@
-FROM python:3.14-slim
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
-# Install system dependencies for psycopg
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    gcc \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc g++ curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install poetry
-RUN pip install poetry
+COPY backend/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Copy project files
-COPY pyproject.toml .
-COPY README.md .
+COPY backend/ /app/backend/
 
-# Disable virtualenv creation by poetry and install dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-interaction --no-ansi
+EXPOSE 8000
 
-# Copy source code
-COPY . .
-
-# Expose port
-EXPOSE 8080
-
-# Run FastAPI app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

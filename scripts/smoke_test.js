@@ -5,9 +5,9 @@ const root = process.cwd();
 
 const checks = [
   ["package.json", "Root package.json exists"],
-  ["REPO_MAP.md", "Repo map exists (AGENTS.md requirement)"],
-  ["API_INVENTORY.md", "API inventory exists (AGENTS.md requirement)"],
-  ["AUTH_INVENTORY.md", "Auth inventory exists (AGENTS.md requirement)"],
+  ["documentation/REPO_MAP.md", "Repo map exists (documentation contract)"],
+  ["documentation/API_INVENTORY.md", "API inventory exists (documentation contract)"],
+  ["documentation/AUTH_INVENTORY.md", "Auth inventory exists (documentation contract)"],
   ["src/app", "Canonical frontend app exists"],
   ["src/app/api/[...path]/route.ts", "Canonical Next API proxy exists"],
   ["backend/main.py", "Backend ASGI entrypoint exists"],

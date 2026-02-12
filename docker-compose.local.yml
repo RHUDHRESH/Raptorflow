@@ -1,50 +1,50 @@
-version: '3.8'
-
 services:
-  # Redis for App & Search Caching
+  backend:
+    image: python:3.12-slim
+    working_dir: /workspace
+    command: >
+      sh -c "pip install --disable-pip-version-check --no-cache-dir -r backend/requirements.txt &&
+      uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
+    env_file:
+      - backend/.env.example
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./:/workspace
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_started
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /workspace
+    command: >
+      sh -c "npm ci && npm run dev -- --hostname 0.0.0.0 --port 3000"
+    env_file:
+      - .env.example
+    environment:
+      BACKEND_API_URL: "http://backend:8000"
+      NEXT_PUBLIC_BACKEND_URL: "http://backend:8000"
+      NEXT_PUBLIC_API_URL: "http://backend:8000"
+    volumes:
+      - ./:/workspace
+      - node_modules:/workspace/node_modules
+      - next_cache:/workspace/.next
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_started
+
   redis:
     image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
     ports:
       - "6379:6379"
-    networks:
-      - raptorflow-network
 
-  # Nginx Load Balancer for Search Cluster
-  nginx-lb:
-    image: nginx:alpine
-    container_name: search-lb
-    volumes:
-      - ./nginx/search_lb.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "8080:80"
-    depends_on:
-      - searxng-1
-      - searxng-2
-    networks:
-      - raptorflow-network
-
-  # SearXNG Instance 1
-  searxng-1:
-    image: searxng/searxng:latest
-    container_name: searxng-1
-    environment:
-      - SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml
-    volumes:
-      - ./config/searxng:/etc/searxng:rw
-    networks:
-      - raptorflow-network
-
-  # SearXNG Instance 2
-  searxng-2:
-    image: searxng/searxng:latest
-    container_name: searxng-2
-    environment:
-      - SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml
-    volumes:
-      - ./config/searxng:/etc/searxng:rw
-    networks:
-      - raptorflow-network
-
-networks:
-  raptorflow-network:
-    driver: bridge
+volumes:
+  node_modules:
+  next_cache:

@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-02-12T10:41:51.800014+00:00",
+  "generated_at": "2026-02-12T14:35:03.145045+00:00",
   "api_prefix": "/api",
   "registry_file": "backend/api/registry.py",
-  "module_count": 14,
-  "endpoint_count": 65,
+  "module_count": 13,
+  "endpoint_count": 54,
   "modules": [
     {
       "module": "health",
@@ -25,7 +25,7 @@
           "router_prefix": "/ops",
           "route_path": "/health",
           "full_path": "/api/ops/health",
-          "line": 31,
+          "line": 32,
           "response_model": null,
           "status_code": null
         },
@@ -36,7 +36,7 @@
           "router_prefix": "/ops",
           "route_path": "/services",
           "full_path": "/api/ops/services",
-          "line": 114,
+          "line": 117,
           "response_model": null,
           "status_code": null
         },
@@ -47,7 +47,7 @@
           "router_prefix": "/ops",
           "route_path": "/ai-architecture",
           "full_path": "/api/ops/ai-architecture",
-          "line": 138,
+          "line": 141,
           "response_model": null,
           "status_code": null
         },
@@ -58,7 +58,7 @@
           "router_prefix": "/ops",
           "route_path": "/health/db",
           "full_path": "/api/ops/health/db",
-          "line": 164,
+          "line": 187,
           "response_model": null,
           "status_code": null
         },
@@ -69,7 +69,7 @@
           "router_prefix": "/ops",
           "route_path": "/health/cache",
           "full_path": "/api/ops/health/cache",
-          "line": 182,
+          "line": 205,
           "response_model": null,
           "status_code": null
         }
@@ -158,9 +158,42 @@
           "router_prefix": "/workspaces",
           "route_path": "/",
           "full_path": "/api/workspaces",
-          "line": 81,
+          "line": 691,
           "response_model": "WorkspaceResponse",
           "status_code": "status.HTTP_201_CREATED"
+        },
+        {
+          "handler": "get_onboarding_steps",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/workspaces",
+          "route_path": "/onboarding/steps",
+          "full_path": "/api/workspaces/onboarding/steps",
+          "line": 736,
+          "response_model": "OnboardingStepsResponse",
+          "status_code": null
+        },
+        {
+          "handler": "get_onboarding_status",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/workspaces",
+          "route_path": "/{workspace_id}/onboarding/status",
+          "full_path": "/api/workspaces/{workspace_id}/onboarding/status",
+          "line": 747,
+          "response_model": "OnboardingStatusResponse",
+          "status_code": null
+        },
+        {
+          "handler": "complete_onboarding",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/workspaces",
+          "route_path": "/{workspace_id}/onboarding/complete",
+          "full_path": "/api/workspaces/{workspace_id}/onboarding/complete",
+          "line": 756,
+          "response_model": "OnboardingCompleteResponse",
+          "status_code": null
         },
         {
           "handler": "get_workspace",
@@ -169,7 +202,7 @@
           "router_prefix": "/workspaces",
           "route_path": "/{workspace_id}",
           "full_path": "/api/workspaces/{workspace_id}",
-          "line": 156,
+          "line": 804,
           "response_model": "WorkspaceResponse",
           "status_code": null
         },
@@ -180,7 +213,7 @@
           "router_prefix": "/workspaces",
           "route_path": "/{workspace_id}",
           "full_path": "/api/workspaces/{workspace_id}",
-          "line": 175,
+          "line": 812,
           "response_model": "WorkspaceResponse",
           "status_code": null
         }
@@ -206,7 +239,7 @@
           "router_prefix": "/campaigns",
           "route_path": "/",
           "full_path": "/api/campaigns",
-          "line": 100,
+          "line": 90,
           "response_model": "CampaignListOut",
           "status_code": null
         },
@@ -217,7 +250,7 @@
           "router_prefix": "/campaigns",
           "route_path": "/",
           "full_path": "/api/campaigns",
-          "line": 115,
+          "line": 105,
           "response_model": "CampaignOut",
           "status_code": "status.HTTP_201_CREATED"
         },
@@ -228,8 +261,19 @@
           "router_prefix": "/campaigns",
           "route_path": "/{campaign_id}",
           "full_path": "/api/campaigns/{campaign_id}",
-          "line": 136,
+          "line": 127,
           "response_model": "CampaignOut",
+          "status_code": null
+        },
+        {
+          "handler": "get_campaign_moves_bundle",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/campaigns",
+          "route_path": "/{campaign_id}/moves-bundle",
+          "full_path": "/api/campaigns/{campaign_id}/moves-bundle",
+          "line": 146,
+          "response_model": "CampaignMovesBundleOut",
           "status_code": null
         },
         {
@@ -239,7 +283,7 @@
           "router_prefix": "/campaigns",
           "route_path": "/{campaign_id}",
           "full_path": "/api/campaigns/{campaign_id}",
-          "line": 154,
+          "line": 170,
           "response_model": "CampaignOut",
           "status_code": null
         },
@@ -250,7 +294,7 @@
           "router_prefix": "/campaigns",
           "route_path": "/{campaign_id}",
           "full_path": "/api/campaigns/{campaign_id}",
-          "line": 186,
+          "line": 207,
           "response_model": null,
           "status_code": "status.HTTP_204_NO_CONTENT"
         }
@@ -276,7 +320,7 @@
           "router_prefix": "/moves",
           "route_path": "/",
           "full_path": "/api/moves",
-          "line": 65,
+          "line": 50,
           "response_model": "MoveListOut",
           "status_code": null
         },
@@ -287,7 +331,7 @@
           "router_prefix": "/moves",
           "route_path": "/",
           "full_path": "/api/moves",
-          "line": 88,
+          "line": 74,
           "response_model": "MoveModel",
           "status_code": "status.HTTP_201_CREATED"
         },
@@ -298,7 +342,7 @@
           "router_prefix": "/moves",
           "route_path": "/{move_id}",
           "full_path": "/api/moves/{move_id}",
-          "line": 121,
+          "line": 110,
           "response_model": "MoveModel",
           "status_code": null
         },
@@ -309,7 +353,7 @@
           "router_prefix": "/moves",
           "route_path": "/{move_id}",
           "full_path": "/api/moves/{move_id}",
-          "line": 146,
+          "line": 136,
           "response_model": null,
           "status_code": "status.HTTP_204_NO_CONTENT"
         }
@@ -372,7 +416,7 @@
           "router_prefix": "/muse",
           "route_path": "/health",
           "full_path": "/api/muse/health",
-          "line": 61,
+          "line": 46,
           "response_model": null,
           "status_code": null
         },
@@ -383,7 +427,7 @@
           "router_prefix": "/muse",
           "route_path": "/generate",
           "full_path": "/api/muse/generate",
-          "line": 74,
+          "line": 60,
           "response_model": "MuseGenerateResponse",
           "status_code": null
         }
@@ -397,10 +441,6 @@
       "registered": true,
       "routers": [
         {
-          "name": "legacy_router",
-          "prefix": "/muse/assets"
-        },
-        {
           "name": "router",
           "prefix": "/assets"
         }
@@ -413,18 +453,7 @@
           "router_prefix": "/assets",
           "route_path": "/sessions",
           "full_path": "/api/assets/sessions",
-          "line": 75,
-          "response_model": "AssetCreateSessionOut",
-          "status_code": "status.HTTP_201_CREATED"
-        },
-        {
-          "handler": "create_upload_session",
-          "method": "POST",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/sessions",
-          "full_path": "/api/muse/assets/sessions",
-          "line": 75,
+          "line": 73,
           "response_model": "AssetCreateSessionOut",
           "status_code": "status.HTTP_201_CREATED"
         },
@@ -435,18 +464,7 @@
           "router_prefix": "/assets",
           "route_path": "/{asset_id}/confirm",
           "full_path": "/api/assets/{asset_id}/confirm",
-          "line": 101,
-          "response_model": "AssetRecordOut",
-          "status_code": null
-        },
-        {
-          "handler": "confirm_upload",
-          "method": "POST",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/{asset_id}/confirm",
-          "full_path": "/api/muse/assets/{asset_id}/confirm",
-          "line": 101,
+          "line": 98,
           "response_model": "AssetRecordOut",
           "status_code": null
         },
@@ -457,18 +475,7 @@
           "router_prefix": "/assets",
           "route_path": "/",
           "full_path": "/api/assets",
-          "line": 128,
-          "response_model": "AssetListOut",
-          "status_code": null
-        },
-        {
-          "handler": "list_assets",
-          "method": "GET",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/",
-          "full_path": "/api/muse/assets",
-          "line": 128,
+          "line": 124,
           "response_model": "AssetListOut",
           "status_code": null
         },
@@ -479,18 +486,7 @@
           "router_prefix": "/assets",
           "route_path": "/{asset_id}",
           "full_path": "/api/assets/{asset_id}",
-          "line": 152,
-          "response_model": "AssetRecordOut",
-          "status_code": null
-        },
-        {
-          "handler": "get_asset",
-          "method": "GET",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/{asset_id}",
-          "full_path": "/api/muse/assets/{asset_id}",
-          "line": 152,
+          "line": 147,
           "response_model": "AssetRecordOut",
           "status_code": null
         },
@@ -501,147 +497,7 @@
           "router_prefix": "/assets",
           "route_path": "/{asset_id}",
           "full_path": "/api/assets/{asset_id}",
-          "line": 174,
-          "response_model": null,
-          "status_code": "status.HTTP_204_NO_CONTENT"
-        },
-        {
-          "handler": "delete_asset",
-          "method": "DELETE",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/{asset_id}",
-          "full_path": "/api/muse/assets/{asset_id}",
-          "line": 174,
-          "response_model": null,
-          "status_code": "status.HTTP_204_NO_CONTENT"
-        }
-      ]
-    },
-    {
-      "module": "assets",
-      "file": "backend/api/v1/assets.py",
-      "attr_name": "legacy_router",
-      "required": true,
-      "registered": true,
-      "routers": [
-        {
-          "name": "legacy_router",
-          "prefix": "/muse/assets"
-        },
-        {
-          "name": "router",
-          "prefix": "/assets"
-        }
-      ],
-      "endpoints": [
-        {
-          "handler": "create_upload_session",
-          "method": "POST",
-          "router_name": "router",
-          "router_prefix": "/assets",
-          "route_path": "/sessions",
-          "full_path": "/api/assets/sessions",
-          "line": 75,
-          "response_model": "AssetCreateSessionOut",
-          "status_code": "status.HTTP_201_CREATED"
-        },
-        {
-          "handler": "create_upload_session",
-          "method": "POST",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/sessions",
-          "full_path": "/api/muse/assets/sessions",
-          "line": 75,
-          "response_model": "AssetCreateSessionOut",
-          "status_code": "status.HTTP_201_CREATED"
-        },
-        {
-          "handler": "confirm_upload",
-          "method": "POST",
-          "router_name": "router",
-          "router_prefix": "/assets",
-          "route_path": "/{asset_id}/confirm",
-          "full_path": "/api/assets/{asset_id}/confirm",
-          "line": 101,
-          "response_model": "AssetRecordOut",
-          "status_code": null
-        },
-        {
-          "handler": "confirm_upload",
-          "method": "POST",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/{asset_id}/confirm",
-          "full_path": "/api/muse/assets/{asset_id}/confirm",
-          "line": 101,
-          "response_model": "AssetRecordOut",
-          "status_code": null
-        },
-        {
-          "handler": "list_assets",
-          "method": "GET",
-          "router_name": "router",
-          "router_prefix": "/assets",
-          "route_path": "/",
-          "full_path": "/api/assets",
-          "line": 128,
-          "response_model": "AssetListOut",
-          "status_code": null
-        },
-        {
-          "handler": "list_assets",
-          "method": "GET",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/",
-          "full_path": "/api/muse/assets",
-          "line": 128,
-          "response_model": "AssetListOut",
-          "status_code": null
-        },
-        {
-          "handler": "get_asset",
-          "method": "GET",
-          "router_name": "router",
-          "router_prefix": "/assets",
-          "route_path": "/{asset_id}",
-          "full_path": "/api/assets/{asset_id}",
-          "line": 152,
-          "response_model": "AssetRecordOut",
-          "status_code": null
-        },
-        {
-          "handler": "get_asset",
-          "method": "GET",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/{asset_id}",
-          "full_path": "/api/muse/assets/{asset_id}",
-          "line": 152,
-          "response_model": "AssetRecordOut",
-          "status_code": null
-        },
-        {
-          "handler": "delete_asset",
-          "method": "DELETE",
-          "router_name": "router",
-          "router_prefix": "/assets",
-          "route_path": "/{asset_id}",
-          "full_path": "/api/assets/{asset_id}",
-          "line": 174,
-          "response_model": null,
-          "status_code": "status.HTTP_204_NO_CONTENT"
-        },
-        {
-          "handler": "delete_asset",
-          "method": "DELETE",
-          "router_name": "legacy_router",
-          "router_prefix": "/muse/assets",
-          "route_path": "/{asset_id}",
-          "full_path": "/api/muse/assets/{asset_id}",
-          "line": 174,
+          "line": 168,
           "response_model": null,
           "status_code": "status.HTTP_204_NO_CONTENT"
         }
@@ -667,7 +523,7 @@
           "router_prefix": "/context",
           "route_path": "/",
           "full_path": "/api/context",
-          "line": 77,
+          "line": 78,
           "response_model": "BCMResponse",
           "status_code": null
         },
@@ -678,7 +534,7 @@
           "router_prefix": "/context",
           "route_path": "/rebuild",
           "full_path": "/api/context/rebuild",
-          "line": 103,
+          "line": 104,
           "response_model": "BCMResponse",
           "status_code": null
         },
@@ -689,7 +545,7 @@
           "router_prefix": "/context",
           "route_path": "/seed",
           "full_path": "/api/context/seed",
-          "line": 129,
+          "line": 121,
           "response_model": "BCMResponse",
           "status_code": null
         },
@@ -700,7 +556,7 @@
           "router_prefix": "/context",
           "route_path": "/",
           "full_path": "/api/context",
-          "line": 152,
+          "line": 132,
           "response_model": null,
           "status_code": null
         },
@@ -711,7 +567,7 @@
           "router_prefix": "/context",
           "route_path": "/versions",
           "full_path": "/api/context/versions",
-          "line": 162,
+          "line": 142,
           "response_model": "List[VersionSummary]",
           "status_code": null
         },
@@ -722,7 +578,7 @@
           "router_prefix": "/context",
           "route_path": "/reflect",
           "full_path": "/api/context/reflect",
-          "line": 181,
+          "line": 161,
           "response_model": null,
           "status_code": null
         }
@@ -818,7 +674,7 @@
           "router_prefix": "/scraper",
           "route_path": "/",
           "full_path": "/api/scraper",
-          "line": 363,
+          "line": 371,
           "response_model": null,
           "status_code": null
         },
@@ -829,7 +685,7 @@
           "router_prefix": "/scraper",
           "route_path": "/health",
           "full_path": "/api/scraper/health",
-          "line": 403,
+          "line": 437,
           "response_model": null,
           "status_code": null
         },
@@ -840,7 +696,7 @@
           "router_prefix": "/scraper",
           "route_path": "/analytics",
           "full_path": "/api/scraper/analytics",
-          "line": 414,
+          "line": 448,
           "response_model": null,
           "status_code": null
         },
@@ -851,7 +707,7 @@
           "router_prefix": "/scraper",
           "route_path": "/stats",
           "full_path": "/api/scraper/stats",
-          "line": 425,
+          "line": 459,
           "response_model": null,
           "status_code": null
         },
@@ -862,7 +718,7 @@
           "router_prefix": "/scraper",
           "route_path": "/strategies",
           "full_path": "/api/scraper/strategies",
-          "line": 431,
+          "line": 465,
           "response_model": null,
           "status_code": null
         },
@@ -873,7 +729,7 @@
           "router_prefix": "/scraper",
           "route_path": "/strategy",
           "full_path": "/api/scraper/strategy",
-          "line": 457,
+          "line": 496,
           "response_model": null,
           "status_code": null
         }
@@ -899,7 +755,7 @@
           "router_prefix": "/search",
           "route_path": "/",
           "full_path": "/api/search",
-          "line": 453,
+          "line": 524,
           "response_model": null,
           "status_code": null
         },
@@ -910,7 +766,7 @@
           "router_prefix": "/search",
           "route_path": "/health",
           "full_path": "/api/search/health",
-          "line": 486,
+          "line": 606,
           "response_model": null,
           "status_code": null
         },
@@ -921,7 +777,7 @@
           "router_prefix": "/search",
           "route_path": "/engines",
           "full_path": "/api/search/engines",
-          "line": 492,
+          "line": 612,
           "response_model": null,
           "status_code": null
         },
@@ -932,7 +788,7 @@
           "router_prefix": "/search",
           "route_path": "/status",
           "full_path": "/api/search/status",
-          "line": 517,
+          "line": 639,
           "response_model": null,
           "status_code": null
         }

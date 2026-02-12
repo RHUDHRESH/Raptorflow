@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-12T10:41:52.013866+00:00",
+  "generated_at": "2026-02-12T14:35:03.471496+00:00",
   "store_count": 5,
   "stores": [
     {
@@ -155,11 +155,14 @@
     "state_fields": [
       "workspaceId",
       "workspace",
+      "onboardingStatus",
+      "isOnboardingComplete",
       "isLoading",
       "error"
     ],
     "action_fields": [
       "refresh",
+      "refreshOnboarding",
       "reset"
     ],
     "storage_key": "raptorflow.workspace_id",
@@ -168,7 +171,9 @@
       "src/app/(shell)/campaigns/page.tsx",
       "src/app/(shell)/dashboard/page.tsx",
       "src/app/(shell)/foundation/page.tsx",
+      "src/app/(shell)/help/page.tsx",
       "src/app/(shell)/moves/page.tsx",
+      "src/app/(shell)/onboarding/page.tsx",
       "src/app/(shell)/settings/page.tsx",
       "src/components/moves/MoveCreateWizard.tsx",
       "src/components/moves/MoveGallery.tsx",

@@ -1,6 +1,6 @@
 # Frontend State Map
 
-- Generated: `2026-02-12T10:41:52.013866+00:00`
+- Generated: `2026-02-12T14:35:03.471496+00:00`
 - Zustand Stores: `5`
 
 ## `useBCMStore`
@@ -46,7 +46,7 @@
 ## `useWorkspace`
 
 - File: `src/components/workspace/WorkspaceProvider.tsx`
-- State Fields: `workspaceId, workspace, isLoading, error`
-- Action Fields: `refresh, reset`
+- State Fields: `workspaceId, workspace, onboardingStatus, isOnboardingComplete, isLoading, error`
+- Action Fields: `refresh, refreshOnboarding, reset`
 - Storage Key: `raptorflow.workspace_id`
-- Consumer Files: `12`
+- Consumer Files: `14`

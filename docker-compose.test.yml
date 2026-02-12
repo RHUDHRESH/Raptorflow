@@ -1,45 +1,43 @@
-version: '3.8'
-
 services:
-  backend:
-    build:
-      context: .
-      dockerfile: backend.Dockerfile
-    ports:
-      - "8080:8080"
+  backend-tests:
+    image: python:3.12-slim
+    working_dir: /workspace
+    command: >
+      sh -c "pip install --disable-pip-version-check --no-cache-dir -r backend/requirements.txt &&
+      python -m pytest backend/tests -q --no-cov"
     env_file:
-      - .env
+      - backend/.env.test
     environment:
-      - PYTHONUNBUFFERED=1
-      - PORT=8080
-      - REDIS_URL=redis://redis:6379/0
+      PYTHONPATH: /workspace
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./:/workspace
     depends_on:
-      - redis
-    networks:
-      - raptorflow-network
+      redis:
+        condition: service_started
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+  frontend-tests:
+    image: node:22-alpine
+    working_dir: /workspace
+    command: >
+      sh -c "npm ci && npm run type-check && npm run build"
     env_file:
-      - .env
+      - .env.example
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      NEXT_PUBLIC_BACKEND_URL: "http://backend-tests:8000"
+      NEXT_PUBLIC_API_URL: "http://backend-tests:8000"
+    volumes:
+      - ./:/workspace
+      - node_modules:/workspace/node_modules
+      - next_cache:/workspace/.next
     depends_on:
-      - backend
-    networks:
-      - raptorflow-network
+      backend-tests:
+        condition: service_started
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    networks:
-      - raptorflow-network
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
 
-networks:
-  raptorflow-network:
-    driver: bridge
+volumes:
+  node_modules:
+  next_cache:

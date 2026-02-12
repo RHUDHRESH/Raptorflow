@@ -22,7 +22,6 @@ _ROUTER_SPECS: list[tuple[str, str, bool]] = [
     ("foundation", "router", True),
     ("muse", "router", True),
     ("assets", "router", True),
-    ("assets", "legacy_router", True),
     ("context", "router", True),
     ("bcm_feedback", "router", True),
     ("scraper", "router", False),

@@ -1,9 +1,9 @@
 # API Contract Map
 
-- Generated: `2026-02-12T10:41:51.800014+00:00`
+- Generated: `2026-02-12T14:35:03.145045+00:00`
 - API Prefix: `/api`
-- Modules: `14`
-- Endpoints: `65`
+- Modules: `13`
+- Endpoints: `54`
 
 ## `health`
 
@@ -41,6 +41,9 @@
 - Routers: `router` -> `/workspaces`
 - Endpoints:
   - `POST` `/api/workspaces` (create_workspace, router `router`)
+  - `GET` `/api/workspaces/onboarding/steps` (get_onboarding_steps, router `router`)
+  - `GET` `/api/workspaces/{workspace_id}/onboarding/status` (get_onboarding_status, router `router`)
+  - `POST` `/api/workspaces/{workspace_id}/onboarding/complete` (complete_onboarding, router `router`)
   - `GET` `/api/workspaces/{workspace_id}` (get_workspace, router `router`)
   - `PATCH` `/api/workspaces/{workspace_id}` (update_workspace, router `router`)
 
@@ -53,6 +56,7 @@
   - `GET` `/api/campaigns` (list_campaigns, router `router`)
   - `POST` `/api/campaigns` (create_campaign, router `router`)
   - `GET` `/api/campaigns/{campaign_id}` (get_campaign, router `router`)
+  - `GET` `/api/campaigns/{campaign_id}/moves-bundle` (get_campaign_moves_bundle, router `router`)
   - `PATCH` `/api/campaigns/{campaign_id}` (update_campaign, router `router`)
   - `DELETE` `/api/campaigns/{campaign_id}` (delete_campaign, router `router`)
 
@@ -89,35 +93,13 @@
 
 - File: `backend/api/v1/assets.py`
 - Required: `True`
-- Routers: `legacy_router` -> `/muse/assets`, `router` -> `/assets`
+- Routers: `router` -> `/assets`
 - Endpoints:
   - `POST` `/api/assets/sessions` (create_upload_session, router `router`)
-  - `POST` `/api/muse/assets/sessions` (create_upload_session, router `legacy_router`)
   - `POST` `/api/assets/{asset_id}/confirm` (confirm_upload, router `router`)
-  - `POST` `/api/muse/assets/{asset_id}/confirm` (confirm_upload, router `legacy_router`)
   - `GET` `/api/assets` (list_assets, router `router`)
-  - `GET` `/api/muse/assets` (list_assets, router `legacy_router`)
   - `GET` `/api/assets/{asset_id}` (get_asset, router `router`)
-  - `GET` `/api/muse/assets/{asset_id}` (get_asset, router `legacy_router`)
   - `DELETE` `/api/assets/{asset_id}` (delete_asset, router `router`)
-  - `DELETE` `/api/muse/assets/{asset_id}` (delete_asset, router `legacy_router`)
-
-## `assets`
-
-- File: `backend/api/v1/assets.py`
-- Required: `True`
-- Routers: `legacy_router` -> `/muse/assets`, `router` -> `/assets`
-- Endpoints:
-  - `POST` `/api/assets/sessions` (create_upload_session, router `router`)
-  - `POST` `/api/muse/assets/sessions` (create_upload_session, router `legacy_router`)
-  - `POST` `/api/assets/{asset_id}/confirm` (confirm_upload, router `router`)
-  - `POST` `/api/muse/assets/{asset_id}/confirm` (confirm_upload, router `legacy_router`)
-  - `GET` `/api/assets` (list_assets, router `router`)
-  - `GET` `/api/muse/assets` (list_assets, router `legacy_router`)
-  - `GET` `/api/assets/{asset_id}` (get_asset, router `router`)
-  - `GET` `/api/muse/assets/{asset_id}` (get_asset, router `legacy_router`)
-  - `DELETE` `/api/assets/{asset_id}` (delete_asset, router `router`)
-  - `DELETE` `/api/muse/assets/{asset_id}` (delete_asset, router `legacy_router`)
 
 ## `context`
 

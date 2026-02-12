@@ -1,110 +1,28 @@
-﻿version: '3.8'
-
 services:
-  # Main Backend
-  backend:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    env_file:
+      - .env.example
+      - backend/.env.example
     environment:
-      - PYTHONUNBUFFERED=1
-      - SEARXNG_URL=http://nginx-lb:80
+      PYTHONUNBUFFERED: "1"
+      PORT: "${PORT:-3000}"
+      BACKEND_API_URL: "http://localhost:8000"
+      NEXT_PUBLIC_BACKEND_URL: "http://localhost:8000"
+      NEXT_PUBLIC_API_URL: "http://localhost:8000"
+    ports:
+      - "3000:3000"
+      - "8000:8000"
     depends_on:
-      - redis
-      - nginx-lb
-    networks:
-      - raptorflow-network
+      redis:
+        condition: service_started
+    restart: unless-stopped
 
-  # Redis for App & Search Caching
   redis:
     image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
     ports:
       - "6379:6379"
-    networks:
-      - raptorflow-network
-
-  # Nginx Load Balancer for Search Cluster
-  nginx-lb:
-    image: nginx:alpine
-    container_name: search-lb
-    volumes:
-      - ./nginx/search_lb.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "8081:80"
-    depends_on:
-      - searxng-1
-      - searxng-2
-    networks:
-      - raptorflow-network
-
-  # SearXNG Instance 1 + VPN Sidecar
-  searxng-1:
-    image: searxng/searxng:latest
-    container_name: searxng-1
-    network_mode: "service:gluetun-1"
-    environment:
-      - SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml
-    volumes:
-      - ./config/searxng:/etc/searxng:rw
-    depends_on:
-      gluetun-1:
-        condition: service_healthy
-
-  gluetun-1:
-    image: qmcgaw/gluetun
-    container_name: gluetun-1
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    environment:
-      - VPN_SERVICE_PROVIDER=mullvad # Example provider
-      - VPN_TYPE=wireguard
-      - WIREGUARD_PRIVATE_KEY=${VPN_KEY_1}
-      - SERVER_COUNTRIES=Germany
-    healthcheck:
-      test: ["CMD", "gluetun-healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - raptorflow-network
-
-  # SearXNG Instance 2 + VPN Sidecar
-  searxng-2:
-    image: searxng/searxng:latest
-    container_name: searxng-2
-    network_mode: "service:gluetun-2"
-    environment:
-      - SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml
-    volumes:
-      - ./config/searxng:/etc/searxng:rw
-    depends_on:
-      gluetun-2:
-        condition: service_healthy
-
-  gluetun-2:
-    image: qmcgaw/gluetun
-    container_name: gluetun-2
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    environment:
-      - VPN_SERVICE_PROVIDER=mullvad
-      - VPN_TYPE=wireguard
-      - WIREGUARD_PRIVATE_KEY=${VPN_KEY_2}
-      - SERVER_COUNTRIES=USA
-    healthcheck:
-      test: ["CMD", "gluetun-healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - raptorflow-network
-
-networks:
-  raptorflow-network:
-    driver: bridge
+    restart: unless-stopped

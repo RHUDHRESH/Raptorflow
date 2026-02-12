@@ -36,10 +36,20 @@ async def submit_contact(
     payload: ContactRequest,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> ContactResponse:
-    if "@" not in payload.email:
+    name = payload.name.strip()
+    email = payload.email.strip()
+    subject = payload.subject.strip() or "General inquiry"
+    message = payload.message.strip()
+
+    if "@" not in email:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Invalid email address",
+        )
+    if len(message) < 10:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Message is too short",
         )
 
     workspace_id = payload.workspace_id or x_workspace_id or ""
@@ -47,10 +57,10 @@ async def submit_contact(
 
     timestamp = datetime.now(timezone.utc).isoformat()
     context = {
-        "name": payload.name.strip(),
-        "email": payload.email,
-        "subject": payload.subject.strip(),
-        "message": payload.message.strip(),
+        "name": name,
+        "email": email,
+        "subject": subject,
+        "message": message,
         "source": payload.source,
         "workspace_id": workspace_id or "n/a",
         "metadata": payload.metadata,
@@ -67,13 +77,13 @@ async def submit_contact(
 
     inbound = email_service.send(
         to=support_to,
-        subject=f"[Contact] {payload.subject.strip()}",
+        subject=f"[Contact] {subject}",
         template_name="contact_inbound.html",
         context=context,
     )
 
     ack = email_service.send(
-        to=payload.email,
+        to=email,
         subject="We received your message",
         template_name="contact_ack.html",
         context=context,

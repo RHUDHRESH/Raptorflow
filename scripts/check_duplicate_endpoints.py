@@ -125,7 +125,7 @@ def extract_routes(filepath: Path) -> list[tuple[str, str, str, int]]:
 
 
 def _parse_registry_for_module_paths() -> list[Path]:
-    """Parse backend/api/registry.py and return module filepaths mounted by UNIVERSAL_ROUTERS."""
+    """Parse backend/api/registry.py and return mounted backend/api/v1 module filepaths."""
     if not REGISTRY_PATH.exists():
         raise FileNotFoundError(f"Missing registry: {REGISTRY_PATH}")
 
@@ -133,27 +133,34 @@ def _parse_registry_for_module_paths() -> list[Path]:
     tree = ast.parse(source, filename=str(REGISTRY_PATH))
 
     v1_modules: set[str] = set()
-    domains_modules: set[Path] = set()
+
+    def _extract_module_names(value: ast.AST) -> None:
+        if not isinstance(value, (ast.List, ast.Tuple)):
+            return
+        for item in value.elts:
+            # Registry shape: ("module_name", "router_attr", required_bool)
+            if not isinstance(item, ast.Tuple) or len(item.elts) < 1:
+                continue
+            module_node = item.elts[0]
+            if isinstance(module_node, ast.Constant) and isinstance(module_node.value, str):
+                v1_modules.add(module_node.value)
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom):
-            if node.module == "domains.auth.router":
-                domains_modules.add(BACKEND_ROOT / "domains" / "auth" / "router.py")
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "_ROUTER_SPECS":
+                    _extract_module_names(node.value)
+        elif isinstance(node, ast.AnnAssign):
+            if isinstance(node.target, ast.Name) and node.target.id == "_ROUTER_SPECS":
+                if node.value is not None:
+                    _extract_module_names(node.value)
 
-            if node.module == "backend.api.v1":
-                for alias in node.names:
-                    # e.g. `from backend.api.v1 import campaigns` or `import config as config_router`
-                    v1_modules.add(alias.name)
+    module_paths = [
+        BACKEND_ROOT / "api" / "v1" / f"{mod}.py"
+        for mod in sorted(v1_modules)
+    ]
 
-            if node.module == "backend.api.v1" and any(a.name == "config" for a in node.names):
-                v1_modules.add("config")
-
-    module_paths: list[Path] = []
-    for mod in sorted(v1_modules):
-        module_paths.append(BACKEND_ROOT / "api" / "v1" / f"{mod}.py")
-    module_paths.extend(sorted(domains_modules))
-
-    # Filter missing files (in case registry is out of sync)
+    # Filter missing files (in case registry is out of sync).
     return [p for p in module_paths if p.exists()]
 
 

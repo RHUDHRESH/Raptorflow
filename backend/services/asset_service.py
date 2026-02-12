@@ -71,7 +71,8 @@ class AssetService:
         )
 
     async def _ensure_bucket(self) -> None:
-        if not await self.storage.create_bucket(self.bucket, public=False):
+        # Frontend renders image previews from `public_url`, so bucket must be public.
+        if not await self.storage.create_bucket(self.bucket, public=True):
             raise RuntimeError(f"Failed to ensure storage bucket '{self.bucket}'")
 
     async def create_upload_session(

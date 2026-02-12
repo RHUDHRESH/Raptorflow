@@ -22,7 +22,6 @@ from backend.schemas.asset import (
 from backend.services.asset_service import AssetService
 
 router = APIRouter(prefix="/assets", tags=["assets"])
-legacy_router = APIRouter(prefix="/muse/assets", tags=["muse", "assets"])
 
 
 def _require_workspace_id(x_workspace_id: Optional[str]) -> str:
@@ -71,7 +70,6 @@ def _is_assets_table_missing(exc: Exception) -> bool:
 
 
 @router.post("/sessions", response_model=AssetCreateSessionOut, status_code=status.HTTP_201_CREATED)
-@legacy_router.post("/sessions", response_model=AssetCreateSessionOut, status_code=status.HTTP_201_CREATED)
 async def create_upload_session(
     payload: AssetCreateSessionIn,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
@@ -97,7 +95,6 @@ async def create_upload_session(
 
 
 @router.post("/{asset_id}/confirm", response_model=AssetRecordOut)
-@legacy_router.post("/{asset_id}/confirm", response_model=AssetRecordOut)
 async def confirm_upload(
     asset_id: str,
     payload: AssetConfirmUploadIn,
@@ -124,7 +121,6 @@ async def confirm_upload(
 
 
 @router.get("/", response_model=AssetListOut)
-@legacy_router.get("/", response_model=AssetListOut)
 async def list_assets(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
     limit: int = Query(50, ge=1, le=200),
@@ -148,7 +144,6 @@ async def list_assets(
 
 
 @router.get("/{asset_id}", response_model=AssetRecordOut)
-@legacy_router.get("/{asset_id}", response_model=AssetRecordOut)
 async def get_asset(
     asset_id: str,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
@@ -170,7 +165,6 @@ async def get_asset(
 
 
 @router.delete("/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
-@legacy_router.delete("/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_asset(
     asset_id: str,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),

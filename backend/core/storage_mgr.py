@@ -42,8 +42,23 @@ class StorageManager:
         try:
             # Check if bucket exists
             buckets = self.client.storage.list_buckets()
-            if any(b.name == name for b in buckets):
-                logger.info(f"Bucket '{name}' already exists")
+            for bucket in buckets:
+                bucket_name = getattr(bucket, "name", None) or (
+                    bucket.get("name") if isinstance(bucket, dict) else None
+                )
+                if bucket_name != name:
+                    continue
+
+                # Keep bucket visibility aligned with runtime expectations.
+                bucket_public = getattr(bucket, "public", None)
+                if bucket_public is None and isinstance(bucket, dict):
+                    bucket_public = bucket.get("public")
+
+                if bucket_public is not None and bool(bucket_public) != bool(public):
+                    self.client.storage.update_bucket(name, {"public": public})
+                    logger.info("Updated bucket '%s' public=%s", name, public)
+                else:
+                    logger.info("Bucket '%s' already exists", name)
                 return True
             
             # Create bucket

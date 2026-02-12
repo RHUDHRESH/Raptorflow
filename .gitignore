@@ -79,6 +79,8 @@ null
 *.db
 *.sqlite
 *.sqlite3
+supabase/.temp/
+supabase/supabase/.temp/
 
 # =============================================
 # Test Artifacts (prevent pollution)
