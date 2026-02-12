@@ -24,7 +24,7 @@ load_dotenv(PROJECT_ROOT / ".env")
 SUPABASE_URL = (
     os.getenv("SUPABASE_URL")
     or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-    or "https://vpwwzsanuyhpkvgorcnc.supabase.co"
+    or ""
 )
 SUPABASE_KEY = (
     os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -135,8 +135,11 @@ def execute_sql_via_management_api(sql: str, description: str) -> bool:
     import urllib.request
     import json
 
-    access_token = os.getenv("SUPABASE_ACCESS_TOKEN", "sbp_23be6405f8c238ea5e6218120f12262ac8d04a74")
-    project_ref = "vpwwzsanuyhpkvgorcnc"
+    access_token = os.getenv("SUPABASE_ACCESS_TOKEN", "")
+    project_ref = os.getenv("SUPABASE_PROJECT_REF", "")
+    if not access_token or not project_ref:
+        print("  ✗ SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF are required for management API execution")
+        return False
 
     url = f"https://api.supabase.com/v1/projects/{project_ref}/database/query"
     headers = {
@@ -211,6 +214,9 @@ def main():
     parser.add_argument("--verify-only", action="store_true", help="Only verify current state")
     args = parser.parse_args()
 
+    if not SUPABASE_URL:
+        print("✗ SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) not set. Check your .env files.")
+        sys.exit(1)
     if not SUPABASE_KEY:
         print("✗ SUPABASE_SERVICE_ROLE_KEY not set. Check your .env files.")
         sys.exit(1)

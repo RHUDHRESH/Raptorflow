@@ -10,19 +10,14 @@ import json
 
 def test_database_connection():
     """Test database connection and verify schema"""
-    
-    # Database connection details
-    db_config = {
-        'host': 'db.vpwwzsanuyhpkvgorcnc.supabase.co',
-        'port': 5432,
-        'database': 'postgres',
-        'user': 'postgres',
-        'password': 'XByYHcmc9KqxaVln'
-    }
+    db_url = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
+    if not db_url:
+        print("❌ Set SUPABASE_DB_URL or DATABASE_URL before running this script")
+        return False
     
     try:
         # Connect to database
-        conn = psycopg2.connect(**db_config)
+        conn = psycopg2.connect(db_url)
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
         print("✅ Database connection successful")

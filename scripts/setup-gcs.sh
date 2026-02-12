@@ -9,7 +9,7 @@
 #
 # Please use the Supabase Storage setup instead:
 # - See: src/app/api/init-storage/route.ts for automatic bucket creation
-# - See: docs/storage-migration.md for migration guide
+# - See: documentation/storage-migration.md for migration guide
 # - See: backend/services/supabase_storage_client.py for client usage
 #
 # Migration completed: 2025-01-21
@@ -22,7 +22,7 @@ echo "Raptorflow now uses Supabase Storage instead of Google Cloud Storage."
 echo ""
 echo "Please refer to the Supabase Storage documentation:"
 echo "- src/app/api/init-storage/route.ts - Automatic bucket creation"
-echo "- docs/storage-migration.md - Migration guide"
+echo "- documentation/storage-migration.md - Migration guide"
 echo "- backend/services/supabase_storage_client.py - Client usage"
 echo ""
 echo "To set up Supabase Storage:"

@@ -3,19 +3,19 @@
 Supabase Production Readiness Check
 Verifies all database changes are properly pushed and ready
 """
+import os
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
 def check_production_readiness():
     """Complete production readiness verification"""
-    
-    conn = psycopg2.connect(
-        host='db.vpwwzsanuyhpkvgorcnc.supabase.co',
-        port=5432,
-        database='postgres',
-        user='postgres',
-        password='XByYHcmc9KqxaVln'
-    )
+    db_url = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
+    if not db_url:
+        print("❌ Set SUPABASE_DB_URL or DATABASE_URL before running this script")
+        return False
+
+    conn = psycopg2.connect(db_url)
     
     try:
         cursor = conn.cursor(cursor_factory=RealDictCursor)

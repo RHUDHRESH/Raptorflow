@@ -345,6 +345,9 @@ def enrich_endpoints(
 
 def save_json(endpoints_by_file: Dict[str, List[Endpoint]], output_path: str):
     """Save endpoints to JSON file."""
+    output_parent = Path(output_path).parent
+    output_parent.mkdir(parents=True, exist_ok=True)
+
     output = {
         "scan_metadata": {
             "total_files": len(endpoints_by_file),
@@ -363,6 +366,9 @@ def save_json(endpoints_by_file: Dict[str, List[Endpoint]], output_path: str):
 
 def save_csv(endpoints_by_file: Dict[str, List[Endpoint]], output_path: str):
     """Save endpoints to CSV file."""
+    output_parent = Path(output_path).parent
+    output_parent.mkdir(parents=True, exist_ok=True)
+
     fieldnames = [
         "file_path",
         "router_name",
@@ -409,10 +415,14 @@ def main():
         "directory", nargs="?", default="backend", help="Directory to scan"
     )
     parser.add_argument(
-        "--output-json", default="docs/static_endpoints.json", help="JSON output path"
+        "--output-json",
+        default="documentation/generated/static_endpoints.json",
+        help="JSON output path",
     )
     parser.add_argument(
-        "--output-csv", default="docs/route_catalog.csv", help="CSV output path"
+        "--output-csv",
+        default="documentation/generated/route_catalog.csv",
+        help="CSV output path",
     )
     parser.add_argument(
         "--enrich", action="store_true", help="Enrich with DB/external info"

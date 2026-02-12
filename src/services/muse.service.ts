@@ -8,6 +8,7 @@ export type MuseGenerateRequest = {
   target_audience?: string;
   max_tokens?: number;
   temperature?: number;
+  reasoning_depth?: "low" | "medium" | "high";
 };
 
 export type MuseGenerateResponse = {
@@ -36,4 +37,3 @@ export const museService = {
     });
   },
 };
-

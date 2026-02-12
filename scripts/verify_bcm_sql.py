@@ -1,16 +1,15 @@
 import psycopg2
 from pprint import pprint
+import os
 
 def verify_bcm_structure():
     """Verify the BCM table structure matches requirements"""
     try:
-        conn = psycopg2.connect(
-            host="db.vpwwzsanuyhpkvgorcnc.supabase.co",
-            port=5432,
-            database="postgres",
-            user="postgres",
-            password="XByYHcmc9KqxaVln"
-        )
+        db_url = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
+        if not db_url:
+            raise RuntimeError("Set SUPABASE_DB_URL or DATABASE_URL before running this script")
+
+        conn = psycopg2.connect(db_url)
         
         with conn.cursor() as cur:
             # 1. Check table structure

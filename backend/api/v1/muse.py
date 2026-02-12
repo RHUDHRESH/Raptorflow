@@ -7,7 +7,7 @@ No user auth. Tenant boundary is `x-workspace-id`.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, status
@@ -42,8 +42,9 @@ class MuseGenerateRequest(BaseModel):
     content_type: str = "general"
     tone: str = "professional"
     target_audience: str = "general"
-    max_tokens: int = 800
-    temperature: float = 0.7
+    max_tokens: int = Field(default=800, ge=64, le=4000)
+    temperature: float = Field(default=0.7, ge=0.0, le=1.0)
+    reasoning_depth: Literal["low", "medium", "high"] = "medium"
 
 
 class MuseGenerateResponse(BaseModel):
@@ -86,6 +87,7 @@ async def generate(
             context=payload.context,
             max_tokens=payload.max_tokens,
             temperature=payload.temperature,
+            reasoning_depth=payload.reasoning_depth,
         )
         
         return MuseGenerateResponse(
@@ -104,4 +106,3 @@ async def generate(
         raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-

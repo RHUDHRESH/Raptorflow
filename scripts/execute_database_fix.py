@@ -4,6 +4,7 @@ Execute Database Fix Script
 """
 import psycopg2
 import sys
+import os
 
 def execute_fix():
     # Read the final fix script
@@ -11,13 +12,12 @@ def execute_fix():
         sql_script = f.read()
     
     # Connect to database
-    conn = psycopg2.connect(
-        host='db.vpwwzsanuyhpkvgorcnc.supabase.co',
-        port=5432,
-        database='postgres',
-        user='postgres',
-        password='XByYHcmc9KqxaVln'
-    )
+    db_url = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
+    if not db_url:
+        print("❌ Set SUPABASE_DB_URL or DATABASE_URL before running this script")
+        return False
+
+    conn = psycopg2.connect(db_url)
     
     try:
         cursor = conn.cursor()

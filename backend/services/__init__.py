@@ -21,6 +21,7 @@ move_service = None
 muse_service = None
 email_service = None
 vertex_ai_service = None
+auth_service = None
 
 try:
     from backend.services.bcm_service import bcm_service
@@ -52,6 +53,11 @@ try:
 except Exception as e:
     logger.warning(f"Failed to import vertex_ai_service: {e}")
 
+try:
+    from backend.services.auth_service import auth_service
+except Exception as e:
+    logger.warning(f"Failed to import auth_service: {e}")
+
 __all__ = [
     "bcm_service",
     "campaign_service", 
@@ -59,6 +65,6 @@ __all__ = [
     "muse_service",
     "email_service",
     "vertex_ai_service",
+    "auth_service",
 ]
-
 

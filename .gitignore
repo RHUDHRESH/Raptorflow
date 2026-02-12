@@ -1,26 +1,22 @@
+# =============================================
 # Python
+# =============================================
 __pycache__/
 *.py[cod]
 *$py.class
 venv/
-.venv
+.venv/
 env/
 .pytest_cache/
 .coverage
-*.log
-
-# Prevent test file pollution at repo root
-/test_*.py
-/test_*.js
-/test_*.json
-/test_*.html
-/test_*.bat
-/debug_*.py
-/verify_*.py
+coverage.xml
 htmlcov/
 *.egg-info/
+*.log
 
+# =============================================
 # Node.js
+# =============================================
 node_modules/
 .next/
 dist/
@@ -29,17 +25,26 @@ yarn-debug.log*
 yarn-error.log*
 *.log
 
+# =============================================
+# Bun (not used - use npm)
+# =============================================
+bun.lock
+bun.lockb
+
+# =============================================
 # Playwright
+# =============================================
 playwright-report/
 test-results/
 
-# TypeScript build cache
+# =============================================
+# TypeScript
+# =============================================
 tsconfig.tsbuildinfo
 
-# Bun (not used)
-bun.lock
-
+# =============================================
 # Environment / Secrets
+# =============================================
 .env
 .env.local
 .env.development.local
@@ -52,27 +57,82 @@ raptorflow-storage-key.json
 rhudhreshr_json/
 mcp-config.json
 
+# =============================================
 # IDE
+# =============================================
 .idea/
 .vscode/
 *.swp
 *.swo
 
+# =============================================
 # OS
+# =============================================
 .DS_Store
 Thumbs.db
 nul
+null
 
+# =============================================
 # Databases
+# =============================================
 *.db
 *.sqlite
 *.sqlite3
 
-# Agent / AI tool outputs
-.orchids/
+# =============================================
+# Test Artifacts (prevent pollution)
+# =============================================
+# Prevent test file pollution at repo root
+/test_*.py
+/test_*.js
+/test_*.json
+/test_*.html
+/test_*.bat
+/debug_*.py
+/verify_*.py
+
+# Test reports
+*_report.json
+*_results.json
+*_analysis.json
+*_test_report.json
+
+# Screenshots and evidence
+*.screenshot.png
+error_screenshot.png
+homepage-screenshot.png
+scrape_test_screenshot.png
+
+# Logs and outputs
+*.log
+devserver.err
+devserver.out
+
+# Miscellaneous temp files
+/null
+/nul
+/page-content.html
+/real_scraping_demo.html
+/test-evidence.pdf
+/tesseract-info.html
+
+# =============================================
+# AI Agent Directories
+# =============================================
 .agent/
 .claude/
 .gemini/
 .opencode/
 .zenflow/
+.zencoder/
+.orchids/
 .pre-commit-cache/
+.windsurf/
+
+# =============================================
+# Infrastructure
+# =============================================
+infrastructure/.terraform/
+infrastructure/*.tfstate
+infrastructure/*.tfstate.backup

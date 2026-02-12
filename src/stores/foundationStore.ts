@@ -6,7 +6,7 @@ import { foundationService, type FoundationState } from "@/services/foundation.s
 
 /* ════════════════════════════════════════════════════════════════════════════════════════
    FOUNDATION STORE — No-Auth Reconstruction
-   Source of truth: backend `/api/v1/foundation` (via Next proxy) scoped by `X-Workspace-Id`.
+   Source of truth: backend `/api/foundation` (via Next proxy) scoped by `X-Workspace-Id`.
    No Supabase browser client, no onboarding sync, no silent fallbacks.
    ════════════════════════════════════════════════════════════════════════════════════════ */
 
@@ -160,4 +160,3 @@ export const useFoundationStore = create<FoundationStoreState>((set, get) => ({
       error: null,
     }),
 }));
-

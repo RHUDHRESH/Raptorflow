@@ -1,0 +1,942 @@
+{
+  "generated_at": "2026-02-12T10:41:51.800014+00:00",
+  "api_prefix": "/api",
+  "registry_file": "backend/api/registry.py",
+  "module_count": 14,
+  "endpoint_count": 65,
+  "modules": [
+    {
+      "module": "health",
+      "file": "backend/api/v1/health.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/ops"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "health_check",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/ops",
+          "route_path": "/health",
+          "full_path": "/api/ops/health",
+          "line": 31,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "services_status",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/ops",
+          "route_path": "/services",
+          "full_path": "/api/ops/services",
+          "line": 114,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "ai_architecture",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/ops",
+          "route_path": "/ai-architecture",
+          "full_path": "/api/ops/ai-architecture",
+          "line": 138,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "database_health",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/ops",
+          "route_path": "/health/db",
+          "full_path": "/api/ops/health/db",
+          "line": 164,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "cache_health",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/ops",
+          "route_path": "/health/cache",
+          "full_path": "/api/ops/health/cache",
+          "line": 182,
+          "response_model": null,
+          "status_code": null
+        }
+      ]
+    },
+    {
+      "module": "auth",
+      "file": "backend/api/v1/auth.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/auth"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "auth_health",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/auth",
+          "route_path": "/health",
+          "full_path": "/api/auth/health",
+          "line": 42,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "verify_access_token",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/auth",
+          "route_path": "/verify",
+          "full_path": "/api/auth/verify",
+          "line": 52,
+          "response_model": "AuthVerifyResponse",
+          "status_code": null
+        }
+      ]
+    },
+    {
+      "module": "communications",
+      "file": "backend/api/v1/communications.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/communications"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "submit_contact",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/communications",
+          "route_path": "/contact",
+          "full_path": "/api/communications/contact",
+          "line": 35,
+          "response_model": "ContactResponse",
+          "status_code": null
+        }
+      ]
+    },
+    {
+      "module": "workspaces",
+      "file": "backend/api/v1/workspaces.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/workspaces"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "create_workspace",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/workspaces",
+          "route_path": "/",
+          "full_path": "/api/workspaces",
+          "line": 81,
+          "response_model": "WorkspaceResponse",
+          "status_code": "status.HTTP_201_CREATED"
+        },
+        {
+          "handler": "get_workspace",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/workspaces",
+          "route_path": "/{workspace_id}",
+          "full_path": "/api/workspaces/{workspace_id}",
+          "line": 156,
+          "response_model": "WorkspaceResponse",
+          "status_code": null
+        },
+        {
+          "handler": "update_workspace",
+          "method": "PATCH",
+          "router_name": "router",
+          "router_prefix": "/workspaces",
+          "route_path": "/{workspace_id}",
+          "full_path": "/api/workspaces/{workspace_id}",
+          "line": 175,
+          "response_model": "WorkspaceResponse",
+          "status_code": null
+        }
+      ]
+    },
+    {
+      "module": "campaigns",
+      "file": "backend/api/v1/campaigns.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/campaigns"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "list_campaigns",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/campaigns",
+          "route_path": "/",
+          "full_path": "/api/campaigns",
+          "line": 100,
+          "response_model": "CampaignListOut",
+          "status_code": null
+        },
+        {
+          "handler": "create_campaign",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/campaigns",
+          "route_path": "/",
+          "full_path": "/api/campaigns",
+          "line": 115,
+          "response_model": "CampaignOut",
+          "status_code": "status.HTTP_201_CREATED"
+        },
+        {
+          "handler": "get_campaign",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/campaigns",
+          "route_path": "/{campaign_id}",
+          "full_path": "/api/campaigns/{campaign_id}",
+          "line": 136,
+          "response_model": "CampaignOut",
+          "status_code": null
+        },
+        {
+          "handler": "update_campaign",
+          "method": "PATCH",
+          "router_name": "router",
+          "router_prefix": "/campaigns",
+          "route_path": "/{campaign_id}",
+          "full_path": "/api/campaigns/{campaign_id}",
+          "line": 154,
+          "response_model": "CampaignOut",
+          "status_code": null
+        },
+        {
+          "handler": "delete_campaign",
+          "method": "DELETE",
+          "router_name": "router",
+          "router_prefix": "/campaigns",
+          "route_path": "/{campaign_id}",
+          "full_path": "/api/campaigns/{campaign_id}",
+          "line": 186,
+          "response_model": null,
+          "status_code": "status.HTTP_204_NO_CONTENT"
+        }
+      ]
+    },
+    {
+      "module": "moves",
+      "file": "backend/api/v1/moves.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/moves"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "list_moves",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/moves",
+          "route_path": "/",
+          "full_path": "/api/moves",
+          "line": 65,
+          "response_model": "MoveListOut",
+          "status_code": null
+        },
+        {
+          "handler": "create_move",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/moves",
+          "route_path": "/",
+          "full_path": "/api/moves",
+          "line": 88,
+          "response_model": "MoveModel",
+          "status_code": "status.HTTP_201_CREATED"
+        },
+        {
+          "handler": "update_move",
+          "method": "PATCH",
+          "router_name": "router",
+          "router_prefix": "/moves",
+          "route_path": "/{move_id}",
+          "full_path": "/api/moves/{move_id}",
+          "line": 121,
+          "response_model": "MoveModel",
+          "status_code": null
+        },
+        {
+          "handler": "delete_move",
+          "method": "DELETE",
+          "router_name": "router",
+          "router_prefix": "/moves",
+          "route_path": "/{move_id}",
+          "full_path": "/api/moves/{move_id}",
+          "line": 146,
+          "response_model": null,
+          "status_code": "status.HTTP_204_NO_CONTENT"
+        }
+      ]
+    },
+    {
+      "module": "foundation",
+      "file": "backend/api/v1/foundation.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/foundation"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "get_foundation",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/foundation",
+          "route_path": "/",
+          "full_path": "/api/foundation",
+          "line": 61,
+          "response_model": "FoundationOut",
+          "status_code": null
+        },
+        {
+          "handler": "save_foundation",
+          "method": "PUT",
+          "router_name": "router",
+          "router_prefix": "/foundation",
+          "route_path": "/",
+          "full_path": "/api/foundation",
+          "line": 82,
+          "response_model": "FoundationOut",
+          "status_code": null
+        }
+      ]
+    },
+    {
+      "module": "muse",
+      "file": "backend/api/v1/muse.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/muse"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "muse_health",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/muse",
+          "route_path": "/health",
+          "full_path": "/api/muse/health",
+          "line": 61,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "generate",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/muse",
+          "route_path": "/generate",
+          "full_path": "/api/muse/generate",
+          "line": 74,
+          "response_model": "MuseGenerateResponse",
+          "status_code": null
+        }
+      ]
+    },
+    {
+      "module": "assets",
+      "file": "backend/api/v1/assets.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "legacy_router",
+          "prefix": "/muse/assets"
+        },
+        {
+          "name": "router",
+          "prefix": "/assets"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "create_upload_session",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/sessions",
+          "full_path": "/api/assets/sessions",
+          "line": 75,
+          "response_model": "AssetCreateSessionOut",
+          "status_code": "status.HTTP_201_CREATED"
+        },
+        {
+          "handler": "create_upload_session",
+          "method": "POST",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/sessions",
+          "full_path": "/api/muse/assets/sessions",
+          "line": 75,
+          "response_model": "AssetCreateSessionOut",
+          "status_code": "status.HTTP_201_CREATED"
+        },
+        {
+          "handler": "confirm_upload",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/{asset_id}/confirm",
+          "full_path": "/api/assets/{asset_id}/confirm",
+          "line": 101,
+          "response_model": "AssetRecordOut",
+          "status_code": null
+        },
+        {
+          "handler": "confirm_upload",
+          "method": "POST",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/{asset_id}/confirm",
+          "full_path": "/api/muse/assets/{asset_id}/confirm",
+          "line": 101,
+          "response_model": "AssetRecordOut",
+          "status_code": null
+        },
+        {
+          "handler": "list_assets",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/",
+          "full_path": "/api/assets",
+          "line": 128,
+          "response_model": "AssetListOut",
+          "status_code": null
+        },
+        {
+          "handler": "list_assets",
+          "method": "GET",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/",
+          "full_path": "/api/muse/assets",
+          "line": 128,
+          "response_model": "AssetListOut",
+          "status_code": null
+        },
+        {
+          "handler": "get_asset",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/{asset_id}",
+          "full_path": "/api/assets/{asset_id}",
+          "line": 152,
+          "response_model": "AssetRecordOut",
+          "status_code": null
+        },
+        {
+          "handler": "get_asset",
+          "method": "GET",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/{asset_id}",
+          "full_path": "/api/muse/assets/{asset_id}",
+          "line": 152,
+          "response_model": "AssetRecordOut",
+          "status_code": null
+        },
+        {
+          "handler": "delete_asset",
+          "method": "DELETE",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/{asset_id}",
+          "full_path": "/api/assets/{asset_id}",
+          "line": 174,
+          "response_model": null,
+          "status_code": "status.HTTP_204_NO_CONTENT"
+        },
+        {
+          "handler": "delete_asset",
+          "method": "DELETE",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/{asset_id}",
+          "full_path": "/api/muse/assets/{asset_id}",
+          "line": 174,
+          "response_model": null,
+          "status_code": "status.HTTP_204_NO_CONTENT"
+        }
+      ]
+    },
+    {
+      "module": "assets",
+      "file": "backend/api/v1/assets.py",
+      "attr_name": "legacy_router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "legacy_router",
+          "prefix": "/muse/assets"
+        },
+        {
+          "name": "router",
+          "prefix": "/assets"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "create_upload_session",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/sessions",
+          "full_path": "/api/assets/sessions",
+          "line": 75,
+          "response_model": "AssetCreateSessionOut",
+          "status_code": "status.HTTP_201_CREATED"
+        },
+        {
+          "handler": "create_upload_session",
+          "method": "POST",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/sessions",
+          "full_path": "/api/muse/assets/sessions",
+          "line": 75,
+          "response_model": "AssetCreateSessionOut",
+          "status_code": "status.HTTP_201_CREATED"
+        },
+        {
+          "handler": "confirm_upload",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/{asset_id}/confirm",
+          "full_path": "/api/assets/{asset_id}/confirm",
+          "line": 101,
+          "response_model": "AssetRecordOut",
+          "status_code": null
+        },
+        {
+          "handler": "confirm_upload",
+          "method": "POST",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/{asset_id}/confirm",
+          "full_path": "/api/muse/assets/{asset_id}/confirm",
+          "line": 101,
+          "response_model": "AssetRecordOut",
+          "status_code": null
+        },
+        {
+          "handler": "list_assets",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/",
+          "full_path": "/api/assets",
+          "line": 128,
+          "response_model": "AssetListOut",
+          "status_code": null
+        },
+        {
+          "handler": "list_assets",
+          "method": "GET",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/",
+          "full_path": "/api/muse/assets",
+          "line": 128,
+          "response_model": "AssetListOut",
+          "status_code": null
+        },
+        {
+          "handler": "get_asset",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/{asset_id}",
+          "full_path": "/api/assets/{asset_id}",
+          "line": 152,
+          "response_model": "AssetRecordOut",
+          "status_code": null
+        },
+        {
+          "handler": "get_asset",
+          "method": "GET",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/{asset_id}",
+          "full_path": "/api/muse/assets/{asset_id}",
+          "line": 152,
+          "response_model": "AssetRecordOut",
+          "status_code": null
+        },
+        {
+          "handler": "delete_asset",
+          "method": "DELETE",
+          "router_name": "router",
+          "router_prefix": "/assets",
+          "route_path": "/{asset_id}",
+          "full_path": "/api/assets/{asset_id}",
+          "line": 174,
+          "response_model": null,
+          "status_code": "status.HTTP_204_NO_CONTENT"
+        },
+        {
+          "handler": "delete_asset",
+          "method": "DELETE",
+          "router_name": "legacy_router",
+          "router_prefix": "/muse/assets",
+          "route_path": "/{asset_id}",
+          "full_path": "/api/muse/assets/{asset_id}",
+          "line": 174,
+          "response_model": null,
+          "status_code": "status.HTTP_204_NO_CONTENT"
+        }
+      ]
+    },
+    {
+      "module": "context",
+      "file": "backend/api/v1/context.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/context"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "get_latest_bcm",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/context",
+          "route_path": "/",
+          "full_path": "/api/context",
+          "line": 77,
+          "response_model": "BCMResponse",
+          "status_code": null
+        },
+        {
+          "handler": "rebuild_bcm",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/context",
+          "route_path": "/rebuild",
+          "full_path": "/api/context/rebuild",
+          "line": 103,
+          "response_model": "BCMResponse",
+          "status_code": null
+        },
+        {
+          "handler": "seed_bcm",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/context",
+          "route_path": "/seed",
+          "full_path": "/api/context/seed",
+          "line": 129,
+          "response_model": "BCMResponse",
+          "status_code": null
+        },
+        {
+          "handler": "clear_bcm",
+          "method": "DELETE",
+          "router_name": "router",
+          "router_prefix": "/context",
+          "route_path": "/",
+          "full_path": "/api/context",
+          "line": 152,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "list_bcm_versions",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/context",
+          "route_path": "/versions",
+          "full_path": "/api/context/versions",
+          "line": 162,
+          "response_model": "List[VersionSummary]",
+          "status_code": null
+        },
+        {
+          "handler": "reflect_bcm",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/context",
+          "route_path": "/reflect",
+          "full_path": "/api/context/reflect",
+          "line": 181,
+          "response_model": null,
+          "status_code": null
+        }
+      ]
+    },
+    {
+      "module": "bcm_feedback",
+      "file": "backend/api/v1/bcm_feedback.py",
+      "attr_name": "router",
+      "required": true,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/context/feedback"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "submit_feedback",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/context/feedback",
+          "route_path": "/",
+          "full_path": "/api/context/feedback",
+          "line": 80,
+          "response_model": "FeedbackResponse",
+          "status_code": null
+        },
+        {
+          "handler": "list_memories",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/context/feedback",
+          "route_path": "/memories",
+          "full_path": "/api/context/feedback/memories",
+          "line": 104,
+          "response_model": "List[MemoryOut]",
+          "status_code": null
+        },
+        {
+          "handler": "memory_summary",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/context/feedback",
+          "route_path": "/memories/summary",
+          "full_path": "/api/context/feedback/memories/summary",
+          "line": 128,
+          "response_model": "MemorySummaryOut",
+          "status_code": null
+        },
+        {
+          "handler": "delete_memory",
+          "method": "DELETE",
+          "router_name": "router",
+          "router_prefix": "/context/feedback",
+          "route_path": "/memories/{memory_id}",
+          "full_path": "/api/context/feedback/memories/{memory_id}",
+          "line": 138,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "list_generations",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/context/feedback",
+          "route_path": "/generations",
+          "full_path": "/api/context/feedback/generations",
+          "line": 151,
+          "response_model": "List[GenerationOut]",
+          "status_code": null
+        }
+      ]
+    },
+    {
+      "module": "scraper",
+      "file": "backend/api/v1/scraper.py",
+      "attr_name": "router",
+      "required": false,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/scraper"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "scrape_endpoint",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/scraper",
+          "route_path": "/",
+          "full_path": "/api/scraper",
+          "line": 363,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "scraper_health",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/scraper",
+          "route_path": "/health",
+          "full_path": "/api/scraper/health",
+          "line": 403,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "scraper_analytics",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/scraper",
+          "route_path": "/analytics",
+          "full_path": "/api/scraper/analytics",
+          "line": 414,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "scraper_stats",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/scraper",
+          "route_path": "/stats",
+          "full_path": "/api/scraper/stats",
+          "line": 425,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "list_strategies",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/scraper",
+          "route_path": "/strategies",
+          "full_path": "/api/scraper/strategies",
+          "line": 431,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "update_strategy",
+          "method": "POST",
+          "router_name": "router",
+          "router_prefix": "/scraper",
+          "route_path": "/strategy",
+          "full_path": "/api/scraper/strategy",
+          "line": 457,
+          "response_model": null,
+          "status_code": null
+        }
+      ]
+    },
+    {
+      "module": "search",
+      "file": "backend/api/v1/search.py",
+      "attr_name": "router",
+      "required": false,
+      "registered": true,
+      "routers": [
+        {
+          "name": "router",
+          "prefix": "/search"
+        }
+      ],
+      "endpoints": [
+        {
+          "handler": "search_endpoint",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/search",
+          "route_path": "/",
+          "full_path": "/api/search",
+          "line": 453,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "search_health",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/search",
+          "route_path": "/health",
+          "full_path": "/api/search/health",
+          "line": 486,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "list_engines",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/search",
+          "route_path": "/engines",
+          "full_path": "/api/search/engines",
+          "line": 492,
+          "response_model": null,
+          "status_code": null
+        },
+        {
+          "handler": "search_status",
+          "method": "GET",
+          "router_name": "router",
+          "router_prefix": "/search",
+          "route_path": "/status",
+          "full_path": "/api/search/status",
+          "line": 517,
+          "response_model": null,
+          "status_code": null
+        }
+      ]
+    }
+  ]
+}

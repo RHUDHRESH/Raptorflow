@@ -2,13 +2,17 @@
 Health check endpoint with database and cache status
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
+import os
 
 from fastapi import APIRouter, HTTPException
 
+from backend.config import settings
 from backend.core.query_monitor import query_monitor
 from backend.core.redis_mgr import get_redis_client
+from backend.services.registry import registry
+from backend.services.muse_service import REASONING_DEPTH_PROFILES
 
 router = APIRouter(prefix="/ops", tags=["health"])
 
@@ -86,6 +90,74 @@ async def health_check():
         }
     
     return health_status
+
+
+def _configured_integrations() -> Dict[str, bool]:
+    """Map env/config presence to integration readiness."""
+    return {
+        "supabase": bool(settings.SUPABASE_URL and settings.SUPABASE_SERVICE_ROLE_KEY),
+        "supabase_auth": bool(
+            (settings.SUPABASE_URL or os.getenv("NEXT_PUBLIC_SUPABASE_URL"))
+            and (
+                os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+                or os.getenv("SUPABASE_ANON_KEY")
+            )
+        ),
+        "redis": bool(settings.UPSTASH_REDIS_REST_URL and settings.UPSTASH_REDIS_REST_TOKEN),
+        "vertex_ai": bool(settings.VERTEX_AI_PROJECT_ID),
+        "email": bool(settings.RESEND_API_KEY),
+        "sentry": bool(settings.SENTRY_DSN),
+    }
+
+
+@router.get("/services")
+async def services_status() -> Dict[str, Any]:
+    """Unified view of configured integrations + runtime service health."""
+    configured = _configured_integrations()
+    runtime = await registry.check_health()
+
+    missing = [name for name, ok in configured.items() if not ok]
+    degraded_services = [
+        name for name, item in runtime.items() if item.get("status") in {"unhealthy"}
+    ]
+    status = "healthy"
+    if missing or degraded_services:
+        status = "degraded"
+
+    return {
+        "status": status,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "configured_integrations": configured,
+        "runtime_services": runtime,
+        "missing_integrations": missing,
+        "degraded_services": degraded_services,
+    }
+
+
+@router.get("/ai-architecture")
+async def ai_architecture() -> Dict[str, Any]:
+    """Canonical AI orchestration map for the running backend."""
+    runtime = await registry.check_health()
+    return {
+        "status": "ok",
+        "orchestrator": "muse_service",
+        "pipeline": [
+            "context.bcm_service (manifest + memory)",
+            "prompt_compiler",
+            "vertex_ai_service",
+            "bcm_generation_logger",
+            "bcm_reflector (auto/manual)",
+        ],
+        "reasoning_depth_profiles": REASONING_DEPTH_PROFILES,
+        "services": {
+            "muse_service": runtime.get("muse_service", {}),
+            "vertex_ai_service": runtime.get("vertex_ai_service", {}),
+            "bcm_service": runtime.get("bcm_service", {}),
+            "auth_service": runtime.get("auth_service", {}),
+        },
+        "model": settings.VERTEX_AI_MODEL,
+        "environment": str(settings.ENVIRONMENT),
+    }
 
 
 @router.get("/health/db")

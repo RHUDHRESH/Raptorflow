@@ -1,21 +1,19 @@
 #!/bin/bash
+set -euo pipefail
 
-# Start Redis in background if not provided as service
-# redis-server --daemonize yes
+echo "Starting backend on :8000"
+python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
+BACKEND_PID=$!
 
-# Start Backend
-echo "Starting Backend..."
-cd /app/backend
-python main.py &
+echo "Starting frontend on :3000"
+npm run start -- --hostname 0.0.0.0 --port "${PORT:-3000}" &
+FRONTEND_PID=$!
 
-# Start Frontend (Dev mode for testing since we want to interact)
-# For real production we would use the build + static server
-echo "Starting Frontend..."
-cd /app/frontend
-npm run dev &
+cleanup() {
+  kill "${BACKEND_PID}" "${FRONTEND_PID}" >/dev/null 2>&1 || true
+}
 
-# Keep script running
-wait -n
+trap cleanup INT TERM EXIT
 
-# Exit with status of process that exited first
-exit $?
+# Exit when either process exits.
+wait -n "${BACKEND_PID}" "${FRONTEND_PID}"

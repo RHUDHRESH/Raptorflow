@@ -1,0 +1,22 @@
+{% extends "_base.html" %}
+{% block title %}Message Received{% endblock %}
+{% block content %}
+<h1>We received your message</h1>
+<p>Hi {{ name }},</p>
+<p>
+  Thanks for contacting Raptorflow. Our team has received your message and will
+  get back to you as soon as possible.
+</p>
+<div class="detail">
+  <div class="detail-row">
+    <span class="detail-label">Subject</span>
+    <span class="detail-value">{{ subject }}</span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">Submitted</span>
+    <span class="detail-value">{{ submitted_at }}</span>
+  </div>
+</div>
+<p>If your request is urgent, reply to this email and include any additional context.</p>
+{% endblock %}
+

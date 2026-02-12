@@ -17,7 +17,7 @@ type ApiRequestOptions = Omit<RequestInit, "headers"> & {
   workspaceId?: string;
 };
 
-const API_BASE = "/api/proxy/v1";
+const API_BASE = "/api/proxy";
 
 async function readBody(response: Response): Promise<unknown> {
   const contentType = response.headers.get("content-type") || "";
@@ -50,7 +50,11 @@ export async function apiRequest<T>(
   }
 
   // Default JSON content-type when sending a string body (callers can override).
-  if (typeof options.body === "string" && !headers["content-type"]) {
+  // Skip for FormData (browser sets content-type with boundary automatically).
+  if (
+    typeof options.body === "string" &&
+    !headers["content-type"]
+  ) {
     headers["content-type"] = "application/json";
   }
 

@@ -5,7 +5,6 @@ Creates a single, consistent backend app with unified middleware and routers.
 
 import logging
 
-import sentry_sdk
 from backend.api.system import router as system_router
 from backend.app.lifespan import lifespan
 from backend.app.middleware import add_middleware
@@ -16,6 +15,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api.registry import include_universal
 from backend.config import settings
 
+try:
+    import sentry_sdk
+except Exception:  # pragma: no cover - optional dependency in some local envs
+    sentry_sdk = None
+
 load_dotenv()
 
 
@@ -24,12 +28,21 @@ def _configure_logging() -> None:
         level=logging.DEBUG if settings.DEBUG else logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
+    # Prevent verbose dependency logs from leaking headers/tokens in debug mode.
+    for noisy_logger in ("httpx", "httpcore", "hpack", "urllib3", "asyncio"):
+        logging.getLogger(noisy_logger).setLevel(logging.WARNING)
 
 
 def _init_sentry() -> None:
     """Initialize Sentry if DSN is configured."""
     if settings.is_development:
         logging.getLogger(__name__).info("Sentry disabled in development environment")
+        return
+
+    if sentry_sdk is None:
+        logging.getLogger(__name__).warning(
+            "Sentry SDK is not installed; continuing without error monitoring"
+        )
         return
 
     dsn = settings.SENTRY_DSN
@@ -63,7 +76,9 @@ def create_app(
         docs_url="/docs" if enable_docs else None,
         redoc_url="/redoc" if enable_docs else None,
         lifespan=lifespan,
-        redirect_slashes=False,  # Disable redirect to fix POST body loss
+        # Keep trailing-slash redirects enabled so `/api/foo` and `/api/foo/` both work.
+        # The Next.js proxy follows same-origin 307/308 redirects safely.
+        redirect_slashes=True,
     )
 
     # Core middleware stack

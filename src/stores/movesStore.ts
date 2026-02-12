@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════════════════════════════════════════════
    MOVES STORE — No-Auth Reconstruction
-   Source of truth: backend `/api/v1/*` (via Next proxy) scoped by `X-Workspace-Id`.
+   Source of truth: backend `/api/*` (via Next proxy) scoped by `X-Workspace-Id`.
    No Supabase browser client, no RLS, no silent fallbacks.
    ════════════════════════════════════════════════════════════════════════════════════════ */
 

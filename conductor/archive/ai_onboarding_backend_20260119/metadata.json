@@ -1,8 +1,0 @@
-{
-  "track_id": "ai_onboarding_backend_20260119",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-19T14:35:00Z",
-  "updated_at": "2026-01-19T14:35:00Z",
-  "description": "Build the rest of the onboarding backend using a single Universal Agent with dynamic skills (LangChain, not LangGraph), tunable via YAML frontmatter, and an immaculate FastAPI layer."
-}

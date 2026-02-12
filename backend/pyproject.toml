@@ -19,6 +19,8 @@ dependencies = [
     "crewai-tools>=0.17.0",
     "upstash-redis==1.2.0",
     "httpx==0.28.1",
+    "beautifulsoup4>=4.12,<5.0",
+    "sentry-sdk[fastapi]>=1.40,<2.0",
     "python-multipart==0.0.20",
     "python-jose[cryptography]==3.3.0",
     "passlib[bcrypt]==1.7.4",

@@ -148,7 +148,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             </button>
           </div>
           <div className="text-xs text-[var(--ink-muted)] font-mono">
-            Expected backend: <span className="text-[var(--ink)]">/api/proxy/v1/workspaces</span>
+            Expected backend: <span className="text-[var(--ink)]">/api/proxy/workspaces</span>
           </div>
         </div>
       </div>

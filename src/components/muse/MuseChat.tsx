@@ -37,6 +37,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [apiStatus, setApiStatus] = useState<'loading' | 'connected' | 'error'>('loading');
     const [hasAutoSent, setHasAutoSent] = useState(false);
+    const [reasoningDepth, setReasoningDepth] = useState<'low' | 'medium' | 'high'>('medium');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -116,6 +117,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                 },
                 max_tokens: 800,
                 temperature: 0.7,
+                reasoning_depth: reasoningDepth,
             });
 
             if (data.success) {
@@ -187,6 +189,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                 },
                 max_tokens: 1000,
                 temperature: 0.7,
+                reasoning_depth: reasoningDepth,
             });
 
             if (data.success) {
@@ -288,7 +291,23 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                     </div>
 
                     {/* Quick Actions */}
-                    <div className="flex gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 rounded-[var(--radius)] border border-[var(--border)] p-1">
+                            {(["low", "medium", "high"] as const).map((level) => (
+                                <button
+                                    key={level}
+                                    onClick={() => setReasoningDepth(level)}
+                                    className={cn(
+                                        "px-2 py-1 text-xs rounded-[var(--radius)] uppercase tracking-wide",
+                                        reasoningDepth === level
+                                            ? "bg-[var(--blueprint)] text-[var(--paper)]"
+                                            : "text-[var(--muted)] hover:text-[var(--ink)]"
+                                    )}
+                                >
+                                    {level}
+                                </button>
+                            ))}
+                        </div>
                         <BlueprintButton
                             size="sm"
                             onClick={() => generateContent("Create a blog post about marketing automation", "blog")}

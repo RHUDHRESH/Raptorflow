@@ -1,110 +1,142 @@
-"""Supabase Storage manager.
-
-Canonical file storage using Supabase Storage buckets.
-Replaces the removed GCS integration.
-"""
+"""Storage manager for Supabase Storage operations."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
+
+from supabase import Client, create_client
 
 logger = logging.getLogger(__name__)
 
 
-def _get_storage():
-    """Get the Supabase storage client from the canonical supabase_mgr."""
-    from backend.core.supabase_mgr import get_supabase_client
+class StorageManager:
+    """Manages Supabase Storage operations."""
+    
+    def __init__(self, supabase_url: str, service_key: str):
+        """Initialize storage manager.
+        
+        Args:
+            supabase_url: Supabase project URL
+            service_key: Supabase service role key
+        """
+        self.supabase_url = supabase_url
+        self.service_key = service_key
+        self._client: Optional[Client] = None
+    
+    @property
+    def client(self) -> Client:
+        """Get or create Supabase client."""
+        if self._client is None:
+            self._client = create_client(self.supabase_url, self.service_key)
+        return self._client
+    
+    async def create_bucket(self, name: str, public: bool = True) -> bool:
+        """Create a storage bucket if it doesn't exist.
+        
+        Args:
+            name: Bucket name
+            public: Whether bucket should be publicly accessible
+            
+        Returns:
+            True if bucket exists or was created successfully
+        """
+        try:
+            # Check if bucket exists
+            buckets = self.client.storage.list_buckets()
+            if any(b.name == name for b in buckets):
+                logger.info(f"Bucket '{name}' already exists")
+                return True
+            
+            # Create bucket
+            self.client.storage.create_bucket(name, options={"public": public})
+            logger.info(f"Created bucket '{name}' (public={public})")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to create bucket '{name}': {e}")
+            return False
+    
+    async def create_signed_upload_url(
+        self,
+        bucket: str,
+        path: str,
+    ) -> Optional[Dict[str, str]]:
+        """Create a signed URL for direct file upload.
+        
+        Args:
+            bucket: Target bucket name
+            path: File path within bucket
+            
+        Returns:
+            Dict containing signed URL, token, and path, or None if creation failed
+        """
+        try:
+            result: Any = self.client.storage.from_(bucket).create_signed_upload_url(path=path)
 
-    client = get_supabase_client()
-    return client.storage
+            signed_url = None
+            token = None
 
+            if isinstance(result, dict):
+                signed_url = result.get("signed_url") or result.get("signedUrl")
+                token = result.get("token")
+            else:
+                signed_url = getattr(result, "signed_url", None) or getattr(result, "signedUrl", None)
+                token = getattr(result, "token", None)
 
-def _get_bucket() -> str:
-    """Get the configured storage bucket name."""
-    from backend.config.settings import get_settings
+            if not signed_url or not token:
+                logger.error("Signed upload URL response missing url/token: %s", result)
+                return None
 
-    return get_settings().SUPABASE_STORAGE_BUCKET
-
-
-def upload_file(
-    file_data: bytes,
-    path: str,
-    content_type: str = "application/octet-stream",
-    bucket: Optional[str] = None,
-) -> Dict[str, Any]:
-    """Upload a file to Supabase Storage.
-
-    Args:
-        file_data: Raw file bytes.
-        path: Storage path (e.g. "workspace-id/reports/file.pdf").
-        content_type: MIME type.
-        bucket: Override bucket name (defaults to SUPABASE_STORAGE_BUCKET).
-
-    Returns:
-        Dict with status and path or error.
-    """
-    bucket = bucket or _get_bucket()
-    try:
-        storage = _get_storage()
-        result = storage.from_(bucket).upload(
-            path,
-            file_data,
-            file_options={"content-type": content_type},
-        )
-        logger.info("Uploaded %s to %s/%s", content_type, bucket, path)
-        return {"status": "success", "path": path, "bucket": bucket}
-    except Exception as exc:
-        logger.error("Upload failed (%s/%s): %s", bucket, path, exc)
-        return {"status": "error", "error": str(exc)}
-
-
-def get_public_url(path: str, bucket: Optional[str] = None) -> str:
-    """Get a public URL for a stored file."""
-    bucket = bucket or _get_bucket()
-    try:
-        storage = _get_storage()
-        result = storage.from_(bucket).get_public_url(path)
-        return result
-    except Exception as exc:
-        logger.error("Failed to get public URL (%s/%s): %s", bucket, path, exc)
-        return ""
-
-
-def get_signed_url(
-    path: str, expires_in: int = 3600, bucket: Optional[str] = None
-) -> str:
-    """Get a signed (temporary) URL for a stored file."""
-    bucket = bucket or _get_bucket()
-    try:
-        storage = _get_storage()
-        result = storage.from_(bucket).create_signed_url(path, expires_in)
-        return result.get("signedURL", "")
-    except Exception as exc:
-        logger.error("Failed to get signed URL (%s/%s): %s", bucket, path, exc)
-        return ""
-
-
-def delete_file(path: str, bucket: Optional[str] = None) -> Dict[str, Any]:
-    """Delete a file from Supabase Storage."""
-    bucket = bucket or _get_bucket()
-    try:
-        storage = _get_storage()
-        storage.from_(bucket).remove([path])
-        logger.info("Deleted %s/%s", bucket, path)
-        return {"status": "success", "path": path}
-    except Exception as exc:
-        logger.error("Delete failed (%s/%s): %s", bucket, path, exc)
-        return {"status": "error", "error": str(exc)}
-
-
-def list_files(
-    prefix: str = "", bucket: Optional[str] = None
-) -> List[Dict[str, Any]]:
-    """List files in a bucket path."""
-    bucket = bucket or _get_bucket()
-    try:
-        storage = _get_storage()
-        result = storage.from_(bucket).list(prefix)
-        return result if isinstance(result, list) else []
-    except Exception as exc:
-        logger.error("List failed (%s/%s): %s", bucket, prefix, exc)
-        return []
+            return {
+                "signed_url": str(signed_url),
+                "token": str(token),
+                "path": path,
+            }
+        except Exception as e:
+            logger.error(f"Failed to create signed upload URL: {e}")
+            return None
+    
+    async def delete_object(self, bucket: str, path: str) -> bool:
+        """Delete an object from storage.
+        
+        Args:
+            bucket: Bucket name
+            path: Object path within bucket
+            
+        Returns:
+            True if deletion succeeded
+        """
+        try:
+            self.client.storage.from_(bucket).remove([path])
+            logger.info(f"Deleted object '{path}' from bucket '{bucket}'")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to delete object '{path}': {e}")
+            return False
+    
+    def get_public_url(self, bucket: str, path: str) -> str:
+        """Get the public URL for an object.
+        
+        Args:
+            bucket: Bucket name
+            path: Object path within bucket
+            
+        Returns:
+            Public URL string
+        """
+        return f"{self.supabase_url}/storage/v1/object/public/{bucket}/{path}"
+    
+    async def file_exists(self, bucket: str, path: str) -> bool:
+        """Check if a file exists in storage.
+        
+        Args:
+            bucket: Bucket name
+            path: Object path within bucket
+            
+        Returns:
+            True if file exists
+        """
+        try:
+            return bool(self.client.storage.from_(bucket).exists(path))
+        except Exception:
+            return False

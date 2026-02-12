@@ -27,6 +27,7 @@ structlog>=23.2,<24.0
 
 # HTTP Client
 httpx>=0.25,<1.0
+beautifulsoup4>=4.12,<5.0
 
 # Security
 python-jose[cryptography]>=3.3,<4.0

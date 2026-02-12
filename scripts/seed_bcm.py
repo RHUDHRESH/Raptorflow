@@ -19,11 +19,14 @@ from dotenv import load_dotenv
 load_dotenv(PROJECT_ROOT / "backend" / ".env")
 load_dotenv(PROJECT_ROOT / ".env")
 
-# Fallback env vars if not set
-if not os.getenv("SUPABASE_URL"):
-    os.environ["SUPABASE_URL"] = "https://vpwwzsanuyhpkvgorcnc.supabase.co"
-if not os.getenv("SUPABASE_SERVICE_ROLE_KEY"):
-    os.environ["SUPABASE_SERVICE_ROLE_KEY"] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd3d6c2FudXlocGt2Z29yY25jIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjM5OTU5MSwiZXhwIjoyMDc3OTc1NTkxfQ.6Q7hAvurQR04cYXg0MZPv7-OMBTMqNKV1N02rC_OOnw"
+if not (os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")):
+    raise RuntimeError("SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) is required")
+if not (
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or os.getenv("SUPABASE_SERVICE_KEY")
+    or os.getenv("SERVICE_ROLE_KEY")
+):
+    raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY (or equivalent service key) is required")
 
 from backend.services.bcm_reducer import reduce_business_context
 from backend.core.supabase_mgr import get_supabase_client
