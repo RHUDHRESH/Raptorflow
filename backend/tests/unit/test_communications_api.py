@@ -39,6 +39,7 @@ async def test_contact_sends_support_and_ack(monkeypatch: pytest.MonkeyPatch) ->
 
     monkeypatch.setattr(communications_api.email_service, "api_key", "re_test")
     monkeypatch.setattr(communications_api.email_service, "send", fake_send)
+    monkeypatch.setattr(communications_api.settings, "ENABLE_EMAIL_DELIVERY", True)
     monkeypatch.setattr(communications_api.settings, "EMAIL_FROM", "support@raptorflow.ai")
     monkeypatch.setattr(communications_api.settings, "SUPPORT_EMAIL_TO", "")
 
@@ -73,4 +74,3 @@ async def test_contact_rejects_whitespace_message() -> None:
 
     assert exc.value.status_code == 422
     assert exc.value.detail == "Message is too short"
-

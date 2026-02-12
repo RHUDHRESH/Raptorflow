@@ -67,7 +67,8 @@ async def submit_contact(
         "submitted_at": timestamp,
     }
 
-    if not getattr(email_service, "api_key", None):
+    email_enabled = bool(getattr(settings, "ENABLE_EMAIL_DELIVERY", True))
+    if (not email_enabled) or (not getattr(email_service, "api_key", None)):
         return ContactResponse(
             accepted=True,
             status="logged_only",

@@ -86,6 +86,7 @@ class Settings(BaseSettings):
     MONTHLY_AI_BUDGET: float = Field(default=100.0, env="MONTHLY_AI_BUDGET")
 
     # Resend (Email)
+    ENABLE_EMAIL_DELIVERY: bool = Field(default=True, env="ENABLE_EMAIL_DELIVERY")
     RESEND_API_KEY: str = Field(default="", env="RESEND_API_KEY")
     EMAIL_FROM: str = Field(default="noreply@raptorflow.in", env="EMAIL_FROM")
     SUPPORT_EMAIL_TO: str = Field(default="", env="SUPPORT_EMAIL_TO")

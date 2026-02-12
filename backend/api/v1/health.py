@@ -106,7 +106,7 @@ def _configured_integrations() -> Dict[str, bool]:
         ),
         "redis": bool(settings.UPSTASH_REDIS_REST_URL and settings.UPSTASH_REDIS_REST_TOKEN),
         "vertex_ai": bool(settings.VERTEX_AI_PROJECT_ID),
-        "email": bool(settings.RESEND_API_KEY),
+        "email": (not settings.ENABLE_EMAIL_DELIVERY) or bool(settings.RESEND_API_KEY),
         "sentry": bool(settings.SENTRY_DSN),
         "search_module": bool(settings.ENABLE_SEARCH_MODULE),
         "scraper_module": bool(settings.ENABLE_SCRAPER_MODULE),

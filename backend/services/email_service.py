@@ -27,6 +27,7 @@ class EmailService(BaseService):
         self._resend = None
         self.api_key = None
         self.from_email = None
+        self.delivery_enabled = True
 
     async def initialize(self) -> None:
         """Initialize Jinja2 environment and Resend client."""
@@ -45,6 +46,12 @@ class EmailService(BaseService):
                 
                 self.api_key = settings.RESEND_API_KEY
                 self.from_email = settings.EMAIL_FROM
+                self.delivery_enabled = bool(getattr(settings, "ENABLE_EMAIL_DELIVERY", True))
+
+                if not self.delivery_enabled:
+                    logger.info("Email delivery disabled by ENABLE_EMAIL_DELIVERY=false")
+                    await super().initialize()
+                    return
 
                 if not self.api_key:
                     logger.warning("Resend disabled: RESEND_API_KEY not configured")
@@ -61,6 +68,8 @@ class EmailService(BaseService):
 
     async def check_health(self) -> Dict[str, Any]:
         """Check service health status."""
+        if not self.delivery_enabled:
+            return {"status": "disabled", "detail": "Email delivery disabled by config"}
         if not self._resend or not self.api_key:
              return {"status": "disabled", "detail": "Resend not configured"}
         return {"status": "healthy"}
