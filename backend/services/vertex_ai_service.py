@@ -62,11 +62,22 @@ class VertexAIService(BaseService):
 
     def __init__(self):
         super().__init__("vertex_ai_service")
-        self.project_id = settings.VERTEX_AI_PROJECT_ID
+        self.project_id = (
+            settings.VERTEX_AI_PROJECT_ID
+            or getattr(settings, "GCP_PROJECT_ID", "")
+            or os.getenv("GCP_PROJECT_ID", "")
+        )
         self.location = settings.VERTEX_AI_LOCATION
-        self.model_name = getattr(settings, "VERTEX_AI_MODEL", "gemini-2.0-flash-exp")
-        self.api_key = os.getenv("VERTEX_AI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        self.credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+        self.model_name = getattr(settings, "VERTEX_AI_MODEL", "gemini-2.0-flash")
+        self.api_key = (
+            os.getenv("VERTEX_AI_API_KEY")
+            or os.getenv("GOOGLE_API_KEY")
+            or getattr(settings, "VERTEX_AI_API_KEY", "")
+            or getattr(settings, "GOOGLE_API_KEY", "")
+        )
+        self.credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "") or getattr(
+            settings, "GOOGLE_APPLICATION_CREDENTIALS", ""
+        )
 
         # Rate limiting
         self.requests_per_minute = getattr(settings, "AI_REQUESTS_PER_MINUTE", 60)
@@ -86,16 +97,47 @@ class VertexAIService(BaseService):
         self.backend = "unconfigured"
         self.genai_client = None
 
+    def _candidate_model_names(self) -> list[str]:
+        """Build a deterministic candidate list for model failover."""
+        models: list[str] = []
+        for model_name in (
+            self.model_name,
+            "gemini-2.0-flash",
+            "gemini-2.0-flash-lite",
+            "gemini-1.5-flash",
+        ):
+            name = str(model_name or "").strip()
+            if name and name not in models:
+                models.append(name)
+        return models
+
     def _resolve_google_credentials_path(self) -> Optional[str]:
         """Resolve credentials path, auto-healing a broken env path when possible."""
+        project_root = Path(__file__).resolve().parents[2]
         configured = (self.credentials_path or "").strip()
-        if configured and Path(configured).is_file():
-            return configured
+        candidates: list[Path] = []
 
-        # Local repo fallback used in this workspace.
-        repo_key = Path(__file__).resolve().parents[1] / "raptorflow-storage-key.json"
-        if repo_key.is_file():
-            return str(repo_key)
+        if configured:
+            configured_path = Path(configured)
+            candidates.append(configured_path)
+            if not configured_path.is_absolute():
+                candidates.append(project_root / configured_path)
+
+        candidates.extend(
+            [
+                project_root / "google_creds" / "raptorlite-a168c250df10.json",
+                project_root / "backend" / "raptorflow-storage-key.json",
+                project_root / "raptorflow-storage-key.json",
+            ]
+        )
+
+        for path in candidates:
+            try:
+                resolved = path.resolve()
+            except Exception:
+                resolved = path
+            if resolved.is_file():
+                return str(resolved)
 
         return None
 
@@ -127,14 +169,7 @@ class VertexAIService(BaseService):
         if self.genai_client is None:
             raise ServiceUnavailableError("Google GenAI API key backend is not initialized")
 
-        candidate_models = []
-        for model_name in (
-            self.model_name,
-            "gemini-2.0-flash",
-            "gemini-1.5-flash",
-        ):
-            if model_name and model_name not in candidate_models:
-                candidate_models.append(model_name)
+        candidate_models = self._candidate_model_names()
 
         last_error: Optional[Exception] = None
         for model_name in candidate_models:
@@ -258,6 +293,56 @@ class VertexAIService(BaseService):
 
         return {"status": "unhealthy", "detail": "AI backend not initialized"}
 
+    async def _generate_with_vertex_candidates(
+        self,
+        *,
+        prompt: str,
+        max_tokens: int,
+        temperature: float,
+    ) -> tuple[Any, str]:
+        """
+        Try the configured Vertex model and fallback candidates before failing.
+
+        This mitigates quota spikes on experimental models.
+        """
+        last_error: Optional[Exception] = None
+
+        for candidate in self._candidate_model_names():
+            try:
+                model = self.model
+                if not model or candidate != self.model_name:
+                    model = GenerativeModel(candidate)
+
+                response = await model.generate_content_async(
+                    prompt,
+                    generation_config={
+                        "max_output_tokens": max_tokens,
+                        "temperature": temperature,
+                    },
+                )
+
+                # Keep the successful model hot for subsequent requests.
+                if candidate != self.model_name:
+                    logger.warning(
+                        "Switching active Vertex model from %s to %s after runtime failure",
+                        self.model_name,
+                        candidate,
+                    )
+                    self.model = model
+                    self.model_name = candidate
+                elif self.model is None:
+                    self.model = model
+
+                return response, candidate
+            except Exception as exc:
+                last_error = exc
+                logger.warning("Vertex model %s failed: %s", candidate, exc)
+
+        raise ExternalServiceError(
+            "Vertex generation failed for all candidate models",
+            original_error=last_error,
+        )
+
     def _check_rate_limit(self) -> bool:
         """Check if request is within rate limits"""
         now = datetime.now()
@@ -331,19 +416,16 @@ class VertexAIService(BaseService):
 
             if self.model:
                 try:
-                    response = await self.model.generate_content_async(
-                        prompt,
-                        generation_config={
-                            "max_output_tokens": max_tokens,
-                            "temperature": temperature,
-                        },
+                    response, active_model = await self._generate_with_vertex_candidates(
+                        prompt=prompt,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
                     )
 
                     usage = response.usage_metadata
                     input_tokens = usage.prompt_token_count if usage else 0
                     output_tokens = usage.candidates_token_count if usage else 0
                     text = response.text
-                    active_model = self.model_name
                     active_backend = "vertex_ai"
                 except Exception as vertex_exc:
                     if not self.genai_client:
@@ -441,6 +523,13 @@ class VertexAIService(BaseService):
 
 # Global service instance - initialized at startup
 vertex_ai_service: Optional[VertexAIService] = None
-if getattr(settings, "VERTEX_AI_PROJECT_ID", "") or os.getenv("VERTEX_AI_API_KEY") or os.getenv("GOOGLE_API_KEY"):
+if (
+    getattr(settings, "VERTEX_AI_PROJECT_ID", "")
+    or getattr(settings, "GCP_PROJECT_ID", "")
+    or getattr(settings, "VERTEX_AI_API_KEY", "")
+    or getattr(settings, "GOOGLE_API_KEY", "")
+    or os.getenv("VERTEX_AI_API_KEY")
+    or os.getenv("GOOGLE_API_KEY")
+):
     vertex_ai_service = VertexAIService()
     registry.register(vertex_ai_service)

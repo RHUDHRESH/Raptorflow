@@ -66,9 +66,13 @@ class Settings(BaseSettings):
     REDIS_DEFAULT_TTL: int = Field(default=3600, env="REDIS_DEFAULT_TTL")
 
     # Vertex AI
+    GCP_PROJECT_ID: str = Field(default="", env="GCP_PROJECT_ID")
+    GOOGLE_APPLICATION_CREDENTIALS: str = Field(default="", env="GOOGLE_APPLICATION_CREDENTIALS")
     VERTEX_AI_PROJECT_ID: str = Field(default="", env="VERTEX_AI_PROJECT_ID")
     VERTEX_AI_LOCATION: str = Field(default="us-central1", env="VERTEX_AI_LOCATION")
-    VERTEX_AI_MODEL: str = Field(default="gemini-2.0-flash-exp", env="VERTEX_AI_MODEL")
+    VERTEX_AI_MODEL: str = Field(default="gemini-2.0-flash", env="VERTEX_AI_MODEL")
+    VERTEX_AI_API_KEY: str = Field(default="", env="VERTEX_AI_API_KEY")
+    GOOGLE_API_KEY: str = Field(default="", env="GOOGLE_API_KEY")
 
     # AI Rate Limiting
     AI_REQUESTS_PER_MINUTE: int = Field(default=60, env="AI_REQUESTS_PER_MINUTE")
@@ -225,9 +229,11 @@ class Settings(BaseSettings):
 
         return {
             "provider": "google",
-            "api_key": os.getenv("VERTEX_AI_API_KEY")
+            "api_key": self.VERTEX_AI_API_KEY
+            or self.GOOGLE_API_KEY
+            or os.getenv("VERTEX_AI_API_KEY")
             or os.getenv("GOOGLE_API_KEY"),
-            "project_id": self.VERTEX_AI_PROJECT_ID,
+            "project_id": self.VERTEX_AI_PROJECT_ID or self.GCP_PROJECT_ID,
             "location": self.VERTEX_AI_LOCATION,
             "model": self.VERTEX_AI_MODEL,
         }

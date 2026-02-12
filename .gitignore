@@ -55,6 +55,7 @@ tsconfig.tsbuildinfo
 .gcloud/
 raptorflow-storage-key.json
 rhudhreshr_json/
+google_creds/
 mcp-config.json
 
 # =============================================

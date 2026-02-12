@@ -6,7 +6,14 @@ services:
       sh -c "pip install --disable-pip-version-check --no-cache-dir -r backend/requirements.txt &&
       uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
     env_file:
-      - backend/.env.example
+      - path: backend/.env.example
+        required: false
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+      - path: backend/.env
+        required: false
     environment:
       PYTHONPATH: /workspace
       PYTHONUNBUFFERED: "1"
@@ -24,7 +31,12 @@ services:
     command: >
       sh -c "npm ci && npm run dev -- --hostname 0.0.0.0 --port 3000"
     env_file:
-      - .env.example
+      - path: .env.example
+        required: false
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
     environment:
       BACKEND_API_URL: "http://backend:8000"
       NEXT_PUBLIC_BACKEND_URL: "http://backend:8000"
