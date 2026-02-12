@@ -14,6 +14,7 @@ from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
 from backend.services import bcm_service
+from backend.agents import format_bcm_row, langgraph_context_orchestrator
 
 router = APIRouter(prefix="/context", tags=["context"])
 
@@ -105,7 +106,7 @@ async def rebuild_bcm(
 ) -> BCMResponse:
     """Rebuild BCM with AI synthesis from the latest stored source business context."""
     workspace_id = _require_workspace_id(x_workspace_id)
-    row = await bcm_service.rebuild_async(workspace_id)
+    row = await langgraph_context_orchestrator.rebuild(workspace_id)
 
     if not row:
         raise HTTPException(
@@ -113,16 +114,7 @@ async def rebuild_bcm(
             detail="No source business context found to rebuild from.",
         )
 
-    manifest = row["manifest"]
-    return BCMResponse(
-        manifest=manifest,
-        version=row["version"],
-        checksum=row.get("checksum", ""),
-        token_estimate=row.get("token_estimate", 0),
-        created_at=row.get("created_at"),
-        completion_pct=_compute_completion(manifest),
-        synthesized=manifest.get("meta", {}).get("synthesized", False),
-    )
+    return BCMResponse(**format_bcm_row(row))
 
 
 @router.post("/seed", response_model=BCMResponse)
@@ -132,20 +124,8 @@ async def seed_bcm(
 ) -> BCMResponse:
     """Seed a BCM with AI synthesis from a raw business_context.json."""
     workspace_id = _require_workspace_id(x_workspace_id)
-    row = await bcm_service.seed_from_business_context_async(
-        workspace_id, payload.business_context,
-    )
-
-    manifest = row["manifest"]
-    return BCMResponse(
-        manifest=manifest,
-        version=row["version"],
-        checksum=row.get("checksum", ""),
-        token_estimate=row.get("token_estimate", 0),
-        created_at=row.get("created_at"),
-        completion_pct=_compute_completion(manifest),
-        synthesized=manifest.get("meta", {}).get("synthesized", False),
-    )
+    row = await langgraph_context_orchestrator.seed(workspace_id, payload.business_context)
+    return BCMResponse(**format_bcm_row(row))
 
 
 @router.delete("/")
@@ -183,6 +163,4 @@ async def reflect_bcm(
 ) -> Dict[str, Any]:
     """Trigger manual BCM reflection — analyzes feedback and creates new memories."""
     workspace_id = _require_workspace_id(x_workspace_id)
-    from backend.services import bcm_reflector
-    result = await bcm_reflector.reflect(workspace_id)
-    return result
+    return await langgraph_context_orchestrator.reflect(workspace_id)

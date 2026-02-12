@@ -5,6 +5,10 @@
 - `src/`: UI, client-side services, frontend state and routes.
 - `backend/`: API routes, service layer, schemas, backend core.
 - `backend/agents/`: canonical LangGraph orchestration nodes and graph entrypoints.
+  - `langgraph_muse_orchestrator.py`: Muse content generation flow.
+  - `langgraph_context_orchestrator.py`: BCM seed/rebuild/reflect flow.
+  - `langgraph_campaign_moves_orchestrator.py`: campaign/move domain orchestration.
+  - `langgraph_optional_orchestrator.py`: search/scraper optional-module gate.
 - `supabase/`: SQL migrations and Supabase project state.
 - `scripts/`: operational scripts, inventory tools, deployment helpers.
 - `tests/`: test suites and verification utilities.

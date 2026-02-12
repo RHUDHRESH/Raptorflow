@@ -115,6 +115,8 @@ class Settings(BaseSettings):
 
     # Feature Flags
     FEATURE_FLAGS: Dict[str, bool] = Field(default_factory=dict, env="FEATURE_FLAGS")
+    ENABLE_SEARCH_MODULE: bool = Field(default=True, env="ENABLE_SEARCH_MODULE")
+    ENABLE_SCRAPER_MODULE: bool = Field(default=True, env="ENABLE_SCRAPER_MODULE")
 
     # Cache
     CACHE_TTL: int = Field(default=3600, env="CACHE_TTL")

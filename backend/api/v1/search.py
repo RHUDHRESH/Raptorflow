@@ -21,6 +21,9 @@ from bs4 import BeautifulSoup
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
+from backend.agents import langgraph_optional_orchestrator
+from backend.services.exceptions import ServiceUnavailableError
+
 logger = structlog.get_logger()
 
 router = APIRouter(prefix="/search", tags=["search"])
@@ -475,8 +478,19 @@ async def search_endpoint(
         raise HTTPException(status_code=400, detail=f"Invalid engines: {invalid}")
     
     try:
-        result = await search_engine.search(q, engine_list, max_results, enable_cache)
+        result = await langgraph_optional_orchestrator.run(
+            operation="search",
+            payload={
+                "q": q,
+                "engines": engine_list,
+                "max_results": max_results,
+                "enable_cache": enable_cache,
+            },
+            executor=lambda: search_engine.search(q, engine_list, max_results, enable_cache),
+        )
         return result
+    except ServiceUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         logger.error("Search failed", query=q, error=str(e))
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")

@@ -8,13 +8,13 @@ All operations are scoped by the tenant/workspace via `X-Workspace-Id`.
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
-from backend.services.campaign_service import campaign_service
-from backend.services.exceptions import ResourceNotFoundError, ServiceError
+from backend.agents import langgraph_campaign_moves_orchestrator
+from backend.services.exceptions import ServiceError
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
@@ -64,6 +64,11 @@ class CampaignListOut(BaseModel):
     campaigns: List[CampaignOut]
 
 
+class CampaignMovesBundleOut(BaseModel):
+    campaign: Optional[CampaignOut] = None
+    moves: List[Dict[str, Any]] = Field(default_factory=list)
+
+
 _DEFAULT_OBJECTIVE = "acquire"
 _DEFAULT_STATUS = "active"
 _ALLOWED_OBJECTIVES = {"acquire", "convert", "launch", "proof", "retain", "reposition"}
@@ -103,8 +108,7 @@ async def list_campaigns(
     workspace_id = _require_workspace_id(x_workspace_id)
     
     try:
-        # Service call (sync wrapper internally)
-        campaigns_data = campaign_service.list_campaigns(workspace_id)
+        campaigns_data = await langgraph_campaign_moves_orchestrator.list_campaigns(workspace_id)
         campaigns = [CampaignOut(**row) for row in campaigns_data]
         return CampaignListOut(campaigns=campaigns)
     except Exception as e:
@@ -126,7 +130,7 @@ async def create_campaign(
     }
 
     try:
-        result = campaign_service.create_campaign(workspace_id, insert_row)
+        result = await langgraph_campaign_moves_orchestrator.create_campaign(workspace_id, insert_row)
         return CampaignOut(**result)
     except ServiceError as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -143,11 +147,34 @@ async def get_campaign(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid campaign_id")
 
-    result = campaign_service.get_campaign(workspace_id, campaign_id)
+    result = await langgraph_campaign_moves_orchestrator.get_campaign(workspace_id, campaign_id)
     if not result:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
     return CampaignOut(**result)
+
+
+@router.get("/{campaign_id}/moves-bundle", response_model=CampaignMovesBundleOut)
+async def get_campaign_moves_bundle(
+    campaign_id: str,
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> CampaignMovesBundleOut:
+    workspace_id = _require_workspace_id(x_workspace_id)
+    try:
+        UUID(campaign_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid campaign_id")
+
+    bundle = await langgraph_campaign_moves_orchestrator.campaign_moves_bundle(
+        workspace_id,
+        campaign_id,
+    )
+    campaign = bundle.get("campaign")
+    moves = bundle.get("moves") or []
+    return CampaignMovesBundleOut(
+        campaign=CampaignOut(**campaign) if campaign else None,
+        moves=moves,
+    )
 
 
 @router.patch("/{campaign_id}", response_model=CampaignOut)
@@ -175,7 +202,11 @@ async def update_campaign(
     if not update_row:
         raise HTTPException(status_code=400, detail="No fields to update")
 
-    result = campaign_service.update_campaign(workspace_id, campaign_id, update_row)
+    result = await langgraph_campaign_moves_orchestrator.update_campaign(
+        workspace_id,
+        campaign_id,
+        update_row,
+    )
     if not result:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
@@ -193,9 +224,11 @@ async def delete_campaign(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid campaign_id")
 
-    deleted = campaign_service.delete_campaign(workspace_id, campaign_id)
+    deleted = await langgraph_campaign_moves_orchestrator.delete_campaign(
+        workspace_id,
+        campaign_id,
+    )
     if not deleted:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
     return None
-

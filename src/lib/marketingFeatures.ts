@@ -30,12 +30,12 @@ export const MARKETING_FEATURES: MarketingFeature[] = [
   },
   {
     icon: Brain,
-    slug: "cognitive-engine",
-    title: "Cognitive Engine",
-    subtitle: "AI That Understands Your Business",
+    slug: "langgraph-engine",
+    title: "LangGraph Engine",
+    subtitle: "Graph-Orchestrated AI Runtime",
     description:
-      "Stateful AI analysis that supports better decisions. In reconstruction mode, only working integrations remain and failures are surfaced instead of hidden.",
-    highlights: ["Error-Visible AI", "No Silent Fallbacks", "Workspace Scoped", "Integration-First"],
+      "Deterministic graph orchestration for AI execution paths. Every domain pipeline is explicit, observable, and workspace-scoped.",
+    highlights: ["Graph State Flow", "No Silent Fallbacks", "Workspace Scoped", "Integration-First"],
     image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1600&q=80",
     primaryHref: "/dashboard",
     primaryLabel: "Open Dashboard",
@@ -71,4 +71,3 @@ export const MARKETING_FEATURES: MarketingFeature[] = [
 export function getMarketingFeature(slug: string): MarketingFeature | undefined {
   return MARKETING_FEATURES.find((f) => f.slug === slug);
 }
-

@@ -14,8 +14,8 @@ from uuid import UUID
 from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
-from backend.services.move_service import move_service
-from backend.services.exceptions import ResourceNotFoundError, ServiceError
+from backend.agents import langgraph_campaign_moves_orchestrator
+from backend.services.exceptions import ServiceError
 
 router = APIRouter(prefix="/moves", tags=["moves"])
 
@@ -68,7 +68,7 @@ async def list_moves(
     workspace_id = _require_workspace_id(x_workspace_id)
     
     try:
-        moves_data = move_service.list_moves(workspace_id)
+        moves_data = await langgraph_campaign_moves_orchestrator.list_moves(workspace_id)
         # Validate/Convert to Pydantic models to ensure schema compliance
         moves = []
         for m in moves_data:
@@ -92,8 +92,10 @@ async def create_move(
     workspace_id = _require_workspace_id(x_workspace_id)
 
     try:
-        # Pass model dump to service
-        result = move_service.create_move(workspace_id, move.model_dump())
+        result = await langgraph_campaign_moves_orchestrator.create_move(
+            workspace_id,
+            move.model_dump(),
+        )
         return MoveModel(**result)
     except ServiceError as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -130,7 +132,7 @@ async def update_move(
         raise HTTPException(status_code=400, detail="Invalid move_id")
 
     try:
-        result = move_service.update_move(
+        result = await langgraph_campaign_moves_orchestrator.update_move(
             workspace_id, 
             move_id, 
             patch.model_dump(exclude_unset=True)
@@ -154,11 +156,10 @@ async def delete_move(
         raise HTTPException(status_code=400, detail="Invalid move_id")
 
     try:
-        deleted = move_service.delete_move(workspace_id, move_id)
+        deleted = await langgraph_campaign_moves_orchestrator.delete_move(workspace_id, move_id)
         if not deleted:
             raise HTTPException(status_code=404, detail="Move not found")
     except ServiceError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     return None
-

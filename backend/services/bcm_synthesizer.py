@@ -1,5 +1,5 @@
 """
-BCM Synthesizer: AI-powered synthesis of business_context.json into a cognitive BCM manifest.
+BCM Synthesizer: AI-powered synthesis of business_context.json into a strategic BCM manifest.
 
 Replaces the static bcm_reducer with Gemini Flash-powered analysis that produces:
 - Brand identity (voice archetype, communication style, vocabulary DNA)
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # ── Synthesis prompt ─────────────────────────────────────────────────────────
 
-SYNTHESIS_PROMPT = """You are a brand strategist and cognitive scientist. Your job is to deeply understand a business from raw data and produce a structured brand identity document.
+SYNTHESIS_PROMPT = """You are a brand strategist and market analyst. Your job is to deeply understand a business from raw data and produce a structured brand identity document.
 
 Analyze the business context below like a CMO who has spent 6 months immersed in this business. You must produce ONLY valid JSON matching the exact schema specified.
 

@@ -27,6 +27,9 @@ from fastapi.responses import JSONResponse
 from PIL import Image
 from playwright.async_api import async_playwright
 
+from backend.agents import langgraph_optional_orchestrator
+from backend.services.exceptions import ServiceUnavailableError
+
 logger = structlog.get_logger()
 
 router = APIRouter(prefix="/scraper", tags=["scraper"])
@@ -393,8 +396,20 @@ async def scrape_endpoint(request: Dict[str, Any], background_tasks: BackgroundT
     
     logger.info("Scraping request", url=url, user_id=user_id, strategy=strategy.value)
     
-    # Perform scraping
-    result = await unified_scraper.scrape(url, user_id, strategy, legal_basis)
+    # Perform scraping through LangGraph optional-module boundary
+    try:
+        result = await langgraph_optional_orchestrator.run(
+            operation="scraper",
+            payload={
+                "url": url,
+                "user_id": user_id,
+                "strategy": strategy.value,
+                "legal_basis": legal_basis,
+            },
+            executor=lambda: unified_scraper.scrape(url, user_id, strategy, legal_basis),
+        )
+    except ServiceUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     
     return JSONResponse(content=result)
 

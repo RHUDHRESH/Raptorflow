@@ -107,6 +107,8 @@ def _configured_integrations() -> Dict[str, bool]:
         "vertex_ai": bool(settings.VERTEX_AI_PROJECT_ID),
         "email": bool(settings.RESEND_API_KEY),
         "sentry": bool(settings.SENTRY_DSN),
+        "search_module": bool(settings.ENABLE_SEARCH_MODULE),
+        "scraper_module": bool(settings.ENABLE_SCRAPER_MODULE),
     }
 
 
@@ -141,14 +143,29 @@ async def ai_architecture() -> Dict[str, Any]:
     return {
         "status": "ok",
         "orchestrator": settings.AI_ORCHESTRATOR,
-        "pipeline": [
-            "resolve_profile",
-            "load_workspace_context",
-            "compile_prompt",
-            "run_generation",
-            "log_generation",
-            "assemble_response",
-        ],
+        "graphs": {
+            "muse_generation": [
+                "resolve_profile",
+                "load_workspace_context",
+                "compile_prompt",
+                "run_generation",
+                "log_generation",
+                "assemble_response",
+            ],
+            "context_bcm": [
+                "route_operation",
+                "seed|rebuild|reflect",
+            ],
+            "campaign_moves": [
+                "route_operation",
+                "campaign CRUD | move CRUD | campaign_moves_bundle",
+            ],
+            "optional_modules": [
+                "check_enabled",
+                "execute",
+                "finalize",
+            ],
+        },
         "reasoning_depth_profiles": REASONING_DEPTH_PROFILES,
         "services": {
             "muse_service": runtime.get("muse_service", {}),

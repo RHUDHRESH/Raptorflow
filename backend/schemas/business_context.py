@@ -216,7 +216,7 @@ class BCMGuardrailsV2(BaseModel):
 
 
 class BCMManifest(BaseModel):
-    """Business Context Manifest with cognitive identity."""
+    """Business Context Manifest with strategic identity."""
 
     version: int = 1
     generated_at: str = ""

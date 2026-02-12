@@ -23,6 +23,9 @@
 - Workspaces: `/api/workspaces/*`
 - Operations: `/api/ops/*`
 - Muse generation: `/api/muse/*` backed by `LangGraphMuseOrchestrator`.
+- BCM context: `/api/context/*` backed by `LangGraphContextOrchestrator`.
+- Campaign/moves domain: `/api/campaigns/*`, `/api/moves/*` backed by `LangGraphCampaignMovesOrchestrator`.
+- Optional modules: `/api/search/*`, `/api/scraper/*` gated by `LangGraphOptionalOrchestrator` + feature flags.
 
 ## Storage Baseline
 
