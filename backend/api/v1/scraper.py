@@ -33,11 +33,20 @@ from backend.agents.ai_runtime_profiles import (
     normalize_execution_mode,
     normalize_intensity,
 )
+from backend.config import settings
+from backend.core.redis_mgr import get_redis_client
 from backend.services.exceptions import ServiceUnavailableError
 
 logger = structlog.get_logger()
 
 router = APIRouter(prefix="/scraper", tags=["scraper"])
+
+
+def _redis_key_prefix() -> str:
+    prefix = (settings.REDIS_KEY_PREFIX or "raptorflow:").strip()
+    if prefix and not prefix.endswith(":"):
+        prefix = f"{prefix}:"
+    return prefix
 
 # Unified strategy enum - merges all strategies from 3 services
 class ScrapingStrategy(str, Enum):
@@ -106,9 +115,70 @@ class UnifiedScraper:
                 }
             )
             self.http_sessions.append(session)
+
+    def _cache_ttl_seconds(self) -> int:
+        return max(120, min(int(settings.REDIS_DEFAULT_TTL or 900), 7200))
+
+    def _build_cache_key(self, url: str, strategy: ScrapingStrategy, legal_basis: str) -> str:
+        payload = {
+            "url": url.strip(),
+            "strategy": strategy.value,
+            "legal_basis": legal_basis,
+            "schema": "scraper.v1",
+        }
+        digest = hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        return f"{_redis_key_prefix()}scraper:result:{digest}"
+
+    def _get_cached_result(
+        self,
+        url: str,
+        strategy: ScrapingStrategy,
+        legal_basis: str,
+    ) -> Optional[Dict[str, Any]]:
+        redis = get_redis_client()
+        if not redis:
+            return None
+        try:
+            raw = redis.get(self._build_cache_key(url, strategy, legal_basis))
+            if not raw:
+                return None
+            text = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
+            data = json.loads(text)
+            return data if isinstance(data, dict) else None
+        except Exception as exc:
+            logger.warning("Scraper cache read failed", error=str(exc))
+            return None
+
+    def _set_cached_result(
+        self,
+        url: str,
+        strategy: ScrapingStrategy,
+        legal_basis: str,
+        payload: Dict[str, Any],
+    ) -> None:
+        redis = get_redis_client()
+        if not redis:
+            return
+        try:
+            cache_payload = {k: v for k, v in payload.items() if k != "cache_hit"}
+            redis.set(
+                self._build_cache_key(url, strategy, legal_basis),
+                json.dumps(cache_payload, ensure_ascii=False, separators=(",", ":")),
+                ex=self._cache_ttl_seconds(),
+            )
+        except Exception as exc:
+            logger.warning("Scraper cache write failed", error=str(exc))
     
-    async def scrape(self, url: str, user_id: str, strategy: ScrapingStrategy, 
-                     legal_basis: str = "user_request") -> Dict[str, Any]:
+    async def scrape(
+        self,
+        url: str,
+        user_id: str,
+        strategy: ScrapingStrategy,
+        legal_basis: str = "user_request",
+        enable_cache: bool = True,
+    ) -> Dict[str, Any]:
         """Unified scrape method with all strategies"""
         start_time = datetime.now(timezone.utc)
         
@@ -119,6 +189,13 @@ class UnifiedScraper:
                 raise ValueError("Invalid URL")
             
             logger.info("Starting scrape", url=url, user_id=user_id, strategy=strategy.value)
+
+            if enable_cache:
+                cached = self._get_cached_result(url, strategy, legal_basis)
+                if cached:
+                    cached["cache_hit"] = True
+                    cached["strategy"] = strategy.value
+                    return cached
             
             # Select scraping method based on strategy
             if strategy in [ScrapingStrategy.TURBO, ScrapingStrategy.OPTIMIZED, 
@@ -136,7 +213,8 @@ class UnifiedScraper:
                 "timestamp": start_time.isoformat(),
                 "processing_time": (datetime.now(timezone.utc) - start_time).total_seconds(),
                 "strategy": strategy.value,
-                "status": "success"
+                "status": "success",
+                "cache_hit": False,
             })
             
             # Track metrics
@@ -146,6 +224,9 @@ class UnifiedScraper:
                 "processing_time": result["processing_time"],
                 "url": url
             })
+
+            if enable_cache:
+                self._set_cached_result(url, strategy, legal_basis, result)
             
             return result
             
@@ -376,6 +457,7 @@ async def scrape_endpoint(request: Dict[str, Any], background_tasks: BackgroundT
     - **user_id**: User identifier
     - **strategy**: One of [conservative, balanced, aggressive, adaptive, turbo, optimized, parallel, async]
     - **legal_basis**: Legal basis for scraping (default: user_request)
+    - **enable_cache**: Whether to use Upstash Redis result caching (default: true)
     """
     url = request.get("url")
     user_id = request.get("user_id")
@@ -383,6 +465,7 @@ async def scrape_endpoint(request: Dict[str, Any], background_tasks: BackgroundT
     runtime_intensity = normalize_intensity(requested_intensity)
     runtime_execution_mode = normalize_execution_mode(request.get("execution_mode"))
     scraper_profile = intensity_profile(runtime_intensity).get("scraper") or {}
+    enable_cache = bool(request.get("enable_cache", True))
 
     strategy_str = request.get("strategy") or scraper_profile.get("default_strategy") or "optimized"
     legal_basis = request.get("legal_basis", "user_request")
@@ -417,8 +500,15 @@ async def scrape_endpoint(request: Dict[str, Any], background_tasks: BackgroundT
                 "legal_basis": legal_basis,
                 "intensity": runtime_intensity,
                 "execution_mode": runtime_execution_mode,
+                "enable_cache": enable_cache,
             },
-            executor=lambda: unified_scraper.scrape(url, user_id, strategy, legal_basis),
+            executor=lambda: unified_scraper.scrape(
+                url,
+                user_id,
+                strategy,
+                legal_basis,
+                enable_cache=enable_cache,
+            ),
         )
     except ServiceUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))

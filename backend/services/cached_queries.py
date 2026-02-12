@@ -8,7 +8,15 @@ from backend.core.cache_decorator import cached, invalidate_cache
 from backend.core.supabase_mgr import get_supabase_client
 
 
-@cached(ttl=300, prefix="workspace")
+def _workspace_cache_key(workspace_id: str, **_kwargs: Any) -> str:
+    return workspace_id
+
+
+def _campaign_cache_key(workspace_id: str, status: Optional[str] = None, **_kwargs: Any) -> str:
+    return f"{workspace_id}:{status or 'all'}"
+
+
+@cached(ttl=300, prefix="workspace", key_func=_workspace_cache_key)
 async def get_workspace_by_id(workspace_id: str) -> Optional[Dict[str, Any]]:
     """
     Get workspace by ID with 5-minute cache.
@@ -27,7 +35,7 @@ async def get_workspace_by_id(workspace_id: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-@cached(ttl=600, prefix="campaigns")
+@cached(ttl=600, prefix="campaigns", key_func=_campaign_cache_key)
 async def get_workspace_campaigns(workspace_id: str, status: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Get campaigns for workspace with 10-minute cache.
@@ -49,7 +57,7 @@ async def get_workspace_campaigns(workspace_id: str, status: Optional[str] = Non
     return result.data or []
 
 
-@cached(ttl=300, prefix="foundation")
+@cached(ttl=300, prefix="foundation", key_func=_workspace_cache_key)
 async def get_foundation_data(workspace_id: str) -> Optional[Dict[str, Any]]:
     """
     Get foundation data with 5-minute cache.
@@ -76,7 +84,7 @@ async def get_foundation_data(workspace_id: str) -> Optional[Dict[str, Any]]:
     }
 
 
-@cached(ttl=900, prefix="icp")
+@cached(ttl=900, prefix="icp", key_func=_workspace_cache_key)
 async def get_workspace_icps(workspace_id: str) -> List[Dict[str, Any]]:
     """
     Get ICP profiles for workspace with 15-minute cache.

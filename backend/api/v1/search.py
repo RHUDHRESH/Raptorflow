@@ -7,6 +7,7 @@ Single endpoint for web search with all production features.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import html
 import json
 import logging
@@ -28,6 +29,7 @@ from backend.agents.ai_runtime_profiles import (
     normalize_intensity,
 )
 from backend.config import settings
+from backend.core.redis_mgr import get_redis_client
 from backend.services.exceptions import ServiceUnavailableError
 
 logger = structlog.get_logger()
@@ -36,6 +38,13 @@ router = APIRouter(prefix="/search", tags=["search"])
 
 # Search engines supported
 SearchEngine = Literal["duckduckgo", "brave", "searx", "startpage", "qwant"]
+
+
+def _redis_key_prefix() -> str:
+    prefix = (settings.REDIS_KEY_PREFIX or "raptorflow:").strip()
+    if prefix and not prefix.endswith(":"):
+        prefix = f"{prefix}:"
+    return prefix
 
 
 class SearchResult(BaseModel):
@@ -71,6 +80,67 @@ class UnifiedSearchEngine:
             "startpage": self._search_startpage,
             "qwant": self._search_qwant,
         }
+
+    def _build_cache_key(self, query: str, engines: List[str], max_results: int) -> str:
+        payload = {
+            "query": (query or "").strip().lower(),
+            "engines": sorted(engines),
+            "max_results": int(max_results),
+            "schema": "search.v1",
+        }
+        digest = hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        return f"{_redis_key_prefix()}search:results:{digest}"
+
+    def _cache_ttl_seconds(self) -> int:
+        return max(60, min(int(settings.REDIS_DEFAULT_TTL or 1800), 7200))
+
+    def _get_cached_response(
+        self,
+        query: str,
+        engines: List[str],
+        max_results: int,
+    ) -> Optional[Dict[str, Any]]:
+        redis = get_redis_client()
+        if not redis:
+            return None
+
+        cache_key = self._build_cache_key(query, engines, max_results)
+        try:
+            raw = redis.get(cache_key)
+            if not raw:
+                return None
+            text = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
+            data = json.loads(text)
+            if isinstance(data, dict) and isinstance(data.get("results"), list):
+                data["cache"] = {"hit": True, "provider": "upstash_redis"}
+                return data
+        except Exception as exc:
+            logger.warning("Search cache read failed", error=str(exc))
+        return None
+
+    def _set_cached_response(
+        self,
+        query: str,
+        engines: List[str],
+        max_results: int,
+        payload: Dict[str, Any],
+    ) -> None:
+        redis = get_redis_client()
+        if not redis:
+            return
+
+        cache_key = self._build_cache_key(query, engines, max_results)
+        cache_payload = {k: v for k, v in payload.items() if k != "cache"}
+        try:
+            redis.set(
+                cache_key,
+                json.dumps(cache_payload, ensure_ascii=False, separators=(",", ":")),
+                ex=self._cache_ttl_seconds(),
+            )
+        except Exception as exc:
+            logger.warning("Search cache write failed", error=str(exc))
     
     async def search(
         self, 
@@ -92,22 +162,26 @@ class UnifiedSearchEngine:
             Combined search results with metadata
         """
         start_time = datetime.now(timezone.utc)
-        
+
         logger.info("Starting search", query=query, engines=engines, max_results=max_results)
-        
+
+        valid_engines = [e for e in engines if e in self.search_engines]
+        if enable_cache and valid_engines:
+            cached = self._get_cached_response(query, valid_engines, max_results)
+            if cached:
+                return cached
+
         all_results = []
         engine_stats = {}
-        
+
         # Search each engine concurrently
         tasks = []
-        valid_engines = [e for e in engines if e in self.search_engines]
-        
         for engine in valid_engines:
             tasks.append(self._search_engine_safe(engine, query, max_results))
-        
+
         if tasks:
             engine_results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             for i, result in enumerate(engine_results):
                 engine_name = valid_engines[i]
                 if isinstance(result, Exception):
@@ -117,17 +191,17 @@ class UnifiedSearchEngine:
                     all_results.extend(result.get("results", []))
                     engine_stats[engine_name] = {
                         "status": "success",
-                        "results_count": len(result.get("results", [])),
-                        "response_time": result.get("response_time", 0)
-                    }
-        
+                            "results_count": len(result.get("results", [])),
+                            "response_time": result.get("response_time", 0)
+                        }
+
         # Deduplicate and rank
         deduplicated = self._deduplicate_results(all_results)
         ranked = self._rank_results(deduplicated, query)
-        
+
         total_time = (datetime.now(timezone.utc) - start_time).total_seconds()
-        
-        return {
+
+        response = {
             "query": query,
             "results": ranked[:max_results],
             "total_results": len(ranked),
@@ -135,7 +209,14 @@ class UnifiedSearchEngine:
             "engine_stats": engine_stats,
             "response_time": total_time,
             "timestamp": datetime.now(timezone.utc).isoformat(),
+            "cache": {
+                "hit": False,
+                "provider": "upstash_redis" if enable_cache else "disabled",
+            },
         }
+        if enable_cache and valid_engines:
+            self._set_cached_response(query, valid_engines, max_results, response)
+        return response
     
     async def _search_engine_safe(
         self, engine: str, query: str, max_results: int
@@ -487,6 +568,39 @@ async def _summarize_search_results(
         }
         for item in selected
     ]
+
+    redis = get_redis_client()
+    summary_cache_key: Optional[str] = None
+    if redis:
+        summary_payload = {
+            "query": (query or "").strip().lower(),
+            "intensity": intensity,
+            "max_items": max_items,
+            "results": [
+                {
+                    "url": item.get("url"),
+                    "title": item.get("title"),
+                    "snippet": item.get("snippet"),
+                }
+                for item in compact_results
+            ],
+            "schema": "search.summary.v1",
+        }
+        digest = hashlib.sha256(
+            json.dumps(summary_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        summary_cache_key = f"{_redis_key_prefix()}search:summary:{digest}"
+        try:
+            raw = redis.get(summary_cache_key)
+            if raw:
+                text = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
+                cached = json.loads(text)
+                if isinstance(cached, dict):
+                    cached["cache_hit"] = True
+                    return cached
+        except Exception as exc:
+            logger.warning("Search summary cache read failed", error=str(exc))
+
     prompt = (
         "You are a research analyst.\n"
         f"Query: {query}\n"
@@ -510,13 +624,25 @@ async def _summarize_search_results(
             "detail": response.get("error") or "Summarization failed",
         }
 
-    return {
+    summary = {
         "status": "success",
         "text": response.get("text", ""),
         "model": response.get("model"),
         "tokens_used": response.get("total_tokens", 0),
         "cost_usd": response.get("cost_usd", 0.0),
+        "cache_hit": False,
     }
+    if redis and summary_cache_key:
+        try:
+            cache_payload = {k: v for k, v in summary.items() if k != "cache_hit"}
+            redis.set(
+                summary_cache_key,
+                json.dumps(cache_payload, ensure_ascii=False, separators=(",", ":")),
+                ex=max(300, min(int(settings.REDIS_DEFAULT_TTL or 900), 3600)),
+            )
+        except Exception as exc:
+            logger.warning("Search summary cache write failed", error=str(exc))
+    return summary
 
 
 # API Endpoints
