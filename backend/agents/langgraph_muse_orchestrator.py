@@ -249,9 +249,11 @@ class LangGraphMuseOrchestrator:
         from backend.services.vertex_ai_service import vertex_ai_service
 
         if not vertex_ai_service:
-            raise ServiceUnavailableError(
-                "Vertex AI unavailable. Configure VERTEX_AI_PROJECT_ID/credentials."
+            fallback = self._build_deterministic_fallback(
+                state,
+                "Vertex AI service is not configured",
             )
+            return {"llm_result": fallback}
 
         system_prompt = state.get("system_prompt")
         user_prompt = state["user_prompt"]
@@ -259,45 +261,118 @@ class LangGraphMuseOrchestrator:
         execution_mode = state.get("execution_mode", "single")
         ensemble_size = max(1, int(state.get("ensemble_size") or 1))
 
-        if execution_mode == "single" or ensemble_size <= 1:
-            result = await self._generate_single(
-                vertex_ai_service=vertex_ai_service,
-                workspace_id=workspace_id,
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                max_tokens=state["effective_max_tokens"],
-                temperature=state["effective_temperature"],
-            )
-        elif execution_mode == "swarm":
-            result = await self._generate_swarm(
-                vertex_ai_service=vertex_ai_service,
-                workspace_id=workspace_id,
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                max_tokens=state["effective_max_tokens"],
-                temperature=state["effective_temperature"],
-                task=state["task"],
-                content_type=state["content_type"],
-                tone=state["tone"],
-                target_audience=state["target_audience"],
-            )
-        else:
-            result = await self._generate_council(
-                vertex_ai_service=vertex_ai_service,
-                workspace_id=workspace_id,
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                max_tokens=state["effective_max_tokens"],
-                temperature=state["effective_temperature"],
-                task=state["task"],
-                tone=state["tone"],
-                target_audience=state["target_audience"],
-            )
+        try:
+            if execution_mode == "single" or ensemble_size <= 1:
+                result = await self._generate_single(
+                    vertex_ai_service=vertex_ai_service,
+                    workspace_id=workspace_id,
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    max_tokens=state["effective_max_tokens"],
+                    temperature=state["effective_temperature"],
+                )
+            elif execution_mode == "swarm":
+                result = await self._generate_swarm(
+                    vertex_ai_service=vertex_ai_service,
+                    workspace_id=workspace_id,
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    max_tokens=state["effective_max_tokens"],
+                    temperature=state["effective_temperature"],
+                    task=state["task"],
+                    content_type=state["content_type"],
+                    tone=state["tone"],
+                    target_audience=state["target_audience"],
+                )
+            else:
+                result = await self._generate_council(
+                    vertex_ai_service=vertex_ai_service,
+                    workspace_id=workspace_id,
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    max_tokens=state["effective_max_tokens"],
+                    temperature=state["effective_temperature"],
+                    task=state["task"],
+                    tone=state["tone"],
+                    target_audience=state["target_audience"],
+                )
+        except Exception as exc:
+            logger.warning("Muse generation failed; using deterministic fallback: %s", exc)
+            result = self._build_deterministic_fallback(state, str(exc))
 
         if result.get("status") != "success":
-            raise ServiceError(result.get("error") or "Muse generation failed")
+            result = self._build_deterministic_fallback(
+                state,
+                result.get("error") or "Muse generation failed",
+            )
 
         return {"llm_result": result}
+
+    def _build_deterministic_fallback(self, state: MuseGraphState, reason: str) -> Dict[str, Any]:
+        manifest = state.get("manifest") or {}
+        foundation = manifest.get("foundation") if isinstance(manifest, dict) else {}
+        company_name = "Your company"
+        if isinstance(foundation, dict):
+            company_name = str(
+                foundation.get("company_name")
+                or foundation.get("company")
+                or foundation.get("name")
+                or company_name
+            )
+
+        task = state.get("task", "Create content")
+        content_type = state.get("content_type", "general")
+        tone = state.get("tone", "professional")
+        target = state.get("target_audience", "your audience")
+
+        if content_type in {"social", "linkedin", "twitter"}:
+            text = "\n".join(
+                [
+                    f"{company_name} update for {target}:",
+                    "",
+                    f"We are shipping a focused move: {task}.",
+                    "Here is the promise: faster execution with clearer outcomes.",
+                    "Proof point: our workflow is built around BCM + LangGraph orchestration.",
+                    "CTA: Reply \"interested\" and we will share the full rollout checklist.",
+                ]
+            )
+        elif content_type in {"email", "newsletter"}:
+            text = "\n".join(
+                [
+                    f"Subject: {company_name} | Strategic update",
+                    "",
+                    f"Hi {target},",
+                    "",
+                    f"We're executing: {task}.",
+                    "This is designed to improve speed and consistency across campaigns and moves.",
+                    "If useful, reply to this email and we'll send the execution brief.",
+                ]
+            )
+        else:
+            text = "\n".join(
+                [
+                    f"{company_name} ({tone}):",
+                    f"- Task: {task}",
+                    f"- Audience: {target}",
+                    "- Core message: convert strategy into repeatable execution.",
+                    "- CTA: request the detailed plan and timeline.",
+                ]
+            )
+
+        approx_tokens = max(60, min(220, len(text) // 4))
+        return {
+            "status": "success",
+            "text": text,
+            "input_tokens": 0,
+            "output_tokens": approx_tokens,
+            "total_tokens": approx_tokens,
+            "cost_usd": 0.0,
+            "generation_time_seconds": 0.0,
+            "model": "deterministic-fallback",
+            "model_type": "rule-based",
+            "backend": "deterministic_fallback",
+            "fallback_reason": reason,
+        }
 
     async def _generate_single(
         self,
@@ -610,6 +685,8 @@ class LangGraphMuseOrchestrator:
                 "effective_max_tokens": state.get("effective_max_tokens", 0),
                 "effective_temperature": state.get("effective_temperature", 0.0),
                 "orchestrator": "langgraph",
+                "backend": result.get("backend", "vertex_ai"),
+                "fallback_reason": result.get("fallback_reason", ""),
             },
         }
         return {"response": response}

@@ -32,6 +32,9 @@ structlog>=23.2,<24.0
 httpx>=0.25,<1.0
 beautifulsoup4>=4.12,<5.0
 
+# Async Postgres Pool (ops health + query monitor)
+asyncpg>=0.30,<1.0
+
 # Security
 python-jose[cryptography]>=3.3,<4.0
 passlib[bcrypt]>=1.7,<2.0

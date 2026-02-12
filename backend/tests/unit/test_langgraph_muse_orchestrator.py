@@ -117,3 +117,71 @@ async def test_langgraph_orchestrator_happy_path(monkeypatch: pytest.MonkeyPatch
     assert result["metadata"]["generation_id"] == "gen-123"
     assert result["metadata"]["orchestrator"] == "langgraph"
     assert result["metadata"]["execution_mode"] == "single"
+
+
+@pytest.mark.asyncio
+async def test_langgraph_orchestrator_uses_deterministic_fallback_on_ai_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    services_pkg = importlib.import_module("backend.services")
+    bcm_generation_logger_module = importlib.import_module("backend.services.bcm_generation_logger")
+    bcm_memory_module = importlib.import_module("backend.services.bcm_memory")
+    bcm_reflector_module = importlib.import_module("backend.services.bcm_reflector")
+    prompt_compiler_module = importlib.import_module("backend.services.prompt_compiler")
+    vertex_ai_module = importlib.import_module("backend.services.vertex_ai_service")
+    config_module = importlib.import_module("backend.config")
+
+    class FakeBCMService:
+        @staticmethod
+        def get_manifest_fast(workspace_id: str):
+            return {"version": 7, "foundation": {"company": "Acme"}}
+
+    class BrokenVertexService:
+        @staticmethod
+        async def generate_with_system(**_kwargs):
+            raise RuntimeError("vertex unavailable")
+
+        @staticmethod
+        async def generate_text(**_kwargs):
+            raise RuntimeError("vertex unavailable")
+
+    monkeypatch.setattr(services_pkg, "bcm_service", FakeBCMService())
+    monkeypatch.setattr(bcm_memory_module, "get_relevant_memories", lambda _ws, limit=0: [])
+    monkeypatch.setattr(
+        prompt_compiler_module,
+        "get_or_compile_system_prompt",
+        lambda **_kwargs: "SYSTEM PROMPT",
+    )
+    monkeypatch.setattr(
+        prompt_compiler_module,
+        "build_user_prompt",
+        lambda **_kwargs: "USER PROMPT",
+    )
+    monkeypatch.setattr(vertex_ai_module, "vertex_ai_service", BrokenVertexService())
+    monkeypatch.setattr(config_module.settings, "AI_EXECUTION_MODE", "single")
+    monkeypatch.setattr(config_module.settings, "AI_DEFAULT_INTENSITY", "medium")
+    monkeypatch.setattr(
+        bcm_generation_logger_module,
+        "log_generation",
+        lambda **_kwargs: {"id": "gen-fallback"},
+    )
+    monkeypatch.setattr(bcm_reflector_module, "should_auto_reflect", lambda _workspace_id: False)
+
+    result = await langgraph_muse_orchestrator.invoke(
+        workspace_id="11111111-1111-1111-1111-111111111111",
+        task="Write launch copy",
+        content_type="social",
+        tone="direct",
+        target_audience="founders",
+        context={},
+        max_tokens=800,
+        temperature=0.7,
+        reasoning_depth="medium",
+        intensity="medium",
+        execution_mode="single",
+    )
+
+    assert result["success"] is True
+    assert "Write launch copy" in result["content"]
+    assert result["metadata"]["backend"] == "deterministic_fallback"
+    assert result["metadata"]["fallback_reason"]

@@ -4,6 +4,7 @@ Creates a single, consistent backend app with unified middleware and routers.
 """
 
 import logging
+from pathlib import Path
 
 from backend.api.system import router as system_router
 from backend.app.lifespan import lifespan
@@ -20,7 +21,10 @@ try:
 except Exception:  # pragma: no cover - optional dependency in some local envs
     sentry_sdk = None
 
-load_dotenv()
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(dotenv_path=_PROJECT_ROOT / ".env", override=False)
+load_dotenv(dotenv_path=_PROJECT_ROOT / ".env.local", override=False)
+load_dotenv(dotenv_path=_PROJECT_ROOT / "backend" / ".env", override=False)
 
 
 def _configure_logging() -> None:
