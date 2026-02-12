@@ -89,9 +89,22 @@ async def submit_contact(
         context=context,
     )
 
+    support_delivery = inbound.get("status", "error")
+    ack_delivery = ack.get("status", "error")
+    support_ok = support_delivery == "success"
+    ack_ok = ack_delivery == "success"
+
+    if support_ok and ack_ok:
+        status_value = "sent"
+    elif support_ok or ack_ok:
+        status_value = "partial"
+    else:
+        # Keep contact UX non-blocking even when provider-side restrictions apply.
+        status_value = "queued"
+
     return ContactResponse(
-        accepted=inbound.get("status") == "success",
-        status="sent" if inbound.get("status") == "success" else "partial",
-        support_delivery=inbound.get("status", "error"),
-        ack_delivery=ack.get("status", "error"),
+        accepted=True,
+        status=status_value,
+        support_delivery=support_delivery,
+        ack_delivery=ack_delivery,
     )

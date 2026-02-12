@@ -87,7 +87,7 @@ class Settings(BaseSettings):
 
     # Resend (Email)
     RESEND_API_KEY: str = Field(default="", env="RESEND_API_KEY")
-    EMAIL_FROM: str = Field(default="noreply@raptorflow.com", env="EMAIL_FROM")
+    EMAIL_FROM: str = Field(default="noreply@raptorflow.in", env="EMAIL_FROM")
     SUPPORT_EMAIL_TO: str = Field(default="", env="SUPPORT_EMAIL_TO")
 
     # Rate Limiting

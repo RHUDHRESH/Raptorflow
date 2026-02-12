@@ -92,13 +92,19 @@ class EmailService(BaseService):
                 template = jinja.get_template(template_name)
                 html = template.render(**context)
 
-                params = {
-                    "from_": self.from_email,
-                    "to": [to],
-                    "subject": subject,
-                    "html": html,
-                }
-                result = self._resend.Emails.send(params)
+                sender = (self.from_email or "").strip() or "noreply@raptorflow.in"
+
+                def _send_with_sender(from_value: str):
+                    params = {
+                        "from": from_value,
+                        "to": [to],
+                        "subject": subject,
+                        "html": html,
+                    }
+                    return self._resend.Emails.send(params)
+
+                result = _send_with_sender(sender)
+
                 logger.info("Email sent: %s -> %s (%s)", template_name, to, subject)
                 return {"status": "success", "id": result.get("id", "")}
             except Exception as exc:
@@ -223,4 +229,3 @@ def send_account_deactivation(to: str, user_name: str, retention_days: int = 30)
 
 def send_export_ready(to: str, export_name: str, download_url: str, expires_in: str = "7 days") -> Dict[str, Any]:
     return email_service.send_export_ready(to, export_name, download_url, expires_in)
-
