@@ -27,6 +27,13 @@
 - Campaign/moves domain: `/api/campaigns/*`, `/api/moves/*` backed by `LangGraphCampaignMovesOrchestrator`.
 - Optional modules: `/api/search/*`, `/api/scraper/*` gated by `LangGraphOptionalOrchestrator` + feature flags.
 
+## AI Topology and Intensity
+
+- Topology modes: `single`, `council`, `swarm` (config: `AI_EXECUTION_MODE`).
+- Intensity levels: `low`, `medium`, `high` (config: `AI_DEFAULT_INTENSITY`).
+- Muse accepts per-request overrides for both topology and intensity.
+- Search and scraper accept intensity and inherit topology metadata through the optional LangGraph boundary.
+
 ## Storage Baseline
 
 - App uploads are Supabase Storage-backed.

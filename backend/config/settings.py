@@ -74,6 +74,8 @@ class Settings(BaseSettings):
     AI_REQUESTS_PER_MINUTE: int = Field(default=60, env="AI_REQUESTS_PER_MINUTE")
     AI_REQUESTS_PER_HOUR: int = Field(default=1000, env="AI_REQUESTS_PER_HOUR")
     AI_ORCHESTRATOR: str = Field(default="langgraph", env="AI_ORCHESTRATOR")
+    AI_EXECUTION_MODE: str = Field(default="council", env="AI_EXECUTION_MODE")
+    AI_DEFAULT_INTENSITY: str = Field(default="medium", env="AI_DEFAULT_INTENSITY")
 
     # Budget Controls
     DAILY_AI_BUDGET: float = Field(default=10.0, env="DAILY_AI_BUDGET")
@@ -172,6 +174,24 @@ class Settings(BaseSettings):
         if v not in valid_types:
             raise ValueError(f"Template must be one of: {', '.join(valid_types)}")
         return v
+
+    @validator("AI_EXECUTION_MODE")
+    def validate_ai_execution_mode(cls, v):
+        """Validate LangGraph execution topology mode."""
+        value = str(v or "").strip().lower()
+        valid_modes = {"single", "council", "swarm"}
+        if value not in valid_modes:
+            raise ValueError(f"AI_EXECUTION_MODE must be one of: {', '.join(sorted(valid_modes))}")
+        return value
+
+    @validator("AI_DEFAULT_INTENSITY")
+    def validate_ai_default_intensity(cls, v):
+        """Validate default intensity profile."""
+        value = str(v or "").strip().lower()
+        valid_levels = {"low", "medium", "high"}
+        if value not in valid_levels:
+            raise ValueError(f"AI_DEFAULT_INTENSITY must be one of: {', '.join(sorted(valid_levels))}")
+        return value
 
     class Config:
         env_file = ".env"

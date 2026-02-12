@@ -15,8 +15,12 @@ def test_resolve_generation_profile_caps_and_bounds() -> None:
         max_tokens=5000,
         temperature=0.95,
         reasoning_depth="low",
+        intensity="low",
+        execution_mode="single",
     )
     assert resolved["reasoning_depth"] == "low"
+    assert resolved["intensity"] == "low"
+    assert resolved["execution_mode"] == "single"
     assert resolved["effective_max_tokens"] == 500
     assert resolved["effective_temperature"] == 0.5
 
@@ -26,10 +30,13 @@ def test_resolve_generation_profile_defaults_unknown_depth() -> None:
         max_tokens=900,
         temperature=0.1,
         reasoning_depth="unknown",
+        intensity="high",
+        execution_mode="council",
     )
     assert resolved["reasoning_depth"] == "unknown"
-    assert resolved["effective_max_tokens"] == 900
-    assert resolved["effective_temperature"] == 0.3
+    assert resolved["effective_max_tokens"] == 1125
+    assert resolved["effective_temperature"] == 0.4
+    assert resolved["execution_mode"] == "council"
 
 
 @pytest.mark.asyncio
@@ -40,6 +47,7 @@ async def test_langgraph_orchestrator_happy_path(monkeypatch: pytest.MonkeyPatch
     bcm_reflector_module = importlib.import_module("backend.services.bcm_reflector")
     prompt_compiler_module = importlib.import_module("backend.services.prompt_compiler")
     vertex_ai_module = importlib.import_module("backend.services.vertex_ai_service")
+    config_module = importlib.import_module("backend.config")
 
     class FakeBCMService:
         @staticmethod
@@ -80,6 +88,8 @@ async def test_langgraph_orchestrator_happy_path(monkeypatch: pytest.MonkeyPatch
         lambda **_kwargs: "USER PROMPT",
     )
     monkeypatch.setattr(vertex_ai_module, "vertex_ai_service", FakeVertexService())
+    monkeypatch.setattr(config_module.settings, "AI_EXECUTION_MODE", "single")
+    monkeypatch.setattr(config_module.settings, "AI_DEFAULT_INTENSITY", "medium")
     monkeypatch.setattr(
         bcm_generation_logger_module,
         "log_generation",
@@ -97,6 +107,8 @@ async def test_langgraph_orchestrator_happy_path(monkeypatch: pytest.MonkeyPatch
         max_tokens=1800,
         temperature=0.95,
         reasoning_depth="medium",
+        intensity="medium",
+        execution_mode="single",
     )
 
     assert result["success"] is True
@@ -104,3 +116,4 @@ async def test_langgraph_orchestrator_happy_path(monkeypatch: pytest.MonkeyPatch
     assert result["tokens_used"] == 321
     assert result["metadata"]["generation_id"] == "gen-123"
     assert result["metadata"]["orchestrator"] == "langgraph"
+    assert result["metadata"]["execution_mode"] == "single"

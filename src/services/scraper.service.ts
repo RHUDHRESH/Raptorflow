@@ -15,6 +15,8 @@ export interface ScrapeRequest {
   user_id: string;
   strategy?: ScrapingStrategy;
   legal_basis?: string;
+  intensity?: "low" | "medium" | "high";
+  execution_mode?: "single" | "council" | "swarm";
 }
 
 export interface ScrapeResult {
@@ -31,6 +33,12 @@ export interface ScrapeResult {
   processing_time: number;
   strategy: string;
   timestamp: string;
+  intensity?: "low" | "medium" | "high";
+  execution_mode?: "single" | "council" | "swarm";
+  scraper_profile?: {
+    default_strategy?: string;
+    timeout_seconds?: number;
+  };
 }
 
 export interface ScraperStrategy {

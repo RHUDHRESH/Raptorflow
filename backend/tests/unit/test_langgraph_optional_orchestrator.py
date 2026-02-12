@@ -25,6 +25,8 @@ async def test_optional_orchestrator_blocks_disabled_search(monkeypatch: pytest.
 @pytest.mark.asyncio
 async def test_optional_orchestrator_executes_enabled_module(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "ENABLE_SEARCH_MODULE", True)
+    monkeypatch.setattr(settings, "AI_EXECUTION_MODE", "swarm")
+    monkeypatch.setattr(settings, "AI_DEFAULT_INTENSITY", "high")
 
     async def _executor():
         return {"results": [{"title": "ok"}]}
@@ -37,5 +39,6 @@ async def test_optional_orchestrator_executes_enabled_module(monkeypatch: pytest
 
     assert result["module"] == "search"
     assert result["orchestrator"] == "langgraph"
+    assert result["execution_mode"] == "swarm"
+    assert result["intensity"] == "high"
     assert result["results"][0]["title"] == "ok"
-

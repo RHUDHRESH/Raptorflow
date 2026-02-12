@@ -13,6 +13,7 @@ from backend.core.query_monitor import query_monitor
 from backend.core.redis_mgr import get_redis_client
 from backend.services.registry import registry
 from backend.services.muse_service import REASONING_DEPTH_PROFILES
+from backend.agents import EXECUTION_MODES, INTENSITY_PROFILES
 
 router = APIRouter(prefix="/ops", tags=["health"])
 
@@ -143,6 +144,9 @@ async def ai_architecture() -> Dict[str, Any]:
     return {
         "status": "ok",
         "orchestrator": settings.AI_ORCHESTRATOR,
+        "execution_mode": settings.AI_EXECUTION_MODE,
+        "default_intensity": settings.AI_DEFAULT_INTENSITY,
+        "available_execution_modes": sorted(EXECUTION_MODES),
         "graphs": {
             "muse_generation": [
                 "resolve_profile",
@@ -167,6 +171,7 @@ async def ai_architecture() -> Dict[str, Any]:
             ],
         },
         "reasoning_depth_profiles": REASONING_DEPTH_PROFILES,
+        "intensity_profiles": INTENSITY_PROFILES,
         "services": {
             "muse_service": runtime.get("muse_service", {}),
             "vertex_ai_service": runtime.get("vertex_ai_service", {}),

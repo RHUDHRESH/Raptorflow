@@ -22,6 +22,12 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from backend.agents import langgraph_optional_orchestrator
+from backend.agents.ai_runtime_profiles import (
+    intensity_profile,
+    normalize_execution_mode,
+    normalize_intensity,
+)
+from backend.config import settings
 from backend.services.exceptions import ServiceUnavailableError
 
 logger = structlog.get_logger()
@@ -451,13 +457,88 @@ class UnifiedSearchEngine:
 search_engine = UnifiedSearchEngine()
 
 
+async def _summarize_search_results(
+    *,
+    query: str,
+    results: List[Dict[str, Any]],
+    intensity: str,
+    max_items: int,
+) -> Dict[str, Any]:
+    """Summarize search findings using Vertex AI when configured."""
+    from backend.services.vertex_ai_service import vertex_ai_service
+
+    if not vertex_ai_service:
+        return {
+            "status": "unavailable",
+            "detail": "Vertex AI is not configured for summarization",
+        }
+
+    selected = results[:max_items]
+    if not selected:
+        return {"status": "empty", "detail": "No results to summarize"}
+
+    compact_results = [
+        {
+            "title": item.get("title"),
+            "url": item.get("url"),
+            "snippet": item.get("snippet"),
+            "source": item.get("source"),
+            "relevance_score": item.get("relevance_score"),
+        }
+        for item in selected
+    ]
+    prompt = (
+        "You are a research analyst.\n"
+        f"Query: {query}\n"
+        f"Intensity: {intensity}\n\n"
+        "Using the search results below, produce:\n"
+        "1) a 5-7 bullet summary,\n"
+        "2) top risks or blind spots,\n"
+        "3) three next queries.\n\n"
+        f"Results JSON:\n{json.dumps(compact_results, ensure_ascii=False)}"
+    )
+    response = await vertex_ai_service.generate_text(
+        prompt=prompt,
+        workspace_id="search-system",
+        user_id="search-summarizer",
+        max_tokens=900,
+        temperature=0.3,
+    )
+    if response.get("status") != "success":
+        return {
+            "status": "error",
+            "detail": response.get("error") or "Summarization failed",
+        }
+
+    return {
+        "status": "success",
+        "text": response.get("text", ""),
+        "model": response.get("model"),
+        "tokens_used": response.get("total_tokens", 0),
+        "cost_usd": response.get("cost_usd", 0.0),
+    }
+
+
 # API Endpoints
 @router.get("/")
 async def search_endpoint(
     q: str = Query(..., description="Search query"),
-    engines: str = Query("duckduckgo,brave", description="Comma-separated list of engines"),
-    max_results: int = Query(20, ge=1, le=100, description="Maximum results per engine"),
-    enable_cache: bool = Query(True, description="Enable result caching")
+    engines: Optional[str] = Query(
+        None, description="Comma-separated list of engines"
+    ),
+    max_results: Optional[int] = Query(
+        None, ge=1, le=100, description="Maximum results per engine"
+    ),
+    intensity: Optional[Literal["low", "medium", "high"]] = Query(
+        None, description="Search intensity profile"
+    ),
+    execution_mode: Optional[Literal["single", "council", "swarm"]] = Query(
+        None, description="Execution mode metadata for optional graph orchestration"
+    ),
+    summarize: bool = Query(
+        True, description="Generate a Vertex AI summary over top results"
+    ),
+    enable_cache: bool = Query(True, description="Enable result caching"),
 ):
     """
     Free web search across multiple engines
@@ -469,8 +550,18 @@ async def search_endpoint(
     
     Returns combined results with deduplication and ranking.
     """
-    engine_list = [e.strip() for e in engines.split(",") if e.strip()]
-    
+    runtime_intensity = normalize_intensity(intensity)
+    runtime_execution_mode = normalize_execution_mode(execution_mode)
+    profile = intensity_profile(runtime_intensity).get("search") or {}
+
+    if engines:
+        engine_list = [e.strip() for e in engines.split(",") if e.strip()]
+    else:
+        engine_list = list(profile.get("default_engines") or ["duckduckgo", "brave"])
+
+    if max_results is None:
+        max_results = int(profile.get("max_results") or 20)
+
     # Validate engines
     valid_engines = ["duckduckgo", "brave", "searx", "startpage", "qwant"]
     invalid = [e for e in engine_list if e not in valid_engines]
@@ -485,9 +576,24 @@ async def search_endpoint(
                 "engines": engine_list,
                 "max_results": max_results,
                 "enable_cache": enable_cache,
+                "intensity": runtime_intensity,
+                "execution_mode": runtime_execution_mode,
             },
             executor=lambda: search_engine.search(q, engine_list, max_results, enable_cache),
         )
+        result["search_profile"] = {
+            "intensity": runtime_intensity,
+            "execution_mode": runtime_execution_mode,
+            "engines": engine_list,
+            "max_results": max_results,
+        }
+        if summarize:
+            result["summary"] = await _summarize_search_results(
+                query=q,
+                results=result.get("results") or [],
+                intensity=runtime_intensity,
+                max_items=int(profile.get("summary_results") or 6),
+            )
         return result
     except ServiceUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
@@ -523,6 +629,8 @@ async def list_engines():
             "multi_engine": True,
             "deduplication": True,
             "ranking": True,
+            "intensity_profiles": ["low", "medium", "high"],
+            "vertex_summary": True,
         }
     }
 
@@ -542,6 +650,11 @@ async def search_status():
             "result_deduplication",
             "relevance_ranking",
             "no_api_keys",
-            "privacy_focused"
-        ]
+            "privacy_focused",
+            "intensity_profiles",
+            "vertex_summary",
+        ],
+        "execution_modes": ["single", "council", "swarm"],
+        "default_execution_mode": normalize_execution_mode(settings.AI_EXECUTION_MODE),
+        "default_intensity": normalize_intensity(settings.AI_DEFAULT_INTENSITY),
     }

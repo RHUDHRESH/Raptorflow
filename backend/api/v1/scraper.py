@@ -28,6 +28,11 @@ from PIL import Image
 from playwright.async_api import async_playwright
 
 from backend.agents import langgraph_optional_orchestrator
+from backend.agents.ai_runtime_profiles import (
+    intensity_profile,
+    normalize_execution_mode,
+    normalize_intensity,
+)
 from backend.services.exceptions import ServiceUnavailableError
 
 logger = structlog.get_logger()
@@ -374,7 +379,12 @@ async def scrape_endpoint(request: Dict[str, Any], background_tasks: BackgroundT
     """
     url = request.get("url")
     user_id = request.get("user_id")
-    strategy_str = request.get("strategy", "optimized")
+    requested_intensity = request.get("intensity")
+    runtime_intensity = normalize_intensity(requested_intensity)
+    runtime_execution_mode = normalize_execution_mode(request.get("execution_mode"))
+    scraper_profile = intensity_profile(runtime_intensity).get("scraper") or {}
+
+    strategy_str = request.get("strategy") or scraper_profile.get("default_strategy") or "optimized"
     legal_basis = request.get("legal_basis", "user_request")
     
     if not url or not user_id:
@@ -405,12 +415,21 @@ async def scrape_endpoint(request: Dict[str, Any], background_tasks: BackgroundT
                 "user_id": user_id,
                 "strategy": strategy.value,
                 "legal_basis": legal_basis,
+                "intensity": runtime_intensity,
+                "execution_mode": runtime_execution_mode,
             },
             executor=lambda: unified_scraper.scrape(url, user_id, strategy, legal_basis),
         )
     except ServiceUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
-    
+
+    result["intensity"] = runtime_intensity
+    result["execution_mode"] = runtime_execution_mode
+    result["scraper_profile"] = {
+        "default_strategy": scraper_profile.get("default_strategy"),
+        "timeout_seconds": scraper_profile.get("timeout_seconds"),
+    }
+
     return JSONResponse(content=result)
 
 
@@ -464,7 +483,12 @@ async def list_strategies():
             }
             for strategy in ScrapingStrategy
         ],
-        "current_strategy": unified_scraper.current_strategy.value
+        "current_strategy": unified_scraper.current_strategy.value,
+        "intensity_profiles": {
+            "low": "conservative",
+            "medium": "balanced",
+            "high": "optimized",
+        },
     }
 
 

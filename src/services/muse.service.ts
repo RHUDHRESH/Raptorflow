@@ -9,6 +9,8 @@ export type MuseGenerateRequest = {
   max_tokens?: number;
   temperature?: number;
   reasoning_depth?: "low" | "medium" | "high";
+  intensity?: "low" | "medium" | "high";
+  execution_mode?: "single" | "council" | "swarm";
 };
 
 export type MuseGenerateResponse = {

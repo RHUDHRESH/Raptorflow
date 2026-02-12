@@ -38,6 +38,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
     const [apiStatus, setApiStatus] = useState<'loading' | 'connected' | 'error'>('loading');
     const [hasAutoSent, setHasAutoSent] = useState(false);
     const [reasoningDepth, setReasoningDepth] = useState<'low' | 'medium' | 'high'>('medium');
+    const [executionMode, setExecutionMode] = useState<'single' | 'council' | 'swarm'>('council');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -118,6 +119,8 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                 max_tokens: 800,
                 temperature: 0.7,
                 reasoning_depth: reasoningDepth,
+                intensity: reasoningDepth,
+                execution_mode: executionMode,
             });
 
             if (data.success) {
@@ -190,6 +193,8 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                 max_tokens: 1000,
                 temperature: 0.7,
                 reasoning_depth: reasoningDepth,
+                intensity: reasoningDepth,
+                execution_mode: executionMode,
             });
 
             if (data.success) {
@@ -305,6 +310,22 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                                     )}
                                 >
                                     {level}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-1 rounded-[var(--radius)] border border-[var(--border)] p-1">
+                            {(["single", "council", "swarm"] as const).map((mode) => (
+                                <button
+                                    key={mode}
+                                    onClick={() => setExecutionMode(mode)}
+                                    className={cn(
+                                        "px-2 py-1 text-xs rounded-[var(--radius)] uppercase tracking-wide",
+                                        executionMode === mode
+                                            ? "bg-[var(--ink)] text-[var(--paper)]"
+                                            : "text-[var(--muted)] hover:text-[var(--ink)]"
+                                    )}
+                                >
+                                    {mode}
                                 </button>
                             ))}
                         </div>

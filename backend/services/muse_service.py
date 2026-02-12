@@ -49,6 +49,8 @@ class MuseService(BaseService):
         max_tokens: int = 800,
         temperature: float = 0.7,
         reasoning_depth: Literal["low", "medium", "high"] = "medium",
+        intensity: Optional[Literal["low", "medium", "high"]] = None,
+        execution_mode: Optional[Literal["single", "council", "swarm"]] = None,
     ) -> Dict[str, Any]:
         """Generate content through the canonical LangGraph orchestration pipeline."""
 
@@ -63,6 +65,8 @@ class MuseService(BaseService):
                 max_tokens=max_tokens,
                 temperature=temperature,
                 reasoning_depth=reasoning_depth,
+                intensity=intensity,
+                execution_mode=execution_mode,
             )
 
         return await self.execute_with_retry(_execute)
@@ -70,4 +74,3 @@ class MuseService(BaseService):
 
 muse_service = MuseService()
 registry.register(muse_service)
-

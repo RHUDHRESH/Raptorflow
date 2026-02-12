@@ -83,6 +83,21 @@ Behavior:
 - enforces BCM readiness
 - if BCM missing: returns `412 Precondition Failed`
 
+## Topology and Intensity
+
+Runtime controls are LangGraph-native:
+- `execution_mode`: `single | council | swarm`
+- `intensity`: `low | medium | high`
+
+Current behavior:
+- Muse supports both controls directly in `POST /api/muse/generate`.
+- Search supports both controls in `GET /api/search`.
+- Scraper supports both controls in `POST /api/scraper/`.
+
+Defaults come from backend env:
+- `AI_EXECUTION_MODE`
+- `AI_DEFAULT_INTENSITY`
+
 ## Step IDs (Schema v2026.02)
 
 1. `company_name`

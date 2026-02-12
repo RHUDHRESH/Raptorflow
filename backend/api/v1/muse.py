@@ -28,6 +28,8 @@ class MuseGenerateRequest(BaseModel):
     max_tokens: int = Field(default=800, ge=64, le=4000)
     temperature: float = Field(default=0.7, ge=0.0, le=1.0)
     reasoning_depth: Literal["low", "medium", "high"] = "medium"
+    intensity: Optional[Literal["low", "medium", "high"]] = None
+    execution_mode: Optional[Literal["single", "council", "swarm"]] = None
 
 
 class MuseGenerateResponse(BaseModel):
@@ -73,6 +75,8 @@ async def generate(
             max_tokens=payload.max_tokens,
             temperature=payload.temperature,
             reasoning_depth=payload.reasoning_depth,
+            intensity=payload.intensity,
+            execution_mode=payload.execution_mode,
         )
         
         return MuseGenerateResponse(

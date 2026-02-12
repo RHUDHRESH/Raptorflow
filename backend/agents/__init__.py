@@ -20,10 +20,22 @@ from backend.agents.langgraph_campaign_moves_orchestrator import (
 from backend.agents.langgraph_optional_orchestrator import (
     langgraph_optional_orchestrator,
 )
+from backend.agents.ai_runtime_profiles import (
+    EXECUTION_MODES,
+    INTENSITY_PROFILES,
+    intensity_profile,
+    normalize_execution_mode,
+    normalize_intensity,
+)
 
 __all__ = [
     "REASONING_DEPTH_PROFILES",
     "format_bcm_row",
+    "EXECUTION_MODES",
+    "INTENSITY_PROFILES",
+    "intensity_profile",
+    "normalize_execution_mode",
+    "normalize_intensity",
     "langgraph_muse_orchestrator",
     "langgraph_context_orchestrator",
     "langgraph_campaign_moves_orchestrator",

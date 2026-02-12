@@ -24,6 +24,22 @@ export interface SearchResponse {
   }>;
   response_time: number;
   timestamp: string;
+  summary?: {
+    status: string;
+    text?: string;
+    detail?: string;
+    model?: string;
+    tokens_used?: number;
+    cost_usd?: number;
+  };
+  intensity?: "low" | "medium" | "high";
+  execution_mode?: "single" | "council" | "swarm";
+  search_profile?: {
+    intensity: "low" | "medium" | "high";
+    execution_mode: "single" | "council" | "swarm";
+    engines: string[];
+    max_results: number;
+  };
 }
 
 export interface SearchEngineInfo {
@@ -44,11 +60,19 @@ export const searchService = {
     workspaceId: string,
     query: string,
     engines: SearchEngine[] = ["duckduckgo", "brave"],
-    maxResults: number = 20
+    maxResults: number = 20,
+    opts: {
+      intensity?: "low" | "medium" | "high";
+      executionMode?: "single" | "council" | "swarm";
+      summarize?: boolean;
+    } = {}
   ): Promise<SearchResponse> {
     const enginesParam = engines.join(",");
+    const intensityParam = opts.intensity ? `&intensity=${opts.intensity}` : "";
+    const executionModeParam = opts.executionMode ? `&execution_mode=${opts.executionMode}` : "";
+    const summarizeParam = opts.summarize === false ? "&summarize=false" : "";
     return apiRequest<SearchResponse>(
-      `/search/?q=${encodeURIComponent(query)}&engines=${enginesParam}&max_results=${maxResults}`,
+      `/search/?q=${encodeURIComponent(query)}&engines=${enginesParam}&max_results=${maxResults}${intensityParam}${executionModeParam}${summarizeParam}`,
       {
         method: "GET",
         workspaceId,
