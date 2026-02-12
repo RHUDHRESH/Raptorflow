@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     LayoutDashboard,
+    ListChecks,
     Target,
     Zap,
     BarChart2,
@@ -24,6 +25,7 @@ import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
    ══════════════════════════════════════════════════════════════════════════════ */
 
 const navItems = [
+    { name: "Onboarding", href: "/onboarding", icon: ListChecks, code: "ONBD" },
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, code: "DASH" },
     { name: "Foundation", href: "/foundation", icon: Target, code: "FNDN" },
     { name: "Moves", href: "/moves", icon: Zap, code: "MOVE" },

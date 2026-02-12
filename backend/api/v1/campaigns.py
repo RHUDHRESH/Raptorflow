@@ -14,25 +14,10 @@ from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
 from backend.agents import langgraph_campaign_moves_orchestrator
+from backend.api.v1.workspace_guard import enforce_bcm_ready, require_workspace_id
 from backend.services.exceptions import ServiceError
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
-
-
-def _require_workspace_id(x_workspace_id: Optional[str]) -> str:
-    if not x_workspace_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Missing X-Workspace-Id header",
-        )
-    try:
-        UUID(x_workspace_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid X-Workspace-Id header (must be UUID)",
-        )
-    return x_workspace_id
 
 
 class CampaignCreate(BaseModel):
@@ -105,7 +90,8 @@ def _normalize_status(status_value: Optional[str]) -> str:
 async def list_campaigns(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignListOut:
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
     
     try:
         campaigns_data = await langgraph_campaign_moves_orchestrator.list_campaigns(workspace_id)
@@ -120,7 +106,8 @@ async def create_campaign(
     payload: CampaignCreate,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignOut:
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
 
     insert_row: Dict[str, Any] = {
         "title": payload.name,
@@ -141,7 +128,8 @@ async def get_campaign(
     campaign_id: str,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignOut:
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
     try:
         UUID(campaign_id)
     except ValueError:
@@ -159,7 +147,8 @@ async def get_campaign_moves_bundle(
     campaign_id: str,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignMovesBundleOut:
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
     try:
         UUID(campaign_id)
     except ValueError:
@@ -183,7 +172,8 @@ async def update_campaign(
     updates: CampaignUpdate,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> CampaignOut:
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
     try:
         UUID(campaign_id)
     except ValueError:
@@ -218,7 +208,8 @@ async def delete_campaign(
     campaign_id: str,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ):
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
     try:
         UUID(campaign_id)
     except ValueError:

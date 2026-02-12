@@ -6,6 +6,7 @@ This folder is the canonical documentation root for the renovated codebase.
 
 - `documentation/architecture.md`: runtime architecture and entry points.
 - `documentation/module-boundaries.md`: module ownership and dependency rules.
+- `documentation/bcm-onboarding-langgraph.md`: BCM-first onboarding contract, flow, and gates.
 - `documentation/tooling-catalog.md`: operational tools, scripts, and commands.
 - `documentation/reset-roadmap.md`: staged rebuild plan after demolition.
 - `documentation/phase3-implementation-backlog.md`: strict dependency-ordered rebuild backlog.

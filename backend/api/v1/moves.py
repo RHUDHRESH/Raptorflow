@@ -15,25 +15,10 @@ from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
 from backend.agents import langgraph_campaign_moves_orchestrator
+from backend.api.v1.workspace_guard import enforce_bcm_ready, require_workspace_id
 from backend.services.exceptions import ServiceError
 
 router = APIRouter(prefix="/moves", tags=["moves"])
-
-
-def _require_workspace_id(x_workspace_id: Optional[str]) -> str:
-    if not x_workspace_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Missing X-Workspace-Id header",
-        )
-    try:
-        UUID(x_workspace_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid X-Workspace-Id header (must be UUID)",
-        )
-    return x_workspace_id
 
 
 class MoveModel(BaseModel):
@@ -65,7 +50,8 @@ class MoveListOut(BaseModel):
 async def list_moves(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> MoveListOut:
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
     
     try:
         moves_data = await langgraph_campaign_moves_orchestrator.list_moves(workspace_id)
@@ -89,7 +75,8 @@ async def create_move(
     move: MoveModel,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> MoveModel:
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
 
     try:
         result = await langgraph_campaign_moves_orchestrator.create_move(
@@ -125,7 +112,8 @@ async def update_move(
     patch: MovePatch,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> MoveModel:
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
     try:
         UUID(move_id)
     except ValueError:
@@ -149,7 +137,8 @@ async def delete_move(
     move_id: str,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ):
-    workspace_id = _require_workspace_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
     try:
         UUID(move_id)
     except ValueError:

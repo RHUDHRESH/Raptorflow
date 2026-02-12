@@ -7,33 +7,16 @@ No user auth. Tenant boundary is `x-workspace-id`.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Literal
-from uuid import UUID
+from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
+from backend.api.v1.workspace_guard import enforce_bcm_ready, require_workspace_id
 from backend.services.muse_service import muse_service
-from backend.services.vertex_ai_service import vertex_ai_service
 from backend.services.exceptions import ServiceError, ServiceUnavailableError
 
 router = APIRouter(prefix="/muse", tags=["muse"])
-
-
-def _require_tenant_id(x_workspace_id: Optional[str]) -> str:
-    if not x_workspace_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Missing X-Workspace-Id header",
-        )
-    try:
-        UUID(x_workspace_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid X-Workspace-Id header (must be UUID)",
-        )
-    return x_workspace_id
 
 
 class MuseGenerateRequest(BaseModel):
@@ -61,7 +44,8 @@ class MuseGenerateResponse(BaseModel):
 async def muse_health(
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> Dict[str, Any]:
-    _require_tenant_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
     health = await muse_service.check_health()
     return {
         "status": "ok" if health.get("status") == "healthy" else health.get("status"),
@@ -75,7 +59,8 @@ async def generate(
     payload: MuseGenerateRequest,
     x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> MuseGenerateResponse:
-    workspace_id = _require_tenant_id(x_workspace_id)
+    workspace_id = require_workspace_id(x_workspace_id)
+    enforce_bcm_ready(workspace_id)
 
     try:
         result = await muse_service.generate(

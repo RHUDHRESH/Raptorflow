@@ -9,6 +9,50 @@ export type Workspace = {
   updated_at?: string;
 };
 
+export type OnboardingStepKind = "short_text" | "long_text" | "list" | "url";
+
+export type OnboardingStep = {
+  id: string;
+  label: string;
+  description: string;
+  kind: OnboardingStepKind;
+  required: boolean;
+  placeholder?: string;
+};
+
+export type OnboardingStepsResponse = {
+  schema_version: string;
+  total_steps: number;
+  required_steps: number;
+  steps: OnboardingStep[];
+};
+
+export type OnboardingStatus = {
+  workspace_id: string;
+  schema_version: string;
+  completed: boolean;
+  bcm_ready: boolean;
+  completion_pct: number;
+  answered_steps: number;
+  total_steps: number;
+  required_steps: number;
+  missing_required_steps: string[];
+  next_step_id?: string | null;
+  answers: Record<string, unknown>;
+  updated_at?: string | null;
+};
+
+export type CompleteOnboardingInput = {
+  answers: Record<string, unknown>;
+};
+
+export type CompleteOnboardingResponse = {
+  workspace: Workspace;
+  onboarding: OnboardingStatus;
+  bcm: Record<string, unknown>;
+  business_context: Record<string, unknown>;
+};
+
 export type CreateWorkspaceInput = {
   name: string;
   slug?: string;
@@ -40,5 +84,31 @@ export const workspacesService = {
       method: "PATCH",
       body: JSON.stringify(updates),
     });
+  },
+
+  async getOnboardingSteps(): Promise<OnboardingStepsResponse> {
+    return apiRequest<OnboardingStepsResponse>("/workspaces/onboarding/steps", {
+      method: "GET",
+    });
+  },
+
+  async getOnboardingStatus(id: string): Promise<OnboardingStatus> {
+    return apiRequest<OnboardingStatus>(
+      `/workspaces/${encodeURIComponent(id)}/onboarding/status`,
+      { method: "GET" }
+    );
+  },
+
+  async completeOnboarding(
+    id: string,
+    payload: CompleteOnboardingInput
+  ): Promise<CompleteOnboardingResponse> {
+    return apiRequest<CompleteOnboardingResponse>(
+      `/workspaces/${encodeURIComponent(id)}/onboarding/complete`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
   },
 };

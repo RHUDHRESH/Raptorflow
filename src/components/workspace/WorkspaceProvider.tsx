@@ -1,15 +1,23 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { HttpError } from "@/services/http";
-import { workspacesService, type Workspace } from "@/services/workspaces.service";
+import {
+  workspacesService,
+  type OnboardingStatus,
+  type Workspace,
+} from "@/services/workspaces.service";
 
 type WorkspaceContextValue = {
   workspaceId: string | null;
   workspace: Workspace | null;
+  onboardingStatus: OnboardingStatus | null;
+  isOnboardingComplete: boolean;
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  refreshOnboarding: () => Promise<void>;
   reset: () => void;
 };
 
@@ -44,10 +52,20 @@ function safeClearWorkspaceId() {
 }
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const loadOnboardingStatus = useCallback(async (id: string) => {
+    const status = await workspacesService.getOnboardingStatus(id);
+    setOnboardingStatus(status);
+    return status;
+  }, []);
 
   const ensureWorkspace = useCallback(async () => {
     setIsLoading(true);
@@ -59,6 +77,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         const ws = await workspacesService.get(storedId);
         setWorkspaceId(ws.id);
         setWorkspace(ws);
+        await loadOnboardingStatus(ws.id);
         setIsLoading(false);
         return;
       } catch (e) {
@@ -68,6 +87,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           safeClearWorkspaceId();
           setWorkspaceId(null);
           setWorkspace(null);
+          setOnboardingStatus(null);
         } else {
           setError((e as any)?.message || "Failed to load workspace");
           setIsLoading(false);
@@ -82,17 +102,29 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       safeWriteWorkspaceId(ws.id);
       setWorkspaceId(ws.id);
       setWorkspace(ws);
+      await loadOnboardingStatus(ws.id);
     } catch (e: any) {
       setError(e?.message || "Failed to initialize workspace");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [loadOnboardingStatus]);
+
+  const refreshOnboarding = useCallback(async () => {
+    if (!workspaceId) return;
+    setError(null);
+    try {
+      await loadOnboardingStatus(workspaceId);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load onboarding status");
+    }
+  }, [workspaceId, loadOnboardingStatus]);
 
   const reset = useCallback(() => {
     safeClearWorkspaceId();
     setWorkspaceId(null);
     setWorkspace(null);
+    setOnboardingStatus(null);
     setError(null);
     // Immediately attempt to create a fresh one.
     void ensureWorkspace();
@@ -102,16 +134,42 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     void ensureWorkspace();
   }, [ensureWorkspace]);
 
+  useEffect(() => {
+    if (!workspaceId || !onboardingStatus) return;
+    const isOnboardingRoute = pathname?.startsWith("/onboarding");
+
+    if (!onboardingStatus.completed && !isOnboardingRoute) {
+      router.replace("/onboarding");
+      return;
+    }
+
+    if (onboardingStatus.completed && isOnboardingRoute) {
+      router.replace("/dashboard");
+    }
+  }, [workspaceId, onboardingStatus, pathname, router]);
+
   const value = useMemo<WorkspaceContextValue>(
     () => ({
       workspaceId,
       workspace,
+      onboardingStatus,
+      isOnboardingComplete: Boolean(onboardingStatus?.completed),
       isLoading,
       error,
       refresh: ensureWorkspace,
+      refreshOnboarding,
       reset,
     }),
-    [workspaceId, workspace, isLoading, error, ensureWorkspace, reset]
+    [
+      workspaceId,
+      workspace,
+      onboardingStatus,
+      isLoading,
+      error,
+      ensureWorkspace,
+      refreshOnboarding,
+      reset,
+    ]
   );
 
   if (isLoading) {

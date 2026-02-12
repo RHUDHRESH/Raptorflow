@@ -117,6 +117,7 @@ class Settings(BaseSettings):
     FEATURE_FLAGS: Dict[str, bool] = Field(default_factory=dict, env="FEATURE_FLAGS")
     ENABLE_SEARCH_MODULE: bool = Field(default=True, env="ENABLE_SEARCH_MODULE")
     ENABLE_SCRAPER_MODULE: bool = Field(default=True, env="ENABLE_SCRAPER_MODULE")
+    ENFORCE_BCM_READY_GATE: bool = Field(default=True, env="ENFORCE_BCM_READY_GATE")
 
     # Cache
     CACHE_TTL: int = Field(default=3600, env="CACHE_TTL")

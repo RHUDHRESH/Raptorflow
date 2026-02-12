@@ -3,7 +3,6 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const routeMap: Record<string, string> = {
@@ -15,6 +14,7 @@ const routeMap: Record<string, string> = {
   "daily-wins": "DAILY WINS",
   analytics: "ANALYTICS",
   blackbox: "BLACKBOX",
+  onboarding: "ONBOARDING",
   settings: "SETTINGS",
   help: "HELP",
   cohorts: "COHORTS",
