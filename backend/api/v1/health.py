@@ -140,13 +140,14 @@ async def ai_architecture() -> Dict[str, Any]:
     runtime = await registry.check_health()
     return {
         "status": "ok",
-        "orchestrator": "muse_service",
+        "orchestrator": settings.AI_ORCHESTRATOR,
         "pipeline": [
-            "context.bcm_service (manifest + memory)",
-            "prompt_compiler",
-            "vertex_ai_service",
-            "bcm_generation_logger",
-            "bcm_reflector (auto/manual)",
+            "resolve_profile",
+            "load_workspace_context",
+            "compile_prompt",
+            "run_generation",
+            "log_generation",
+            "assemble_response",
         ],
         "reasoning_depth_profiles": REASONING_DEPTH_PROFILES,
         "services": {

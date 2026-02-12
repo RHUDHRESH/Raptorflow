@@ -10,6 +10,9 @@ pydantic-settings>=2.1,<3.0
 # Supabase (Database + Storage)
 supabase>=2.3,<3.0
 
+# LangGraph Orchestration
+langgraph>=0.2.60,<1.0
+
 # Upstash Redis (Caching)
 upstash-redis>=1.1,<2.0
 

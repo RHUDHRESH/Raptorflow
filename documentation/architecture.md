@@ -4,6 +4,7 @@
 
 - Frontend app: Next.js in `src/`.
 - Backend app: FastAPI in `backend/`.
+- AI orchestration runtime: LangGraph in `backend/agents/`.
 - Database and storage schema: Supabase migrations in `supabase/migrations/`.
 - Test and automation surface: `tests/` and `scripts/`.
 
@@ -21,6 +22,7 @@
 - Assets: `/api/assets/*`
 - Workspaces: `/api/workspaces/*`
 - Operations: `/api/ops/*`
+- Muse generation: `/api/muse/*` backed by `LangGraphMuseOrchestrator`.
 
 ## Storage Baseline
 

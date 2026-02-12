@@ -38,10 +38,10 @@ try:
 except Exception as e:
     logger.warning(f"Failed to import move_service: {e}")
 
-try:
-    from backend.services.muse_service import muse_service
-except Exception as e:
-    logger.warning(f"Failed to import muse_service: {e}")
+# NOTE:
+# `muse_service` is intentionally *not* imported eagerly here to avoid
+# circular initialization with the LangGraph orchestrator package.
+# It is imported by `backend.api.v1.muse` during router load.
 
 try:
     from backend.services.email_service import email_service
@@ -67,4 +67,3 @@ __all__ = [
     "vertex_ai_service",
     "auth_service",
 ]
-

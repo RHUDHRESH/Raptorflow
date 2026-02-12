@@ -4,6 +4,7 @@
 
 - `src/`: UI, client-side services, frontend state and routes.
 - `backend/`: API routes, service layer, schemas, backend core.
+- `backend/agents/`: canonical LangGraph orchestration nodes and graph entrypoints.
 - `supabase/`: SQL migrations and Supabase project state.
 - `scripts/`: operational scripts, inventory tools, deployment helpers.
 - `tests/`: test suites and verification utilities.
@@ -13,6 +14,7 @@
 
 - Frontend code in `src/` must not import from `backend/`.
 - Backend code in `backend/` must not depend on frontend files.
+- Agent orchestration must run through `backend/agents/` (LangGraph only).
 - `scripts/` may read both frontend and backend but should remain non-runtime.
 - Schema changes must land first in `supabase/migrations/`, then app code.
 

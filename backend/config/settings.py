@@ -73,6 +73,7 @@ class Settings(BaseSettings):
     # AI Rate Limiting
     AI_REQUESTS_PER_MINUTE: int = Field(default=60, env="AI_REQUESTS_PER_MINUTE")
     AI_REQUESTS_PER_HOUR: int = Field(default=1000, env="AI_REQUESTS_PER_HOUR")
+    AI_ORCHESTRATOR: str = Field(default="langgraph", env="AI_ORCHESTRATOR")
 
     # Budget Controls
     DAILY_AI_BUDGET: float = Field(default=10.0, env="DAILY_AI_BUDGET")
