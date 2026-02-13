@@ -15,7 +15,13 @@ async def test_scraper_endpoint_applies_low_profile_defaults(
 ) -> None:
     captured_payload: Dict[str, Any] = {}
 
-    async def fake_scrape(url: str, user_id: str, strategy, legal_basis: str):
+    async def fake_scrape(
+        url: str,
+        user_id: str,
+        strategy,
+        legal_basis: str,
+        **_: Any,
+    ):
         return {
             "url": url,
             "user_id": user_id,

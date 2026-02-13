@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 
@@ -33,9 +34,35 @@ FORBIDDEN_ROOT_ENTRIES = {
 }
 
 
+def _tracked_root_entries() -> set[str]:
+    """Return the set of root-level entries tracked by git.
+
+    CI runs this check on a clean checkout; locally devs may have generated
+    build artifacts (e.g. Next.js output) that should not fail hygiene as long
+    as they are not tracked.
+    """
+
+    try:
+        result = subprocess.run(
+            ["git", "ls-tree", "--name-only", "HEAD"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return {line.strip() for line in result.stdout.splitlines() if line.strip()}
+    except Exception:
+        return set()
+
+
 def main() -> int:
     root_entries = {p.name for p in ROOT.iterdir()}
-    violations = sorted(FORBIDDEN_ROOT_ENTRIES.intersection(root_entries))
+    tracked = _tracked_root_entries()
+    if tracked:
+        # Only flag forbidden items if they are actually tracked in git.
+        violations = sorted(FORBIDDEN_ROOT_ENTRIES.intersection(root_entries).intersection(tracked))
+    else:
+        violations = sorted(FORBIDDEN_ROOT_ENTRIES.intersection(root_entries))
 
     if not violations:
         print("Root hygiene check passed.")

@@ -5,9 +5,9 @@ const backendBase =
   process.env.BACKEND_API_URL ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:8000";
+  "http://127.0.0.1:8000";
 
-const nextBase = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const nextBase = process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000";
 
 function wantsJson() {
   return process.argv.includes("--json");

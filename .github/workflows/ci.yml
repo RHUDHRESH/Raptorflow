@@ -154,9 +154,7 @@ jobs:
           pip install pytest pytest-asyncio pytest-cov
 
       - name: Run tests
-        run: |
-          cd backend
-          python -m pytest tests/ -v --tb=short --cov=. --cov-report=term-missing
+        run: python -m pytest -q
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_raptorflow
           REDIS_URL: redis://localhost:6379
