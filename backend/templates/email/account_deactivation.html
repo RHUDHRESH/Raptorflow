@@ -5,5 +5,5 @@
 <p>Hi {{ user_name }}, your Raptorflow account has been deactivated as requested.</p>
 <p>Your data will be retained for <strong>{{ retention_days }} days</strong> before permanent deletion. If you change your mind, contact us within that period to reactivate your account.</p>
 <hr class="divider">
-<p style="font-size: 13px;">If you didn't request this, please contact us immediately at <a href="mailto:support@raptorflow.com" style="color: #6366f1;">support@raptorflow.com</a>.</p>
+<p style="font-size: 13px;">If you didn't request this, please contact us immediately at <a href="mailto:{{ support_email }}" style="color: #6366f1;">{{ support_email }}</a>.</p>
 {% endblock %}

@@ -6,6 +6,7 @@ All transactional emails go through this module.
 
 import logging
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -27,6 +28,7 @@ class EmailService(BaseService):
         self._resend = None
         self.api_key = None
         self.from_email = None
+        self.support_email_to = None
         self.delivery_enabled = True
 
     async def initialize(self) -> None:
@@ -42,10 +44,12 @@ class EmailService(BaseService):
             try:
                 import resend
                 from backend.config.settings import get_settings
+
                 settings = get_settings()
-                
+
                 self.api_key = settings.RESEND_API_KEY
                 self.from_email = settings.EMAIL_FROM
+                self.support_email_to = getattr(settings, "SUPPORT_EMAIL_TO", "") or ""
                 self.delivery_enabled = bool(getattr(settings, "ENABLE_EMAIL_DELIVERY", True))
 
                 if not self.delivery_enabled:
@@ -71,17 +75,35 @@ class EmailService(BaseService):
         if not self.delivery_enabled:
             return {"status": "disabled", "detail": "Email delivery disabled by config"}
         if not self._resend or not self.api_key:
-             return {"status": "disabled", "detail": "Resend not configured"}
+            return {"status": "disabled", "detail": "Resend not configured"}
         return {"status": "healthy"}
 
     def _get_jinja(self) -> Environment:
         """Lazy-init Jinja2 environment if not already initialized."""
         if self._jinja_env is None:
-             self._jinja_env = Environment(
+            self._jinja_env = Environment(
                 loader=FileSystemLoader(str(_TEMPLATE_DIR)),
                 autoescape=select_autoescape(["html"]),
             )
         return self._jinja_env
+
+    @staticmethod
+    def _normalize_sender(value: str) -> str:
+        """Normalize a sender value into a valid From email.
+
+        Resend requires a verified domain in the From address. Users sometimes
+        provide only the domain (e.g. "info.raptorflow.in"); we coerce that to
+        "noreply@<domain>" to avoid hard failures.
+        """
+
+        raw = (value or "").strip()
+        if not raw:
+            return "noreply@info.raptorflow.in"
+        if "@" in raw:
+            return raw
+        if "." in raw and " " not in raw and "<" not in raw and ">" not in raw:
+            return f"noreply@{raw}"
+        return raw
 
     def send(
         self,
@@ -98,10 +120,16 @@ class EmailService(BaseService):
 
             try:
                 jinja = self._get_jinja()
+                render_ctx = dict(context or {})
+                render_ctx.setdefault("year", str(datetime.now(timezone.utc).year))
+                render_ctx.setdefault(
+                    "support_email",
+                    (self.support_email_to or "").strip() or "support@raptorflow.in",
+                )
                 template = jinja.get_template(template_name)
-                html = template.render(**context)
+                html = template.render(**render_ctx)
 
-                sender = (self.from_email or "").strip() or "noreply@raptorflow.in"
+                sender = self._normalize_sender(self.from_email or "")
 
                 def _send_with_sender(from_value: str):
                     params = {
@@ -151,7 +179,7 @@ class EmailService(BaseService):
 
     def send_welcome(self, to: str, user_name: str, app_url: str = "") -> Dict[str, Any]:
         if not app_url:
-            app_url = "https://app.raptorflow.com"
+            app_url = os.getenv("NEXT_PUBLIC_APP_URL") or "https://info.raptorflow.in"
         return self.send(
             to=to,
             subject="Welcome to Raptorflow",
