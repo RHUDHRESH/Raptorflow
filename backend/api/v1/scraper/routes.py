@@ -27,7 +27,8 @@ from fastapi.responses import JSONResponse
 from PIL import Image
 from playwright.async_api import async_playwright
 
-from backend.agents import langgraph_optional_orchestrator
+from backend.ai.application.terminal_adapter import terminal_adapter
+from backend.agents.compat import optional_gateway
 from backend.agents.runtime.profiles import (
     intensity_profile,
     normalize_execution_mode,
@@ -561,17 +562,18 @@ async def scrape_endpoint(request: Dict[str, Any], background_tasks: BackgroundT
 
     # Perform scraping through LangGraph optional-module boundary
     try:
-        result = await langgraph_optional_orchestrator.run(
+        payload = {
+            "url": url,
+            "user_id": user_id,
+            "strategy": strategy.value,
+            "legal_basis": legal_basis,
+            "intensity": runtime_intensity,
+            "execution_mode": runtime_execution_mode,
+            "enable_cache": enable_cache,
+        }
+        result = await optional_gateway.run(
             operation="scraper",
-            payload={
-                "url": url,
-                "user_id": user_id,
-                "strategy": strategy.value,
-                "legal_basis": legal_basis,
-                "intensity": runtime_intensity,
-                "execution_mode": runtime_execution_mode,
-                "enable_cache": enable_cache,
-            },
+            payload=payload,
             executor=lambda: unified_scraper.scrape(
                 url,
                 user_id,
@@ -580,9 +582,16 @@ async def scrape_endpoint(request: Dict[str, Any], background_tasks: BackgroundT
                 enable_cache=enable_cache,
             ),
         )
+        hub = await terminal_adapter.run_optional_module(
+            workspace_id="system",
+            intent="scraper.fetch",
+            payload=payload,
+            precomputed_result=result,
+        )
     except ServiceUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
+    result["hub"] = hub.to_dict()
     result["intensity"] = runtime_intensity
     result["execution_mode"] = runtime_execution_mode
     result["scraper_profile"] = {
