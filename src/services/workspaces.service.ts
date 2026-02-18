@@ -65,6 +65,14 @@ export type UpdateWorkspaceInput = {
   settings?: Record<string, unknown> | null;
 };
 
+export type WorkspaceSelectionResponse = {
+  workspace: Workspace;
+};
+
+export type WorkspaceSelectionInput = {
+  workspace_id: string;
+};
+
 export const workspacesService = {
   async create(input: CreateWorkspaceInput): Promise<Workspace> {
     return apiRequest<Workspace>("/workspaces", {
@@ -83,6 +91,21 @@ export const workspacesService = {
     return apiRequest<Workspace>(`/workspaces/${encodeURIComponent(id)}`, {
       method: "PATCH",
       body: JSON.stringify(updates),
+    });
+  },
+
+  async getDefaultForCurrentUser(): Promise<WorkspaceSelectionResponse> {
+    return apiRequest<WorkspaceSelectionResponse>("/workspaces/me/default", {
+      method: "GET",
+    });
+  },
+
+  async selectForCurrentUser(
+    payload: WorkspaceSelectionInput
+  ): Promise<WorkspaceSelectionResponse> {
+    return apiRequest<WorkspaceSelectionResponse>("/workspaces/me/select", {
+      method: "POST",
+      body: JSON.stringify(payload),
     });
   },
 

@@ -299,6 +299,14 @@ class WorkspaceResponse(BaseModel):
     updated_at: Optional[str] = None
 
 
+class WorkspaceSelectionRequest(BaseModel):
+    workspace_id: str
+
+
+class WorkspaceSelectionResponse(BaseModel):
+    workspace: WorkspaceResponse
+
+
 class OnboardingStepOut(BaseModel):
     id: str
     label: str
@@ -755,6 +763,88 @@ async def _insert_workspace(payload: Dict[str, Any]) -> Dict[str, Any]:
     return result.data[0]
 
 
+def _current_user_id(current_user: Dict[str, Any]) -> str:
+    user_id = str(current_user.get("id") or "").strip()
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authenticated user is missing an id",
+        )
+    return user_id
+
+
+def _workspace_ids_for_user(user_id: str) -> List[str]:
+    supabase = get_supabase_client()
+    result = (
+        supabase.table("workspace_members")
+        .select("workspace_id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    workspace_ids: List[str] = []
+    for row in result.data or []:
+        workspace_id = str(row.get("workspace_id") or "").strip()
+        if workspace_id:
+            workspace_ids.append(workspace_id)
+    return workspace_ids
+
+
+def _ensure_workspace_membership(*, user_id: str, workspace_id: str) -> None:
+    supabase = get_supabase_client()
+    supabase.table("workspace_members").upsert(
+        {
+            "user_id": user_id,
+            "workspace_id": workspace_id,
+            "role": "owner",
+        },
+        on_conflict="user_id,workspace_id",
+    ).execute()
+
+
+async def _create_workspace_for_user(
+    *, workspace: WorkspaceCreate, user_id: str
+) -> Dict[str, Any]:
+    base_slug = workspace.slug or _slugify(workspace.name)
+    settings = _build_default_settings(workspace.settings or {})
+
+    last_error: Optional[Exception] = None
+    created_workspace: Optional[Dict[str, Any]] = None
+    for attempt in range(0, 6):
+        slug = base_slug if attempt == 0 else f"{base_slug}-{uuid4().hex[:6]}"
+        payload = {
+            "id": str(uuid4()),
+            "name": workspace.name,
+            "slug": slug,
+            "settings": settings,
+        }
+        try:
+            created_workspace = await _insert_workspace(payload)
+            break
+        except Exception as exc:
+            last_error = exc
+            if _is_slug_collision_error(exc):
+                continue
+            raise
+
+    if not created_workspace:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create workspace (slug collision). Last error: {last_error}",
+        )
+
+    _ensure_workspace_membership(user_id=user_id, workspace_id=created_workspace["id"])
+
+    config = get_settings()
+    if config.DEFAULT_BUSINESS_TEMPLATE:
+        await _seed_workspace_foundation(
+            workspace_id=created_workspace["id"],
+            template_type=config.DEFAULT_BUSINESS_TEMPLATE,
+        )
+
+    return created_workspace
+
+
 def _upsert_foundation_from_business_context(
     workspace_id: str, business_context: Dict[str, Any]
 ) -> None:
@@ -810,48 +900,64 @@ async def _seed_workspace_foundation(
 
 
 @router.post("/", response_model=WorkspaceResponse, status_code=status.HTTP_201_CREATED)
-async def create_workspace(workspace: WorkspaceCreate) -> WorkspaceResponse:
+async def create_workspace(
+    workspace: WorkspaceCreate,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+) -> WorkspaceResponse:
     """
     Create a workspace with deterministic onboarding defaults.
 
     If DEFAULT_BUSINESS_TEMPLATE is configured, foundation data is seeded from that template.
     """
-    base_slug = workspace.slug or _slugify(workspace.name)
-    settings = _build_default_settings(workspace.settings or {})
-
-    last_error: Optional[Exception] = None
-    created_workspace: Optional[Dict[str, Any]] = None
-    for attempt in range(0, 6):
-        slug = base_slug if attempt == 0 else f"{base_slug}-{uuid4().hex[:6]}"
-        payload = {
-            "id": str(uuid4()),
-            "name": workspace.name,
-            "slug": slug,
-            "settings": settings,
-        }
-        try:
-            created_workspace = await _insert_workspace(payload)
-            break
-        except Exception as exc:
-            last_error = exc
-            if _is_slug_collision_error(exc):
-                continue
-            raise
-
-    if not created_workspace:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create workspace (slug collision). Last error: {last_error}",
-        )
-
-    config = get_settings()
-    if config.DEFAULT_BUSINESS_TEMPLATE:
-        await _seed_workspace_foundation(
-            workspace_id=created_workspace["id"],
-            template_type=config.DEFAULT_BUSINESS_TEMPLATE,
-        )
+    user_id = _current_user_id(current_user)
+    created_workspace = await _create_workspace_for_user(
+        workspace=workspace,
+        user_id=user_id,
+    )
 
     return WorkspaceResponse(**created_workspace)
+
+
+@router.get("/me/default", response_model=WorkspaceSelectionResponse)
+async def get_default_workspace_for_current_user(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+) -> WorkspaceSelectionResponse:
+    user_id = _current_user_id(current_user)
+    preferred_workspace_id = str(current_user.get("workspace_id") or "").strip()
+    workspace_ids = _workspace_ids_for_user(user_id)
+
+    selected_workspace_id = None
+    if preferred_workspace_id and preferred_workspace_id in workspace_ids:
+        selected_workspace_id = preferred_workspace_id
+    elif workspace_ids:
+        selected_workspace_id = workspace_ids[0]
+
+    if selected_workspace_id:
+        row = _get_workspace_row(selected_workspace_id)
+        row["settings"] = _build_default_settings(_workspace_settings(row))
+        return WorkspaceSelectionResponse(workspace=WorkspaceResponse(**row))
+
+    suffix = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    created = await _create_workspace_for_user(
+        workspace=WorkspaceCreate(name=f"Workspace {suffix}"),
+        user_id=user_id,
+    )
+    return WorkspaceSelectionResponse(workspace=WorkspaceResponse(**created))
+
+
+@router.post("/me/select", response_model=WorkspaceSelectionResponse)
+async def select_workspace_for_current_user(
+    payload: WorkspaceSelectionRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+) -> WorkspaceSelectionResponse:
+    user_id = _current_user_id(current_user)
+    _ensure_workspace_id(payload.workspace_id)
+
+    workspace_row = _get_workspace_row(payload.workspace_id)
+    _ensure_workspace_membership(user_id=user_id, workspace_id=payload.workspace_id)
+
+    workspace_row["settings"] = _build_default_settings(_workspace_settings(workspace_row))
+    return WorkspaceSelectionResponse(workspace=WorkspaceResponse(**workspace_row))
 
 
 @router.get("/onboarding/steps", response_model=OnboardingStepsResponse)
