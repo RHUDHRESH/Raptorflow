@@ -13,7 +13,7 @@ from uuid import UUID
 from fastapi import APIRouter, Header, HTTPException, Depends, status
 from pydantic import BaseModel, Field
 
-from backend.agents import langgraph_campaign_moves_orchestrator
+from backend.ai.application.terminal_adapter import terminal_adapter
 from backend.api.v1.workspace_guard import (
     enforce_bcm_ready,
     require_workspace_id,
@@ -98,7 +98,7 @@ async def list_campaigns(
     enforce_bcm_ready(workspace_id)
 
     try:
-        campaigns_data = await langgraph_campaign_moves_orchestrator.list_campaigns(
+        campaigns_data = await terminal_adapter.list_campaigns(
             workspace_id
         )
         campaigns = [CampaignOut(**row) for row in campaigns_data]
@@ -123,7 +123,7 @@ async def create_campaign(
     }
 
     try:
-        result = await langgraph_campaign_moves_orchestrator.create_campaign(
+        result = await terminal_adapter.create_campaign(
             workspace_id, insert_row
         )
         return CampaignOut(**result)
@@ -143,7 +143,7 @@ async def get_campaign(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid campaign_id")
 
-    result = await langgraph_campaign_moves_orchestrator.get_campaign(
+    result = await terminal_adapter.get_campaign(
         workspace_id, campaign_id
     )
     if not result:
@@ -164,7 +164,7 @@ async def get_campaign_moves_bundle(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid campaign_id")
 
-    bundle = await langgraph_campaign_moves_orchestrator.campaign_moves_bundle(
+    bundle = await terminal_adapter.campaign_moves_bundle(
         workspace_id,
         campaign_id,
     )
@@ -202,7 +202,7 @@ async def update_campaign(
     if not update_row:
         raise HTTPException(status_code=400, detail="No fields to update")
 
-    result = await langgraph_campaign_moves_orchestrator.update_campaign(
+    result = await terminal_adapter.update_campaign(
         workspace_id,
         campaign_id,
         update_row,
@@ -225,7 +225,7 @@ async def delete_campaign(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid campaign_id")
 
-    deleted = await langgraph_campaign_moves_orchestrator.delete_campaign(
+    deleted = await terminal_adapter.delete_campaign(
         workspace_id,
         campaign_id,
     )

@@ -14,7 +14,7 @@ from uuid import UUID
 from fastapi import APIRouter, Header, HTTPException, Depends, status
 from pydantic import BaseModel, Field
 
-from backend.agents import langgraph_campaign_moves_orchestrator
+from backend.ai.application.terminal_adapter import terminal_adapter
 from backend.api.v1.workspace_guard import (
     enforce_bcm_ready,
     require_workspace_id,
@@ -58,7 +58,7 @@ async def list_moves(
     enforce_bcm_ready(workspace_id)
 
     try:
-        moves_data = await langgraph_campaign_moves_orchestrator.list_moves(
+        moves_data = await terminal_adapter.list_moves(
             workspace_id
         )
         # Validate/Convert to Pydantic models to ensure schema compliance
@@ -85,7 +85,7 @@ async def create_move(
     enforce_bcm_ready(workspace_id)
 
     try:
-        result = await langgraph_campaign_moves_orchestrator.create_move(
+        result = await terminal_adapter.create_move(
             workspace_id,
             move.model_dump(),
         )
@@ -126,7 +126,7 @@ async def update_move(
         raise HTTPException(status_code=400, detail="Invalid move_id")
 
     try:
-        result = await langgraph_campaign_moves_orchestrator.update_move(
+        result = await terminal_adapter.update_move(
             workspace_id, move_id, patch.model_dump(exclude_unset=True)
         )
         if not result:
@@ -149,7 +149,7 @@ async def delete_move(
         raise HTTPException(status_code=400, detail="Invalid move_id")
 
     try:
-        deleted = await langgraph_campaign_moves_orchestrator.delete_move(
+        deleted = await terminal_adapter.delete_move(
             workspace_id, move_id
         )
         if not deleted:

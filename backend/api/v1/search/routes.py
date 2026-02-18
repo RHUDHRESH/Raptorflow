@@ -22,7 +22,8 @@ from bs4 import BeautifulSoup
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from backend.agents import langgraph_optional_orchestrator
+from backend.ai.application.terminal_adapter import terminal_adapter
+from backend.agents.compat import optional_gateway
 from backend.agents.runtime.profiles import (
     intensity_profile,
     normalize_execution_mode,
@@ -806,20 +807,28 @@ async def search_endpoint(
         raise HTTPException(status_code=400, detail=f"Invalid engines: {invalid}")
 
     try:
-        result = await langgraph_optional_orchestrator.run(
+        payload = {
+            "q": q,
+            "engines": engine_list,
+            "max_results": max_results,
+            "enable_cache": enable_cache,
+            "intensity": runtime_intensity,
+            "execution_mode": runtime_execution_mode,
+        }
+        result = await optional_gateway.run(
             operation="search",
-            payload={
-                "q": q,
-                "engines": engine_list,
-                "max_results": max_results,
-                "enable_cache": enable_cache,
-                "intensity": runtime_intensity,
-                "execution_mode": runtime_execution_mode,
-            },
+            payload=payload,
             executor=lambda: search_engine.search(
                 q, engine_list, max_results, enable_cache
             ),
         )
+        hub = await terminal_adapter.run_optional_module(
+            workspace_id="system",
+            intent="search.query",
+            payload=payload,
+            precomputed_result=result,
+        )
+        result["hub"] = hub.to_dict()
         result["search_profile"] = {
             "intensity": runtime_intensity,
             "execution_mode": runtime_execution_mode,

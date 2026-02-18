@@ -16,6 +16,7 @@ from backend.api.v1.workspace_guard import (
     enforce_bcm_ready,
     require_workspace_id,
 )
+from backend.ai.application.terminal_adapter import terminal_adapter
 from backend.services.muse_service import muse_service
 from backend.services.exceptions import ServiceError, ServiceUnavailableError
 from backend.api.dependencies.auth import get_current_user
@@ -69,7 +70,7 @@ async def generate(
     enforce_bcm_ready(workspace_id)
 
     try:
-        result = await muse_service.generate(
+        result = await terminal_adapter.generate_muse(
             workspace_id=workspace_id,
             task=payload.task,
             content_type=payload.content_type,
@@ -88,7 +89,7 @@ async def generate(
             content=result.get("content", ""),
             tokens_used=result.get("tokens_used", 0),
             cost_usd=result.get("cost_usd", 0.0),
-            metadata=result.get("metadata", {}),
+            metadata={**result.get("metadata", {}), "hub": result.get("hub", {})},
         )
     except ServiceUnavailableError as e:
         raise HTTPException(
