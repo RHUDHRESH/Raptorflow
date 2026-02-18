@@ -8,10 +8,11 @@ services directly.
 from __future__ import annotations
 
 import asyncio
+from functools import lru_cache
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
 from backend.ai.hub.contracts import TaskRequestV1, ToolPolicy
@@ -22,6 +23,7 @@ from backend.ai.hub.policy import (
 )
 from backend.ai.hub.runtime import AIHubRuntime
 from backend.api.v1.ai_hub.job_store import InMemoryJobStore
+from backend.api.dependencies.auth import get_current_user
 from backend.services.exceptions import ValidationError
 
 router = APIRouter(prefix="/ai/hub/v1", tags=["ai-hub"])
@@ -65,6 +67,86 @@ class FeedbackRequest(BaseModel):
 class EvalRequest(BaseModel):
     workspace_id: str
     dataset: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+UNAUTHORIZED_WORKSPACE_DETAIL = "Unauthorized workspace access"
+
+
+@lru_cache(maxsize=1)
+def _get_supabase_client():
+    from backend.infrastructure.database.supabase import get_supabase_client
+
+    return get_supabase_client()
+
+
+def _authorized_workspace_ids(current_user: Dict[str, Any]) -> set[str]:
+    authorized: set[str] = set()
+    user_workspace_id = str(current_user.get("workspace_id") or "").strip()
+    if user_workspace_id:
+        authorized.add(user_workspace_id)
+
+    user_id = str(current_user.get("id") or "").strip()
+    if not user_id:
+        return authorized
+
+    try:
+        response = (
+            _get_supabase_client()
+            .table("workspace_members")
+            .select("workspace_id")
+            .eq("user_id", user_id)
+            .execute()
+        )
+        for row in response.data or []:
+            workspace_id = str(row.get("workspace_id") or "").strip()
+            if workspace_id:
+                authorized.add(workspace_id)
+    except Exception:
+        # Fail closed to avoid workspace escalation when membership can't be verified.
+        pass
+
+    return authorized
+
+
+def _resolve_workspace_id(
+    *,
+    current_user: Dict[str, Any],
+    x_workspace_id: Optional[str],
+    payload_workspace_id: Optional[str] = None,
+) -> str:
+    authorized_workspaces = _authorized_workspace_ids(current_user)
+
+    trusted_workspace_id = str(x_workspace_id or current_user.get("workspace_id") or "").strip()
+    payload_workspace = str(payload_workspace_id or "").strip()
+
+    if trusted_workspace_id:
+        if trusted_workspace_id not in authorized_workspaces:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=UNAUTHORIZED_WORKSPACE_DETAIL,
+            )
+        if payload_workspace and payload_workspace != trusted_workspace_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=UNAUTHORIZED_WORKSPACE_DETAIL,
+            )
+        return trusted_workspace_id
+
+    if payload_workspace and payload_workspace in authorized_workspaces:
+        return payload_workspace
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=UNAUTHORIZED_WORKSPACE_DETAIL,
+    )
+
+
+def _assert_workspace_access(*, requested_workspace_id: str, authorized_workspace_id: str) -> None:
+    if requested_workspace_id != authorized_workspace_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=UNAUTHORIZED_WORKSPACE_DETAIL,
+        )
 
 
 def _to_task_request(payload: TaskRunRequest) -> TaskRequestV1:
@@ -153,7 +235,10 @@ async def _execute_job(job_id: str, request: TaskRequestV1) -> None:
 
 
 @router.get("/health")
-async def health() -> Dict[str, Any]:
+async def health(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    del current_user
     return {
         "status": "ok",
         "service": "ai_hub",
@@ -169,18 +254,36 @@ async def health() -> Dict[str, Any]:
 
 
 @router.get("/capabilities")
-async def capabilities() -> Dict[str, Any]:
+async def capabilities(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    del current_user
     return runtime.describe_capabilities()
 
 
 @router.get("/policies")
-async def policies() -> Dict[str, Any]:
+async def policies(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    del current_user
     return {"profiles": describe_policy_profiles()}
 
 
-@router.post("/tasks/run")
-async def run_task(payload: TaskRunRequest) -> Dict[str, Any]:
+@router.post(
+    "/tasks/run",
+    responses={403: {"description": "Forbidden - unauthorized workspace access"}},
+)
+async def run_task(
+    payload: TaskRunRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> Dict[str, Any]:
     try:
+        payload.workspace_id = _resolve_workspace_id(
+            current_user=current_user,
+            x_workspace_id=x_workspace_id,
+            payload_workspace_id=payload.workspace_id,
+        )
         request = _to_task_request(payload)
         runtime.validate_request(request)
         result = await runtime.run_task(request)
@@ -195,9 +298,22 @@ async def run_task(payload: TaskRunRequest) -> Dict[str, Any]:
         ) from exc
 
 
-@router.post("/tasks/run-async", response_model=TaskRunAsyncResponse)
-async def run_task_async(payload: TaskRunRequest) -> TaskRunAsyncResponse:
+@router.post(
+    "/tasks/run-async",
+    response_model=TaskRunAsyncResponse,
+    responses={403: {"description": "Forbidden - unauthorized workspace access"}},
+)
+async def run_task_async(
+    payload: TaskRunRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> TaskRunAsyncResponse:
     try:
+        payload.workspace_id = _resolve_workspace_id(
+            current_user=current_user,
+            x_workspace_id=x_workspace_id,
+            payload_workspace_id=payload.workspace_id,
+        )
         request = _to_task_request(payload)
         runtime.validate_request(request)
 
@@ -215,33 +331,110 @@ async def run_task_async(payload: TaskRunRequest) -> TaskRunAsyncResponse:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-@router.get("/jobs/{job_id}")
-async def get_job(job_id: str) -> Dict[str, Any]:
+@router.get(
+    "/jobs/{job_id}",
+    responses={403: {"description": "Forbidden - unauthorized workspace access"}},
+)
+async def get_job(
+    job_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> Dict[str, Any]:
     job = job_store.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="job not found")
+
+    authorized_workspace_id = _resolve_workspace_id(
+        current_user=current_user,
+        x_workspace_id=x_workspace_id,
+    )
+    requested_workspace_id = str(
+        (job.get("request") or {}).get("workspace_id")
+        or (job.get("result") or {}).get("workspace_id")
+        or ""
+    ).strip()
+    if requested_workspace_id:
+        _assert_workspace_access(
+            requested_workspace_id=requested_workspace_id,
+            authorized_workspace_id=authorized_workspace_id,
+        )
+
     return job
 
 
-@router.get("/tasks/{run_id}/context")
-async def get_context(run_id: str) -> Dict[str, Any]:
+@router.get(
+    "/tasks/{run_id}/context",
+    responses={403: {"description": "Forbidden - unauthorized workspace access"}},
+)
+async def get_context(
+    run_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> Dict[str, Any]:
     context = runtime.get_context(run_id)
     if not context:
         raise HTTPException(status_code=404, detail="context not found")
+
+    authorized_workspace_id = _resolve_workspace_id(
+        current_user=current_user,
+        x_workspace_id=x_workspace_id,
+    )
+    requested_workspace_id = str(context.get("workspace_id") or "").strip()
+    if requested_workspace_id:
+        _assert_workspace_access(
+            requested_workspace_id=requested_workspace_id,
+            authorized_workspace_id=authorized_workspace_id,
+        )
+
     return context
 
 
-@router.get("/tasks/{run_id}/trace")
-async def get_trace(run_id: str) -> Dict[str, Any]:
+@router.get(
+    "/tasks/{run_id}/trace",
+    responses={403: {"description": "Forbidden - unauthorized workspace access"}},
+)
+async def get_trace(
+    run_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> Dict[str, Any]:
     trace = runtime.get_trace(run_id)
     if not trace:
         raise HTTPException(status_code=404, detail="trace not found")
+
+    context = runtime.get_context(run_id)
+    if not context:
+        raise HTTPException(status_code=404, detail="context not found")
+
+    authorized_workspace_id = _resolve_workspace_id(
+        current_user=current_user,
+        x_workspace_id=x_workspace_id,
+    )
+    requested_workspace_id = str(context.get("workspace_id") or "").strip()
+    if requested_workspace_id:
+        _assert_workspace_access(
+            requested_workspace_id=requested_workspace_id,
+            authorized_workspace_id=authorized_workspace_id,
+        )
+
     return trace
 
 
-@router.post("/feedback")
-async def submit_feedback(payload: FeedbackRequest) -> Dict[str, Any]:
+@router.post(
+    "/feedback",
+    responses={403: {"description": "Forbidden - unauthorized workspace access"}},
+)
+async def submit_feedback(
+    payload: FeedbackRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> Dict[str, Any]:
     try:
+        payload.workspace_id = _resolve_workspace_id(
+            current_user=current_user,
+            x_workspace_id=x_workspace_id,
+            payload_workspace_id=payload.workspace_id,
+        )
         return await runtime.submit_feedback(
             workspace_id=payload.workspace_id,
             run_id=payload.run_id,
@@ -254,9 +447,21 @@ async def submit_feedback(payload: FeedbackRequest) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-@router.post("/evals/execute")
-async def execute_evals(payload: EvalRequest) -> Dict[str, Any]:
+@router.post(
+    "/evals/execute",
+    responses={403: {"description": "Forbidden - unauthorized workspace access"}},
+)
+async def execute_evals(
+    payload: EvalRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    x_workspace_id: Optional[str] = Header(None, alias="x-workspace-id"),
+) -> Dict[str, Any]:
     try:
+        payload.workspace_id = _resolve_workspace_id(
+            current_user=current_user,
+            x_workspace_id=x_workspace_id,
+            payload_workspace_id=payload.workspace_id,
+        )
         return await runtime.run_evals(
             workspace_id=payload.workspace_id,
             dataset=payload.dataset,
