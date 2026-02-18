@@ -36,181 +36,187 @@ router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 
 logger = logging.getLogger(__name__)
 
-ONBOARDING_SCHEMA_VERSION = "2026.02"
+ONBOARDING_SCHEMA_VERSION = "2026.03.0"
 
 CANONICAL_ONBOARDING_STEPS: List[Dict[str, Any]] = [
     {
         "id": "company_name",
-        "label": "Company Name",
+        "title": "Company Name",
         "description": "Legal or public-facing name of the business.",
-        "kind": "short_text",
-        "required": True,
-        "placeholder": "Acme Labs",
+        "fields": [
+            {
+                "id": "company_name",
+                "label": "Company Name",
+                "kind": "short_text",
+                "required": True,
+                "placeholder": "Acme Labs",
+            }
+        ],
     },
     {
         "id": "company_website",
-        "label": "Company Website",
+        "title": "Company Website",
         "description": "Primary website URL for the business.",
-        "kind": "url",
-        "required": False,
-        "placeholder": "https://acme.com",
+        "fields": [
+            {
+                "id": "company_website",
+                "label": "Company Website",
+                "kind": "url",
+                "required": False,
+                "placeholder": "https://acme.com",
+            }
+        ],
     },
     {
         "id": "industry",
-        "label": "Industry",
+        "title": "Industry",
         "description": "Market category the company operates in.",
-        "kind": "short_text",
-        "required": True,
-        "placeholder": "SaaS / FinTech / E-commerce",
+        "fields": [
+            {
+                "id": "industry",
+                "label": "Industry",
+                "kind": "short_text",
+                "required": True,
+                "placeholder": "SaaS / FinTech / E-commerce",
+            }
+        ],
     },
     {
         "id": "business_stage",
-        "label": "Business Stage",
+        "title": "Business Stage",
         "description": "Current maturity stage (pre-seed, seed, growth, etc.).",
-        "kind": "short_text",
-        "required": True,
-        "placeholder": "Seed",
+        "fields": [
+            {
+                "id": "business_stage",
+                "label": "Business Stage",
+                "kind": "short_text",
+                "required": True,
+                "placeholder": "Seed",
+            }
+        ],
     },
     {
         "id": "company_description",
-        "label": "Company Description",
+        "title": "Company Description",
         "description": "What the company does and why it exists.",
-        "kind": "long_text",
-        "required": True,
-        "placeholder": "Two to five sentence company description.",
+        "fields": [
+            {
+                "id": "company_description",
+                "label": "Company Description",
+                "kind": "long_text",
+                "required": True,
+                "placeholder": "Two to five sentence company description.",
+            }
+        ],
     },
     {
         "id": "primary_offer",
-        "label": "Primary Offer",
+        "title": "Primary Offer",
         "description": "Main product/service sold to customers.",
-        "kind": "short_text",
-        "required": True,
-        "placeholder": "AI-powered project management platform",
+        "fields": [{"id": "primary_offer", "label": "Primary Offer", "kind": "short_text", "required": True, "placeholder": "AI-powered project management platform"}],
     },
     {
         "id": "core_problem",
-        "label": "Core Problem Solved",
+        "title": "Core Problem Solved",
         "description": "Most painful problem solved for customers.",
-        "kind": "long_text",
-        "required": True,
-        "placeholder": "What painful outcome is prevented?",
+        "fields": [{"id": "core_problem", "label": "Core Problem Solved", "kind": "long_text", "required": True, "placeholder": "What painful outcome is prevented?"}],
     },
     {
         "id": "ideal_customer_title",
-        "label": "Ideal Customer Title",
+        "title": "Ideal Customer Title",
         "description": "Role or persona of the primary buyer/user.",
-        "kind": "short_text",
-        "required": True,
-        "placeholder": "VP Engineering",
+        "fields": [{"id": "ideal_customer_title", "label": "Ideal Customer Title", "kind": "short_text", "required": True, "placeholder": "VP Engineering"}],
     },
     {
         "id": "ideal_customer_profile",
-        "label": "Ideal Customer Profile",
+        "title": "Ideal Customer Profile",
         "description": "Demographic and firmographic description of the ICP.",
-        "kind": "long_text",
-        "required": True,
-        "placeholder": "B2B SaaS companies, 20-200 employees, remote teams.",
+        "fields": [{"id": "ideal_customer_profile", "label": "Ideal Customer Profile", "kind": "long_text", "required": True, "placeholder": "B2B SaaS companies, 20-200 employees, remote teams."}],
     },
     {
         "id": "top_pain_points",
-        "label": "Top Pain Points",
+        "title": "Top Pain Points",
         "description": "Top customer pains (comma-separated or newline-separated).",
-        "kind": "list",
-        "required": True,
-        "placeholder": "Low conversion rates, poor retention, unclear attribution",
+        "fields": [{"id": "top_pain_points", "label": "Top Pain Points", "kind": "list", "required": True, "placeholder": "Low conversion rates, poor retention, unclear attribution"}],
     },
     {
         "id": "top_goals",
-        "label": "Top Customer Goals",
+        "title": "Top Customer Goals",
         "description": "Goals customers want to achieve (list).",
-        "kind": "list",
-        "required": True,
-        "placeholder": "Increase pipeline velocity, reduce churn",
+        "fields": [{"id": "top_goals", "label": "Top Customer Goals", "kind": "list", "required": True, "placeholder": "Increase pipeline velocity, reduce churn"}],
     },
     {
         "id": "key_differentiator",
-        "label": "Key Differentiator",
+        "title": "Key Differentiator",
         "description": "What makes this solution different and defensible.",
-        "kind": "long_text",
-        "required": True,
-        "placeholder": "Our mechanism competitors cannot replicate easily.",
+        "fields": [{"id": "key_differentiator", "label": "Key Differentiator", "kind": "long_text", "required": True, "placeholder": "Our mechanism competitors cannot replicate easily."}],
     },
     {
         "id": "competitors",
-        "label": "Competitors",
+        "title": "Competitors",
         "description": "Direct and indirect competitors (list).",
-        "kind": "list",
-        "required": True,
-        "placeholder": "Competitor A, Competitor B",
+        "fields": [{"id": "competitors", "label": "Competitors", "kind": "list", "required": True, "placeholder": "Competitor A, Competitor B"}],
     },
     {
         "id": "brand_tone",
-        "label": "Brand Tone",
+        "title": "Brand Tone",
         "description": "How the brand should sound (list of tone descriptors).",
-        "kind": "list",
-        "required": True,
-        "placeholder": "Direct, confident, practical",
+        "fields": [{"id": "brand_tone", "label": "Brand Tone", "kind": "list", "required": True, "placeholder": "Direct, confident, practical"}],
     },
     {
         "id": "banned_phrases",
-        "label": "Banned Words/Phrases",
+        "title": "Banned Words/Phrases",
         "description": "Words and phrases the brand should avoid.",
-        "kind": "list",
-        "required": False,
-        "placeholder": "Revolutionary, game-changing, synergy",
+        "fields": [{"id": "banned_phrases", "label": "Banned Words/Phrases", "kind": "list", "required": False, "placeholder": "Revolutionary, game-changing, synergy"}],
     },
     {
         "id": "channel_priorities",
-        "label": "Channel Priorities",
+        "title": "Channel Priorities",
         "description": "Primary go-to-market channels in priority order (list).",
-        "kind": "list",
-        "required": True,
-        "placeholder": "LinkedIn, Email, YouTube",
+        "fields": [{"id": "channel_priorities", "label": "Channel Priorities", "kind": "list", "required": True, "placeholder": "LinkedIn, Email, YouTube"}],
     },
     {
         "id": "geographic_focus",
-        "label": "Geographic Focus",
+        "title": "Geographic Focus",
         "description": "Primary markets or geographies served.",
-        "kind": "short_text",
-        "required": False,
-        "placeholder": "United States and EU",
+        "fields": [{"id": "geographic_focus", "label": "Geographic Focus", "kind": "short_text", "required": False, "placeholder": "United States and EU"}],
     },
     {
         "id": "pricing_model",
-        "label": "Pricing Model",
+        "title": "Pricing Model",
         "description": "How the product is priced and sold.",
-        "kind": "short_text",
-        "required": False,
-        "placeholder": "Per-seat monthly SaaS",
+        "fields": [{"id": "pricing_model", "label": "Pricing Model", "kind": "short_text", "required": False, "placeholder": "Per-seat monthly SaaS"}],
     },
     {
         "id": "proof_points",
-        "label": "Proof Points",
+        "title": "Proof Points",
         "description": "Evidence, traction, metrics, or testimonials (list).",
-        "kind": "list",
-        "required": False,
-        "placeholder": "2.1M ARR, 40% MoM growth, NPS 62",
+        "fields": [{"id": "proof_points", "label": "Proof Points", "kind": "list", "required": False, "placeholder": "2.1M ARR, 40% MoM growth, NPS 62"}],
     },
     {
         "id": "acquisition_goal",
-        "label": "Primary Acquisition Goal",
+        "title": "Primary Acquisition Goal",
         "description": "Short-term growth objective for the system to optimize.",
-        "kind": "short_text",
-        "required": True,
-        "placeholder": "Generate 60 SQLs per month",
+        "fields": [{"id": "acquisition_goal", "label": "Primary Acquisition Goal", "kind": "short_text", "required": True, "placeholder": "Generate 60 SQLs per month"}],
     },
     {
         "id": "constraints_and_guardrails",
-        "label": "Constraints and Guardrails",
+        "title": "Constraints and Guardrails",
         "description": "Hard constraints for messaging and execution (list).",
-        "kind": "list",
-        "required": True,
-        "placeholder": "No legal claims without proof, no competitor bashing",
+        "fields": [{"id": "constraints_and_guardrails", "label": "Constraints and Guardrails", "kind": "list", "required": True, "placeholder": "No legal claims without proof, no competitor bashing"}],
     },
 ]
 
+_CANONICAL_FIELD_BY_ID: Dict[str, Dict[str, Any]] = {
+    field["id"]: field
+    for step in CANONICAL_ONBOARDING_STEPS
+    for field in step.get("fields", [])
+}
+_ALLOWED_FIELD_KINDS = {"short_text", "long_text", "list", "url"}
 _REQUIRED_STEP_IDS = [
-    step["id"] for step in CANONICAL_ONBOARDING_STEPS if step["required"]
+    step["id"]
+    for step in CANONICAL_ONBOARDING_STEPS
+    if any(bool(field.get("required")) for field in step.get("fields", []))
 ]
 _VALUE_SPLIT_RE = re.compile(r"[\n,;]+")
 _SLUG_RE = re.compile(r"[^a-z0-9-]+")
@@ -307,19 +313,26 @@ class WorkspaceSelectionResponse(BaseModel):
     workspace: WorkspaceResponse
 
 
-class OnboardingStepOut(BaseModel):
+class OnboardingFieldOut(BaseModel):
     id: str
     label: str
-    description: str
     kind: str
     required: bool
     placeholder: str = ""
+    help: Optional[str] = None
+
+
+class OnboardingStepOut(BaseModel):
+    id: str
+    title: str
+    description: str = ""
+    fields: List[OnboardingFieldOut] = Field(default_factory=list)
 
 
 class OnboardingStepsResponse(BaseModel):
     schema_version: str
     total_steps: int
-    required_steps: int
+    required_steps: List[str]
     steps: List[OnboardingStepOut]
 
 
@@ -331,7 +344,7 @@ class OnboardingStatusResponse(BaseModel):
     completion_pct: int
     answered_steps: int
     total_steps: int
-    required_steps: int
+    required_steps: List[str]
     missing_required_steps: List[str] = Field(default_factory=list)
     next_step_id: Optional[str] = None
     answers: Dict[str, Any] = Field(default_factory=dict)
@@ -339,6 +352,14 @@ class OnboardingStatusResponse(BaseModel):
 
 
 class OnboardingCompleteRequest(BaseModel):
+    schema_version: str
+    answers: Dict[str, Any] = Field(default_factory=dict)
+
+
+class OnboardingAnswersUpsertRequest(BaseModel):
+    """Persist onboarding answers for a workspace without completing onboarding."""
+
+    schema_version: str
     answers: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -393,16 +414,45 @@ def _normalize_list(value: Any) -> List[str]:
 
 
 def _normalize_onboarding_answers(raw_answers: Dict[str, Any]) -> Dict[str, Any]:
-    normalized: Dict[str, Any] = {}
-    for step in CANONICAL_ONBOARDING_STEPS:
-        step_id = step["id"]
-        kind = step["kind"]
-        raw_value = raw_answers.get(step_id)
+    return _validate_and_normalize_answers(raw_answers)
 
-        if kind == "list":
-            normalized[step_id] = _normalize_list(raw_value)
-        else:
-            normalized[step_id] = "" if raw_value is None else str(raw_value).strip()
+
+def _normalize_field_value(kind: str, raw_value: Any) -> Any:
+    if kind not in _ALLOWED_FIELD_KINDS:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Unsupported onboarding field kind: {kind}",
+        )
+
+    if kind == "list":
+        return _normalize_list(raw_value)
+
+    if raw_value is None:
+        return ""
+
+    normalized = str(raw_value).strip()
+    if kind == "url" and normalized and not re.match(r"^https?://", normalized):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="URL fields must start with http:// or https://",
+        )
+    return normalized
+
+
+def _validate_and_normalize_answers(raw_answers: Dict[str, Any]) -> Dict[str, Any]:
+    unknown_fields = [field_id for field_id in raw_answers if field_id not in _CANONICAL_FIELD_BY_ID]
+    if unknown_fields:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"message": "Unknown onboarding field IDs", "unknown_fields": unknown_fields},
+        )
+
+    normalized: Dict[str, Any] = {}
+    for field_id, field in _CANONICAL_FIELD_BY_ID.items():
+        normalized[field_id] = _normalize_field_value(
+            kind=str(field.get("kind")),
+            raw_value=raw_answers.get(field_id),
+        )
     return normalized
 
 
@@ -420,15 +470,19 @@ def _has_value(value: Any) -> bool:
 
 def _missing_required_steps(answers: Dict[str, Any]) -> List[str]:
     missing: List[str] = []
-    for step_id in _REQUIRED_STEP_IDS:
-        if not _has_value(answers.get(step_id)):
+    for step in CANONICAL_ONBOARDING_STEPS:
+        step_id = str(step["id"])
+        required_fields = [field for field in step.get("fields", []) if field.get("required")]
+        if required_fields and not all(_has_value(answers.get(field["id"])) for field in required_fields):
             missing.append(step_id)
     return missing
 
 
 def _answered_steps_count(answers: Dict[str, Any]) -> int:
     return sum(
-        1 for step in CANONICAL_ONBOARDING_STEPS if _has_value(answers.get(step["id"]))
+        1
+        for step in CANONICAL_ONBOARDING_STEPS
+        if any(_has_value(answers.get(field["id"])) for field in step.get("fields", []))
     )
 
 
@@ -613,7 +667,14 @@ def _build_onboarding_status(
     raw_answers = (
         onboarding.get("answers") if isinstance(onboarding.get("answers"), dict) else {}
     )
+    stored_schema_version = str(onboarding.get("schema_version") or "")
     answers = _normalize_onboarding_answers(raw_answers)
+    schema_mismatch = (
+        bool(stored_schema_version)
+        and stored_schema_version != ONBOARDING_SCHEMA_VERSION
+    )
+    if schema_mismatch:
+        answers = _normalize_onboarding_answers({})
 
     missing_required = _missing_required_steps(answers)
     completion_pct = _required_completion_pct(answers)
@@ -635,15 +696,13 @@ def _build_onboarding_status(
 
     return OnboardingStatusResponse(
         workspace_id=workspace_id,
-        schema_version=str(
-            onboarding.get("schema_version") or ONBOARDING_SCHEMA_VERSION
-        ),
+        schema_version=ONBOARDING_SCHEMA_VERSION,
         completed=completed,
         bcm_ready=bcm_ready,
         completion_pct=completion_pct,
         answered_steps=answered_steps,
         total_steps=len(CANONICAL_ONBOARDING_STEPS),
-        required_steps=len(_REQUIRED_STEP_IDS),
+        required_steps=_REQUIRED_STEP_IDS,
         missing_required_steps=missing_required,
         next_step_id=next_step_id,
         answers=answers,
@@ -710,7 +769,7 @@ def _mark_bcm_ready(
         "updated_at": now_iso,
         "answers": onboarding_answers,
         "total_steps": len(CANONICAL_ONBOARDING_STEPS),
-        "required_steps": len(_REQUIRED_STEP_IDS),
+        "required_steps": _REQUIRED_STEP_IDS,
     }
     settings["business_context"] = business_context
     settings["bcm"] = {
@@ -743,7 +802,7 @@ def _build_default_settings(
     onboarding.setdefault("completed", False)
     onboarding.setdefault("answers", {})
     onboarding.setdefault("total_steps", len(CANONICAL_ONBOARDING_STEPS))
-    onboarding.setdefault("required_steps", len(_REQUIRED_STEP_IDS))
+    onboarding.setdefault("required_steps", _REQUIRED_STEP_IDS)
     onboarding.setdefault("updated_at", _utc_now_iso())
 
     base["onboarding"] = onboarding
@@ -962,11 +1021,13 @@ async def select_workspace_for_current_user(
 
 @router.get("/onboarding/steps", response_model=OnboardingStepsResponse)
 async def get_onboarding_steps() -> OnboardingStepsResponse:
+    """Return canonical onboarding schema used by backend and frontend."""
+
     steps = [OnboardingStepOut(**step) for step in CANONICAL_ONBOARDING_STEPS]
     return OnboardingStepsResponse(
         schema_version=ONBOARDING_SCHEMA_VERSION,
         total_steps=len(CANONICAL_ONBOARDING_STEPS),
-        required_steps=len(_REQUIRED_STEP_IDS),
+        required_steps=_REQUIRED_STEP_IDS,
         steps=steps,
     )
 
@@ -975,11 +1036,57 @@ async def get_onboarding_steps() -> OnboardingStepsResponse:
     "/{workspace_id}/onboarding/status", response_model=OnboardingStatusResponse
 )
 async def get_onboarding_status(workspace_id: str) -> OnboardingStatusResponse:
+    """Return workspace onboarding completion computed from schema + stored answers."""
+
     _ensure_workspace_id(workspace_id)
     row = _get_workspace_row(workspace_id)
     settings = _workspace_settings(row)
     status_payload = _build_onboarding_status(workspace_id, settings)
     return status_payload
+
+
+@router.put(
+    "/{workspace_id}/onboarding/answers", response_model=OnboardingStatusResponse
+)
+async def upsert_onboarding_answers(
+    workspace_id: str,
+    payload: OnboardingAnswersUpsertRequest,
+) -> OnboardingStatusResponse:
+    """Persist normalized onboarding answers for a workspace."""
+
+    _ensure_workspace_id(workspace_id)
+    if payload.schema_version != ONBOARDING_SCHEMA_VERSION:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Onboarding schema version mismatch",
+                "expected_schema_version": ONBOARDING_SCHEMA_VERSION,
+            },
+        )
+
+    workspace_row = _get_workspace_row(workspace_id)
+    settings = _workspace_settings(workspace_row)
+    normalized_answers = _validate_and_normalize_answers(payload.answers)
+    now_iso = _utc_now_iso()
+
+    onboarding = (
+        settings.get("onboarding") if isinstance(settings.get("onboarding"), dict) else {}
+    )
+    onboarding.update(
+        {
+            "schema_version": ONBOARDING_SCHEMA_VERSION,
+            "completed": False,
+            "updated_at": now_iso,
+            "answers": normalized_answers,
+            "total_steps": len(CANONICAL_ONBOARDING_STEPS),
+            "required_steps": _REQUIRED_STEP_IDS,
+        }
+    )
+
+    next_settings = settings.copy()
+    next_settings["onboarding"] = onboarding
+    _update_workspace_settings(workspace_id, next_settings)
+    return _build_onboarding_status(workspace_id, next_settings)
 
 
 @router.post(
@@ -989,11 +1096,22 @@ async def complete_onboarding(
     workspace_id: str,
     payload: OnboardingCompleteRequest,
 ) -> OnboardingCompleteResponse:
+    """Validate required onboarding answers and complete workspace setup."""
+
     _ensure_workspace_id(workspace_id)
+    if payload.schema_version != ONBOARDING_SCHEMA_VERSION:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Onboarding schema version mismatch",
+                "expected_schema_version": ONBOARDING_SCHEMA_VERSION,
+            },
+        )
+
     workspace_row = _get_workspace_row(workspace_id)
     settings = _workspace_settings(workspace_row)
 
-    normalized_answers = _normalize_onboarding_answers(payload.answers)
+    normalized_answers = _validate_and_normalize_answers(payload.answers)
     missing_required = _missing_required_steps(normalized_answers)
     if missing_required:
         raise HTTPException(
