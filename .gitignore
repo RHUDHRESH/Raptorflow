@@ -140,3 +140,6 @@ devserver.out
 infrastructure/.terraform/
 infrastructure/*.tfstate
 infrastructure/*.tfstate.backup
+
+# Local helper binaries
+basedpyright-langserver.exe

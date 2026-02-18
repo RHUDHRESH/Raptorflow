@@ -6,21 +6,21 @@ This package is intentionally minimal:
 - one canonical content-generation graph for Muse
 """
 
-from backend.agents.langgraph_muse_orchestrator import (
+from backend.agents.muse.orchestrator import (
     REASONING_DEPTH_PROFILES,
     langgraph_muse_orchestrator,
 )
-from backend.agents.langgraph_context_orchestrator import (
+from backend.agents.context.orchestrator import (
     format_bcm_row,
     langgraph_context_orchestrator,
 )
-from backend.agents.langgraph_campaign_moves_orchestrator import (
+from backend.agents.campaign_moves.orchestrator import (
     langgraph_campaign_moves_orchestrator,
 )
-from backend.agents.langgraph_optional_orchestrator import (
+from backend.agents.optional.orchestrator import (
     langgraph_optional_orchestrator,
 )
-from backend.agents.ai_runtime_profiles import (
+from backend.agents.runtime.profiles import (
     EXECUTION_MODES,
     INTENSITY_PROFILES,
     intensity_profile,

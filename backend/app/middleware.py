@@ -112,18 +112,114 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class SessionMiddleware(BaseHTTPMiddleware):
+    """Middleware to handle distributed sessions via Redis Sentinel."""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        session_id = request.cookies.get("__Host-session_id")
+
+        if not session_id and request.cookies.get("session_id"):
+            logger.warning(
+                f"Rejected non-secure session cookie from {request.client.host}"
+            )
+            response = await call_next(request)
+            response.delete_cookie(key="session_id", path="/")
+            return response
+
+        if session_id:
+            try:
+                from backend.infrastructure.cache.redis_sentinel import (
+                    get_redis_sentinel_manager,
+                )
+
+                sentinel = await get_redis_sentinel_manager()
+                if sentinel:
+                    request.state.session_data = await sentinel.get_session(session_id)
+                    request.state.session_id = (
+                        session_id if request.state.session_data else None
+                    )
+                else:
+                    request.state.session_data = {}
+                    request.state.session_id = None
+            except Exception:
+                request.state.session_data = {}
+                request.state.session_id = None
+        else:
+            request.state.session_data = {}
+            request.state.session_id = None
+
+        response = await call_next(request)
+
+        if hasattr(request.state, "new_session_id") and request.state.new_session_id:
+            response.set_cookie(
+                key="__Host-session_id",
+                value=request.state.new_session_id,
+                httponly=True,
+                secure=True,
+                samesite="lax",
+                path="/",
+                max_age=3600,
+            )
+
+        if hasattr(request.state, "session_deleted") and request.state.session_deleted:
+            response.delete_cookie(key="__Host-session_id", path="/")
+            response.delete_cookie(key="session_id", path="/")
+
+        return response
+
+
+class CSRFMiddleware(BaseHTTPMiddleware):
+    """Middleware to validate CSRF tokens on state-changing requests."""
+
+    CSRF_SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        if request.method in self.CSRF_SAFE_METHODS:
+            return await call_next(request)
+
+        csrf_token_from_header = request.headers.get("x-csrf-token")
+        csrf_token_from_cookie = request.cookies.get("csrf_token")
+
+        if csrf_token_from_header and csrf_token_from_cookie:
+            if csrf_token_from_header != csrf_token_from_cookie:
+                from fastapi.responses import JSONResponse
+
+                return JSONResponse(
+                    status_code=403, content={"error": "CSRF token mismatch"}
+                )
+
+        response = await call_next(request)
+
+        if request.method in {"POST", "PUT", "DELETE", "PATCH"}:
+            import secrets
+
+            csrf_token = secrets.token_hex(32)
+            response.set_cookie(
+                key="csrf_token",
+                value=csrf_token,
+                httponly=False,
+                secure=True,
+                samesite="lax",
+                path="/",
+            )
+
+        return response
+
+
 def add_middleware(app: FastAPI) -> None:
     """Add core middleware to FastAPI app."""
     # Import compression middleware
     from backend.app.compression import add_compression_middleware
-    
+
     # Add compression first (outermost layer)
     add_compression_middleware(app)
-    
+
     # Add other middleware
     app.add_middleware(CacheControlMiddleware)
     app.add_middleware(RequestTimingMiddleware)
     app.add_middleware(ErrorHandlingMiddleware)
     app.add_middleware(CorrelationIDMiddleware)
     app.add_middleware(WorkspaceContextMiddleware)
+    app.add_middleware(SessionMiddleware)
+    app.add_middleware(CSRFMiddleware)
     logger.info("Core middleware configured")

@@ -1,0 +1,210 @@
+version: "3.8"
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/upstreams.conf:/etc/nginx/upstreams.conf:ro
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+  backend-1:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_SENTINEL_ENABLED=true
+      - REDIS_SENTINEL_MASTER_NAME=mymaster
+      - REDIS_SENTINEL_HOSTS=redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
+      - REDIS_SENTINEL_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - INSTANCE_ID=backend-1
+    networks:
+      - backend
+      - database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/ops/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  backend-2:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_SENTINEL_ENABLED=true
+      - REDIS_SENTINEL_MASTER_NAME=mymaster
+      - REDIS_SENTINEL_HOSTS=redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
+      - REDIS_SENTINEL_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - INSTANCE_ID=backend-2
+    networks:
+      - backend
+      - database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/ops/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  backend-3:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_SENTINEL_ENABLED=true
+      - REDIS_SENTINEL_MASTER_NAME=mymaster
+      - REDIS_SENTINEL_HOSTS=redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
+      - REDIS_SENTINEL_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - INSTANCE_ID=backend-3
+    networks:
+      - backend
+      - database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/ops/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  redis-master:
+    image: redis:7-alpine
+    volumes:
+      - redis-master-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-replica-1:
+    image: redis:7-alpine
+    volumes:
+      - redis-replica-1-data:/data
+    command: >
+      redis-server 
+      --replicaof redis-master 6379
+      --appendonly yes
+      --protected-mode no
+    depends_on:
+      - redis-master
+    networks:
+      - database
+    restart: unless-stopped
+
+  redis-replica-2:
+    image: redis:7-alpine
+    volumes:
+      - redis-replica-2-data:/data
+    command: >
+      redis-server 
+      --replicaof redis-master 6379
+      --appendonly yes
+      --protected-mode no
+    depends_on:
+      - redis-master
+    networks:
+      - database
+    restart: unless-stopped
+
+  redis-sentinel-1:
+    image: redis:7-alpine
+    volumes:
+      - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis-master
+      - redis-replica-1
+      - redis-replica-2
+    networks:
+      - database
+    restart: unless-stopped
+
+  redis-sentinel-2:
+    image: redis:7-alpine
+    volumes:
+      - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis-master
+      - redis-replica-1
+      - redis-replica-2
+    networks:
+      - database
+    restart: unless-stopped
+
+  redis-sentinel-3:
+    image: redis:7-alpine
+    volumes:
+      - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis-master
+      - redis-replica-1
+      - redis-replica-2
+    networks:
+      - database
+    restart: unless-stopped
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true
+  database:
+    driver: bridge
+    internal: true
+
+volumes:
+  redis-master-data:
+  redis-replica-1-data:
+  redis-replica-2-data:

@@ -9,12 +9,15 @@ from pathlib import Path
 from backend.api.system import router as system_router
 from backend.app.lifespan import lifespan
 from backend.app.middleware import add_middleware
+from backend.app.metrics import setup_metrics
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.registry import include_universal
 from backend.config import settings
+
+logger = logging.getLogger(__name__)
 
 try:
     import sentry_sdk
@@ -59,7 +62,9 @@ def _init_sentry() -> None:
         environment=settings.ENVIRONMENT.value,
         send_default_pii=False,
     )
-    logging.getLogger(__name__).info("Sentry initialized (%s)", settings.ENVIRONMENT.value)
+    logging.getLogger(__name__).info(
+        "Sentry initialized (%s)", settings.ENVIRONMENT.value
+    )
 
 
 def create_app(
@@ -88,13 +93,41 @@ def create_app(
     # Core middleware stack
     add_middleware(app)
 
-    # CORS
+    # Prometheus metrics
+    setup_metrics(app)
+
+    # Security headers middleware
+    @app.middleware("http")
+    async def add_security_headers(request, call_next):
+        response = await call_next(request)
+
+        # Only add security headers in production
+        if settings.is_production:
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["X-XSS-Protection"] = "1; mode=block"
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
+            # Content-Security-Policy should be configured per-app
+
+        return response
+
+    # CORS - fixed configuration
+    cors_origins = settings.get_cors_origins()
+
+    # SECURITY: If using wildcard, don't allow credentials
+    allow_credentials = True
+    if "*" in cors_origins:
+        allow_credentials = False
+        logger.warning("CORS: Using wildcard origin without credentials")
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.get_cors_origins(),
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origins=cors_origins,
+        allow_credentials=allow_credentials,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
     )
 
     # System routes

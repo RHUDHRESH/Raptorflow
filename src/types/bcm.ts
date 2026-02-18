@@ -70,6 +70,12 @@ export interface BCMManifest {
   channels: BCMChannel[];
   market: BCMMarket;
   meta: BCMMeta;
+  synthesized?: boolean;
+  // Legacy support for positioning (maps to foundation)
+  positioning?: {
+    valueProposition?: string;
+    mission?: string;
+  };
 }
 
 export interface BCMResponse {
@@ -79,7 +85,6 @@ export interface BCMResponse {
   token_estimate: number;
   created_at: string | null;
   completion_pct: number;
-  synthesized?: boolean;
 }
 
 export interface BCMVersionSummary {

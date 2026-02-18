@@ -1,69 +1,89 @@
 """
 Services package for RaptorFlow.
-
-Imports all services to ensure they register with the ServiceRegistry.
-Services with missing dependencies are skipped gracefully.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 logger = logging.getLogger(__name__)
-
-# Import services to trigger registration with ServiceRegistry
-# These imports have side effects (registering with registry)
 
 bcm_service = None
 campaign_service = None
 move_service = None
-muse_service = None
 email_service = None
-vertex_ai_service = None
 auth_service = None
+bcm_cache = None
+bcm_memory = None
+bcm_generation_logger = None
+cached_queries = None
 
 try:
-    from backend.services.bcm_service import bcm_service
+    from backend.services.bcm.service import bcm_service
 except Exception as e:
     logger.warning(f"Failed to import bcm_service: {e}")
 
 try:
-    from backend.services.campaign_service import campaign_service
+    from backend.services.campaign.service import CampaignService
+
+    campaign_service = CampaignService()
 except Exception as e:
     logger.warning(f"Failed to import campaign_service: {e}")
 
 try:
-    from backend.services.move_service import move_service
+    from backend.services.move.service import MoveService
+
+    move_service = MoveService()
 except Exception as e:
     logger.warning(f"Failed to import move_service: {e}")
 
-# NOTE:
-# `muse_service` is intentionally *not* imported eagerly here to avoid
-# circular initialization with the LangGraph orchestrator package.
-# It is imported by `backend.api.v1.muse` during router load.
-
 try:
-    from backend.services.email_service import email_service
+    from backend.services.email.service import EmailService
+
+    email_service = EmailService()
 except Exception as e:
     logger.warning(f"Failed to import email_service: {e}")
 
 try:
-    from backend.services.vertex_ai_service import vertex_ai_service
-except Exception as e:
-    logger.warning(f"Failed to import vertex_ai_service: {e}")
+    from backend.services.auth.factory import get_auth_service
 
-try:
-    from backend.services.auth_service import auth_service
+    auth_service = get_auth_service()
 except Exception as e:
     logger.warning(f"Failed to import auth_service: {e}")
+    auth_service = None
+
+try:
+    from backend.infrastructure.cache import get_cache_client
+
+    bcm_cache = get_cache_client()
+except Exception as e:
+    logger.warning(f"Failed to import bcm_cache: {e}")
+
+try:
+    from backend.bcm.memory import get_memory_client
+
+    bcm_memory = get_memory_client()
+except Exception as e:
+    logger.warning(f"Failed to import bcm_memory: {e}")
+
+try:
+    from backend.services.bcm import generation_logger as bcm_generation_logger
+except Exception as e:
+    logger.warning(f"Failed to import bcm_generation_logger: {e}")
+
+try:
+    import backend.services.cached_queries as cached_queries
+except Exception as e:
+    logger.warning(f"Failed to import cached_queries: {e}")
 
 __all__ = [
     "bcm_service",
-    "campaign_service", 
+    "campaign_service",
     "move_service",
-    "muse_service",
     "email_service",
-    "vertex_ai_service",
     "auth_service",
+    "bcm_cache",
+    "bcm_memory",
+    "bcm_generation_logger",
+    "cached_queries",
 ]

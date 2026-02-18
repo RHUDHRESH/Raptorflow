@@ -4,7 +4,7 @@ import importlib
 
 import pytest
 
-from backend.agents.langgraph_context_orchestrator import (
+from backend.agents.context.orchestrator import (
     format_bcm_row,
     langgraph_context_orchestrator,
 )
@@ -26,7 +26,9 @@ def test_format_bcm_row() -> None:
 
 
 @pytest.mark.asyncio
-async def test_context_orchestrator_seed_rebuild_reflect(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_context_orchestrator_seed_rebuild_reflect(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     services_pkg = importlib.import_module("backend.services")
     reflector_module = importlib.import_module("backend.services.bcm_reflector")
 
@@ -62,4 +64,3 @@ async def test_context_orchestrator_seed_rebuild_reflect(monkeypatch: pytest.Mon
     assert seed_row["version"] == 1
     assert rebuild_row["version"] == 2
     assert reflect_result["status"] == "reflected"
-

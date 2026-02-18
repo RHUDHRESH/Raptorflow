@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Literal, Optional
 
-from backend.agents.langgraph_muse_orchestrator import (
+from backend.agents.muse.orchestrator import (
     REASONING_DEPTH_PROFILES,
     langgraph_muse_orchestrator,
 )
@@ -36,7 +36,11 @@ class MuseService(BaseService):
                 "orchestrator": "langgraph",
             }
         except Exception as exc:
-            return {"status": "unhealthy", "error": str(exc), "orchestrator": "langgraph"}
+            return {
+                "status": "unhealthy",
+                "error": str(exc),
+                "orchestrator": "langgraph",
+            }
 
     async def generate(
         self,

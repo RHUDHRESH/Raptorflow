@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { CustomCursor } from "@/components/effects/CustomCursor";
-import { GrainEffect } from "@/components/effects/GrainEffect";
-import { SmoothScrollProvider } from "@/components/effects/SmoothScroll";
+import { ScrollProgress } from "@/components/raptor";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: "RaptorFlow - Navigate Your Marketing",
-  description: "The artisanal marketing operating system for founders who demand precision. AI-powered strategy, content, and campaign execution.",
-  keywords: ["marketing", "AI", "founders", "SaaS", "strategy", "content generation"],
+  title: "RaptorFlow — Navigate Your Marketing",
+  description: "The marketing operating system for founders who demand precision. Build truth. Lock strategy. Execute with clarity.",
+  keywords: ["marketing", "strategy", "founders", "SaaS", "OS", "navigation"],
   authors: [{ name: "RaptorFlow" }],
-  openGraph: {
-    title: "RaptorFlow - Navigate Your Marketing",
-    description: "The artisanal marketing operating system for founders who demand precision.",
-    type: "website",
+  icons: {
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
   },
+  manifest: "/site.webmanifest",
+  themeColor: "#F3F0E7",
 };
 
 export default function RootLayout({
@@ -25,21 +27,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/svg+xml" href="/compass/compass-favicon.svg" />
       </head>
-      <body className="min-h-screen">
-        <SmoothScrollProvider>
-          {/* Custom cursor for desktop */}
-          <CustomCursor />
-
-          {/* Animated grain overlay */}
-          <GrainEffect />
-
-          {/* Static grain overlay fallback */}
-          <div className="grain-overlay" aria-hidden="true" />
-
-          {children}
-        </SmoothScrollProvider>
+      <body className="min-h-screen bg-[#F3F0E7] text-[#2A2529]">
+        {/* Subtle scroll progress */}
+        <ScrollProgress />
+        
+        {children}
+        
         <Toaster />
       </body>
     </html>

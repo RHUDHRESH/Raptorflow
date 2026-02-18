@@ -107,6 +107,7 @@ export interface Move {
     campaignId?: string;
     metrics?: string[];
     workspaceId?: string;
+    isLocked?: boolean;
 }
 
 // --- Move Brief (Strategy Lock) ---

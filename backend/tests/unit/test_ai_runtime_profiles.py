@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from backend.agents.ai_runtime_profiles import (
+from backend.agents.runtime.profiles import (
     intensity_profile,
     normalize_execution_mode,
     normalize_intensity,

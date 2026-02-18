@@ -16,6 +16,7 @@ PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from dotenv import load_dotenv
+
 load_dotenv(PROJECT_ROOT / "backend" / ".env")
 load_dotenv(PROJECT_ROOT / ".env")
 
@@ -26,10 +27,12 @@ if not (
     or os.getenv("SUPABASE_SERVICE_KEY")
     or os.getenv("SERVICE_ROLE_KEY")
 ):
-    raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY (or equivalent service key) is required")
+    raise RuntimeError(
+        "SUPABASE_SERVICE_ROLE_KEY (or equivalent service key) is required"
+    )
 
-from backend.services.bcm_reducer import reduce_business_context
-from backend.core.supabase_mgr import get_supabase_client
+from backend.services.bcm.reducer import reduce_business_context
+from backend.infrastructure.database.supabase import get_supabase_client
 
 FIXTURES_DIR = PROJECT_ROOT / "backend" / "fixtures"
 
@@ -105,7 +108,9 @@ def seed_one(fixture_path: pathlib.Path, workspace_id: str) -> dict:
         },
         "status": "active",
     }
-    client.table("foundations").upsert(foundation_row, on_conflict="workspace_id").execute()
+    client.table("foundations").upsert(
+        foundation_row, on_conflict="workspace_id"
+    ).execute()
 
     # Hydrate ICP profiles
     for icp in intel.get("icps", []):
@@ -129,7 +134,9 @@ def main():
     parser = argparse.ArgumentParser(description="Seed BCM from fixture files")
     parser.add_argument("--fixture", type=str, help="Path to a single fixture file")
     parser.add_argument("--all", action="store_true", help="Seed all fixtures")
-    parser.add_argument("--workspace-id", type=str, required=True, help="Workspace UUID")
+    parser.add_argument(
+        "--workspace-id", type=str, required=True, help="Workspace UUID"
+    )
     args = parser.parse_args()
 
     if not args.fixture and not args.all:

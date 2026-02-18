@@ -8,6 +8,7 @@ const checks = [
   ["documentation/REPO_MAP.md", "Repo map exists (documentation contract)"],
   ["documentation/API_INVENTORY.md", "API inventory exists (documentation contract)"],
   ["documentation/AUTH_INVENTORY.md", "Auth inventory exists (documentation contract)"],
+  ["documentation/AI_HUB_BEDROCK.md", "AI hub bedrock doc exists (documentation contract)"],
   ["src/app", "Canonical frontend app exists"],
   ["src/app/api/[...path]/route.ts", "Canonical Next API proxy exists"],
   ["backend/main.py", "Backend ASGI entrypoint exists"],

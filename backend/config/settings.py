@@ -1,4 +1,4 @@
-﻿"""
+"""
 Application settings and configuration management.
 
 Canonical services: Supabase (DB+Storage), Vertex AI, Upstash Redis, Resend, Sentry.
@@ -46,18 +46,29 @@ class Settings(BaseSettings):
     ENABLE_LEGACY_API_PATHS: bool = Field(default=True, env="ENABLE_LEGACY_API_PATHS")
 
     # Security
-    SECRET_KEY: str = Field(default="", env="SECRET_KEY")
+    SECRET_KEY: str = Field(default=None, env="SECRET_KEY")
     JWT_ALGORITHM: str = Field(default="HS256", env="JWT_ALGORITHM")
     JWT_EXPIRE_MINUTES: int = Field(default=30, env="JWT_EXPIRE_MINUTES")
     ALLOW_HEADER_AUTH: bool = Field(default=False, env="ALLOW_HEADER_AUTH")
 
+    # Auth Mode
+    AUTH_MODE: str = Field(default="", env="AUTH_MODE")
+    DEMO_USER_ID: str = Field(default="demo-user-001", env="DEMO_USER_ID")
+    DEMO_EMAIL: str = Field(default="demo@raptorflow.local", env="DEMO_EMAIL")
+    DEMO_WORKSPACE_ID: str = Field(
+        default="demo-workspace-001", env="DEMO_WORKSPACE_ID"
+    )
+
     # Supabase (Database + Storage)
     SUPABASE_URL: Optional[str] = Field(default=None, env="SUPABASE_URL")
     SUPABASE_KEY: Optional[str] = Field(default=None, env="SUPABASE_KEY")
+    SUPABASE_ANON_KEY: Optional[str] = Field(default=None, env="SUPABASE_ANON_KEY")
     SUPABASE_SERVICE_ROLE_KEY: Optional[str] = Field(
         default=None, env="SUPABASE_SERVICE_ROLE_KEY"
     )
-    SUPABASE_STORAGE_BUCKET: str = Field(default="uploads", env="SUPABASE_STORAGE_BUCKET")
+    SUPABASE_STORAGE_BUCKET: str = Field(
+        default="uploads", env="SUPABASE_STORAGE_BUCKET"
+    )
 
     # Upstash Redis
     UPSTASH_REDIS_REST_URL: str = Field(default="", env="UPSTASH_REDIS_REST_URL")
@@ -65,9 +76,21 @@ class Settings(BaseSettings):
     REDIS_KEY_PREFIX: str = Field(default="raptorflow:", env="REDIS_KEY_PREFIX")
     REDIS_DEFAULT_TTL: int = Field(default=3600, env="REDIS_DEFAULT_TTL")
 
+    # Redis Sentinel (for HA production deployments)
+    REDIS_SENTINEL_ENABLED: bool = Field(default=False, env="REDIS_SENTINEL_ENABLED")
+    REDIS_SENTINEL_MASTER_NAME: str = Field(
+        default="mymaster", env="REDIS_SENTINEL_MASTER_NAME"
+    )
+    REDIS_SENTINEL_HOSTS: str = Field(
+        default="", env="REDIS_SENTINEL_HOSTS"
+    )  # comma-separated: "sentinel1:26379,sentinel2:26379,sentinel3:26379"
+    REDIS_SENTINEL_PASSWORD: str = Field(default="", env="REDIS_SENTINEL_PASSWORD")
+
     # Vertex AI
     GCP_PROJECT_ID: str = Field(default="", env="GCP_PROJECT_ID")
-    GOOGLE_APPLICATION_CREDENTIALS: str = Field(default="", env="GOOGLE_APPLICATION_CREDENTIALS")
+    GOOGLE_APPLICATION_CREDENTIALS: str = Field(
+        default="", env="GOOGLE_APPLICATION_CREDENTIALS"
+    )
     VERTEX_AI_PROJECT_ID: str = Field(default="", env="VERTEX_AI_PROJECT_ID")
     VERTEX_AI_LOCATION: str = Field(default="us-central1", env="VERTEX_AI_LOCATION")
     VERTEX_AI_MODEL: str = Field(default="gemini-2.0-flash", env="VERTEX_AI_MODEL")
@@ -114,7 +137,10 @@ class Settings(BaseSettings):
     CORS_ALLOW_METHODS: str = Field(
         default="GET,POST,PUT,DELETE,OPTIONS", env="CORS_ALLOW_METHODS"
     )
-    CORS_ALLOW_HEADERS: str = Field(default="*", env="CORS_ALLOW_HEADERS")
+    CORS_ALLOW_HEADERS: str = Field(
+        default="Authorization,Content-Type,X-Requested-With,X-Workspace-ID,Accept,Origin",
+        env="CORS_ALLOW_HEADERS",
+    )
 
     # Feature Flags
     FEATURE_FLAGS: Dict[str, bool] = Field(default_factory=dict, env="FEATURE_FLAGS")
@@ -161,7 +187,9 @@ class Settings(BaseSettings):
         value = str(v or "").strip().lower()
         valid_modes = {"single", "council", "swarm"}
         if value not in valid_modes:
-            raise ValueError(f"AI_EXECUTION_MODE must be one of: {', '.join(sorted(valid_modes))}")
+            raise ValueError(
+                f"AI_EXECUTION_MODE must be one of: {', '.join(sorted(valid_modes))}"
+            )
         return value
 
     @validator("AI_DEFAULT_INTENSITY")
@@ -170,8 +198,31 @@ class Settings(BaseSettings):
         value = str(v or "").strip().lower()
         valid_levels = {"low", "medium", "high"}
         if value not in valid_levels:
-            raise ValueError(f"AI_DEFAULT_INTENSITY must be one of: {', '.join(sorted(valid_levels))}")
+            raise ValueError(
+                f"AI_DEFAULT_INTENSITY must be one of: {', '.join(sorted(valid_levels))}"
+            )
         return value
+
+    @validator("SECRET_KEY")
+    def validate_secret_key(cls, v, values):
+        """Validate SECRET_KEY is set in production."""
+        env = values.get("ENVIRONMENT", Environment.DEV)
+        if env in (Environment.PROD, Environment.PRODUCTION):
+            if not v or len(v) < 32:
+                raise ValueError(
+                    "SECRET_KEY must be set and be at least 32 characters in production"
+                )
+        return v
+
+    @validator("AUTH_MODE")
+    def validate_auth_mode(cls, v, values):
+        """Validate AUTH_MODE is set and valid."""
+        if not v:
+            raise ValueError("AUTH_MODE must be set (demo, supabase, or disabled)")
+        valid_modes = ("demo", "supabase", "disabled")
+        if v not in valid_modes:
+            raise ValueError(f"AUTH_MODE must be one of: {', '.join(valid_modes)}")
+        return v
 
     class Config:
         env_file = ".env"
@@ -196,7 +247,11 @@ class Settings(BaseSettings):
 
     def get_cors_origins(self) -> List[str]:
         """Get CORS origins based on environment."""
-        configured = [origin.strip() for origin in (self.CORS_ORIGINS or "").split(",") if origin.strip()]
+        configured = [
+            origin.strip()
+            for origin in (self.CORS_ORIGINS or "").split(",")
+            if origin.strip()
+        ]
         if configured:
             return configured
 

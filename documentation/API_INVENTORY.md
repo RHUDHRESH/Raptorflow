@@ -1,68 +1,46 @@
 # API Inventory
 
-Canonical backend API inventory (served under `/api/*`).
+Last updated: 2026-02-18
 
-## System and Operations
+## Canonical Prefixes
 
-- `GET /api/`: Root metadata.
-- `GET /api/health`: Base health summary.
-- `GET /api/ops/health`: Detailed ops health.
-- `GET /api/ops/services`: Integration/service readiness.
-- `GET /api/ops/ai-architecture`: Active AI architecture map.
-- `GET /api/ops/health/db`: Database health detail.
-- `GET /api/ops/health/cache`: Cache health detail.
+- System routes: `/`, `/health`, mirrored under `/api/*`
+- Product/API routes: `/api/*`
+- AI Hub routes: `/api/ai/hub/v1/*`
 
-## Workspace and Onboarding
+## AI Hub Public Contract
 
-- `POST /api/workspaces/`: Create workspace with onboarding defaults.
-- `GET /api/workspaces/{workspace_id}`: Get workspace.
-- `PATCH /api/workspaces/{workspace_id}`: Update workspace.
-- `GET /api/workspaces/onboarding/steps`: Canonical onboarding schema.
-- `GET /api/workspaces/{workspace_id}/onboarding/status`: Onboarding + BCM readiness.
-- `POST /api/workspaces/{workspace_id}/onboarding/complete`: Generate business context and seed BCM.
+- `GET /api/ai/hub/v1/health`
+- `GET /api/ai/hub/v1/capabilities`
+- `GET /api/ai/hub/v1/policies`
+- `POST /api/ai/hub/v1/tasks/run`
+- `POST /api/ai/hub/v1/tasks/run-async`
+- `GET /api/ai/hub/v1/jobs/{job_id}`
+- `GET /api/ai/hub/v1/tasks/{run_id}/context`
+- `GET /api/ai/hub/v1/tasks/{run_id}/trace`
+- `POST /api/ai/hub/v1/feedback`
+- `POST /api/ai/hub/v1/evals/execute`
 
-## BCM / Context
+## Registered Route Module Files
 
-- `GET /api/context/{workspace_id}`: Get latest BCM.
-- `POST /api/context/{workspace_id}/seed`: Seed BCM.
-- `POST /api/context/{workspace_id}/rebuild`: Rebuild BCM.
-- `POST /api/context/{workspace_id}/reflect`: Reflect BCM into memory.
-- `GET /api/context/{workspace_id}/versions`: BCM version history.
+- `backend/api/v1/ai_hub/routes.py`
+- `backend/api/v1/assets/routes.py`
+- `backend/api/v1/auth/routes.py`
+- `backend/api/v1/bcm_feedback/routes.py`
+- `backend/api/v1/campaigns/routes.py`
+- `backend/api/v1/communications/routes.py`
+- `backend/api/v1/context/routes.py`
+- `backend/api/v1/foundation/routes.py`
+- `backend/api/v1/health/routes.py`
+- `backend/api/v1/moves/routes.py`
+- `backend/api/v1/muse/routes.py`
+- `backend/api/v1/scraper/routes.py`
+- `backend/api/v1/search/routes.py`
+- `backend/api/v1/workspace_guard/routes.py`
+- `backend/api/v1/workspaces/routes.py`
 
-## Muse / Generation
+## Proxy Boundary
 
-- `POST /api/muse/generate`: Content generation with intensity + execution mode.
-- `GET /api/muse/health`: Muse service health.
+Frontend proxy route:
 
-## Campaigns / Moves / Foundation
-
-- `GET|POST|PATCH|DELETE /api/campaigns/*`: Campaign CRUD and related actions.
-- `GET|POST|PATCH|DELETE /api/moves/*`: Moves CRUD and execution data.
-- `GET|POST|PATCH /api/foundation/*`: Foundation data management.
-
-## Assets
-
-- `POST /api/assets/sessions`: Create upload session.
-- `POST /api/assets/{asset_id}/confirm`: Confirm upload.
-- `GET /api/assets`: List workspace assets.
-- `GET /api/assets/{asset_id}`: Get asset metadata.
-- `DELETE /api/assets/{asset_id}`: Delete asset.
-
-## Optional Modules
-
-- `GET /api/search`: Unified web search.
-- `GET /api/search/health`: Search engine health.
-- `GET /api/search/engines`: Available search engines.
-- `GET /api/search/status`: Search service status.
-- `POST /api/scraper`: Unified scraper endpoint.
-- `GET /api/scraper/health`: Scraper health.
-- `GET /api/scraper/analytics`: Scraper analytics.
-- `GET /api/scraper/stats`: Scraper stats.
-- `GET /api/scraper/strategies`: Scraping strategies.
-- `POST /api/scraper/strategy`: Update active scraping strategy.
-
-## Communications and Auth
-
-- `POST /api/communications/contact`: Contact form email pipeline.
-- `GET /api/auth/health`: Auth integration health.
-- `POST /api/auth/verify`: Verify Supabase access token.
+- `src/app/api/[...path]/route.ts`

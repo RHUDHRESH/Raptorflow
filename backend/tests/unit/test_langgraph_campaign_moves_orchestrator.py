@@ -4,13 +4,15 @@ import importlib
 
 import pytest
 
-from backend.agents.langgraph_campaign_moves_orchestrator import (
+from backend.agents.campaign_moves.orchestrator import (
     langgraph_campaign_moves_orchestrator,
 )
 
 
 @pytest.mark.asyncio
-async def test_campaign_moves_orchestrator_bundle(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_campaign_moves_orchestrator_bundle(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     campaign_module = importlib.import_module("backend.services.campaign_service")
     move_module = importlib.import_module("backend.services.move_service")
 
@@ -53,4 +55,3 @@ async def test_campaign_moves_orchestrator_bundle(monkeypatch: pytest.MonkeyPatc
     assert bundle["campaign"]["title"] == "Launch"
     assert len(bundle["moves"]) == 1
     assert campaigns[0]["id"] == "c1"
-

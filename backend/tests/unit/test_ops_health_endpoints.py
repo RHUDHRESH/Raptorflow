@@ -52,6 +52,7 @@ def test_ops_health_endpoints_smoke(monkeypatch) -> None:
         return []
 
     import backend.api.v1.health as ops_health
+    import backend.api.v1.health.routes as ops_health_routes
     import importlib
     import backend.services.registry as registry_mod
     from backend.app_factory import create_app
@@ -69,9 +70,12 @@ def test_ops_health_endpoints_smoke(monkeypatch) -> None:
     monkeypatch.setattr(lifespan_mod, "get_supabase_client", fake_get_supabase_client)
 
     monkeypatch.setattr(ops_health, "_safe_pool_stats", fake_pool_stats)
-    monkeypatch.setattr(ops_health, "get_redis_client", fake_get_redis_client)
-    monkeypatch.setattr(ops_health.query_monitor, "get_stats", fake_query_stats)
-    monkeypatch.setattr(ops_health.query_monitor, "get_slow_queries", fake_slow_queries)
+    monkeypatch.setattr(ops_health_routes, "_safe_pool_stats", fake_pool_stats)
+    monkeypatch.setattr(ops_health_routes, "get_redis_client", fake_get_redis_client)
+    monkeypatch.setattr(ops_health_routes.query_monitor, "get_stats", fake_query_stats)
+    monkeypatch.setattr(
+        ops_health_routes.query_monitor, "get_slow_queries", fake_slow_queries
+    )
 
     app = create_app(enable_docs=False)
 

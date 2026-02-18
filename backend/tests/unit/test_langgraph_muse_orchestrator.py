@@ -4,7 +4,7 @@ import importlib
 
 import pytest
 
-from backend.agents.langgraph_muse_orchestrator import (
+from backend.agents.muse.orchestrator import (
     langgraph_muse_orchestrator,
     resolve_generation_profile,
 )
@@ -40,9 +40,13 @@ def test_resolve_generation_profile_defaults_unknown_depth() -> None:
 
 
 @pytest.mark.asyncio
-async def test_langgraph_orchestrator_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_langgraph_orchestrator_happy_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     services_pkg = importlib.import_module("backend.services")
-    bcm_generation_logger_module = importlib.import_module("backend.services.bcm_generation_logger")
+    bcm_generation_logger_module = importlib.import_module(
+        "backend.services.bcm_generation_logger"
+    )
     bcm_memory_module = importlib.import_module("backend.services.bcm_memory")
     bcm_reflector_module = importlib.import_module("backend.services.bcm_reflector")
     prompt_compiler_module = importlib.import_module("backend.services.prompt_compiler")
@@ -73,10 +77,14 @@ async def test_langgraph_orchestrator_happy_path(monkeypatch: pytest.MonkeyPatch
 
         @staticmethod
         async def generate_text(**kwargs):
-            raise AssertionError("Structured prompt path should be used when manifest exists")
+            raise AssertionError(
+                "Structured prompt path should be used when manifest exists"
+            )
 
     monkeypatch.setattr(services_pkg, "bcm_service", FakeBCMService())
-    monkeypatch.setattr(bcm_memory_module, "get_relevant_memories", lambda _ws, limit=0: [{"k": limit}])
+    monkeypatch.setattr(
+        bcm_memory_module, "get_relevant_memories", lambda _ws, limit=0: [{"k": limit}]
+    )
     monkeypatch.setattr(
         prompt_compiler_module,
         "get_or_compile_system_prompt",
@@ -95,7 +103,9 @@ async def test_langgraph_orchestrator_happy_path(monkeypatch: pytest.MonkeyPatch
         "log_generation",
         lambda **_kwargs: {"id": "gen-123"},
     )
-    monkeypatch.setattr(bcm_reflector_module, "should_auto_reflect", lambda _workspace_id: False)
+    monkeypatch.setattr(
+        bcm_reflector_module, "should_auto_reflect", lambda _workspace_id: False
+    )
 
     result = await langgraph_muse_orchestrator.invoke(
         workspace_id="11111111-1111-1111-1111-111111111111",
@@ -124,7 +134,9 @@ async def test_langgraph_orchestrator_uses_deterministic_fallback_on_ai_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     services_pkg = importlib.import_module("backend.services")
-    bcm_generation_logger_module = importlib.import_module("backend.services.bcm_generation_logger")
+    bcm_generation_logger_module = importlib.import_module(
+        "backend.services.bcm_generation_logger"
+    )
     bcm_memory_module = importlib.import_module("backend.services.bcm_memory")
     bcm_reflector_module = importlib.import_module("backend.services.bcm_reflector")
     prompt_compiler_module = importlib.import_module("backend.services.prompt_compiler")
@@ -146,7 +158,9 @@ async def test_langgraph_orchestrator_uses_deterministic_fallback_on_ai_failure(
             raise RuntimeError("vertex unavailable")
 
     monkeypatch.setattr(services_pkg, "bcm_service", FakeBCMService())
-    monkeypatch.setattr(bcm_memory_module, "get_relevant_memories", lambda _ws, limit=0: [])
+    monkeypatch.setattr(
+        bcm_memory_module, "get_relevant_memories", lambda _ws, limit=0: []
+    )
     monkeypatch.setattr(
         prompt_compiler_module,
         "get_or_compile_system_prompt",
@@ -165,7 +179,9 @@ async def test_langgraph_orchestrator_uses_deterministic_fallback_on_ai_failure(
         "log_generation",
         lambda **_kwargs: {"id": "gen-fallback"},
     )
-    monkeypatch.setattr(bcm_reflector_module, "should_auto_reflect", lambda _workspace_id: False)
+    monkeypatch.setattr(
+        bcm_reflector_module, "should_auto_reflect", lambda _workspace_id: False
+    )
 
     result = await langgraph_muse_orchestrator.invoke(
         workspace_id="11111111-1111-1111-1111-111111111111",

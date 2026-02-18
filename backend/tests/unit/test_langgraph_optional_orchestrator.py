@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import pytest
 
-from backend.agents.langgraph_optional_orchestrator import langgraph_optional_orchestrator
+from backend.agents.optional.orchestrator import langgraph_optional_orchestrator
 from backend.config import settings
 from backend.services.exceptions import ServiceUnavailableError
 
 
 @pytest.mark.asyncio
-async def test_optional_orchestrator_blocks_disabled_search(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_optional_orchestrator_blocks_disabled_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(settings, "ENABLE_SEARCH_MODULE", False)
 
     async def _executor():
@@ -23,7 +25,9 @@ async def test_optional_orchestrator_blocks_disabled_search(monkeypatch: pytest.
 
 
 @pytest.mark.asyncio
-async def test_optional_orchestrator_executes_enabled_module(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_optional_orchestrator_executes_enabled_module(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(settings, "ENABLE_SEARCH_MODULE", True)
     monkeypatch.setattr(settings, "AI_EXECUTION_MODE", "swarm")
     monkeypatch.setattr(settings, "AI_DEFAULT_INTENSITY", "high")

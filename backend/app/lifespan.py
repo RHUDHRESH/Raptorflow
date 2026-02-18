@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from backend.config import settings
-from backend.core.supabase_mgr import get_supabase_client
+from backend.infrastructure.database.supabase import get_supabase_client
 from backend.services.registry import registry
 
 # Import services package to trigger service registration
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 async def startup():
     """Startup checks for the canonical reconstruction stack.
 
-    Services: Supabase (DB+Storage), Vertex AI, Upstash Redis, Resend, Sentry.
+    Services: Supabase (DB+Storage), Vertex AI, Upstash Redis, Redis Sentinel, Resend, Sentry.
     Optional services log warnings but do not prevent startup.
     """
 
@@ -30,6 +30,24 @@ async def startup():
 
     # Initialize all registered services via Registry
     await registry.initialize_all()
+
+    # Redis Sentinel for production horizontal scaling
+    if settings.REDIS_SENTINEL_ENABLED:
+        try:
+            from backend.infrastructure.cache.redis_sentinel import (
+                get_redis_sentinel_manager,
+            )
+
+            sentinel = await get_redis_sentinel_manager()
+            connected = await sentinel.connect()
+            if connected:
+                logger.info("Redis Sentinel: connected")
+            else:
+                logger.warning("Redis Sentinel: enabled but not connected")
+        except Exception as e:
+            logger.warning("Redis Sentinel: failed to connect: %s", e)
+    else:
+        logger.info("Redis Sentinel: disabled")
 
     # Supabase Database check (degrades gracefully in offline/local environments)
     try:
@@ -54,6 +72,20 @@ async def startup():
 async def shutdown():
     """Cleanup on shutdown"""
     logger.info("Shutting down...")
+
+    # Close Redis Sentinel connection
+    if settings.REDIS_SENTINEL_ENABLED:
+        try:
+            from backend.infrastructure.cache.redis_sentinel import (
+                get_redis_sentinel_manager,
+            )
+
+            sentinel = await get_redis_sentinel_manager()
+            await sentinel.disconnect()
+            logger.info("Redis Sentinel: disconnected")
+        except Exception as e:
+            logger.warning("Redis Sentinel: error during disconnect: %s", e)
+
     await registry.shutdown_all()
     logger.info("Shutdown complete")
 

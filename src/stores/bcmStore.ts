@@ -59,7 +59,7 @@ function applyResponse(resp: BCMResponse) {
     checksum: resp.checksum,
     createdAt: resp.created_at,
     completionPct: resp.completion_pct,
-    synthesized: resp.synthesized,
+    synthesized: resp.manifest?.synthesized ?? false,
     error: null,
   };
 }

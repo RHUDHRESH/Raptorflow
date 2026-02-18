@@ -1,294 +1,913 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Plus, Calendar as CalendarIcon, Search, X, LayoutGrid, ListTodo, Zap } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { Layout } from "@/components/raptor/shell/Layout";
+import { Card } from "@/components/raptor/ui/Card";
+import { Button } from "@/components/raptor/ui/Button";
+import { Badge } from "@/components/raptor/ui/Badge";
+import { Tag } from "@/components/raptor/ui/Tag";
+import { Progress } from "@/components/raptor/ui/Progress";
+import { Modal } from "@/components/raptor/ui/Modal";
+import { MovesCalendar, CalendarMove } from "@/components/moves/MovesCalendar";
+import {
+  Zap,
+  Target,
+  TrendingUp,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Plus,
+  Filter,
+  ArrowRight,
+  Calendar as CalendarIcon,
+  List,
+  X,
+  HelpCircle,
+  TrendingDown,
+  Minus,
+  Play,
+  Pause,
+  Eye,
+} from "lucide-react";
 
-import { Move, MoveCategory, ExecutionDay, MoveBriefData } from "@/components/moves/types";
-import { MoveCreateWizard } from "@/components/moves/MoveCreateWizard";
-import { useMovesStore } from "@/stores/movesStore";
-import { TodaysAgenda } from "@/components/moves/TodaysAgenda";
-import { MoveGallery } from "@/components/moves/MoveGallery";
-import { MovesCalendarPro } from "@/components/moves/MovesCalendarPro";
-import { BlueprintModal } from "@/components/ui/BlueprintModal";
-import { MoveIntelCenter } from "@/components/moves/MoveIntelCenter";
-import { MovesSkeleton } from "@/components/ui/DashboardSkeletons";
-import { cn } from "@/lib/utils";
-import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
-import { toast } from "sonner";
-import { useBCMStore } from "@/stores/bcmStore";
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MOVES PAGE — "Choose Battles" Loop
+   System proposes 3-5 moves max (ranked) → User commits to 1-2 moves
+   ═══════════════════════════════════════════════════════════════════════════════ */
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   MOVES PAGE — QUIET LUXURY REDESIGN
-   Clean tabbed layout with Today's Agenda, Gallery, and Calendar views
-   ══════════════════════════════════════════════════════════════════════════════ */
+// ═══════════════════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
 
-type ViewTab = 'agenda' | 'gallery' | 'calendar';
+interface ProposedMove {
+  id: string;
+  title: string;
+  category: "growth" | "retention" | "positioning" | "conversion";
+  expectedPayoff: string;
+  effort: "low" | "medium" | "high";
+  risk: "low" | "medium" | "high";
+  confidence: "high" | "medium" | "low";
+  reasoning: string;
+}
+
+interface ActiveMove {
+  id: string;
+  title: string;
+  category: "growth" | "retention" | "positioning" | "conversion";
+  status: "active" | "paused" | "completed";
+  progress: number;
+  startDate: Date;
+  endDate: Date;
+  goal: string;
+  campaignsCount: number;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const mockProposedMoves: ProposedMove[] = [
+  {
+    id: "prop-1",
+    title: "Launch Referral Program",
+    category: "growth",
+    expectedPayoff: "+30% signups",
+    effort: "medium",
+    risk: "low",
+    confidence: "high",
+    reasoning: "Similar companies see 25-40% lift from referrals. Low risk with established playbook.",
+  },
+  {
+    id: "prop-2",
+    title: "Case Study Campaign",
+    category: "conversion",
+    expectedPayoff: "+15% demo requests",
+    effort: "high",
+    risk: "medium",
+    confidence: "medium",
+    reasoning: "Proof points missing from current landing pages. Requires customer interviews.",
+  },
+  {
+    id: "prop-3",
+    title: "Email Nurture Sequence",
+    category: "retention",
+    expectedPayoff: "+20% activation",
+    effort: "low",
+    risk: "low",
+    confidence: "high",
+    reasoning: "Quick win with existing email infrastructure. Templates available.",
+  },
+  {
+    id: "prop-4",
+    title: "Thought Leadership Series",
+    category: "positioning",
+    expectedPayoff: "+40% organic traffic",
+    effort: "high",
+    risk: "medium",
+    confidence: "medium",
+    reasoning: "Long-term authority building. Requires consistent content production.",
+  },
+];
+
+const mockActiveMoves: ActiveMove[] = [
+  {
+    id: "move-1",
+    title: "Q1 Content Sprint",
+    category: "positioning",
+    status: "active",
+    progress: 65,
+    startDate: new Date("2024-01-01"),
+    endDate: new Date("2024-03-31"),
+    goal: "Establish thought leadership in workflow automation",
+    campaignsCount: 3,
+  },
+  {
+    id: "move-2",
+    title: "Enterprise Trial Flow",
+    category: "conversion",
+    status: "active",
+    progress: 40,
+    startDate: new Date("2024-02-01"),
+    endDate: new Date("2024-04-15"),
+    goal: "Reduce time-to-value for enterprise trials",
+    campaignsCount: 2,
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CATEGORY CONFIG
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const CATEGORY_CONFIG: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
+  growth: { icon: <TrendingUp size={16} />, label: "Growth", color: "#2A2529" },
+  retention: { icon: <CheckCircle2 size={16} />, label: "Retention", color: "#5C565B" },
+  positioning: { icon: <Target size={16} />, label: "Positioning", color: "#D2CCC0" },
+  conversion: { icon: <Zap size={16} />, label: "Conversion", color: "#847C82" },
+};
+
+const EFFORT_BADGES: Record<string, { label: string; color: string }> = {
+  low: { label: "Low Effort", color: "#E8F0E9" },
+  medium: { label: "Medium Effort", color: "#F5F0E6" },
+  high: { label: "High Effort", color: "#F5E6E6" },
+};
+
+const RISK_BADGES: Record<string, { label: string; color: string; textColor: string }> = {
+  low: { label: "Low Risk", color: "#E8F0E9", textColor: "#3D5A42" },
+  medium: { label: "Medium Risk", color: "#F5F0E6", textColor: "#8B6B3D" },
+  high: { label: "High Risk", color: "#F5E6E6", textColor: "#8B3D3D" },
+};
+
+const CONFIDENCE_BADGES: Record<string, { label: string; variant: "success" | "warning" | "info" }> = {
+  high: { label: "High Confidence", variant: "success" },
+  medium: { label: "Medium Confidence", variant: "warning" },
+  low: { label: "Low Confidence", variant: "info" },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN PAGE COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════════
 
 export default function MovesPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const didAttemptFetchRef = useRef(false);
-  const missingMoveToastRef = useRef<string | null>(null);
-
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [mounted, setMounted] = useState(false);
-  const [selectedMove, setSelectedMove] = useState<Move | null>(null);
-  const [activeTab, setActiveTab] = useState<ViewTab>('agenda');
-
-  const { workspaceId } = useWorkspace();
-  const { manifest: bcm, fetchBCM } = useBCMStore();
-
-  const { moves, addMove, fetchMoves, isLoading, error } = useMovesStore();
-
-  useEffect(() => {
-    setMounted(true);
-    if (!workspaceId) return;
-    didAttemptFetchRef.current = true;
-    fetchMoves(workspaceId);
-    fetchBCM(workspaceId);
-  }, [workspaceId, fetchMoves]);
-
-  useEffect(() => {
-    if (error) toast.error(error);
-  }, [error]);
-
-  const linkedCampaignId = searchParams?.get("campaignId") || undefined;
-  const autoOpenWizard =
-    searchParams?.get("new") === "1" ||
-    (searchParams?.get("create") || "").toLowerCase() === "true";
-  const linkedMoveId = searchParams?.get("moveId") || undefined;
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (autoOpenWizard) setIsWizardOpen(true);
-  }, [autoOpenWizard, mounted]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (!workspaceId) return;
-    if (!linkedMoveId) return;
-    if (error) return;
-
-    const found = moves.find((m) => m.id === linkedMoveId);
-    if (found) {
-      missingMoveToastRef.current = null;
-      setSelectedMove(found);
-      return;
-    }
-
-    if (isLoading) return;
-    if (!didAttemptFetchRef.current) return;
-    if (missingMoveToastRef.current === linkedMoveId) return;
-
-    missingMoveToastRef.current = linkedMoveId;
-    toast.error("Move not found.");
-  }, [mounted, workspaceId, linkedMoveId, moves, isLoading, error]);
-
-  const clearMoveIdFromUrl = () => {
-    const params = new URLSearchParams(searchParams?.toString());
-    if (!params.has("moveId")) return;
-    params.delete("moveId");
-    const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname);
-  };
-
-  // Calculate stats
-  const stats = {
-    total: moves.length,
-    active: moves.filter(m => m.status === 'active').length,
-    draft: moves.filter(m => m.status === 'draft').length,
-    completed: moves.filter(m => m.status === 'completed').length,
-  };
-
-  // Filter moves for gallery
-  const filteredMoves = moves.filter(m =>
-    searchQuery === "" ||
-    m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.category.toLowerCase().includes(searchQuery.toLowerCase())
+  const pageRef = useRef<HTMLDivElement>(null);
+  const proposedSectionRef = useRef<HTMLDivElement>(null);
+  const activeSectionRef = useRef<HTMLDivElement>(null);
+  
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [selectedMove, setSelectedMove] = useState<ActiveMove | null>(null);
+  const [showingReasoning, setShowingReasoning] = useState<string | null>(null);
+  const [committedIds, setCommittedIds] = useState<string[]>([]);
+  const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+  
+  // Filter out committed and dismissed proposals
+  const proposedMoves = mockProposedMoves.filter(
+    (m) => !committedIds.includes(m.id) && !dismissedIds.includes(m.id)
   );
-
-  const handleWizardComplete = async (data: { category: MoveCategory; context: string; brief: MoveBriefData; execution: ExecutionDay[] }) => {
-    if (!workspaceId) return;
-
-    const newMove: Move = {
-      id: crypto.randomUUID(),
-      name: data.brief.name,
-      category: data.category,
-      status: 'active',
-      tone: data.brief.tone,
-      duration: data.brief.duration,
-      context: data.context,
-      goal: data.brief.goal,
-      createdAt: new Date().toISOString(),
-      startDate: new Date().toISOString(),
-      progress: 0,
-      execution: data.execution || [],
-      icp: data.brief.icp || "General Audience",
-      metrics: data.brief.metrics || [],
-      campaignId: linkedCampaignId,
-      workspaceId: workspaceId
-    };
-
-    await addMove(newMove, workspaceId);
-    setIsWizardOpen(false);
-  };
-
-  const handleMoveClick = (move: Move) => {
-    setSelectedMove(move);
-  };
-
-  const tabs = [
-    { id: 'agenda' as const, label: "Today's Agenda", icon: <ListTodo size={14} /> },
-    { id: 'gallery' as const, label: 'All Moves', icon: <LayoutGrid size={14} /> },
-    { id: 'calendar' as const, label: 'Calendar', icon: <CalendarIcon size={14} /> },
+  
+  // Add committed moves to active
+  const activeMoves = [
+    ...mockActiveMoves,
+    ...mockProposedMoves
+      .filter((m) => committedIds.includes(m.id))
+      .map((m) => ({
+        id: m.id,
+        title: m.title,
+        category: m.category,
+        status: "active" as const,
+        progress: 0,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        goal: m.reasoning,
+        campaignsCount: 0,
+      })),
   ];
 
-  if (!mounted) return null;
+  // Convert active moves to calendar format
+  const calendarMoves: CalendarMove[] = activeMoves.map((move) => ({
+    id: move.id,
+    title: move.title,
+    startDate: move.startDate,
+    endDate: move.endDate,
+    status: move.status,
+    category: move.category,
+    color: CATEGORY_CONFIG[move.category]?.color,
+  }));
 
-  if (isLoading) {
-    return <MovesSkeleton />;
-  }
+  // GSAP: Page entrance animation
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+
+      tl.fromTo(
+        ".moves-header",
+        { y: -20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5 }
+      )
+        .fromTo(
+          ".proposed-section",
+          { x: -30, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.5 },
+          "-=0.3"
+        )
+        .fromTo(
+          ".proposed-card",
+          { y: 20, opacity: 0, scale: 0.95 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.4, stagger: 0.1 },
+          "-=0.3"
+        )
+        .fromTo(
+          ".active-section",
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5 },
+          "-=0.2"
+        );
+    }, pageRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  // GSAP: Commit animation
+  const handleCommit = (moveId: string, cardEl: HTMLElement | null) => {
+    if (!cardEl) return;
+
+    const ctx = gsap.context(() => {
+      // Animate card shrinking and moving
+      gsap.to(cardEl, {
+        scale: 0.8,
+        opacity: 0,
+        x: activeSectionRef.current ? activeSectionRef.current.getBoundingClientRect().left - cardEl.getBoundingClientRect().left : 0,
+        y: activeSectionRef.current ? activeSectionRef.current.getBoundingClientRect().top - cardEl.getBoundingClientRect().top : 0,
+        duration: 0.5,
+        ease: "power2.inOut",
+        onComplete: () => {
+          setCommittedIds((prev) => [...prev, moveId]);
+          
+          // Flash active section
+          if (activeSectionRef.current) {
+            gsap.fromTo(
+              activeSectionRef.current,
+              { backgroundColor: "rgba(42, 37, 41, 0.05)" },
+              { backgroundColor: "transparent", duration: 0.6, ease: "power2.out" }
+            );
+          }
+        },
+      });
+    });
+
+    return () => ctx.revert();
+  };
+
+  // GSAP: Dismiss animation
+  const handleDismiss = (moveId: string, cardEl: HTMLElement | null) => {
+    if (!cardEl) return;
+
+    const ctx = gsap.context(() => {
+      gsap.to(cardEl, {
+        x: 100,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+        onComplete: () => {
+          setDismissedIds((prev) => [...prev, moveId]);
+        },
+      });
+    });
+
+    return () => ctx.revert();
+  };
+
+  const daysRemaining = (endDate: Date) => {
+    const diff = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? `${diff} days left` : "Overdue";
+  };
 
   return (
-    <div className="min-h-screen bg-[var(--canvas)]">
-      {/* Page Header - Quiet Luxury */}
-      <div className="border-b border-[var(--border)] bg-[var(--paper)]">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h1 className="font-serif text-3xl text-[var(--ink)]">
-                Strategic Moves
-              </h1>
-              <p className="text-sm text-[var(--muted)] mt-1">
-                Your execution headquarters — {stats.active} active, {stats.draft} drafts, {stats.completed} completed
-                {bcm?.foundation?.company && (
-                  <span className="ml-2 text-xs opacity-60">| {bcm.foundation.company}</span>
-                )}
-              </p>
-              {bcm?.icps && bcm.icps.length > 0 && (
-                <div className="flex gap-2 mt-2">
-                  {bcm.icps.map((icp, i) => (
-                    <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)]">
-                      {icp.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-
+    <Layout activeNavItem="moves">
+      <div ref={pageRef} className="p-6 max-w-[1400px] mx-auto">
+        {/* Header */}
+        <header className="moves-header flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-[32px] font-bold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif] leading-[40px]">
+              Moves
+            </h1>
+            <p className="text-[16px] text-[#5C565B] mt-1 font-['DM_Sans',system-ui,sans-serif]">
+              Strategic initiatives ranked by expected payoff
+            </p>
           </div>
 
-          {/* Action Bar */}
-          <div className="flex items-center gap-3 mt-6">
-              {/* Search - Only show in Gallery view */}
-              {activeTab === 'gallery' && (
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]">
-                    <Search className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search moves..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-64 pl-9 pr-9 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] text-sm text-[var(--ink)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--ink)] transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--ink)] p-0.5"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* New Move Button */}
+          <div className="flex items-center gap-3">
+            {/* View Toggle */}
+            <div className="flex border border-[#D2CCC0] rounded-[10px] overflow-hidden bg-[#F7F5EF]">
               <button
-                onClick={() => setIsWizardOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium text-sm"
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-2 px-3 py-2 text-[13px] font-medium transition-colors ${
+                  viewMode === "list"
+                    ? "bg-[#2A2529] text-[#F3F0E7]"
+                    : "text-[#5C565B] hover:text-[#2A2529]"
+                }`}
               >
-                <Plus className="w-4 h-4" />
-                <span>New Move</span>
+                <List size={16} />
+                List
+              </button>
+              <button
+                onClick={() => setViewMode("calendar")}
+                className={`flex items-center gap-2 px-3 py-2 text-[13px] font-medium transition-colors ${
+                  viewMode === "calendar"
+                    ? "bg-[#2A2529] text-[#F3F0E7]"
+                    : "text-[#5C565B] hover:text-[#2A2529]"
+                }`}
+              >
+                <CalendarIcon size={16} />
+                Calendar
               </button>
             </div>
 
-          {/* Tab Navigation */}
-          <div className="flex items-center gap-1 mt-6 border-b border-[var(--border)] -mb-px">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all",
-                  activeTab === tab.id
-                    ? "border-[var(--ink)] text-[var(--ink)]"
-                    : "border-transparent text-[var(--muted)] hover:text-[var(--ink)] hover:border-[var(--border)]"
-                )}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
+            <Button variant="secondary" leftIcon={<Filter size={16} />}>
+              Filter
+            </Button>
+            <Button variant="primary" leftIcon={<Plus size={16} />}>
+              Create Move
+            </Button>
           </div>
+        </header>
+
+        {/* Proposed Moves (AI Suggestions) */}
+        {proposedMoves.length > 0 && (
+          <section ref={proposedSectionRef} className="proposed-section mb-10">
+            <div className="flex items-center gap-3 mb-4">
+              <Zap size={20} className="text-[#2A2529]" />
+              <h2 className="text-[20px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+                Proposed Moves
+              </h2>
+              <Badge variant="info" size="sm">
+                AI Suggested
+              </Badge>
+              <span className="text-[13px] text-[#847C82] ml-2">
+                Commit to 1-2 moves max
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {proposedMoves.slice(0, 4).map((move) => (
+                <ProposedMoveCard
+                  key={move.id}
+                  move={move}
+                  showingReasoning={showingReasoning === move.id}
+                  onShowReasoning={() => setShowingReasoning(showingReasoning === move.id ? null : move.id)}
+                  onCommit={(el) => handleCommit(move.id, el)}
+                  onDismiss={(el) => handleDismiss(move.id, el)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Active Moves */}
+        <section ref={activeSectionRef} className="active-section">
+          <div className="flex items-center gap-3 mb-4">
+            <Target size={20} className="text-[#2A2529]" />
+            <h2 className="text-[20px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+              Active Moves
+            </h2>
+            <Badge variant="success" size="sm">
+              {activeMoves.length} Active
+            </Badge>
+          </div>
+
+          {viewMode === "list" ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {activeMoves.map((move) => (
+                <ActiveMoveCard
+                  key={move.id}
+                  move={move}
+                  daysRemaining={daysRemaining(move.endDate)}
+                  onClick={() => setSelectedMove(move)}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card padding="lg">
+              <MovesCalendar
+                moves={calendarMoves}
+                onMoveClick={(id) => {
+                  const move = activeMoves.find((m) => m.id === id);
+                  if (move) setSelectedMove(move);
+                }}
+              />
+            </Card>
+          )}
+        </section>
+      </div>
+
+      {/* Move Detail Modal */}
+      <MoveDetailModal
+        move={selectedMove}
+        onClose={() => setSelectedMove(null)}
+      />
+    </Layout>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PROPOSED MOVE CARD
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface ProposedMoveCardProps {
+  move: ProposedMove;
+  showingReasoning: boolean;
+  onShowReasoning: () => void;
+  onCommit: (el: HTMLElement | null) => void;
+  onDismiss: (el: HTMLElement | null) => void;
+}
+
+function ProposedMoveCard({
+  move,
+  showingReasoning,
+  onShowReasoning,
+  onCommit,
+  onDismiss,
+}: ProposedMoveCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [cardEl, setCardEl] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (cardRef.current) {
+      setCardEl(cardRef.current);
+    }
+  }, []);
+
+  // GSAP: Card hover lift
+  const handleMouseEnter = () => {
+    if (!cardRef.current) return;
+    gsap.to(cardRef.current, {
+      y: -4,
+      boxShadow: "0 8px 24px rgba(42, 37, 41, 0.08)",
+      duration: 0.2,
+      ease: "power2.out",
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (!cardRef.current) return;
+    gsap.to(cardRef.current, {
+      y: 0,
+      boxShadow: "0 1px 3px rgba(42, 37, 41, 0.04)",
+      duration: 0.2,
+      ease: "power2.out",
+    });
+  };
+
+  const category = CATEGORY_CONFIG[move.category];
+  const effort = EFFORT_BADGES[move.effort];
+  const risk = RISK_BADGES[move.risk];
+  const confidence = CONFIDENCE_BADGES[move.confidence];
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="proposed-card bg-[#F7F5EF] border border-[#E3DED3] rounded-[14px] p-4 relative overflow-hidden"
+      style={{ boxShadow: "0 1px 3px rgba(42, 37, 41, 0.04)" }}
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between mb-3">
+        <div
+          className="w-8 h-8 rounded-[8px] flex items-center justify-center"
+          style={{ backgroundColor: `${category.color}15`, color: category.color }}
+        >
+          {category.icon}
+        </div>
+        <button
+          onClick={onShowReasoning}
+          className="p-1.5 text-[#847C82] hover:text-[#2A2529] hover:bg-[#EFEDE6] rounded-[8px] transition-colors"
+          title="Why this move?"
+        >
+          <HelpCircle size={16} />
+        </button>
+      </div>
+
+      {/* Title */}
+      <h3 className="text-[16px] font-semibold text-[#2A2529] mb-2 font-['DM_Sans',system-ui,sans-serif] line-clamp-2">
+        {move.title}
+      </h3>
+
+      {/* Expected Payoff */}
+      <div className="mb-3">
+        <span className="text-[24px] font-bold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+          {move.expectedPayoff}
+        </span>
+      </div>
+
+      {/* Tags */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        <span
+          className="px-2 py-1 text-[10px] font-medium rounded-[6px] uppercase tracking-wide"
+          style={{ backgroundColor: effort.color, color: "#2A2529" }}
+        >
+          {effort.label}
+        </span>
+        <span
+          className="px-2 py-1 text-[10px] font-medium rounded-[6px] uppercase tracking-wide"
+          style={{ backgroundColor: risk.color, color: risk.textColor }}
+        >
+          {risk.label}
+        </span>
+      </div>
+
+      {/* Reasoning Tooltip */}
+      {showingReasoning && (
+        <div className="mb-3 p-3 bg-[#EFEDE6] rounded-[10px] text-[12px] text-[#5C565B] font-['DM_Sans',system-ui,sans-serif]">
+          <div className="flex items-center gap-1 mb-1">
+            <Zap size={12} className="text-[#8B6B3D]" />
+            <span className="font-semibold text-[#2A2529]">Why this?</span>
+          </div>
+          {move.reasoning}
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-3 border-t border-[#E3DED3]">
+        <Badge variant={confidence.variant} size="sm">
+          {confidence.label}
+        </Badge>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onDismiss(cardEl)}
+            className="p-2 text-[#847C82] hover:text-[#8B3D3D] hover:bg-[#F5E6E6] rounded-[8px] transition-colors"
+            title="Dismiss"
+          >
+            <X size={16} />
+          </button>
+          <Button size="sm" onClick={() => onCommit(cardEl)}>
+            Commit
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ACTIVE MOVE CARD
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface ActiveMoveCardProps {
+  move: ActiveMove;
+  daysRemaining: string;
+  onClick: () => void;
+}
+
+function ActiveMoveCard({ move, daysRemaining, onClick }: ActiveMoveCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+
+  // GSAP: Progress bar animation on mount
+  useEffect(() => {
+    if (!progressRef.current) return;
+
+    gsap.fromTo(
+      progressRef.current,
+      { width: "0%" },
+      { width: `${move.progress}%`, duration: 0.8, ease: "power2.out", delay: 0.3 }
+    );
+  }, [move.progress]);
+
+  // GSAP: Card hover
+  const handleMouseEnter = () => {
+    if (!cardRef.current) return;
+    gsap.to(cardRef.current, {
+      y: -2,
+      boxShadow: "0 8px 24px rgba(42, 37, 41, 0.08)",
+      duration: 0.2,
+      ease: "power2.out",
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (!cardRef.current) return;
+    gsap.to(cardRef.current, {
+      y: 0,
+      boxShadow: "0 1px 3px rgba(42, 37, 41, 0.04)",
+      duration: 0.2,
+      ease: "power2.out",
+    });
+  };
+
+  const category = CATEGORY_CONFIG[move.category];
+  
+  const statusVariants: Record<string, { variant: "success" | "warning" | "default" | "info"; label: string; icon: React.ReactNode }> = {
+    active: { variant: "success", label: "Active", icon: <Play size={12} /> },
+    paused: { variant: "warning", label: "Paused", icon: <Pause size={12} /> },
+    completed: { variant: "default", label: "Completed", icon: <CheckCircle2 size={12} /> },
+  };
+  
+  const status = statusVariants[move.status];
+
+  return (
+    <div
+      ref={cardRef}
+      onClick={onClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="bg-[#F7F5EF] border border-[#E3DED3] rounded-[14px] p-5 cursor-pointer transition-colors hover:border-[#D2CCC0]"
+      style={{ boxShadow: "0 1px 3px rgba(42, 37, 41, 0.04)" }}
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Badge variant={status.variant} size="sm">
+            <span className="flex items-center gap-1">
+              {status.icon}
+              {status.label}
+            </span>
+          </Badge>
+          <div
+            className="w-6 h-6 rounded-[6px] flex items-center justify-center"
+            style={{ backgroundColor: `${category.color}15`, color: category.color }}
+          >
+            {category.icon}
+          </div>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+          className="p-2 text-[#847C82] hover:text-[#2A2529] hover:bg-[#EFEDE6] rounded-[8px] transition-colors"
+        >
+          <Eye size={16} />
+        </button>
+      </div>
+
+      {/* Title & Goal */}
+      <h3 className="text-[18px] font-semibold text-[#2A2529] mb-1 font-['DM_Sans',system-ui,sans-serif]">
+        {move.title}
+      </h3>
+      <p className="text-[14px] text-[#5C565B] mb-4 font-['DM_Sans',system-ui,sans-serif] line-clamp-1">
+        {move.goal}
+      </p>
+
+      {/* Progress */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[12px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">Progress</span>
+          <span className="text-[12px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+            {move.progress}%
+          </span>
+        </div>
+        <div className="h-2 bg-[#EFEDE6] rounded-full overflow-hidden">
+          <div
+            ref={progressRef}
+            className="h-full rounded-full transition-all"
+            style={{ 
+              width: "0%",
+              backgroundColor: category.color 
+            }}
+          />
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-
-        {isLoading && (
-          <div className="text-center py-12 text-[var(--muted)]">
-            Loading moves...
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-3 border-t border-[#E3DED3]">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-[12px] text-[#847C82]">
+            <Clock size={14} />
+            <span className="font-['DM_Sans',system-ui,sans-serif]">{daysRemaining}</span>
           </div>
-        )}
-
-        {/* Today's Agenda View */}
-        {!isLoading && activeTab === 'agenda' && (
-          <div className="max-w-3xl">
-            <TodaysAgenda onMoveClick={handleMoveClick} />
+          <div className="flex items-center gap-1.5 text-[12px] text-[#847C82]">
+            <Target size={14} />
+            <span className="font-['DM_Sans',system-ui,sans-serif]">{move.campaignsCount} campaigns</span>
           </div>
-        )}
-
-        {/* Gallery View */}
-        {!isLoading && activeTab === 'gallery' && (
-          <MoveGallery moves={filteredMoves} searchQuery={searchQuery} />
-        )}
-
-        {/* Calendar View */}
-        {!isLoading && activeTab === 'calendar' && (
-          <MovesCalendarPro
-            moves={moves}
-            onMoveClick={handleMoveClick}
-            onCreateMove={() => setIsWizardOpen(true)}
-          />
-        )}
+        </div>
+        <ArrowRight size={16} className="text-[#D2CCC0]" />
       </div>
-
-      {/* Wizard Modal */}
-      <MoveCreateWizard
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
-        onComplete={handleWizardComplete}
-      />
-
-      {/* Move Detail Modal */}
-      <BlueprintModal
-        isOpen={!!selectedMove}
-        onClose={() => {
-          setSelectedMove(null);
-          clearMoveIdFromUrl();
-        }}
-        title={selectedMove?.name || "Move Details"}
-        size="lg"
-      >
-        {selectedMove && <MoveIntelCenter move={selectedMove} />}
-      </BlueprintModal>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MOVE DETAIL MODAL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface MoveDetailModalProps {
+  move: ActiveMove | null;
+  onClose: () => void;
+}
+
+function MoveDetailModal({ move, onClose }: MoveDetailModalProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!move || !contentRef.current) return;
+
+    gsap.fromTo(
+      contentRef.current.children,
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, stagger: 0.05, ease: "power2.out" }
+    );
+  }, [move]);
+
+  if (!move) return null;
+
+  const category = CATEGORY_CONFIG[move.category];
+  
+  const milestones = [
+    { day: 1, title: "Kickoff & Setup", completed: true },
+    { day: 7, title: "First Milestone", completed: move.progress >= 30 },
+    { day: 14, title: "Mid-point Review", completed: move.progress >= 50 },
+    { day: 21, title: "Final Push", completed: move.progress >= 80 },
+    { day: 30, title: "Launch", completed: move.progress >= 100 },
+  ];
+
+  return (
+    <Modal
+      isOpen={!!move}
+      onClose={onClose}
+      title={move.title}
+      size="lg"
+      footer={
+        <div className="flex items-center justify-between w-full">
+          <Button variant="secondary" onClick={onClose}>
+            Close
+          </Button>
+          <div className="flex items-center gap-2">
+            {move.status === "active" ? (
+              <Button variant="secondary" leftIcon={<Pause size={16} />}>
+                Pause
+              </Button>
+            ) : (
+              <Button variant="secondary" leftIcon={<Play size={16} />}>
+                Resume
+              </Button>
+            )}
+            <Button variant="primary">Edit Move</Button>
+          </div>
+        </div>
+      }
+    >
+      <div ref={contentRef} className="space-y-6">
+        {/* Status & Category */}
+        <div className="flex items-center gap-3">
+          <Badge variant={move.status === "active" ? "success" : move.status === "paused" ? "warning" : "default"}>
+            {move.status}
+          </Badge>
+          <Tag active>
+            <span className="flex items-center gap-1.5">
+              {category.icon}
+              {category.label}
+            </span>
+          </Tag>
+        </div>
+
+        {/* Goal */}
+        <div>
+          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-2 font-['DM_Sans',system-ui,sans-serif]">
+            Goal
+          </h4>
+          <p className="text-[16px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+            {move.goal}
+          </p>
+        </div>
+
+        {/* Timeline */}
+        <div>
+          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
+            Timeline
+          </h4>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 px-3 py-2 bg-[#EFEDE6] rounded-[8px]">
+              <CalendarIcon size={16} className="text-[#5C565B]" />
+              <span className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+                {move.startDate.toLocaleDateString()} — {move.endDate.toLocaleDateString()}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 bg-[#EFEDE6] rounded-[8px]">
+              <Clock size={16} className="text-[#5C565B]" />
+              <span className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+                {Math.ceil((move.endDate.getTime() - move.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
+              </span>
+            </div>
+          </div>
+
+          {/* Milestones */}
+          <div className="space-y-2">
+            {milestones.map((milestone, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-3 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3]"
+              >
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    milestone.completed ? "bg-[#3D5A42] text-white" : "bg-[#EFEDE6] text-[#847C82]"
+                  }`}
+                >
+                  {milestone.completed ? <CheckCircle2 size={14} /> : <span className="text-[10px]">{milestone.day}</span>}
+                </div>
+                <span
+                  className={`text-[14px] font-['DM_Sans',system-ui,sans-serif] ${
+                    milestone.completed ? "text-[#2A2529]" : "text-[#847C82]"
+                  }`}
+                >
+                  {milestone.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Linked Campaigns */}
+        <div>
+          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
+            Linked Campaigns ({move.campaignsCount})
+          </h4>
+          <div className="grid grid-cols-1 gap-2">
+            {move.campaignsCount > 0 ? (
+              <>
+                <div className="flex items-center gap-3 p-3 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3] hover:border-[#D2CCC0] cursor-pointer transition-colors">
+                  <Target size={16} className="text-[#5C565B]" />
+                  <span className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+                    Campaign Alpha
+                  </span>
+                  <ArrowRight size={14} className="ml-auto text-[#847C82]" />
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3] hover:border-[#D2CCC0] cursor-pointer transition-colors">
+                  <Target size={16} className="text-[#5C565B]" />
+                  <span className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+                    Campaign Beta
+                  </span>
+                  <ArrowRight size={14} className="ml-auto text-[#847C82]" />
+                </div>
+              </>
+            ) : (
+              <div className="p-4 text-center border border-dashed border-[#D2CCC0] rounded-[10px]">
+                <p className="text-[14px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">
+                  No campaigns linked yet
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Evidence Panel */}
+        <div>
+          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
+            Evidence
+          </h4>
+          <div className="p-4 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3]">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-[8px] bg-[#E6F0F5] flex items-center justify-center shrink-0">
+                <TrendingUp size={16} className="text-[#3D5A6B]" />
+              </div>
+              <div>
+                <p className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif] mb-1">
+                  Progress tracking active
+                </p>
+                <p className="text-[12px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">
+                  {move.progress}% complete — {move.progress > 50 ? "On track" : "Just started"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Assumptions Panel */}
+        <div>
+          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
+            Key Assumptions
+          </h4>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-[14px] text-[#5C565B] font-['DM_Sans',system-ui,sans-serif]">
+              <AlertTriangle size={14} className="text-[#8B6B3D]" />
+              <span>Target audience engagement rate stays above 3%</span>
+            </div>
+            <div className="flex items-center gap-2 text-[14px] text-[#5C565B] font-['DM_Sans',system-ui,sans-serif]">
+              <AlertTriangle size={14} className="text-[#8B6B3D]" />
+              <span>Content production capacity remains consistent</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Modal>
   );
 }

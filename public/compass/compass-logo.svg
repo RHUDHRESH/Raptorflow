@@ -1,0 +1,37 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for gradients -->
+  <defs>
+    <linearGradient id="charcoalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3d363b"/>
+      <stop offset="100%" style="stop-color:#2A2529"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer ring -->
+  <circle cx="100" cy="100" r="90" stroke="#2A2529" stroke-width="4" fill="none"/>
+  
+  <!-- Inner decorative ring -->
+  <circle cx="100" cy="100" r="75" stroke="#2A2529" stroke-width="1.5" stroke-opacity="0.15" fill="none" stroke-dasharray="6 6"/>
+  
+  <!-- Inner second ring -->
+  <circle cx="100" cy="100" r="60" stroke="#2A2529" stroke-width="1" stroke-opacity="0.1" fill="none"/>
+  
+  <!-- Cardinal markers -->
+  <line x1="100" y1="15" x2="100" y2="30" stroke="#2A2529" stroke-width="4" stroke-linecap="round" stroke-opacity="0.7"/>
+  <line x1="185" y1="100" x2="170" y2="100" stroke="#2A2529" stroke-width="3" stroke-linecap="round" stroke-opacity="0.4"/>
+  <line x1="100" y1="185" x2="100" y2="170" stroke="#2A2529" stroke-width="3" stroke-linecap="round" stroke-opacity="0.4"/>
+  <line x1="15" y1="100" x2="30" y2="100" stroke="#2A2529" stroke-width="3" stroke-linecap="round" stroke-opacity="0.4"/>
+  
+  <!-- The Needle - Modern minimalist single pointer, thicker body -->
+  <path d="M100 25L112 100L100 160L88 100L100 25Z" fill="url(#charcoalGradient)"/>
+  
+  <!-- Center pivot -->
+  <circle cx="100" cy="100" r="16" fill="#F3F0E7" stroke="#2A2529" stroke-width="3"/>
+  <circle cx="100" cy="100" r="8" fill="#2A2529"/>
+  <circle cx="100" cy="100" r="3" fill="#F3F0E7"/>
+  
+  <!-- Text: RaptorFlow -->
+  <text x="100" y="195" font-family="DM Sans, system-ui, sans-serif" font-size="14" font-weight="600" fill="#2A2529" text-anchor="middle" letter-spacing="0.15em" opacity="0.8">
+    RAPTORFLOW
+  </text>
+</svg>

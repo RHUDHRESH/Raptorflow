@@ -1,239 +1,319 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { notify } from "@/lib/notifications";
+import { useEffect, useState, useCallback } from "react";
+import { gsap } from "gsap";
+import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
-import {
-  workspacesService,
-  type OnboardingStep,
-} from "@/services/workspaces.service";
+import { workspacesService } from "@/services/workspaces.service";
+import { notify } from "@/lib/notifications";
+import { PageCompanyName } from "@/components/onboarding/pages/PageCompanyName";
+import { PageCompanyWebsite } from "@/components/onboarding/pages/PageCompanyWebsite";
+import { PageIndustry } from "@/components/onboarding/pages/PageIndustry";
+import { PageBusinessStage } from "@/components/onboarding/pages/PageBusinessStage";
+import { PageCompanyDescription } from "@/components/onboarding/pages/PageCompanyDescription";
+import { PagePrimaryOffer } from "@/components/onboarding/pages/PagePrimaryOffer";
+import { PageCoreProblem } from "@/components/onboarding/pages/PageCoreProblem";
+import { PageIdealCustomerTitle } from "@/components/onboarding/pages/PageIdealCustomerTitle";
+import { PageIdealCustomerProfile } from "@/components/onboarding/pages/PageIdealCustomerProfile";
+import { PageTopPainPoints } from "@/components/onboarding/pages/PageTopPainPoints";
 
-const SPLIT_RE = /[\n,;]+/g;
+// All 21 onboarding fields
+const ONBOARDING_FIELDS = [
+  { id: "company_name", required: true },
+  { id: "company_website", required: false },
+  { id: "industry", required: true },
+  { id: "business_stage", required: true },
+  { id: "company_description", required: true },
+  { id: "primary_offer", required: true },
+  { id: "core_problem", required: true },
+  { id: "ideal_customer_title", required: true },
+  { id: "ideal_customer_profile", required: true },
+  { id: "top_pain_points", required: true },
+  { id: "top_goals", required: true },
+  { id: "key_differentiator", required: true },
+  { id: "competitors", required: true },
+  { id: "brand_tone", required: true },
+  { id: "banned_phrases", required: false },
+  { id: "channel_priorities", required: true },
+  { id: "geographic_focus", required: false },
+  { id: "pricing_model", required: false },
+  { id: "proof_points", required: false },
+  { id: "acquisition_goal", required: true },
+  { id: "constraints_and_guardrails", required: true },
+];
 
-function toTextValue(value: unknown, kind: OnboardingStep["kind"]): string {
-  if (kind === "list") {
-    if (Array.isArray(value)) {
-      return value.map((item) => String(item).trim()).filter(Boolean).join("\n");
-    }
-    return typeof value === "string" ? value : "";
-  }
-  return value == null ? "" : String(value);
-}
-
-function toPayloadValue(rawValue: string, kind: OnboardingStep["kind"]): string | string[] {
-  if (kind !== "list") {
-    return rawValue.trim();
-  }
-  return rawValue
-    .split(SPLIT_RE)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function hasAnswer(rawValue: string, kind: OnboardingStep["kind"]): boolean {
-  if (kind !== "list") {
-    return rawValue.trim().length > 0;
-  }
-  return rawValue
-    .split(SPLIT_RE)
-    .map((item) => item.trim())
-    .filter(Boolean).length > 0;
-}
+// Initial form state
+const INITIAL_DATA: Record<string, string> = {
+  company_name: "",
+  company_website: "",
+  industry: "",
+  business_stage: "",
+  company_description: "",
+  primary_offer: "",
+  core_problem: "",
+  ideal_customer_title: "",
+  ideal_customer_profile: "",
+  top_pain_points: "",
+  top_goals: "",
+  key_differentiator: "",
+  competitors: "",
+  brand_tone: "",
+  banned_phrases: "",
+  channel_priorities: "",
+  geographic_focus: "",
+  pricing_model: "",
+  proof_points: "",
+  acquisition_goal: "",
+  constraints_and_guardrails: "",
+};
 
 export default function OnboardingPage() {
-  const { workspaceId, workspace, onboardingStatus, refreshOnboarding } = useWorkspace();
-  const [steps, setSteps] = useState<OnboardingStep[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [isLoadingSteps, setIsLoadingSteps] = useState(true);
+  const router = useRouter();
+  const { workspaceId, refreshOnboarding } = useWorkspace();
+  const [currentPage, setCurrentPage] = useState(0);
+  const [formData, setFormData] = useState(INITIAL_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isHydratedFromStatus, setIsHydratedFromStatus] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  const totalPages = ONBOARDING_FIELDS.length;
+  const currentField = ONBOARDING_FIELDS[currentPage];
+
+  // Check if onboarding is already complete
   useEffect(() => {
-    let mounted = true;
-    async function loadSteps() {
-      setIsLoadingSteps(true);
-      setError(null);
-      try {
-        const response = await workspacesService.getOnboardingSteps();
-        if (!mounted) return;
-        setSteps(response.steps || []);
-      } catch (e: any) {
-        if (!mounted) return;
-        setError(e?.message || "Failed to load onboarding schema");
-      } finally {
-        if (mounted) setIsLoadingSteps(false);
+    const checkStatus = async () => {
+      if (!workspaceId) {
+        setIsLoading(false);
+        return;
       }
-    }
-    void loadSteps();
-    return () => {
-      mounted = false;
+
+      try {
+        const status = await workspacesService.getOnboardingStatus(workspaceId);
+        if (status.completed) {
+          router.push("/");
+          return;
+        }
+
+        // Pre-fill any existing answers
+        if (status.answers && Object.keys(status.answers).length > 0) {
+          const prefilled: Record<string, string> = {};
+          Object.entries(status.answers).forEach(([key, val]) => {
+            if (Array.isArray(val)) {
+              prefilled[key] = val.join(", ");
+            } else if (typeof val === "string") {
+              prefilled[key] = val;
+            }
+          });
+          setFormData((prev) => ({ ...prev, ...prefilled }));
+
+          // Jump to first empty required field
+          const firstEmptyIndex = ONBOARDING_FIELDS.findIndex(
+            (f) => f.required && !prefilled[f.id]
+          );
+          if (firstEmptyIndex > 0) {
+            setCurrentPage(firstEmptyIndex);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check onboarding status:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
+
+    checkStatus();
+  }, [workspaceId, router]);
+
+  // Handle field changes
+  const updateField = useCallback((fieldId: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [fieldId]: value,
+    }));
   }, []);
 
-  useEffect(() => {
-    if (isHydratedFromStatus) return;
-    if (!steps.length) return;
-
-    const statusAnswers = onboardingStatus?.answers || {};
-    const seeded: Record<string, string> = {};
-    for (const step of steps) {
-      seeded[step.id] = toTextValue(statusAnswers[step.id], step.kind);
+  // Navigation handlers with animations
+  const goToNext = useCallback(() => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage((prev) => prev + 1);
+    } else {
+      // Complete onboarding
+      handleComplete();
     }
-    setAnswers(seeded);
-    setIsHydratedFromStatus(true);
-  }, [onboardingStatus?.answers, steps, isHydratedFromStatus]);
+  }, [currentPage, totalPages]);
 
-  const missingRequired = useMemo(() => {
-    const missing: string[] = [];
-    for (const step of steps) {
-      if (!step.required) continue;
-      if (!hasAnswer(answers[step.id] || "", step.kind)) {
-        missing.push(step.id);
-      }
+  const goToPrev = useCallback(() => {
+    if (currentPage > 0) {
+      setCurrentPage((prev) => prev - 1);
     }
-    return missing;
-  }, [answers, steps]);
+  }, [currentPage]);
 
-  const completionPct = onboardingStatus?.completion_pct ?? 0;
+  // Submit onboarding
+  const handleComplete = useCallback(async () => {
+    if (!workspaceId) {
+      notify.error("No workspace selected");
+      return;
+    }
 
-  async function submitOnboarding() {
-    if (!workspaceId) return;
     setIsSubmitting(true);
-    setError(null);
+
     try {
-      const payloadAnswers: Record<string, unknown> = {};
-      for (const step of steps) {
-        const rawValue = answers[step.id] || "";
-        payloadAnswers[step.id] = toPayloadValue(rawValue, step.kind);
-      }
+      // Convert form data to proper format
+      const payloadAnswers: Record<string, string | string[]> = {};
+      
+      Object.entries(formData).forEach(([key, value]) => {
+        const listFields = [
+          "top_pain_points",
+          "top_goals",
+          "competitors",
+          "brand_tone",
+          "banned_phrases",
+          "channel_priorities",
+          "proof_points",
+          "constraints_and_guardrails",
+        ];
+        
+        if (listFields.includes(key)) {
+          payloadAnswers[key] = value
+            .split(/[\n,;]+/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+        } else {
+          payloadAnswers[key] = value;
+        }
+      });
 
       await workspacesService.completeOnboarding(workspaceId, {
         answers: payloadAnswers,
       });
+
       await refreshOnboarding();
-      notify.success("Onboarding completed. BCM generated and activated.");
-    } catch (e: any) {
-      const message = e?.message || "Failed to complete onboarding";
-      setError(message);
-      notify.error(message);
-    } finally {
+
+      notify.success("Welcome to RaptorFlow! Your marketing foundation is ready.");
+
+      // Redirect to success page
+      router.push("/onboarding/success");
+    } catch (error: any) {
+      notify.error(error?.message || "Failed to complete onboarding");
       setIsSubmitting(false);
     }
-  }
+  }, [workspaceId, formData, refreshOnboarding, router]);
 
-  if (isLoadingSteps) {
+  // Loading state
+  if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-8 py-10">
-        <p className="text-sm text-[var(--ink-muted)]">Loading onboarding workflow...</p>
+      <div className="min-h-screen bg-[var(--bg-canvas)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-2 border-[var(--border-2)] border-t-[var(--rf-charcoal)] rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-[var(--ink-3)]">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="max-w-4xl mx-auto px-8 py-10 space-y-8">
-      <header className="space-y-2">
-        <h1 className="font-serif text-3xl text-[var(--ink)]">BCM Onboarding</h1>
-        <p className="text-sm text-[var(--ink-muted)]">
-          Complete this once to generate canonical <span className="font-mono">business_context.json</span>
-          {" "}and seed the workspace BCM through LangGraph.
-        </p>
-        <div className="text-xs text-[var(--ink-muted)]">
-          Workspace: <span className="font-mono text-[var(--ink)]">{workspace?.name || workspaceId || "unknown"}</span>
-        </div>
-      </header>
+  // Render appropriate page based on current field
+  const renderPage = () => {
+    const commonProps = {
+      totalPages,
+      currentPage: currentPage + 1,
+      onNext: goToNext,
+      onBack: currentPage > 0 ? goToPrev : undefined,
+    };
 
-      <section className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--paper)] p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[var(--ink)]">Completion</span>
-          <span className="text-xs text-[var(--ink-muted)]">{completionPct}%</span>
-        </div>
-        <div className="h-2 rounded-full bg-[var(--surface)] overflow-hidden">
-          <div
-            className="h-full bg-[var(--ink)] transition-all"
-            style={{ width: `${Math.max(0, Math.min(100, completionPct))}%` }}
+    switch (currentField.id) {
+      case "company_name":
+        return (
+          <PageCompanyName
+            value={formData.company_name}
+            onChange={(val) => updateField("company_name", val)}
+            {...commonProps}
           />
-        </div>
-        <p className="text-xs text-[var(--ink-muted)]">
-          Required missing: {missingRequired.length}
-        </p>
-      </section>
-
-      <section className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--paper)] p-5 space-y-6">
-        {steps.map((step, index) => (
-          <div key={step.id} className="space-y-2">
-            <label className="block space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-[var(--ink-muted)]">STEP {String(index + 1).padStart(2, "0")}</span>
-                {step.required ? (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-[var(--border)] text-[var(--ink-muted)]">
-                    REQUIRED
-                  </span>
-                ) : (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-[var(--border)] text-[var(--ink-muted)]">
-                    OPTIONAL
-                  </span>
-                )}
-              </div>
-              <div className="text-sm font-medium text-[var(--ink)]">{step.label}</div>
-              <div className="text-xs text-[var(--ink-muted)]">{step.description}</div>
-            </label>
-
-            {step.kind === "long_text" || step.kind === "list" ? (
-              <textarea
-                rows={step.kind === "list" ? 3 : 5}
-                value={answers[step.id] || ""}
-                onChange={(event) =>
-                  setAnswers((prev) => ({
-                    ...prev,
-                    [step.id]: event.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
-                placeholder={step.placeholder || ""}
-              />
-            ) : (
-              <input
-                type={step.kind === "url" ? "url" : "text"}
-                value={answers[step.id] || ""}
-                onChange={(event) =>
-                  setAnswers((prev) => ({
-                    ...prev,
-                    [step.id]: event.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
-                placeholder={step.placeholder || ""}
-              />
-            )}
-
-            {step.kind === "list" ? (
-              <p className="text-[11px] text-[var(--ink-muted)]">
-                Use comma, semicolon, or newline-separated values.
-              </p>
-            ) : null}
+        );
+      case "company_website":
+        return (
+          <PageCompanyWebsite
+            value={formData.company_website}
+            onChange={(val) => updateField("company_website", val)}
+            {...commonProps}
+          />
+        );
+      case "industry":
+        return (
+          <PageIndustry
+            value={formData.industry}
+            onChange={(val) => updateField("industry", val)}
+            {...commonProps}
+          />
+        );
+      case "business_stage":
+        return (
+          <PageBusinessStage
+            value={formData.business_stage}
+            onChange={(val) => updateField("business_stage", val)}
+            {...commonProps}
+          />
+        );
+      case "company_description":
+        return (
+          <PageCompanyDescription
+            value={formData.company_description}
+            onChange={(val) => updateField("company_description", val)}
+            {...commonProps}
+          />
+        );
+      case "primary_offer":
+        return (
+          <PagePrimaryOffer
+            value={formData.primary_offer}
+            onChange={(val) => updateField("primary_offer", val)}
+            {...commonProps}
+          />
+        );
+      case "core_problem":
+        return (
+          <PageCoreProblem
+            value={formData.core_problem}
+            onChange={(val) => updateField("core_problem", val)}
+            {...commonProps}
+          />
+        );
+      case "ideal_customer_title":
+        return (
+          <PageIdealCustomerTitle
+            value={formData.ideal_customer_title}
+            onChange={(val) => updateField("ideal_customer_title", val)}
+            {...commonProps}
+          />
+        );
+      case "ideal_customer_profile":
+        return (
+          <PageIdealCustomerProfile
+            value={formData.ideal_customer_profile}
+            onChange={(val) => updateField("ideal_customer_profile", val)}
+            {...commonProps}
+          />
+        );
+      case "top_pain_points":
+        return (
+          <PageTopPainPoints
+            value={formData.top_pain_points}
+            onChange={(val) => updateField("top_pain_points", val)}
+            {...commonProps}
+          />
+        );
+      default:
+        return (
+          <div className="min-h-screen flex items-center justify-center">
+            <p className="text-[var(--ink-3)]">
+              Page for {currentField.id} coming soon...
+            </p>
           </div>
-        ))}
-      </section>
+        );
+    }
+  };
 
-      {error ? (
-        <section className="rounded-[var(--radius-lg)] border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-700">
-          {error}
-        </section>
-      ) : null}
-
-      <footer className="flex items-center gap-3">
-        <button
-          onClick={() => void submitOnboarding()}
-          disabled={isSubmitting || !workspaceId}
-          className="px-5 py-2 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium disabled:opacity-50"
-        >
-          {isSubmitting ? "Generating BCM..." : "Complete Onboarding and Seed BCM"}
-        </button>
-        <span className="text-xs text-[var(--ink-muted)]">
-          This writes onboarding settings, business context, and BCM manifests.
-        </span>
-      </footer>
+  return (
+    <div className="relative">
+      {renderPage()}
     </div>
   );
 }

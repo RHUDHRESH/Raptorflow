@@ -1,382 +1,862 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Edit3, Plus, Search, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { Layout } from "@/components/raptor/shell/Layout";
+import { Card } from "@/components/raptor/ui/Card";
+import { Button } from "@/components/raptor/ui/Button";
+import { Badge } from "@/components/raptor/ui/Badge";
+import { Progress } from "@/components/raptor/ui/Progress";
+import { Table, type Column } from "@/components/raptor/ui/Table";
+import { Tabs } from "@/components/raptor/ui/Tabs";
+import {
+  Megaphone,
+  Target,
+  CheckCircle2,
+  Clock,
+  TrendingUp,
+  AlertCircle,
+  Plus,
+  Filter,
+  MoreHorizontal,
+  ArrowRight,
+  Link as LinkIcon,
+  ChevronDown,
+  ChevronUp,
+  LayoutGrid,
+  List,
+  CalendarDays,
+} from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { notify } from "@/lib/notifications";
-import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
-import { useCampaignStore, type Campaign } from "@/stores/campaignStore";
-import { useBCMStore } from "@/stores/bcmStore";
-import { BlueprintCard } from "@/components/ui/BlueprintCard";
-import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
-import { BlueprintModal } from "@/components/ui/BlueprintModal";
+// ═══════════════════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
 
-const OBJECTIVES = [
-  { value: "acquire", label: "Acquire" },
-  { value: "convert", label: "Convert" },
-  { value: "launch", label: "Launch" },
-  { value: "proof", label: "Proof" },
-  { value: "retain", label: "Retain" },
-  { value: "reposition", label: "Reposition" },
+interface Phase {
+  id: string;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  status: "pending" | "active" | "completed";
+}
+
+interface Task {
+  id: string;
+  title: string;
+  phaseId: string;
+  status: "todo" | "in-progress" | "done";
+  assignedTo?: string;
+  dueDate?: Date;
+  hypothesis?: string;
+}
+
+interface Campaign {
+  id: string;
+  name: string;
+  moveId: string;
+  moveName: string;
+  status: "draft" | "active" | "paused" | "completed";
+  objective: string;
+  metric: {
+    name: string;
+    target: number;
+    current: number;
+    unit: string;
+  };
+  timeline: {
+    startDate: Date;
+    endDate: Date;
+    phases: Phase[];
+  };
+  tasks: Task[];
+  hypothesis: string;
+  deadline: Date;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const mockCampaigns: Campaign[] = [
+  {
+    id: "camp-1",
+    name: "Content Sprint Q1",
+    moveId: "move-1",
+    moveName: "Q1 Content Sprint",
+    status: "active",
+    objective: "Generate 200 qualified leads through content",
+    metric: {
+      name: "Qualified Leads",
+      target: 200,
+      current: 156,
+      unit: "leads",
+    },
+    timeline: {
+      startDate: new Date("2024-01-01"),
+      endDate: new Date("2024-03-31"),
+      phases: [
+        { id: "p1", name: "Setup", startDate: new Date("2024-01-01"), endDate: new Date("2024-01-14"), status: "completed" },
+        { id: "p2", name: "Content", startDate: new Date("2024-01-15"), endDate: new Date("2024-02-15"), status: "completed" },
+        { id: "p3", name: "Distribution", startDate: new Date("2024-02-16"), endDate: new Date("2024-03-15"), status: "active" },
+        { id: "p4", name: "Analysis", startDate: new Date("2024-03-16"), endDate: new Date("2024-03-31"), status: "pending" },
+      ],
+    },
+    tasks: [
+      { id: "t1", title: "Create content calendar", phaseId: "p1", status: "done" },
+      { id: "t2", title: "Write 5 blog posts", phaseId: "p2", status: "done" },
+      { id: "t3", title: "Schedule social posts", phaseId: "p3", status: "in-progress" },
+      { id: "t4", title: "Analyze performance", phaseId: "p4", status: "todo" },
+    ],
+    hypothesis: "Consistent content output drives organic lead generation",
+    deadline: new Date("2024-03-31"),
+  },
+  {
+    id: "camp-2",
+    name: "Enterprise Trial Optimization",
+    moveId: "move-2",
+    moveName: "Enterprise Trial Flow",
+    status: "active",
+    objective: "Reduce trial-to-paid conversion time by 50%",
+    metric: {
+      name: "Time to Convert",
+      target: 14,
+      current: 21,
+      unit: "days",
+    },
+    timeline: {
+      startDate: new Date("2024-02-01"),
+      endDate: new Date("2024-04-15"),
+      phases: [
+        { id: "p1", name: "Research", startDate: new Date("2024-02-01"), endDate: new Date("2024-02-15"), status: "completed" },
+        { id: "p2", name: "Design", startDate: new Date("2024-02-16"), endDate: new Date("2024-03-01"), status: "active" },
+        { id: "p3", name: "Build", startDate: new Date("2024-03-02"), endDate: new Date("2024-03-31"), status: "pending" },
+        { id: "p4", name: "Launch", startDate: new Date("2024-04-01"), endDate: new Date("2024-04-15"), status: "pending" },
+      ],
+    },
+    tasks: [
+      { id: "t1", title: "Interview 10 trial users", phaseId: "p1", status: "done" },
+      { id: "t2", title: "Design new onboarding flow", phaseId: "p2", status: "in-progress" },
+      { id: "t3", title: "Implement new flow", phaseId: "p3", status: "todo" },
+      { id: "t4", title: "A/B test against control", phaseId: "p4", status: "todo" },
+    ],
+    hypothesis: "Guided onboarding reduces time-to-value",
+    deadline: new Date("2024-04-15"),
+  },
+  {
+    id: "camp-3",
+    name: "Product Hunt Launch",
+    moveId: "move-3",
+    moveName: "PH Launch Strategy",
+    status: "draft",
+    objective: "Reach #1 Product of the Day",
+    metric: {
+      name: "Upvotes",
+      target: 1000,
+      current: 0,
+      unit: "upvotes",
+    },
+    timeline: {
+      startDate: new Date("2024-03-01"),
+      endDate: new Date("2024-04-30"),
+      phases: [
+        { id: "p1", name: "Prep", startDate: new Date("2024-03-01"), endDate: new Date("2024-03-31"), status: "pending" },
+        { id: "p2", name: "Pre-launch", startDate: new Date("2024-04-01"), endDate: new Date("2024-04-14"), status: "pending" },
+        { id: "p3", name: "Launch", startDate: new Date("2024-04-15"), endDate: new Date("2024-04-16"), status: "pending" },
+        { id: "p4", name: "Follow-up", startDate: new Date("2024-04-17"), endDate: new Date("2024-04-30"), status: "pending" },
+      ],
+    },
+    tasks: [
+      { id: "t1", title: "Create maker profile", phaseId: "p1", status: "todo" },
+      { id: "t2", title: "Prepare demo video", phaseId: "p1", status: "todo" },
+      { id: "t3", title: "Build hunter list", phaseId: "p2", status: "todo" },
+      { id: "t4", title: "Launch day monitoring", phaseId: "p3", status: "todo" },
+    ],
+    hypothesis: "PH visibility drives early adopter acquisition",
+    deadline: new Date("2024-04-30"),
+  },
+  {
+    id: "camp-4",
+    name: "Email Nurture Sequence",
+    moveId: "move-4",
+    moveName: "Email Automation",
+    status: "completed",
+    objective: "Increase trial activation rate by 25%",
+    metric: {
+      name: "Activation Rate",
+      target: 45,
+      current: 48,
+      unit: "%",
+    },
+    timeline: {
+      startDate: new Date("2023-11-01"),
+      endDate: new Date("2024-01-31"),
+      phases: [
+        { id: "p1", name: "Research", startDate: new Date("2023-11-01"), endDate: new Date("2023-11-15"), status: "completed" },
+        { id: "p2", name: "Copy", startDate: new Date("2023-11-16"), endDate: new Date("2023-12-15"), status: "completed" },
+        { id: "p3", name: "Build", startDate: new Date("2023-12-16"), endDate: new Date("2024-01-15"), status: "completed" },
+        { id: "p4", name: "Deploy", startDate: new Date("2024-01-16"), endDate: new Date("2024-01-31"), status: "completed" },
+      ],
+    },
+    tasks: [
+      { id: "t1", title: "Map user journey", phaseId: "p1", status: "done" },
+      { id: "t2", title: "Write email sequences", phaseId: "p2", status: "done" },
+      { id: "t3", title: "Configure automation", phaseId: "p3", status: "done" },
+      { id: "t4", title: "Monitor metrics", phaseId: "p4", status: "done" },
+    ],
+    hypothesis: "Targeted onboarding emails improve activation",
+    deadline: new Date("2024-01-31"),
+  },
+  {
+    id: "camp-5",
+    name: "Partner Integration Push",
+    moveId: "move-5",
+    moveName: "Partner Strategy",
+    status: "paused",
+    objective: "Launch 3 key integrations",
+    metric: {
+      name: "Integrations",
+      target: 3,
+      current: 1,
+      unit: "integrations",
+    },
+    timeline: {
+      startDate: new Date("2024-01-15"),
+      endDate: new Date("2024-06-30"),
+      phases: [
+        { id: "p1", name: "Outreach", startDate: new Date("2024-01-15"), endDate: new Date("2024-02-28"), status: "completed" },
+        { id: "p2", name: "Negotiation", startDate: new Date("2024-03-01"), endDate: new Date("2024-04-15"), status: "completed" },
+        { id: "p3", name: "Development", startDate: new Date("2024-04-16"), endDate: new Date("2024-06-15"), status: "active" },
+        { id: "p4", name: "Launch", startDate: new Date("2024-06-16"), endDate: new Date("2024-06-30"), status: "pending" },
+      ],
+    },
+    tasks: [
+      { id: "t1", title: "Identify target partners", phaseId: "p1", status: "done" },
+      { id: "t2", title: "Draft partnership terms", phaseId: "p2", status: "done" },
+      { id: "t3", title: "Build Slack integration", phaseId: "p3", status: "in-progress" },
+      { id: "t4", title: "Launch partner program", phaseId: "p4", status: "todo" },
+    ],
+    hypothesis: "Strategic integrations expand addressable market",
+    deadline: new Date("2024-06-30"),
+  },
 ];
 
-const STATUSES = [
-  { value: "planned", label: "Planned" },
-  { value: "active", label: "Active" },
-  { value: "paused", label: "Paused" },
-  { value: "wrapup", label: "Wrap-up" },
-  { value: "archived", label: "Archived" },
-];
+// ═══════════════════════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════════════════════
 
-function statusVariant(status: string): "default" | "success" | "warning" | "info" {
-  switch ((status || "").toLowerCase()) {
+function getStatusVariant(status: string): "default" | "success" | "warning" | "error" | "info" {
+  switch (status) {
     case "active":
       return "success";
-    case "paused":
-    case "wrapup":
-      return "warning";
-    case "planned":
+    case "completed":
       return "info";
-    case "archived":
+    case "paused":
+      return "warning";
+    case "draft":
+      return "default";
     default:
       return "default";
   }
 }
 
-function statusLabel(status: string): string {
-  const found = STATUSES.find((s) => s.value === (status || "").toLowerCase());
-  return found?.label || (status || "unknown");
+function calculateProgress(campaign: Campaign): number {
+  const completedPhases = campaign.timeline.phases.filter((p) => p.status === "completed").length;
+  return Math.round((completedPhases / campaign.timeline.phases.length) * 100);
 }
 
-export default function CampaignsPage() {
-  const router = useRouter();
-  const { workspaceId } = useWorkspace();
-  const { manifest: bcm, fetchBCM } = useBCMStore();
-  const {
-    campaigns,
-    isLoading,
-    error,
-    clearError,
-    fetchCampaigns,
-    createCampaign,
-    updateCampaign,
-    deleteCampaign,
-  } = useCampaignStore();
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Campaign | null>(null);
+function getDaysUntil(date: Date): number {
+  const now = new Date();
+  const diff = date.getTime() - now.getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
 
-  const [title, setTitle] = useState("");
-  const [objective, setObjective] = useState("acquire");
-  const [status, setStatus] = useState("active");
-  const [description, setDescription] = useState("");
+// ═══════════════════════════════════════════════════════════════════════════════
+// COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function PhaseIndicator({ phases, activePhase }: { phases: Phase[]; activePhase: string }) {
+  const pulseRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!workspaceId) return;
-    fetchCampaigns(workspaceId);
-    fetchBCM(workspaceId);
-  }, [workspaceId, fetchCampaigns, fetchBCM]);
-
-  const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return campaigns;
-    return campaigns.filter((c) => {
-      return (
-        c.title.toLowerCase().includes(q) ||
-        (c.description || "").toLowerCase().includes(q) ||
-        (c.objective || "").toLowerCase().includes(q)
-      );
-    });
-  }, [campaigns, searchQuery]);
-
-  function openCreate() {
-    clearError();
-    setEditing(null);
-    setTitle("");
-    setObjective("acquire");
-    setStatus("active");
-    setDescription("");
-    setIsModalOpen(true);
-  }
-
-  function openEdit(campaign: Campaign) {
-    clearError();
-    setEditing(campaign);
-    setTitle(campaign.title);
-    setObjective((campaign.objective || "acquire").toLowerCase());
-    setStatus((campaign.status || "active").toLowerCase());
-    setDescription(campaign.description || "");
-    setIsModalOpen(true);
-  }
-
-  async function submit() {
-    if (!workspaceId) {
-      notify.error("Workspace not initialized yet");
-      return;
-    }
-
-    const name = title.trim();
-    if (!name) {
-      notify.error("Campaign name is required");
-      return;
-    }
-
-    try {
-      if (editing) {
-        await updateCampaign(workspaceId, editing.id, {
-          name,
-          objective,
-          status,
-          description: description.trim() || undefined,
-        });
-        notify.success("Campaign updated");
-        setIsModalOpen(false);
-        return;
-      }
-
-      const created = await createCampaign(workspaceId, {
-        name,
-        objective,
-        status,
-        description: description.trim() || undefined,
+    if (pulseRef.current) {
+      gsap.to(pulseRef.current, {
+        scale: 1.2,
+        opacity: 0.5,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "power1.inOut",
       });
-      notify.success("Campaign created");
-      setIsModalOpen(false);
-      router.push(`/campaigns/${created.id}`);
-    } catch (e: any) {
-      notify.error(e?.message || "Request failed");
     }
-  }
-
-  async function removeCampaign(campaign: Campaign) {
-    if (!workspaceId) return;
-    if (!window.confirm(`Delete campaign "${campaign.title}"? This cannot be undone.`)) return;
-    try {
-      await deleteCampaign(workspaceId, campaign.id);
-      notify.success("Campaign deleted");
-    } catch (e: any) {
-      notify.error(e?.message || "Delete failed");
-    }
-  }
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--canvas)]">
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-        <header className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="font-serif text-3xl text-[var(--ink)]">Campaigns</h1>
-            <p className="text-sm text-[var(--muted)]">
-              Real campaigns, persisted to the database. No paywalls.
-            </p>
-            {bcm?.competitive?.category && (
-              <p className="text-xs text-[var(--muted)] mt-1">
-                Category: <span className="font-medium">{bcm.competitive.category}</span>
-                {bcm.competitive.alternatives?.length > 0 && (
-                  <span> · vs {bcm.competitive.alternatives.map(a => a.name).join(", ")}</span>
+    <div className="flex items-center gap-1">
+      {phases.map((phase, index) => {
+        const isCompleted = phase.status === "completed";
+        const isActive = phase.status === "active";
+        const isLast = index === phases.length - 1;
+
+        return (
+          <div key={phase.id} className="flex items-center">
+            <div className="flex flex-col items-center gap-1">
+              <div
+                className={`
+                  relative w-3 h-3 rounded-full border-2 transition-all duration-300
+                  ${isCompleted ? "bg-[#2A2529] border-[#2A2529]" : ""}
+                  ${isActive ? "bg-[#2A2529] border-[#2A2529]" : ""}
+                  ${!isCompleted && !isActive ? "bg-transparent border-[#D2CCC0]" : ""}
+                `}
+              >
+                {isActive && (
+                  <div
+                    ref={pulseRef}
+                    className="absolute inset-0 rounded-full bg-[#2A2529] opacity-30"
+                  />
                 )}
-              </p>
+                {isCompleted && (
+                  <svg
+                    className="absolute inset-0 w-full h-full p-0.5 text-[#F3F0E7]"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                  >
+                    <path
+                      d="M2 6L5 9L10 3"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+              <span className="text-[10px] text-[#847C82] font-medium whitespace-nowrap">
+                {phase.name}
+              </span>
+            </div>
+            {!isLast && (
+              <div
+                className={`
+                  w-6 h-0.5 mx-1 transition-all duration-300
+                  ${isCompleted ? "bg-[#2A2529]" : "bg-[#E3DED3]"}
+                `}
+              />
             )}
           </div>
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium hover:bg-[var(--ink)]/90"
-          >
-            <Plus className="w-4 h-4" />
-            New Campaign
-          </button>
-        </header>
+        );
+      })}
+    </div>
+  );
+}
 
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search campaigns..."
-              className="w-full h-10 pl-9 pr-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--paper)] text-sm text-[var(--ink)]"
+function TaskCheckbox({
+  task,
+  onToggle,
+}: {
+  task: Task;
+  onToggle: (taskId: string) => void;
+}) {
+  const checkRef = useRef<SVGSVGElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (task.status === "done" && checkRef.current) {
+      gsap.fromTo(
+        checkRef.current,
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.7)" }
+      );
+    }
+  }, [task.status]);
+
+  const isDone = task.status === "done";
+
+  return (
+    <label className="flex items-center gap-3 cursor-pointer group py-2">
+      <div
+        className={`
+          relative w-5 h-5 rounded border-2 flex items-center justify-center
+          transition-all duration-200
+          ${isDone ? "bg-[#2A2529] border-[#2A2529]" : "bg-transparent border-[#D2CCC0] group-hover:border-[#2A2529]"}
+        `}
+        onClick={() => onToggle(task.id)}
+      >
+        {isDone && (
+          <svg
+            ref={checkRef}
+            className="w-3 h-3 text-[#F3F0E7]"
+            viewBox="0 0 12 12"
+            fill="none"
+          >
+            <path
+              d="M2 6L5 9L10 3"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
-          </div>
-          <button
-            onClick={() => workspaceId && fetchCampaigns(workspaceId)}
-            disabled={!workspaceId || isLoading}
-            className="h-10 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--paper)] text-sm text-[var(--ink)] disabled:opacity-50"
-          >
-            {isLoading ? "Loading..." : "Refresh"}
-          </button>
-        </div>
-
-        {error ? (
-          <div className="p-3 rounded-[var(--radius)] border border-[var(--error)]/30 bg-[var(--error-bg)] text-[var(--error)] text-sm">
-            {error}
-          </div>
-        ) : null}
-
-        {filtered.length === 0 && !isLoading ? (
-          <BlueprintCard showCorners padding="lg">
-            <div className="space-y-2">
-              <h2 className="font-serif text-xl text-[var(--ink)]">No campaigns yet</h2>
-              <p className="text-sm text-[var(--muted)]">
-                Create your first campaign. It will be saved to the database and visible across reloads.
-              </p>
-              <div>
-                <button
-                  onClick={openCreate}
-                  className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create Campaign
-                </button>
-              </div>
-            </div>
-          </BlueprintCard>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filtered.map((campaign) => (
-              <BlueprintCard
-                key={campaign.id}
-                showCorners
-                padding="md"
-                className="group cursor-pointer hover:border-[var(--blueprint)] transition-colors"
-                onClick={() => router.push(`/campaigns/${campaign.id}`)}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <BlueprintBadge variant={statusVariant(campaign.status)} dot>
-                        {statusLabel(campaign.status)}
-                      </BlueprintBadge>
-                      <span className="font-mono text-[10px] text-[var(--muted)]">
-                        {campaign.objective}
-                      </span>
-                    </div>
-                    <h3 className="font-serif text-xl text-[var(--ink)]">{campaign.title}</h3>
-                    {campaign.description ? (
-                      <p className="text-sm text-[var(--secondary)] line-clamp-2">
-                        {campaign.description}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-[var(--muted)] italic">No description</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEdit(campaign);
-                      }}
-                      className="p-2 rounded-[var(--radius-sm)] hover:bg-[var(--surface-hover)]"
-                      aria-label="Edit campaign"
-                    >
-                      <Edit3 className="w-4 h-4 text-[var(--muted)]" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void removeCampaign(campaign);
-                      }}
-                      className="p-2 rounded-[var(--radius-sm)] hover:bg-[var(--error-bg)]"
-                      aria-label="Delete campaign"
-                    >
-                      <Trash2 className="w-4 h-4 text-[var(--error)]" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between text-[10px] font-mono text-[var(--muted)]">
-                  <span>ID</span>
-                  <span className={cn("truncate max-w-[70%]")}>{campaign.id}</span>
-                </div>
-              </BlueprintCard>
-            ))}
-          </div>
+          </svg>
         )}
       </div>
-
-      <BlueprintModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editing ? "Edit Campaign" : "New Campaign"}
-        size="md"
-        footer={
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="h-9 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--paper)] text-sm text-[var(--ink)]"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => void submit()}
-              disabled={isLoading}
-              className="h-9 px-3 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium disabled:opacity-50"
-            >
-              {isLoading ? "Saving..." : editing ? "Save" : "Create"}
-            </button>
-          </div>
-        }
+      <span
+        ref={textRef}
+        className={`
+          text-[14px] transition-all duration-300
+          ${isDone ? "text-[#847C82] line-through" : "text-[#2A2529]"}
+        `}
       >
-        <div className="space-y-4">
-          <label className="grid gap-2">
-            <span className="text-sm font-medium text-[var(--ink)]">Name</span>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full h-10 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
-              placeholder="Campaign name"
-            />
-          </label>
+        {task.title}
+      </span>
+    </label>
+  );
+}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-[var(--ink)]">Objective</span>
-              <select
-                value={objective}
-                onChange={(e) => setObjective(e.target.value)}
-                className="w-full h-10 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
-              >
-                {OBJECTIVES.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+function CampaignCard({
+  campaign,
+  isExpanded,
+  onToggle,
+}: {
+  campaign: Campaign;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const progress = calculateProgress(campaign);
+  const metricProgress = Math.round((campaign.metric.current / campaign.metric.target) * 100);
+  const daysUntil = getDaysUntil(campaign.deadline);
 
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-[var(--ink)]">Status</span>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full h-10 px-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
-              >
-                {STATUSES.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+  useEffect(() => {
+    if (contentRef.current) {
+      if (isExpanded) {
+        gsap.to(contentRef.current, {
+          height: "auto",
+          opacity: 1,
+          duration: 0.4,
+          ease: "power2.out",
+        });
+      } else {
+        gsap.to(contentRef.current, {
+          height: 0,
+          opacity: 0,
+          duration: 0.3,
+          ease: "power2.in",
+        });
+      }
+    }
+  }, [isExpanded]);
+
+  const handleTaskToggle = (taskId: string) => {
+    // In real implementation, this would update the store
+    console.log("Toggle task:", taskId);
+  };
+
+  const activePhase = campaign.timeline.phases.find((p) => p.status === "active") ||
+    campaign.timeline.phases[campaign.timeline.phases.length - 1];
+  const activePhaseIndex = campaign.timeline.phases.findIndex((p) => p.id === activePhase?.id) + 1;
+
+  return (
+    <Card
+      variant="interactive"
+      padding="lg"
+      className={`campaign-card transition-all duration-300 ${isExpanded ? "ring-2 ring-[#2A2529]" : ""}`}
+      onClick={onToggle}
+    >
+      {/* Main Card Content */}
+      <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+        {/* Left: Status + Name */}
+        <div className="flex items-start gap-4 lg:w-[280px] flex-shrink-0">
+          <div
+            className={`
+              w-2.5 h-2.5 rounded-full mt-2 flex-shrink-0
+              ${campaign.status === "active" ? "bg-[#3D5A42]" : ""}
+              ${campaign.status === "completed" ? "bg-[#3D5A6B]" : ""}
+              ${campaign.status === "paused" ? "bg-[#8B6B3D]" : ""}
+              ${campaign.status === "draft" ? "bg-[#847C82]" : ""}
+            `}
+          />
+          <div>
+            <h3 className="text-[18px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+              {campaign.name}
+            </h3>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant={getStatusVariant(campaign.status)} size="sm">
+                {campaign.status}
+              </Badge>
+              <span className="text-[12px] text-[#847C82]">→</span>
+              <span className="text-[12px] text-[#5C565B]">{campaign.moveName}</span>
+            </div>
           </div>
-
-          <label className="grid gap-2">
-            <span className="text-sm font-medium text-[var(--ink)]">Description</span>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full min-h-24 px-3 py-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]"
-              placeholder="What is this campaign doing?"
-            />
-          </label>
-
-          {error ? (
-            <div className="text-sm text-[var(--error)]">{error}</div>
-          ) : null}
         </div>
-      </BlueprintModal>
-    </div>
+
+        {/* Center: Progress + Phases */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[12px] text-[#847C82]">
+              Phase {activePhaseIndex} of {campaign.timeline.phases.length}: {activePhase?.name}
+            </span>
+            <span className="text-[12px] font-medium text-[#2A2529]">{progress}%</span>
+          </div>
+          <div className="mb-4">
+            <Progress value={progress} size="sm" />
+          </div>
+          <PhaseIndicator phases={campaign.timeline.phases} activePhase={activePhase?.id || ""} />
+        </div>
+
+        {/* Right: Metric + Deadline */}
+        <div className="lg:w-[200px] flex-shrink-0 flex flex-col items-end gap-2">
+          <div className="text-right">
+            <div className="flex items-baseline gap-1 justify-end">
+              <span className="text-[24px] font-bold text-[#2A2529]">
+                {campaign.metric.current}
+              </span>
+              <span className="text-[14px] text-[#847C82]">/ {campaign.metric.target}</span>
+            </div>
+            <div className="text-[12px] text-[#5C565B]">{campaign.metric.name}</div>
+          </div>
+          <div className="flex items-center gap-1.5 text-[12px] text-[#847C82]">
+            <Clock size={12} />
+            <span>
+              {daysUntil > 0 ? `${daysUntil} days left` : daysUntil === 0 ? "Due today" : `${Math.abs(daysUntil)} days overdue`}
+            </span>
+          </div>
+        </div>
+
+        {/* Expand Icon */}
+        <div className="hidden lg:flex items-center justify-center w-8 h-8">
+          {isExpanded ? <ChevronUp size={20} className="text-[#847C82]" /> : <ChevronDown size={20} className="text-[#847C82]" />}
+        </div>
+      </div>
+
+      {/* Expanded Content */}
+      <div ref={contentRef} className="overflow-hidden" style={{ height: 0, opacity: 0 }}>
+        <div className="pt-6 mt-6 border-t border-[#E3DED3]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left: Details */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-2">
+                  Objective
+                </h4>
+                <p className="text-[14px] text-[#2A2529]">{campaign.objective}</p>
+              </div>
+              <div>
+                <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-2">
+                  Hypothesis
+                </h4>
+                <p className="text-[14px] text-[#5C565B] italic">"{campaign.hypothesis}"</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div>
+                  <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-1">
+                    Start Date
+                  </h4>
+                  <p className="text-[14px] text-[#2A2529]">{formatDate(campaign.timeline.startDate)}</p>
+                </div>
+                <div>
+                  <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-1">
+                    Deadline
+                  </h4>
+                  <p className="text-[14px] text-[#2A2529]">{formatDate(campaign.deadline)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Tasks */}
+            <div>
+              <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-3">
+                Tasks
+              </h4>
+              <div className="space-y-1">
+                {campaign.tasks.map((task) => (
+                  <TaskCheckbox key={task.id} task={task} onToggle={handleTaskToggle} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function StatsCard({
+  label,
+  value,
+  trend,
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  trend?: { value: string; positive: boolean };
+  icon: React.ElementType;
+}) {
+  return (
+    <Card padding="md" className="stats-card">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-[12px] text-[#847C82] uppercase tracking-wide mb-1">{label}</p>
+          <p className="text-[28px] font-bold text-[#2A2529]">{value}</p>
+          {trend && (
+            <div className={`flex items-center gap-1 mt-1 ${trend.positive ? "text-[#3D5A42]" : "text-[#8B6B3D]"}`}>
+              <TrendingUp size={14} />
+              <span className="text-[12px] font-medium">{trend.value}</span>
+            </div>
+          )}
+        </div>
+        <div className="p-2 bg-[#EFEDE6] rounded-[10px]">
+          <Icon size={20} className="text-[#5C565B]" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export default function CampaignsPage() {
+  const pageRef = useRef<HTMLDivElement>(null);
+  const [viewMode, setViewMode] = useState<"timeline" | "list">("timeline");
+  const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  // Stats
+  const activeCount = mockCampaigns.filter((c) => c.status === "active").length;
+  const draftCount = mockCampaigns.filter((c) => c.status === "draft").length;
+  const completedCount = mockCampaigns.filter((c) => c.status === "completed").length;
+  const totalCount = mockCampaigns.length;
+
+  // Filter campaigns
+  const filteredCampaigns = mockCampaigns.filter((c) => {
+    if (filterStatus === "all") return true;
+    return c.status === filterStatus;
+  });
+
+  // Entrance animations
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+
+    tl.fromTo(
+      ".campaigns-header",
+      { y: -20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5 }
+    )
+      .fromTo(
+        ".stats-row",
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4 },
+        "-=0.3"
+      )
+      .fromTo(
+        ".campaign-card",
+        { x: -30, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5, stagger: 0.12 },
+        "-=0.2"
+      );
+
+    return () => {
+      tl.kill();
+    };
+  }, [filterStatus]);
+
+  const handleCampaignToggle = (campaignId: string) => {
+    setExpandedCampaign(expandedCampaign === campaignId ? null : campaignId);
+  };
+
+  // Table columns for list view
+  const tableColumns: Column<Campaign>[] = [
+    {
+      key: "name",
+      header: "Campaign",
+      width: "30%",
+      render: (row: Campaign) => (
+        <div>
+          <p className="font-semibold text-[#2A2529]">{row.name}</p>
+          <p className="text-[12px] text-[#847C82]">{row.objective}</p>
+        </div>
+      ),
+    },
+    {
+      key: "moveName",
+      header: "Move",
+      width: "20%",
+    },
+    {
+      key: "status",
+      header: "Status",
+      width: "12%",
+      render: (row: Campaign) => (
+        <Badge variant={getStatusVariant(row.status)} size="sm">
+          {row.status}
+        </Badge>
+      ),
+    },
+    {
+      key: "progress",
+      header: "Progress",
+      width: "15%",
+      render: (row: Campaign) => (
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-2 bg-[#EFEDE6] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#2A2529] rounded-full"
+              style={{ width: `${calculateProgress(row)}%` }}
+            />
+          </div>
+          <span className="text-[12px] text-[#847C82]">{calculateProgress(row)}%</span>
+        </div>
+      ),
+    },
+    {
+      key: "metric",
+      header: "Metric",
+      width: "15%",
+      align: "right" as const,
+      render: (row: Campaign) => (
+        <div className="text-right">
+          <p className="text-[14px] font-semibold text-[#2A2529]">
+            {row.metric.current} / {row.metric.target}
+          </p>
+          <p className="text-[11px] text-[#847C82]">{row.metric.name}</p>
+        </div>
+      ),
+    },
+    {
+      key: "deadline",
+      header: "Deadline",
+      width: "15%",
+      align: "right" as const,
+      render: (row: Campaign) => (
+        <div className="text-right">
+          <p className="text-[14px] text-[#2A2529]">{formatDate(row.deadline)}</p>
+          <p className="text-[11px] text-[#847C82]">
+            {getDaysUntil(row.deadline) > 0
+              ? `${getDaysUntil(row.deadline)} days left`
+              : "Overdue"}
+          </p>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <Layout mode="draft" activeNavItem="campaigns">
+      <div ref={pageRef} className="p-6 lg:p-8 max-w-[1400px] mx-auto">
+        {/* Header */}
+        <header className="campaigns-header mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+            <div>
+              <h1 className="rf-h2 text-[#2A2529] mb-2">Campaigns</h1>
+              <p className="rf-body text-[#5C565B]">Outcome-linked execution plans</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="rf-input pr-10 w-40 appearance-none cursor-pointer"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="draft">Draft</option>
+                  <option value="paused">Paused</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <Filter size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#847C82] pointer-events-none" />
+              </div>
+              <Button variant="primary" leftIcon={<Plus size={16} />}>
+                Create Campaign
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Stats Row */}
+        <div className="stats-row grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatsCard
+            label="Active"
+            value={activeCount}
+            icon={Megaphone}
+            trend={{ value: "+2 this month", positive: true }}
+          />
+          <StatsCard label="Draft" value={draftCount} icon={Clock} />
+          <StatsCard label="Completed" value={completedCount} icon={CheckCircle2} />
+          <StatsCard label="Total" value={totalCount} icon={Target} />
+        </div>
+
+        {/* View Toggle */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-1 p-1 bg-[#EFEDE6] rounded-[10px]">
+            <button
+              onClick={() => setViewMode("timeline")}
+              className={`
+                flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-[14px] font-medium transition-all
+                ${viewMode === "timeline" ? "bg-[#F7F5EF] text-[#2A2529] shadow-sm" : "text-[#847C82] hover:text-[#5C565B]"}
+              `}
+            >
+              <LayoutGrid size={14} />
+              Timeline
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`
+                flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-[14px] font-medium transition-all
+                ${viewMode === "list" ? "bg-[#F7F5EF] text-[#2A2529] shadow-sm" : "text-[#847C82] hover:text-[#5C565B]"}
+              `}
+            >
+              <List size={14} />
+              List
+            </button>
+          </div>
+          <span className="text-[12px] text-[#847C82]">
+            Showing {filteredCampaigns.length} campaigns
+          </span>
+        </div>
+
+        {/* Campaign Views */}
+        {viewMode === "timeline" ? (
+          <div className="space-y-4">
+            {filteredCampaigns.map((campaign) => (
+              <CampaignCard
+                key={campaign.id}
+                campaign={campaign}
+                isExpanded={expandedCampaign === campaign.id}
+                onToggle={() => handleCampaignToggle(campaign.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <Card padding="none">
+            <Table data={filteredCampaigns} columns={tableColumns} zebra />
+          </Card>
+        )}
+
+        {/* Empty State */}
+        {filteredCampaigns.length === 0 && (
+          <Card padding="lg" className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#EFEDE6] flex items-center justify-center">
+              <Megaphone size={24} className="text-[#847C82]" />
+            </div>
+            <h3 className="text-[18px] font-semibold text-[#2A2529] mb-2">No campaigns found</h3>
+            <p className="text-[14px] text-[#847C82] mb-6">
+              Try adjusting your filters or create a new campaign.
+            </p>
+            <Button variant="secondary" onClick={() => setFilterStatus("all")}>
+              Clear Filters
+            </Button>
+          </Card>
+        )}
+      </div>
+    </Layout>
   );
 }

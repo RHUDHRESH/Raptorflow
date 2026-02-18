@@ -1,390 +1,243 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import gsap from "gsap";
+import { gsap } from "gsap";
 
 interface CompassLogoProps {
   size?: number;
   className?: string;
   animate?: boolean;
-  variant?: "default" | "minimal" | "mark";
+  variant?: "default" | "compact" | "micro" | "minimal" | "mark";
 }
 
 export function CompassLogo({
-  size = 120,
+  size = 48,
   className = "",
   animate = true,
   variant = "default",
 }: CompassLogoProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const needleRef = useRef<SVGGElement>(null);
+  const containerRef = useRef<SVGSVGElement>(null);
+  const needleRef = useRef<SVGPathElement>(null);
+  const pulseRef = useRef<SVGCircleElement>(null);
 
   useEffect(() => {
-    if (!animate || !svgRef.current) return;
+    if (!animate || !containerRef.current) return;
 
     const ctx = gsap.context(() => {
-      const paths = svgRef.current?.querySelectorAll("path, circle, line");
-      if (paths) {
-        gsap.fromTo(
-          paths,
-          { strokeDasharray: 300, strokeDashoffset: 300, opacity: 0 },
-          {
-            strokeDashoffset: 0,
-            opacity: 1,
-            duration: 1.5,
-            stagger: 0.1,
-            ease: "power2.out",
-          }
-        );
+      // Initial compass needle orientation - pointing North
+      gsap.set(needleRef.current, { transformOrigin: "50% 50%" });
+
+      // Subtle breathing animation for the pulse ring
+      if (pulseRef.current) {
+        gsap.to(pulseRef.current, {
+          attr: { r: 42 },
+          opacity: 0,
+          duration: 2,
+          repeat: -1,
+          ease: "power2.out",
+        });
       }
 
-      if (needleRef.current) {
-        gsap.fromTo(
-          needleRef.current,
-          { rotation: -45, transformOrigin: "center center" },
-          {
-            rotation: 0,
-            duration: 2,
-            ease: "elastic.out(1, 0.5)",
-            delay: 0.5,
-          }
-        );
-      }
-    }, svgRef);
+      // Gentle needle sway - like a real compass finding north
+      const swayTl = gsap.timeline({ repeat: -1, yoyo: true });
+      swayTl.to(needleRef.current, {
+        rotation: 3,
+        duration: 3,
+        ease: "sine.inOut",
+      });
+      swayTl.to(needleRef.current, {
+        rotation: -3,
+        duration: 3,
+        ease: "sine.inOut",
+      });
+
+      // On hover, speed up the sway
+      containerRef.current?.addEventListener("mouseenter", () => {
+        gsap.to(swayTl, { timeScale: 2, duration: 0.3 });
+      });
+      containerRef.current?.addEventListener("mouseleave", () => {
+        gsap.to(swayTl, { timeScale: 1, duration: 0.3 });
+      });
+    }, containerRef);
 
     return () => ctx.revert();
   }, [animate]);
 
-  if (variant === "mark") {
-    return (
-      <svg
-        ref={svgRef}
-        width={size}
-        height={size}
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={className}
-      >
-        <g ref={needleRef}>
-          <path
-            d="M50 15L55 50L50 85L45 50L50 15Z"
-            fill="currentColor"
-            className="text-[var(--accent)]"
-          />
-          <circle
-            cx="50"
-            cy="50"
-            r="6"
-            fill="var(--bg-primary)"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-[var(--text-primary)]"
-          />
-        </g>
-      </svg>
-    );
-  }
-
-  if (variant === "minimal") {
-    return (
-      <svg
-        ref={svgRef}
-        width={size}
-        height={size}
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={className}
-      >
-        <circle
-          cx="50"
-          cy="50"
-          r="45"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className="text-[var(--border-strong)]"
-        />
-        <circle
-          cx="50"
-          cy="50"
-          r="38"
-          stroke="currentColor"
-          strokeWidth="0.5"
-          className="text-[var(--border)]"
-        />
-        <g className="text-[var(--text-primary)]">
-          <text x="50" y="12" textAnchor="middle" fontSize="8" fontFamily="Cormorant Garamond" fontWeight="600">N</text>
-          <text x="88" y="53" textAnchor="middle" fontSize="8" fontFamily="Cormorant Garamond" fontWeight="600">E</text>
-          <text x="50" y="92" textAnchor="middle" fontSize="8" fontFamily="Cormorant Garamond" fontWeight="600">S</text>
-          <text x="12" y="53" textAnchor="middle" fontSize="8" fontFamily="Cormorant Garamond" fontWeight="600">W</text>
-        </g>
-        <g ref={needleRef}>
-          <path
-            d="M50 20L54 50L50 80L46 50L50 20Z"
-            fill="currentColor"
-            className="text-[var(--accent)]"
-          />
-          <path
-            d="M50 80L54 50L50 20L46 50L50 80Z"
-            fill="currentColor"
-            className="text-[var(--text-muted)]"
-            opacity="0.4"
-          />
-        </g>
-        <circle
-          cx="50"
-          cy="50"
-          r="5"
-          fill="var(--bg-primary)"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="text-[var(--accent)]"
-        />
-      </svg>
-    );
-  }
+  const normalizedVariant =
+    variant === "minimal" ? "compact" : variant === "mark" ? "micro" : variant;
+  const isMicro = normalizedVariant === "micro";
+  const viewBox = isMicro ? "0 0 32 32" : "0 0 100 100";
+  const center = isMicro ? 16 : 50;
+  const radius = isMicro ? 14 : 40;
+  const strokeWidth = isMicro ? 1.5 : 2;
 
   return (
     <svg
-      ref={svgRef}
+      ref={containerRef}
       width={size}
       height={size}
-      viewBox="0 0 200 200"
+      viewBox={viewBox}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`${className}`}
+      aria-label="RaptorFlow Compass"
+    >
+      {/* Outer ring - subtle gradient */}
+      <circle
+        cx={center}
+        cy={center}
+        r={radius}
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeOpacity={0.9}
+        fill="none"
+      />
+
+      {/* Inner decorative ring */}
+      <circle
+        cx={center}
+        cy={center}
+        r={radius - (isMicro ? 4 : 8)}
+        stroke="currentColor"
+        strokeWidth={isMicro ? 0.5 : 1}
+        strokeOpacity={0.2}
+        fill="none"
+        strokeDasharray={isMicro ? "2 2" : "4 4"}
+      />
+
+      {/* Cardinal markers */}
+      <g opacity={0.6}>
+        <line
+          x1={center}
+          y1={center - radius + (isMicro ? 3 : 6)}
+          x2={center}
+          y2={center - radius + (isMicro ? 6 : 14)}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+        />
+      </g>
+
+      {/* Animated pulse ring (only on larger variants) */}
+      {!isMicro && (
+        <circle
+          ref={pulseRef}
+          cx={center}
+          cy={center}
+          r={38}
+          stroke="currentColor"
+          strokeWidth={1}
+          fill="none"
+          opacity={0.3}
+        />
+      )}
+
+      {/* The Needle - Modern minimalist single pointer design */}
+      <g ref={needleRef} style={{ transformOrigin: `${center}px ${center}px` }}>
+        {/* Needle shaft - diamond shape, thicker body */}
+        <path
+          d={
+            isMicro
+              ? `M${center} ${center - 10} L${center + 3} ${center} L${center} ${center + 8} L${center - 3} ${center} Z`
+              : `M${center} ${center - 32} L${center + 8} ${center} L${center} ${center + 24} L${center - 8} ${center} Z`
+          }
+          fill="currentColor"
+        />
+        
+        {/* Center pivot */}
+        <circle
+          cx={center}
+          cy={center}
+          r={isMicro ? 2 : 5}
+          fill="var(--bg-canvas, #EFEDE6)"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+        />
+        
+        {/* Inner pivot dot */}
+        <circle
+          cx={center}
+          cy={center}
+          r={isMicro ? 1 : 2.5}
+          fill="currentColor"
+        />
+      </g>
+    </svg>
+  );
+}
+
+// Static version for SSR/pre-rendered content
+export function CompassLogoStatic({
+  size = 48,
+  className = "",
+  variant = "default",
+}: Omit<CompassLogoProps, "animate">) {
+  const normalizedVariant =
+    variant === "minimal" ? "compact" : variant === "mark" ? "micro" : variant;
+  const isMicro = normalizedVariant === "micro";
+  const viewBox = isMicro ? "0 0 32 32" : "0 0 100 100";
+  const center = isMicro ? 16 : 50;
+  const radius = isMicro ? 14 : 40;
+  const strokeWidth = isMicro ? 1.5 : 2;
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={viewBox}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
       <circle
-        cx="100"
-        cy="100"
-        r="92"
+        cx={center}
+        cy={center}
+        r={radius}
         stroke="currentColor"
-        strokeWidth="1"
-        className="text-[var(--border-strong)]"
-        strokeLinecap="round"
-        strokeDasharray="4 2"
+        strokeWidth={strokeWidth}
+        strokeOpacity={0.9}
+        fill="none"
       />
       <circle
-        cx="100"
-        cy="100"
-        r="85"
+        cx={center}
+        cy={center}
+        r={radius - (isMicro ? 4 : 8)}
         stroke="currentColor"
-        strokeWidth="2"
-        className="text-[var(--text-primary)]"
-        strokeLinecap="round"
+        strokeWidth={isMicro ? 0.5 : 1}
+        strokeOpacity={0.2}
+        fill="none"
+        strokeDasharray={isMicro ? "2 2" : "4 4"}
       />
-      <circle
-        cx="100"
-        cy="100"
-        r="75"
-        stroke="currentColor"
-        strokeWidth="0.5"
-        className="text-[var(--border)]"
-      />
-
-      {[...Array(12)].map((_, i) => {
-        const angle = (i * 30 * Math.PI) / 180;
-        const x1 = 100 + 78 * Math.cos(angle);
-        const y1 = 100 + 78 * Math.sin(angle);
-        const x2 = 100 + 82 * Math.cos(angle);
-        const y2 = 100 + 82 * Math.sin(angle);
-        return (
-          <line
-            key={i}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-[var(--accent)]"
-            strokeLinecap="round"
-          />
-        );
-      })}
-
-      {[0, 90, 180, 270].map((deg, i) => {
-        const angle = (deg * Math.PI) / 180;
-        const x1 = 100 + 72 * Math.cos(angle);
-        const y1 = 100 + 72 * Math.sin(angle);
-        const x2 = 100 + 82 * Math.cos(angle);
-        const y2 = 100 + 82 * Math.sin(angle);
-        return (
-          <line
-            key={`cardinal-${i}`}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke="currentColor"
-            strokeWidth="3"
-            className="text-[var(--accent)]"
-            strokeLinecap="round"
-          />
-        );
-      })}
-
-      <g className="text-[var(--text-primary)]" style={{ fontFamily: "Cormorant Garamond, serif", fontWeight: 600 }}>
-        <text x="100" y="28" textAnchor="middle" fontSize="14" letterSpacing="2">N</text>
-        <text x="176" y="105" textAnchor="middle" fontSize="14" letterSpacing="2">E</text>
-        <text x="100" y="182" textAnchor="middle" fontSize="14" letterSpacing="2">S</text>
-        <text x="24" y="105" textAnchor="middle" fontSize="14" letterSpacing="2">W</text>
-      </g>
-
-      <circle
-        cx="100"
-        cy="100"
-        r="55"
-        stroke="currentColor"
-        strokeWidth="0.5"
-        className="text-[var(--border-strong)]"
-        strokeDasharray="2 4"
-      />
-
-      {[45, 135, 225, 315].map((deg, i) => {
-        const angle = (deg * Math.PI) / 180;
-        const x2 = 100 + 55 * Math.cos(angle);
-        const y2 = 100 + 55 * Math.sin(angle);
-        return (
-          <line
-            key={`inter-${i}`}
-            x1="100"
-            y1="100"
-            x2={x2}
-            y2={y2}
-            stroke="currentColor"
-            strokeWidth="0.5"
-            className="text-[var(--border)]"
-            strokeLinecap="round"
-          />
-        );
-      })}
-
-      <g ref={needleRef}>
-        <path
-          d="M100 35L106 100L100 165L94 100L100 35Z"
-          fill="currentColor"
-          className="text-[var(--accent)]"
-        />
-        <path
-          d="M100 165L106 100L100 35L94 100L100 165Z"
-          fill="currentColor"
-          className="text-[var(--text-muted)]"
-          opacity="0.3"
-        />
-        <path
-          d="M100 40L103 100L100 100L97 100L100 40Z"
-          fill="white"
-          opacity="0.2"
+      <g opacity={0.6}>
+        <line
+          x1={center}
+          y1={center - radius + (isMicro ? 3 : 6)}
+          x2={center}
+          y2={center - radius + (isMicro ? 6 : 14)}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
         />
       </g>
-
-      <circle
-        cx="100"
-        cy="100"
-        r="12"
-        fill="var(--bg-primary)"
-        stroke="currentColor"
-        strokeWidth="2"
-        className="text-[var(--text-primary)]"
-      />
-      <circle
-        cx="100"
-        cy="100"
-        r="7"
-        fill="currentColor"
-        className="text-[var(--accent)]"
-      />
-      <circle
-        cx="100"
-        cy="100"
-        r="3"
-        fill="var(--bg-primary)"
-      />
-
-      <path
-        d="M100 8C100 8 102 12 100 16C98 12 100 8 100 8"
-        fill="currentColor"
-        className="text-[var(--accent)]"
-      />
-      <path
-        d="M100 192C100 192 98 188 100 184C102 188 100 192 100 192"
-        fill="currentColor"
-        className="text-[var(--accent)]"
-      />
-      <path
-        d="M8 100C8 100 12 98 16 100C12 102 8 100 8 100"
-        fill="currentColor"
-        className="text-[var(--accent)]"
-      />
-      <path
-        d="M192 100C192 100 188 102 184 100C188 98 192 100 192 100"
-        fill="currentColor"
-        className="text-[var(--accent)]"
-      />
+      <g>
+        <path
+          d={
+            isMicro
+              ? `M${center} ${center - 10} L${center + 3} ${center} L${center} ${center + 8} L${center - 3} ${center} Z`
+              : `M${center} ${center - 32} L${center + 8} ${center} L${center} ${center + 24} L${center - 8} ${center} Z`
+          }
+          fill="currentColor"
+        />
+        <circle
+          cx={center}
+          cy={center}
+          r={isMicro ? 2 : 5}
+          fill="var(--bg-canvas, #EFEDE6)"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+        />
+        <circle cx={center} cy={center} r={isMicro ? 1 : 2.5} fill="currentColor" />
+      </g>
     </svg>
   );
 }
-
-export function CompassSpinner({ size = 40, className = "" }: { size?: number; className?: string }) {
-  const spinnerRef = useRef<SVGSVGElement>(null);
-
-  useEffect(() => {
-    if (!spinnerRef.current) return;
-
-    const needle = spinnerRef.current.querySelector("#spinner-needle");
-    if (!needle) return;
-
-    const ctx = gsap.context(() => {
-      gsap.to(needle, {
-        rotation: 360,
-        transformOrigin: "center center",
-        duration: 2,
-        repeat: -1,
-        ease: "none",
-      });
-    }, spinnerRef);
-
-    return () => ctx.revert();
-  }, []);
-
-  return (
-    <svg
-      ref={spinnerRef}
-      width={size}
-      height={size}
-      viewBox="0 0 50 50"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-    >
-      <circle
-        cx="25"
-        cy="25"
-        r="22"
-        stroke="currentColor"
-        strokeWidth="2"
-        className="text-[var(--border)]"
-      />
-      <g id="spinner-needle">
-        <path
-          d="M25 8L28 25L25 42L22 25L25 8Z"
-          fill="currentColor"
-          className="text-[var(--accent)]"
-        />
-      </g>
-      <circle
-        cx="25"
-        cy="25"
-        r="4"
-        fill="var(--bg-primary)"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        className="text-[var(--accent)]"
-      />
-    </svg>
-  );
-}
-
-export default CompassLogo;

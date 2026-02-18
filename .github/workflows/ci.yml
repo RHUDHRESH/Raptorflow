@@ -180,8 +180,16 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
       - name: Install dependencies
         run: npm ci
+
+      - name: Validate documentation contracts
+        run: python scripts/audit/generate_doc_contracts.py --check
 
       - name: Run smoke test
         run: npm run smoke

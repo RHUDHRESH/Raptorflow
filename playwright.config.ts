@@ -21,11 +21,27 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: "npm run dev",
-    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  webServer: [
+    {
+      command: "python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000",
+      url: "http://127.0.0.1:8000/health",
+      env: {
+        ...process.env,
+        AUTH_RATE_LIMIT_ENABLED:
+          process.env.AUTH_RATE_LIMIT_ENABLED || "false",
+      },
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },
+    {
+      command: "npm run dev",
+      url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      env: {
+        ...process.env,
+        BACKEND_API_URL: process.env.BACKEND_API_URL || "http://127.0.0.1:8000",
+      },
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },
+  ],
 });
-

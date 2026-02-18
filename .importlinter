@@ -1,0 +1,79 @@
+# Import Linter Configuration for Backend Architecture
+# Enforces Hexagonal/Clean Architecture layer isolation
+
+[importlinter]
+root_package = backend
+
+# Define layer contracts
+[importlinter:contract:domain-isolation]
+name = Domain layer must not depend on infrastructure
+type = forbidden
+source_modules =
+    backend.features.*.domain
+forbidden_modules =
+    backend.infrastructure
+    backend.api
+    backend.services
+    backend.agents
+    backend.ai
+    backend.bcm
+    fastapi
+    sqlalchemy
+    redis
+    httpx
+    pydantic
+    supabase
+    langgraph
+
+[importlinter:contract:application-isolation]
+name = Application layer must not depend on adapters directly
+type = forbidden
+source_modules =
+    backend.features.*.application
+forbidden_modules =
+    backend.features.*.adapters
+    backend.infrastructure
+    backend.agents
+    fastapi
+    sqlalchemy
+    redis
+
+[importlinter:contract:api-isolation]
+name = API layer must not contain business logic
+type = forbidden
+source_modules =
+    backend.api.v1.*
+forbidden_modules =
+    backend.features.*.adapters
+    backend.infrastructure.database
+    backend.infrastructure.cache
+
+[importlinter:contract:bootstrap-isolation]
+name = Bootstrap can depend on everything
+type = allowed
+source_modules =
+    backend.bootstrap
+
+[importlinter:contract:core-isolation]
+name = Core should have minimal dependencies
+type = forbidden
+source_modules =
+    backend.core
+forbidden_modules =
+    fastapi
+    sqlalchemy
+    redis
+    httpx
+
+[importlinter:contract:dependency-direction]
+name = Dependencies must flow inward only
+type = layers
+layers =
+    bootstrap
+    api
+    features.adapters
+    features.application
+    features.domain
+    core
+containers =
+    backend.features.*

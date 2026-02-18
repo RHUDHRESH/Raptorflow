@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from backend.core.storage_mgr import StorageManager
-from backend.services.asset_service import AssetService
+from backend.infrastructure.storage.manager import StorageManager
+from backend.services.asset import AssetService
 
 
 class _FakeBucket:
@@ -67,4 +67,3 @@ async def test_asset_service_ensures_public_bucket() -> None:
     await service._ensure_bucket()
 
     assert fake_storage.calls == [("uploads", True)]
-
