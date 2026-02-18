@@ -1,6 +1,23 @@
 import { createServerClient } from '@supabase/ssr'
 import type { SetAllCookies } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isAccountProfileComplete } from '@/lib/auth/account'
+
+const PUBLIC_PATHS = [
+  '/login',
+  '/signup',
+  '/auth/callback',
+  '/auth/verify',
+  '/auth/reset-password',
+  '/',
+  '/landing',
+]
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path)
+  )
+}
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -27,36 +44,40 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
+  const accountSetupPath = '/account/setup'
+  const onboardingPath = '/onboarding'
 
-  // Public paths that don't require authentication
-  const publicPaths = [
-    '/login',
-    '/signup', 
-    '/auth/callback',
-    '/auth/verify',
-    '/auth/reset-password',
-    '/',
-    '/landing',
-  ]
+  const isAuthPath = pathname.startsWith('/login') || pathname.startsWith('/signup')
+  const isAccountSetupRoute = pathname === accountSetupPath || pathname.startsWith(`${accountSetupPath}/`)
+  const isOnboardingRoute = pathname === onboardingPath || pathname.startsWith(`${onboardingPath}/`)
 
-  const isPublicPath = publicPaths.some(
-    path => pathname === path || pathname.startsWith(path)
-  )
-
-  // If user is not signed in and trying to access protected route
-  if (!user && !isPublicPath) {
+  if (!user && !isPublicPath(pathname)) {
     const url = new URL('/login', request.url)
     url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
   }
 
-  // If user is signed in and trying to access auth pages
-  if (user && pathname.startsWith('/login')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  if (!user) {
+    return response
+  }
+
+  const accountProfileComplete = isAccountProfileComplete(user)
+
+  if (!accountProfileComplete && !isAccountSetupRoute) {
+    return NextResponse.redirect(new URL(accountSetupPath, request.url))
+  }
+
+  if (accountProfileComplete && (isAuthPath || isAccountSetupRoute)) {
+    return NextResponse.redirect(new URL(onboardingPath, request.url))
+  }
+
+  if (!accountProfileComplete && (isAuthPath || isOnboardingRoute)) {
+    return NextResponse.redirect(new URL(accountSetupPath, request.url))
   }
 
   return response
@@ -64,13 +85,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
