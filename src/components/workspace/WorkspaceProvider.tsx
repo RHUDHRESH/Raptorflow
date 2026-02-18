@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { HttpError } from "@/services/http";
+import { useAuthStore } from "@/stores/authStore";
 import {
   workspacesService,
   type OnboardingStatus,
@@ -25,15 +26,6 @@ const WorkspaceContext = createContext<WorkspaceContextValue | undefined>(undefi
 
 const STORAGE_KEY = "raptorflow.workspace_id";
 
-function safeReadWorkspaceId(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const value = window.localStorage.getItem(STORAGE_KEY);
-    return value && value.trim().length > 0 ? value : null;
-  } catch {
-    return null;
-  }
-}
 
 function safeWriteWorkspaceId(id: string) {
   try {
@@ -54,6 +46,7 @@ function safeClearWorkspaceId() {
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { session, loading: authLoading, initialized: authInitialized } = useAuthStore();
 
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -68,47 +61,44 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const ensureWorkspace = useCallback(async () => {
+    if (!authInitialized || authLoading) {
+      return;
+    }
+
+    if (!session?.user) {
+      setWorkspaceId(null);
+      setWorkspace(null);
+      setOnboardingStatus(null);
+      setIsLoading(false);
+      safeClearWorkspaceId();
+      router.replace("/login");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
-    const storedId = safeReadWorkspaceId();
-    if (storedId) {
-      try {
-        const ws = await workspacesService.get(storedId);
-        setWorkspaceId(ws.id);
-        setWorkspace(ws);
-        await loadOnboardingStatus(ws.id);
-        setIsLoading(false);
-        return;
-      } catch (e) {
-        // Only clear the stored ID if it is actually invalid.
-        // If the backend is down/unreachable, surfacing the error is the correct behavior.
-        if (e instanceof HttpError && (e.status === 400 || e.status === 404)) {
-          safeClearWorkspaceId();
-          setWorkspaceId(null);
-          setWorkspace(null);
-          setOnboardingStatus(null);
-        } else {
-          setError((e as any)?.message || "Failed to load workspace");
-          setIsLoading(false);
-          return;
-        }
-      }
-    }
-
     try {
-      const suffix = new Date().toISOString().slice(0, 10);
-      const ws = await workspacesService.create({ name: `Workspace ${suffix}` });
+      const { workspace: ws } = await workspacesService.getDefaultForCurrentUser();
+      await workspacesService.selectForCurrentUser({ workspace_id: ws.id });
       safeWriteWorkspaceId(ws.id);
       setWorkspaceId(ws.id);
       setWorkspace(ws);
       await loadOnboardingStatus(ws.id);
     } catch (e: any) {
+      if (e instanceof HttpError && e.status === 401) {
+        safeClearWorkspaceId();
+        setWorkspaceId(null);
+        setWorkspace(null);
+        setOnboardingStatus(null);
+        router.replace("/login");
+        return;
+      }
       setError(e?.message || "Failed to initialize workspace");
     } finally {
       setIsLoading(false);
     }
-  }, [loadOnboardingStatus]);
+  }, [authInitialized, authLoading, loadOnboardingStatus, router, session?.user]);
 
   const refreshOnboarding = useCallback(async () => {
     if (!workspaceId) return;
