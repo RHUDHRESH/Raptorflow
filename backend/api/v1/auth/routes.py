@@ -178,6 +178,7 @@ class AuthResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int = 3600
     user: Dict[str, Any]
+    account: Optional[Dict[str, Any]] = None
     requires_email_confirmation: Optional[bool] = None
 
 
@@ -190,6 +191,7 @@ class VerifyResponse(BaseModel):
     user_id: Optional[str] = None
     email: Optional[str] = None
     user: Dict[str, Any] = Field(default_factory=dict)
+    account: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
 
 
@@ -283,6 +285,47 @@ async def _invoke_auth_method(auth: Any, method_name: str, *args: Any) -> Any:
     return result
 
 
+ACCOUNT_PROFILE_REQUIRED_FIELDS = ("full_name",)
+
+
+def _extract_user_metadata(user: Dict[str, Any]) -> Dict[str, Any]:
+    raw = user.get("raw_user_meta_data")
+    merged: Dict[str, Any] = {}
+    if isinstance(raw, dict):
+        merged.update(raw)
+
+    user_meta = user.get("user_metadata")
+    if isinstance(user_meta, dict):
+        merged.update(user_meta)
+
+    return merged
+
+
+def _build_account_status(user: Dict[str, Any]) -> Dict[str, Any]:
+    metadata = _extract_user_metadata(user)
+    missing_required_fields = [
+        field
+        for field in ACCOUNT_PROFILE_REQUIRED_FIELDS
+        if not isinstance(metadata.get(field), str)
+        or not metadata.get(field, "").strip()
+    ]
+
+    profile_complete = len(missing_required_fields) == 0
+
+    return {
+        "profile_complete": profile_complete,
+        "required_fields": list(ACCOUNT_PROFILE_REQUIRED_FIELDS),
+        "missing_required_fields": missing_required_fields,
+        "next_route": "/onboarding" if profile_complete else "/account/setup",
+    }
+
+
+def _with_account_status(user: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    payload = dict(user or {})
+    payload["account"] = _build_account_status(payload)
+    return payload
+
+
 @router.get("/health")
 async def auth_health() -> Dict[str, Any]:
     """Check authentication service health."""
@@ -339,12 +382,15 @@ async def sign_up(
     # Check if email confirmation is required
     requires_confirmation = result.get("requires_email_confirmation", False)
 
+    user_payload = _with_account_status(result.get("user"))
+
     if requires_confirmation:
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
                 "message": "Please check your email to confirm your account",
-                "user": result.get("user", {}),
+                "user": user_payload,
+                "account": user_payload.get("account"),
                 "requires_email_confirmation": True,
             },
         )
@@ -355,7 +401,8 @@ async def sign_up(
         "refresh_token": refresh_token,
         "token_type": session.get("token_type", "bearer"),
         "expires_in": session.get("expires_in", ACCESS_TOKEN_EXPIRY),
-        "user": result.get("user", {}),
+        "user": user_payload,
+        "account": user_payload.get("account"),
     }
 
     return JSONResponse(content=response_data)
@@ -423,13 +470,16 @@ async def sign_in(
     except Exception:
         pass
 
+    user_payload = _with_account_status(result.get("user"))
+
     # Create response data
     response_data = {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": session.get("token_type", "bearer"),
         "expires_in": session.get("expires_in", ACCESS_TOKEN_EXPIRY),
-        "user": result.get("user", {}),
+        "user": user_payload,
+        "account": user_payload.get("account"),
     }
 
     response = JSONResponse(content=response_data)
@@ -554,6 +604,12 @@ async def refresh_token(
             detail="Invalid refresh response",
         )
 
+    user_payload = _with_account_status(session.get("user"))
+    if not user_payload.get("id"):
+        refreshed_user = await _invoke_auth_method(auth, "get_user", access_token)
+        if isinstance(refreshed_user, dict):
+            user_payload = _with_account_status(refreshed_user)
+
     # Set new cookies
     _set_auth_cookies(response, access_token, new_refresh_token)
 
@@ -563,6 +619,8 @@ async def refresh_token(
             "refresh_token": new_refresh_token,
             "token_type": session.get("token_type", "bearer"),
             "expires_in": session.get("expires_in", ACCESS_TOKEN_EXPIRY),
+            "user": user_payload,
+            "account": user_payload.get("account"),
         }
     )
 
@@ -605,11 +663,14 @@ async def verify_access_token(
             error="Invalid auth response",
         )
 
+    user_payload = _with_account_status(result.get("user"))
+
     return VerifyResponse(
         valid=bool(result.get("valid")),
         user_id=result.get("user_id"),
         email=result.get("email"),
-        user=result.get("user", {}),
+        user=user_payload,
+        account=user_payload.get("account"),
         error=result.get("error"),
     )
 
@@ -642,7 +703,7 @@ async def get_me(
             detail="Not authenticated",
         )
 
-    return user
+    return _with_account_status(user)
 
 
 @router.post("/reset-password")

@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { usePathname, useRouter } from "next/navigation";
 import { HttpError } from "@/services/http";
 import { useAuthStore } from "@/stores/authStore";
+import { isAccountProfileComplete } from "@/lib/auth/account";
 import {
   workspacesService,
   type OnboardingStatus,
@@ -53,6 +54,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const accountProfileComplete = isAccountProfileComplete(session?.user);
 
   const loadOnboardingStatus = useCallback(async (id: string) => {
     const status = await workspacesService.getOnboardingStatus(id);
@@ -126,7 +129,19 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!workspaceId || !onboardingStatus) return;
+
+    const isAccountSetupRoute = pathname?.startsWith("/account/setup");
     const isOnboardingRoute = pathname?.startsWith("/onboarding");
+
+    if (!accountProfileComplete && !isAccountSetupRoute) {
+      router.replace("/account/setup");
+      return;
+    }
+
+    if (accountProfileComplete && isAccountSetupRoute) {
+      router.replace(onboardingStatus.completed ? "/dashboard" : "/onboarding");
+      return;
+    }
 
     if (!onboardingStatus.completed && !isOnboardingRoute) {
       router.replace("/onboarding");
@@ -136,7 +151,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     if (onboardingStatus.completed && isOnboardingRoute) {
       router.replace("/dashboard");
     }
-  }, [workspaceId, onboardingStatus, pathname, router]);
+  }, [accountProfileComplete, workspaceId, onboardingStatus, pathname, router]);
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({

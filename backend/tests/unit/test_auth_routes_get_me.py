@@ -11,14 +11,14 @@ from backend.api.v1.auth import routes
 class _AsyncAuthService:
     async def get_user(self, token: Optional[str]) -> Optional[Dict[str, Any]]:
         if token == "valid-token":
-            return {"id": "user-1", "email": "user@example.com"}
+            return {"id": "user-1", "email": "user@example.com", "user_metadata": {"full_name": "Async User"}}
         return None
 
 
 class _SyncAuthService:
     def get_user(self, token: Optional[str]) -> Optional[Dict[str, Any]]:
         if token == "valid-token":
-            return {"id": "user-2", "email": "sync@example.com"}
+            return {"id": "user-2", "email": "sync@example.com", "user_metadata": {}}
         return None
 
 
@@ -32,6 +32,7 @@ async def test_get_me_supports_async_auth_services(
 
     assert user["id"] == "user-1"
     assert user["email"] == "user@example.com"
+    assert user["account"]["profile_complete"] is True
 
 
 @pytest.mark.asyncio
@@ -44,6 +45,8 @@ async def test_get_me_supports_sync_auth_services(
 
     assert user["id"] == "user-2"
     assert user["email"] == "sync@example.com"
+    assert user["account"]["profile_complete"] is False
+    assert "full_name" in user["account"]["missing_required_fields"]
 
 
 @pytest.mark.asyncio
