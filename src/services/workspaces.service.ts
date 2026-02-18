@@ -13,17 +13,22 @@ export type OnboardingStepKind = "short_text" | "long_text" | "list" | "url";
 
 export type OnboardingStep = {
   id: string;
-  label: string;
-  description: string;
-  kind: OnboardingStepKind;
-  required: boolean;
-  placeholder?: string;
+  title: string;
+  description?: string;
+  fields: {
+    id: string;
+    label: string;
+    kind: OnboardingStepKind;
+    required: boolean;
+    placeholder?: string;
+    help?: string | null;
+  }[];
 };
 
 export type OnboardingStepsResponse = {
   schema_version: string;
   total_steps: number;
-  required_steps: number;
+  required_steps: string[];
   steps: OnboardingStep[];
 };
 
@@ -35,7 +40,7 @@ export type OnboardingStatus = {
   completion_pct: number;
   answered_steps: number;
   total_steps: number;
-  required_steps: number;
+  required_steps: string[];
   missing_required_steps: string[];
   next_step_id?: string | null;
   answers: Record<string, unknown>;
@@ -43,6 +48,12 @@ export type OnboardingStatus = {
 };
 
 export type CompleteOnboardingInput = {
+  schema_version: string;
+  answers: Record<string, unknown>;
+};
+
+export type UpsertOnboardingAnswersInput = {
+  schema_version: string;
   answers: Record<string, unknown>;
 };
 
@@ -130,6 +141,19 @@ export const workspacesService = {
       `/workspaces/${encodeURIComponent(id)}/onboarding/complete`,
       {
         method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  async upsertOnboardingAnswers(
+    id: string,
+    payload: UpsertOnboardingAnswersInput
+  ): Promise<OnboardingStatus> {
+    return apiRequest<OnboardingStatus>(
+      `/workspaces/${encodeURIComponent(id)}/onboarding/answers`,
+      {
+        method: "PUT",
         body: JSON.stringify(payload),
       }
     );
