@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Layers,
 } from "lucide-react";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BLACKBOX PAGE — Decision Log and Change History
@@ -45,89 +46,7 @@ interface BlackboxEntry {
   };
 }
 
-// Mock Data
-const mockBlackbox: BlackboxEntry[] = [
-  {
-    id: "entry-1",
-    type: "decision",
-    timestamp: new Date("2024-01-15T14:30:00"),
-    user: "Sarah Chen",
-    module: "Moves",
-    entity: "Enterprise Trial Flow",
-    action: "Rescheduled from Q2 to Q1",
-    reason: "Customer feedback showed urgency for enterprise features",
-    impact: [
-      "Campaign 'Trial Opt' rescheduled to Feb 1",
-      "Move 'Q1 Content' scope reduced by 20%",
-    ],
-    diff: {
-      before: "Q2 2024 (April 1 - June 30)",
-      after: "Q1 2024 (February 1 - March 15)",
-    },
-  },
-  {
-    id: "entry-2",
-    type: "lock",
-    timestamp: new Date("2024-01-14T09:15:00"),
-    user: "Mike Ross",
-    module: "Foundation",
-    entity: "Positioning",
-    action: "Locked Positioning",
-    reason: "Team alignment achieved after workshop",
-    impact: ["Campaign generation enabled", "Messaging now read-only"],
-  },
-  {
-    id: "entry-3",
-    type: "assumption",
-    timestamp: new Date("2024-01-13T16:45:00"),
-    user: "System",
-    module: "Foundation",
-    entity: "ICP: Enterprise Operations",
-    action: "Validated assumption",
-    reason: "3 customer interviews confirmed pain point",
-    impact: ["Confidence score increased to 85%"],
-  },
-  {
-    id: "entry-4",
-    type: "change",
-    timestamp: new Date("2024-01-12T11:20:00"),
-    user: "Alex Kim",
-    module: "Campaigns",
-    entity: "Email Nurture Sequence",
-    action: "Updated subject lines",
-    reason: "A/B test results showed 40% higher open rates",
-    impact: ["Open rate projected to increase from 22% to 31%"],
-    diff: {
-      before: "Old: 'Updates from our team'",
-      after: "New: 'The workflow mistake costing you 10hrs/week'",
-    },
-  },
-  {
-    id: "entry-5",
-    type: "decision",
-    timestamp: new Date("2024-01-11T10:00:00"),
-    user: "Jordan Lee",
-    module: "Moves",
-    entity: "Q1 Content Strategy",
-    action: "Added new pillar: 'AI Integration'",
-    reason: "Market research showed high demand for AI content",
-    impact: [
-      "3 new blog posts added to calendar",
-      "1 webinar rescheduled",
-    ],
-  },
-  {
-    id: "entry-6",
-    type: "unlock",
-    timestamp: new Date("2024-01-10T14:30:00"),
-    user: "Taylor Swift",
-    module: "Foundation",
-    entity: "Messaging Framework",
-    action: "Unlocked for editing",
-    reason: "New product features require messaging updates",
-    impact: ["Campaign generation paused until re-lock"],
-  },
-];
+
 
 // Type configuration
 const typeConfig: Record<EntryType | "unlock", { icon: React.ElementType; label: string; color: string; bg: string }> = {
@@ -189,7 +108,7 @@ function EntryCard({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  
+
   const config = typeConfig[entry.type];
   const TypeIcon = config.icon;
 
@@ -299,14 +218,16 @@ function EntryCard({
 
 // Main Blackbox Page
 export default function BlackboxPage() {
+  const { workspaceId } = useWorkspace();
   const pageRef = useRef<HTMLDivElement>(null);
+  const [entries] = useState<BlackboxEntry[]>([]);
   const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<EntryType | "all">("all");
   const [moduleFilter, setModuleFilter] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
 
   // Filter entries
-  const filteredEntries = mockBlackbox.filter((entry) => {
+  const filteredEntries = entries.filter((entry) => {
     const typeMatch = typeFilter === "all" || entry.type === typeFilter;
     const moduleMatch = moduleFilter === "all" || entry.module === moduleFilter;
     return typeMatch && moduleMatch;
@@ -344,7 +265,7 @@ export default function BlackboxPage() {
     return () => ctx.revert();
   }, [typeFilter, moduleFilter]);
 
-  const modules = ["all", ...Array.from(new Set(mockBlackbox.map((e) => e.module)))];
+  const modules = ["all", ...Array.from(new Set(entries.map((e) => e.module)))];
   const entryTypes: (EntryType | "all")[] = ["all", "decision", "change", "assumption", "lock"];
 
   return (
@@ -386,11 +307,10 @@ export default function BlackboxPage() {
                       <button
                         key={type}
                         onClick={() => setTypeFilter(type)}
-                        className={`px-3 py-1.5 rounded-[var(--radius-sm)] text-[12px] font-medium transition-colors ${
-                          typeFilter === type
+                        className={`px-3 py-1.5 rounded-[var(--radius-sm)] text-[12px] font-medium transition-colors ${typeFilter === type
                             ? "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
                             : "bg-[var(--bg-canvas)] text-[var(--ink-2)] hover:bg-[var(--state-hover)]"
-                        }`}
+                          }`}
                       >
                         {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
                       </button>

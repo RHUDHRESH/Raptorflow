@@ -28,6 +28,8 @@ import {
   Lightbulb,
   X,
 } from "lucide-react";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { museService } from "@/services/muse.service";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MUSE PAGE — AI Content Assistant
@@ -65,31 +67,7 @@ const quickActions = [
   { icon: MessageSquare, label: "Create social post", prompt: "Create a social media post for" },
 ];
 
-// Mock conversation
-const mockMuseConversation: Message[] = [
-  {
-    id: "msg-1",
-    role: "user",
-    content: "Help me write a headline for our landing page. We're launching the new workflow automation feature.",
-    timestamp: new Date("2024-01-15T10:30:00"),
-  },
-  {
-    id: "msg-2",
-    role: "assistant",
-    content: `Here are 3 headline options based on your positioning:
 
-1. "Eliminate 10 Hours of Busywork Every Week"
-2. "The Automation Platform That Actually Works"
-3. "Stop Doing Work Your Computer Should Handle"
-
-Which direction resonates? I can refine any of these.`,
-    timestamp: new Date("2024-01-15T10:31:00"),
-    confidence: "high",
-    sources: ["Foundation: Value Prop", "Move: Q1 Content"],
-    assumptions: ["Time savings is primary benefit"],
-    suggestions: ["Use option 1", "Use option 2", "Refine option 3"],
-  },
-];
 
 // Mode badge config
 const modeConfig: Record<ChatMode, { label: string; icon: React.ElementType; color: string }> = {
@@ -131,17 +109,15 @@ function MessageBubble({
 
   return (
     <div
-      className={`flex items-start gap-4 ${
-        isAssistant ? "" : "flex-row-reverse"
-      }`}
+      className={`flex items-start gap-4 ${isAssistant ? "" : "flex-row-reverse"
+        }`}
     >
       {/* Avatar */}
       <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-          isAssistant
-            ? "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
-            : "bg-[var(--bg-canvas)] border border-[var(--border-1)] text-[var(--ink-1)]"
-        }`}
+        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isAssistant
+          ? "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
+          : "bg-[var(--bg-canvas)] border border-[var(--border-1)] text-[var(--ink-1)]"
+          }`}
       >
         {isAssistant ? <Sparkles size={14} /> : <span className="text-[12px] font-semibold">You</span>}
       </div>
@@ -149,17 +125,15 @@ function MessageBubble({
       {/* Content */}
       <div className={`flex-1 ${isAssistant ? "" : "flex justify-end"}`}>
         <div
-          className={`max-w-[85%] p-4 rounded-[var(--radius-md)] ${
-            isAssistant
-              ? "bg-[var(--bg-surface)] border border-[var(--border-1)]"
-              : "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
-          }`}
+          className={`max-w-[85%] p-4 rounded-[var(--radius-md)] ${isAssistant
+            ? "bg-[var(--bg-surface)] border border-[var(--border-1)]"
+            : "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
+            }`}
         >
           {/* Message content */}
           <div
-            className={`rf-body whitespace-pre-wrap ${
-              isAssistant ? "" : "text-[var(--ink-inverse)]"
-            }`}
+            className={`rf-body whitespace-pre-wrap ${isAssistant ? "" : "text-[var(--ink-inverse)]"
+              }`}
           >
             {message.content}
           </div>
@@ -172,13 +146,12 @@ function MessageBubble({
                 <div className="flex items-center gap-3">
                   {message.confidence && (
                     <span
-                      className={`rf-mono-xs ${
-                        message.confidence === "high"
-                          ? "text-[var(--status-success)]"
-                          : message.confidence === "medium"
+                      className={`rf-mono-xs ${message.confidence === "high"
+                        ? "text-[var(--status-success)]"
+                        : message.confidence === "medium"
                           ? "text-[var(--status-warning)]"
                           : "text-[var(--status-error)]"
-                      }`}
+                        }`}
                     >
                       {message.confidence} confidence
                     </span>
@@ -261,9 +234,8 @@ function MessageBubble({
 
         {/* Timestamp */}
         <div
-          className={`mt-1 rf-mono-xs text-[var(--ink-3)] ${
-            isAssistant ? "" : "text-right"
-          }`}
+          className={`mt-1 rf-mono-xs text-[var(--ink-3)] ${isAssistant ? "" : "text-right"
+            }`}
         >
           {message.timestamp.toLocaleTimeString([], {
             hour: "2-digit",
@@ -340,10 +312,11 @@ function ContextPanel({
 
 // Main Muse Page
 export default function MusePage() {
+  const { workspaceId } = useWorkspace();
   const searchParams = useSearchParams();
   const pageRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [messages, setMessages] = useState<Message[]>(mockMuseConversation);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [mode, setMode] = useState<ChatMode>("chat");
@@ -390,7 +363,7 @@ export default function MusePage() {
 
   // Animate new messages
   useEffect(() => {
-    if (messages.length > mockMuseConversation.length) {
+    if (messages.length > 0) {
       gsap.fromTo(
         ".message-item:last-child",
         { y: 20, opacity: 0 },
@@ -414,22 +387,35 @@ export default function MusePage() {
     setIsGenerating(true);
     setShowWelcome(false);
 
-    // Simulate AI response
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Call real museService to generate response
+    try {
+      const response = await museService.generate(workspaceId!, {
+        task: `[${mode}] ${inputValue}`,
+        content_type: mode === "generate" ? "copy" : mode === "refine" ? "refinement" : "general",
+      });
 
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: generateMockResponse(inputValue, mode),
-      timestamp: new Date(),
-      confidence: "high",
-      sources: ["Foundation: Core Messaging", "ICP: Primary Audience"],
-      assumptions: ["Time savings is primary benefit"],
-      suggestions: ["Apply this version", "Make it shorter", "Try different angle"],
-    };
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: response.content ?? "I couldn't generate a response. Please try again.",
+        timestamp: new Date(),
+        confidence: "high",
+        sources: response.sources ?? [],
+        suggestions: response.suggestions ?? [],
+      };
 
-    setMessages((prev) => [...prev, assistantMessage]);
-    setIsGenerating(false);
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (err: unknown) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: `Sorry, I encountered an error: ${(err as Error)?.message ?? "Unknown error"}. Please try again.`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -476,17 +462,16 @@ export default function MusePage() {
           <div className="flex items-center gap-3">
             {/* Mode Toggle */}
             <div className="flex items-center bg-[var(--bg-surface)] border border-[var(--border-1)] rounded-[var(--radius-sm)] p-1">
-              {( ["chat", "generate", "refine"] as ChatMode[]).map((m) => {
+              {(["chat", "generate", "refine"] as ChatMode[]).map((m) => {
                 const Icon = modeConfig[m].icon;
                 return (
                   <button
                     key={m}
                     onClick={() => setMode(m)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-sm)] text-[12px] font-medium transition-colors ${
-                      mode === m
-                        ? "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
-                        : "text-[var(--ink-2)] hover:text-[var(--ink-1)]"
-                    }`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-sm)] text-[12px] font-medium transition-colors ${mode === m
+                      ? "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
+                      : "text-[var(--ink-2)] hover:text-[var(--ink-1)]"
+                      }`}
                   >
                     <Icon size={14} />
                     {modeConfig[m].label}
@@ -505,7 +490,7 @@ export default function MusePage() {
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-6 space-y-6">
           {/* Welcome State */}
-          {showWelcome && messages.length <= mockMuseConversation.length && (
+          {showWelcome && messages.length === 0 && (
             <div className="welcome-section flex flex-col items-center justify-center py-12 text-center">
               <div className="w-16 h-16 rounded-full bg-[var(--bg-surface)] border border-[var(--border-1)] flex items-center justify-center mb-4">
                 <Sparkles size={28} className="text-[var(--ink-1)]" />
@@ -628,106 +613,4 @@ export default function MusePage() {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MOCK RESPONSE GENERATOR
-// ═══════════════════════════════════════════════════════════════════════════════
 
-function generateMockResponse(input: string, mode: ChatMode): string {
-  const lowercase = input.toLowerCase();
-
-  if (mode === "generate" || lowercase.includes("write") || lowercase.includes("create")) {
-    if (lowercase.includes("headline")) {
-      return `Here are 5 headline options:
-
-1. "The Workflow Automation That Saves 10 Hours Every Week"
-2. "Stop Doing Work Your Computer Should Handle"
-3. "Finally: Automation That Actually Works for Enterprise"
-4. "Eliminate Busywork Without Losing Control"
-5. "Your Team's Time Is Too Valuable to Waste on Manual Tasks"
-
-Each emphasizes a different angle: time savings, relief, trust, control, and value respectively. Which direction feels right for this campaign?`;
-    }
-
-    if (lowercase.includes("email")) {
-      return `Here's a draft email:
-
-Subject: The $50K mistake I see enterprise teams making
-
-Hi [First Name],
-
-I was reviewing our Q4 data and noticed something concerning.
-
-78% of enterprise operations teams we surveyed are losing an average of 12 hours per week to manual workflow tasks. At $150/hour fully loaded, that's $93,600 annually in lost productivity.
-
-The kicker? Most don't realize it's happening.
-
-The tasks feel "quick" individually—5 minutes here, 10 minutes there. But they compound into a full day every week.
-
-We've built something to fix this without the typical automation trade-offs (rigid workflows, months of implementation, IT dependency).
-
-Worth a 15-minute conversation?
-
-[CTA: Book a brief call]
-
-Best,
-[Name]
-
-P.S. If you're skeptical (you should be), I'll share the full survey data on the call. No pitch deck.`;
-    }
-
-    return `I'd be happy to help you generate that content. To make it most effective, could you share:
-
-1. **Target platform** - Where will this live?
-2. **Desired length** - Short-form or long-form?
-3. **Key message** - What's the one thing you want them to remember?
-4. **Call to action** - What should they do after reading?
-
-Or, if you have existing content you'd like me to work from, paste it here and I can adapt it.`;
-  }
-
-  if (mode === "refine" || lowercase.includes("refine") || lowercase.includes("improve")) {
-    return `Here's the refined version with improvements:
-
-**Changes made:**
-- Strengthened the hook (first 2 lines now create curiosity gap)
-- Removed 3 instances of passive voice
-- Tightened from 127 words to 94 (26% reduction)
-- Added specific number for credibility
-- Ended with open loop instead of closed statement
-
-**Before:** [Your original text]
-**After:** [Refined text]
-
-The refined version should feel more direct and urgent while maintaining your brand voice. Want me to try a different angle or adjust the tone?`;
-  }
-
-  if (lowercase.includes("launch") || lowercase.includes("product")) {
-    return `Here's a launch sequence draft:
-
-**Week 1: Tease**
-- Day 1-2: Problem agitation ("Tired of...?")
-- Day 3-4: Solution hint without naming
-- Day 5-7: Behind-the-scenes building tension
-
-**Week 2: Reveal**
-- Day 8: Official announcement
-- Day 9-10: Feature deep-dives
-- Day 11-12: Social proof injection
-- Day 13-14: Urgency + CTA
-
-Each post should reference your core value prop: solving [specific pain point] for [ICP].
-
-Want me to draft the actual posts for any of these days?`;
-  }
-
-  return `I can help you with that. A few clarifying questions:
-
-1. **Platform**: Where will this content live? (LinkedIn, email, blog, ads)
-2. **Stage**: What sophistication level is your audience at?
-3. **Goal**: Awareness, consideration, or conversion?
-4. **Format**: Long-form, thread, carousel, video script?
-
-Once you give me these, I'll draft something specific to your foundation and ICPs.
-
-Or if you want, I can propose 3 different angles based on your current positioning.`;
-}

@@ -29,7 +29,11 @@ import {
   Play,
   Pause,
   Eye,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { movesService, type Move as ApiMove } from "@/services/moves.service";
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    MOVES PAGE — "Choose Battles" Loop
@@ -64,76 +68,38 @@ interface ActiveMove {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MOCK DATA
+// ADAPTERS: ApiMove → Frontend types
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const mockProposedMoves: ProposedMove[] = [
-  {
-    id: "prop-1",
-    title: "Launch Referral Program",
-    category: "growth",
-    expectedPayoff: "+30% signups",
+function apiToProposed(api: ApiMove): ProposedMove {
+  return {
+    id: api.id,
+    title: api.name,
+    category: (api.category as ProposedMove["category"]) ?? "growth",
+    expectedPayoff: api.goal ?? "",
     effort: "medium",
-    risk: "low",
-    confidence: "high",
-    reasoning: "Similar companies see 25-40% lift from referrals. Low risk with established playbook.",
-  },
-  {
-    id: "prop-2",
-    title: "Case Study Campaign",
-    category: "conversion",
-    expectedPayoff: "+15% demo requests",
-    effort: "high",
     risk: "medium",
     confidence: "medium",
-    reasoning: "Proof points missing from current landing pages. Requires customer interviews.",
-  },
-  {
-    id: "prop-3",
-    title: "Email Nurture Sequence",
-    category: "retention",
-    expectedPayoff: "+20% activation",
-    effort: "low",
-    risk: "low",
-    confidence: "high",
-    reasoning: "Quick win with existing email infrastructure. Templates available.",
-  },
-  {
-    id: "prop-4",
-    title: "Thought Leadership Series",
-    category: "positioning",
-    expectedPayoff: "+40% organic traffic",
-    effort: "high",
-    risk: "medium",
-    confidence: "medium",
-    reasoning: "Long-term authority building. Requires consistent content production.",
-  },
-];
+    reasoning: api.context ?? api.goal ?? "",
+  };
+}
 
-const mockActiveMoves: ActiveMove[] = [
-  {
-    id: "move-1",
-    title: "Q1 Content Sprint",
-    category: "positioning",
-    status: "active",
-    progress: 65,
-    startDate: new Date("2024-01-01"),
-    endDate: new Date("2024-03-31"),
-    goal: "Establish thought leadership in workflow automation",
-    campaignsCount: 3,
-  },
-  {
-    id: "move-2",
-    title: "Enterprise Trial Flow",
-    category: "conversion",
-    status: "active",
-    progress: 40,
-    startDate: new Date("2024-02-01"),
-    endDate: new Date("2024-04-15"),
-    goal: "Reduce time-to-value for enterprise trials",
-    campaignsCount: 2,
-  },
-];
+function apiToActive(api: ApiMove): ActiveMove {
+  const now = new Date();
+  const start = api.createdAt ? new Date(api.createdAt) : (api.startDate ? new Date(api.startDate) : now);
+  const end = api.endDate ? new Date(api.endDate) : new Date(start.getTime() + (api.duration ?? 14) * 24 * 60 * 60 * 1000);
+  return {
+    id: api.id,
+    title: api.name,
+    category: (api.category as ActiveMove["category"]) ?? "growth",
+    status: (api.status as ActiveMove["status"]) ?? "active",
+    progress: api.progress ?? 0,
+    startDate: start,
+    endDate: end,
+    goal: api.goal ?? "",
+    campaignsCount: 0,
+  };
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CATEGORY CONFIG
@@ -169,37 +135,56 @@ const CONFIDENCE_BADGES: Record<string, { label: string; variant: "success" | "w
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function MovesPage() {
+  const { workspaceId } = useWorkspace();
   const pageRef = useRef<HTMLDivElement>(null);
   const proposedSectionRef = useRef<HTMLDivElement>(null);
   const activeSectionRef = useRef<HTMLDivElement>(null);
-  
+
+  const [allMoves, setAllMoves] = useState<ApiMove[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const [selectedMove, setSelectedMove] = useState<ActiveMove | null>(null);
   const [showingReasoning, setShowingReasoning] = useState<string | null>(null);
   const [committedIds, setCommittedIds] = useState<string[]>([]);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
-  
-  // Filter out committed and dismissed proposals
-  const proposedMoves = mockProposedMoves.filter(
-    (m) => !committedIds.includes(m.id) && !dismissedIds.includes(m.id)
-  );
-  
-  // Add committed moves to active
+
+  // Fetch moves from API
+  useEffect(() => {
+    if (!workspaceId) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    movesService
+      .list(workspaceId)
+      .then((data) => {
+        if (!cancelled) setAllMoves(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message ?? "Failed to load moves");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [workspaceId]);
+
+  // Split into proposed vs active based on status
+  const proposedMoves = allMoves
+    .filter((m) => m.status === "proposed" || m.status === "draft")
+    .filter((m) => !committedIds.includes(m.id) && !dismissedIds.includes(m.id))
+    .map(apiToProposed);
+
+  // Active moves = already active + newly committed proposed
   const activeMoves = [
-    ...mockActiveMoves,
-    ...mockProposedMoves
+    ...allMoves
+      .filter((m) => ["active", "paused", "completed"].includes(m.status))
+      .map(apiToActive),
+    ...allMoves
       .filter((m) => committedIds.includes(m.id))
-      .map((m) => ({
-        id: m.id,
-        title: m.title,
-        category: m.category,
-        status: "active" as const,
-        progress: 0,
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        goal: m.reasoning,
-        campaignsCount: 0,
-      })),
+      .map(apiToActive),
   ];
 
   // Convert active moves to calendar format
@@ -215,6 +200,7 @@ export default function MovesPage() {
 
   // GSAP: Page entrance animation
   useEffect(() => {
+    if (loading) return;
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
@@ -244,7 +230,7 @@ export default function MovesPage() {
     }, pageRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [loading]);
 
   // GSAP: Commit animation
   const handleCommit = (moveId: string, cardEl: HTMLElement | null) => {
@@ -261,7 +247,7 @@ export default function MovesPage() {
         ease: "power2.inOut",
         onComplete: () => {
           setCommittedIds((prev) => [...prev, moveId]);
-          
+
           // Flash active section
           if (activeSectionRef.current) {
             gsap.fromTo(
@@ -301,6 +287,31 @@ export default function MovesPage() {
     return diff > 0 ? `${diff} days left` : "Overdue";
   };
 
+  // ── Loading State ──
+  if (loading) {
+    return (
+      <Layout activeNavItem="moves">
+        <div className="p-6 max-w-[1400px] mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 size={32} className="animate-spin text-[#847C82]" />
+          <p className="text-[14px] text-[#847C82]">Loading moves…</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ── Error State ──
+  if (error) {
+    return (
+      <Layout activeNavItem="moves">
+        <div className="p-6 max-w-[1400px] mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <AlertCircle size={32} className="text-[#8B3D3D]" />
+          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
+          <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout activeNavItem="moves">
       <div ref={pageRef} className="p-6 max-w-[1400px] mx-auto">
@@ -320,22 +331,20 @@ export default function MovesPage() {
             <div className="flex border border-[#D2CCC0] rounded-[10px] overflow-hidden bg-[#F7F5EF]">
               <button
                 onClick={() => setViewMode("list")}
-                className={`flex items-center gap-2 px-3 py-2 text-[13px] font-medium transition-colors ${
-                  viewMode === "list"
-                    ? "bg-[#2A2529] text-[#F3F0E7]"
-                    : "text-[#5C565B] hover:text-[#2A2529]"
-                }`}
+                className={`flex items-center gap-2 px-3 py-2 text-[13px] font-medium transition-colors ${viewMode === "list"
+                  ? "bg-[#2A2529] text-[#F3F0E7]"
+                  : "text-[#5C565B] hover:text-[#2A2529]"
+                  }`}
               >
                 <List size={16} />
                 List
               </button>
               <button
                 onClick={() => setViewMode("calendar")}
-                className={`flex items-center gap-2 px-3 py-2 text-[13px] font-medium transition-colors ${
-                  viewMode === "calendar"
-                    ? "bg-[#2A2529] text-[#F3F0E7]"
-                    : "text-[#5C565B] hover:text-[#2A2529]"
-                }`}
+                className={`flex items-center gap-2 px-3 py-2 text-[13px] font-medium transition-colors ${viewMode === "calendar"
+                  ? "bg-[#2A2529] text-[#F3F0E7]"
+                  : "text-[#5C565B] hover:text-[#2A2529]"
+                  }`}
               >
                 <CalendarIcon size={16} />
                 Calendar
@@ -615,13 +624,13 @@ function ActiveMoveCard({ move, daysRemaining, onClick }: ActiveMoveCardProps) {
   };
 
   const category = CATEGORY_CONFIG[move.category];
-  
+
   const statusVariants: Record<string, { variant: "success" | "warning" | "default" | "info"; label: string; icon: React.ReactNode }> = {
     active: { variant: "success", label: "Active", icon: <Play size={12} /> },
     paused: { variant: "warning", label: "Paused", icon: <Pause size={12} /> },
     completed: { variant: "default", label: "Completed", icon: <CheckCircle2 size={12} /> },
   };
-  
+
   const status = statusVariants[move.status];
 
   return (
@@ -680,9 +689,9 @@ function ActiveMoveCard({ move, daysRemaining, onClick }: ActiveMoveCardProps) {
           <div
             ref={progressRef}
             className="h-full rounded-full transition-all"
-            style={{ 
+            style={{
               width: "0%",
-              backgroundColor: category.color 
+              backgroundColor: category.color
             }}
           />
         </div>
@@ -731,7 +740,7 @@ function MoveDetailModal({ move, onClose }: MoveDetailModalProps) {
   if (!move) return null;
 
   const category = CATEGORY_CONFIG[move.category];
-  
+
   const milestones = [
     { day: 1, title: "Kickoff & Setup", completed: true },
     { day: 7, title: "First Milestone", completed: move.progress >= 30 },
@@ -818,16 +827,14 @@ function MoveDetailModal({ move, onClose }: MoveDetailModalProps) {
                 className="flex items-center gap-3 p-3 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3]"
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    milestone.completed ? "bg-[#3D5A42] text-white" : "bg-[#EFEDE6] text-[#847C82]"
-                  }`}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center ${milestone.completed ? "bg-[#3D5A42] text-white" : "bg-[#EFEDE6] text-[#847C82]"
+                    }`}
                 >
                   {milestone.completed ? <CheckCircle2 size={14} /> : <span className="text-[10px]">{milestone.day}</span>}
                 </div>
                 <span
-                  className={`text-[14px] font-['DM_Sans',system-ui,sans-serif] ${
-                    milestone.completed ? "text-[#2A2529]" : "text-[#847C82]"
-                  }`}
+                  className={`text-[14px] font-['DM_Sans',system-ui,sans-serif] ${milestone.completed ? "text-[#2A2529]" : "text-[#847C82]"
+                    }`}
                 >
                   {milestone.title}
                 </span>

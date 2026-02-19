@@ -8,6 +8,11 @@ import { Button } from "@/components/raptor/ui/Button";
 import { Badge } from "@/components/raptor/ui/Badge";
 import { Tag } from "@/components/raptor/ui/Tag";
 import { Progress } from "@/components/raptor/ui/Progress";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { movesService } from "@/services/moves.service";
+import { campaignsService } from "@/services/campaigns.service";
+import { foundationService } from "@/services/foundation.service";
+import { Loader2, AlertCircle } from "lucide-react";
 
 // Types
 interface Win {
@@ -26,32 +31,34 @@ interface Metric {
   icon: React.ReactNode;
 }
 
-// Mock Data
-const mockData = {
-  company: "Acme Corp",
-  valueProp: "AI-powered workflow automation for enterprise teams",
-  mode: "draft" as const,
-  moves: {
-    active: 2,
-    total: 5,
-  },
-  campaigns: {
-    active: 1,
-    total: 3,
-  },
-  icps: 3,
-  channels: 4,
-  foundation: {
-    positioning: true,
-    icps: true,
-    messaging: false,
-  },
+// Aggregated dashboard data shape
+interface DashboardData {
+  company: string;
+  valueProp: string;
+  mode: "draft" | "locked";
+  moves: { active: number; total: number };
+  campaigns: { active: number; total: number };
+  icps: number;
+  channels: number;
+  foundation: { positioning: boolean; icps: boolean; messaging: boolean };
+  dailyWin: Win;
+}
+
+const DEFAULT_DATA: DashboardData = {
+  company: "Your Workspace",
+  valueProp: "Define your foundation to unlock growth",
+  mode: "draft",
+  moves: { active: 0, total: 0 },
+  campaigns: { active: 0, total: 0 },
+  icps: 0,
+  channels: 0,
+  foundation: { positioning: false, icps: false, messaging: false },
   dailyWin: {
     id: "win-1",
-    title: "Lock your Positioning",
-    description: "Your value proposition is 90% complete. Lock it to enable campaign generation.",
-    impact: "high" as const,
-    category: "foundation" as const,
+    title: "Set up your Foundation",
+    description: "Define your positioning, ICPs, and messaging to unlock the rest of the platform.",
+    impact: "high",
+    category: "foundation",
     completed: false,
   },
 };
@@ -178,13 +185,12 @@ function DailyWinCard({
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--radius-sm)] text-[12px] font-medium border ${impactColors[win.impact]}`}
             >
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  win.impact === "high"
+                className={`w-1.5 h-1.5 rounded-full ${win.impact === "high"
                     ? "bg-[#8B6B3D]"
                     : win.impact === "medium"
                       ? "bg-[var(--ink-1)]"
                       : "bg-[var(--ink-3)]"
-                }`}
+                  }`}
               />
               {win.impact.charAt(0).toUpperCase() + win.impact.slice(1)} Impact
             </span>
@@ -252,7 +258,7 @@ function MetricCard({ metric, index }: { metric: Metric; index: number }) {
 }
 
 // Current Focus Section
-function CurrentFocusSection() {
+function CurrentFocusSection({ dashData }: { dashData: DashboardData }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -264,12 +270,12 @@ function CurrentFocusSection() {
     );
   }, []);
 
-  const hasActiveMove = mockData.moves.active > 0;
+  const hasActiveMove = dashData.moves.active > 0;
 
   if (!hasActiveMove) {
     return (
       <div ref={sectionRef} className="focus-section">
-<Card variant="interactive" className="h-full">
+        <Card variant="interactive" className="h-full">
           <div className="flex flex-col items-center justify-center h-full min-h-[280px] text-center">
             <div className="w-16 h-16 rounded-full bg-[var(--bg-canvas)] flex items-center justify-center mb-4">
               <svg
@@ -345,7 +351,7 @@ function CurrentFocusSection() {
 }
 
 // Foundation Status Card
-function FoundationCard() {
+function FoundationCard({ dashData }: { dashData: DashboardData }) {
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -358,9 +364,9 @@ function FoundationCard() {
   }, []);
 
   const items = [
-    { label: "Positioning", complete: mockData.foundation.positioning },
-    { label: "ICPs", complete: mockData.foundation.icps, count: mockData.icps },
-    { label: "Messaging", complete: mockData.foundation.messaging },
+    { label: "Positioning", complete: dashData.foundation.positioning },
+    { label: "ICPs", complete: dashData.foundation.icps, count: dashData.icps },
+    { label: "Messaging", complete: dashData.foundation.messaging },
   ];
 
   const completeCount = items.filter((i) => i.complete).length;
@@ -454,11 +460,66 @@ function QuickActionsCard() {
 
 // Main Dashboard Page
 export default function DashboardPage() {
+  const { workspaceId } = useWorkspace();
   const headerRef = useRef<HTMLDivElement>(null);
-  const [currentWin, setCurrentWin] = useState<Win>(mockData.dailyWin);
+  const [dashData, setDashData] = useState<DashboardData>(DEFAULT_DATA);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentWin, setCurrentWin] = useState<Win>(DEFAULT_DATA.dailyWin);
+
+  // Fetch aggregate data from services
+  useEffect(() => {
+    if (!workspaceId) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    Promise.allSettled([
+      movesService.list(workspaceId),
+      campaignsService.list(workspaceId),
+      foundationService.get(workspaceId),
+    ]).then(([movesResult, campaignsResult, foundationResult]) => {
+      if (cancelled) return;
+
+      const moves = movesResult.status === "fulfilled" ? movesResult.value : [];
+      const campaigns = campaignsResult.status === "fulfilled" ? campaignsResult.value : [];
+      const foundation = foundationResult.status === "fulfilled" ? foundationResult.value : null;
+
+      const activeMoves = moves.filter((m) => m.status === "active");
+      const activeCampaigns = campaigns.filter((c) => c.status === "active");
+
+      const data: DashboardData = {
+        company: DEFAULT_DATA.company,
+        valueProp: DEFAULT_DATA.valueProp,
+        mode: "draft",
+        moves: { active: activeMoves.length, total: moves.length },
+        campaigns: { active: activeCampaigns.length, total: campaigns.length },
+        icps: (foundation as Record<string, unknown>)?.ricps ? ((foundation as Record<string, unknown>).ricps as unknown[]).length : 0,
+        channels: (foundation as Record<string, unknown>)?.channels ? ((foundation as Record<string, unknown>).channels as unknown[]).length : 0,
+        foundation: {
+          positioning: !!(foundation as Record<string, unknown>)?.ricps,
+          icps: !!((foundation as Record<string, unknown>)?.ricps && ((foundation as Record<string, unknown>).ricps as unknown[]).length > 0),
+          messaging: !!(foundation as Record<string, unknown>)?.messaging,
+        },
+        dailyWin: DEFAULT_DATA.dailyWin,
+      };
+
+      setDashData(data);
+      setCurrentWin(data.dailyWin);
+      setLoading(false);
+    }).catch((err) => {
+      if (!cancelled) {
+        setError(err?.message ?? "Failed to load dashboard");
+        setLoading(false);
+      }
+    });
+
+    return () => { cancelled = true; };
+  }, [workspaceId]);
 
   // Page entrance animation
   useEffect(() => {
+    if (loading) return;
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
     tl.fromTo(
@@ -470,7 +531,7 @@ export default function DashboardPage() {
     return () => {
       tl.kill();
     };
-  }, []);
+  }, [loading]);
 
   const handleWinComplete = () => {
     gsap.to(".daily-win-card", {
@@ -480,7 +541,6 @@ export default function DashboardPage() {
       duration: 0.3,
       onComplete: () => {
         setCurrentWin((prev) => ({ ...prev, completed: true }));
-        // In real app, this would fetch next win
       },
     });
   };
@@ -491,7 +551,6 @@ export default function DashboardPage() {
       opacity: 0,
       duration: 0.3,
       onComplete: () => {
-        // In real app, this would fetch next win
         setCurrentWin((prev) => ({
           ...prev,
           id: `win-${Date.now()}`,
@@ -508,40 +567,65 @@ export default function DashboardPage() {
   const metrics: Metric[] = [
     {
       label: "Active Moves",
-      value: mockData.moves.active,
-      trend: 12,
+      value: dashData.moves.active,
+      trend: 0,
       icon: Icons.moves,
     },
     {
       label: "Campaigns",
-      value: mockData.campaigns.active,
-      trend: 8,
+      value: dashData.campaigns.active,
+      trend: 0,
       icon: Icons.campaigns,
     },
     {
       label: "ICPs Defined",
-      value: mockData.icps,
+      value: dashData.icps,
       trend: 0,
       icon: Icons.icps,
     },
     {
       label: "Channels",
-      value: mockData.channels,
-      trend: 4,
+      value: dashData.channels,
+      trend: 0,
       icon: Icons.channels,
     },
   ];
 
+  // Loading State
+  if (loading) {
+    return (
+      <Layout mode="draft">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 size={32} className="animate-spin text-[#847C82]" />
+          <p className="text-[14px] text-[#847C82]">Loading dashboard…</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <Layout mode="draft">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <AlertCircle size={32} className="text-[#8B3D3D]" />
+          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
+          <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
-    <Layout mode={mockData.mode}>
+    <Layout mode={dashData.mode}>
       <div className="space-y-8 pb-12">
         {/* Header Section */}
         <header ref={headerRef} className="dashboard-header">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <h1 className="rf-h2">{mockData.company || "Your Workspace"}</h1>
+              <h1 className="rf-h2">{dashData.company || "Your Workspace"}</h1>
               <p className="rf-body text-[var(--ink-2)] mt-1">
-                {mockData.valueProp || "Define your foundation to unlock growth"}
+                {dashData.valueProp || "Define your foundation to unlock growth"}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -575,12 +659,12 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Current Focus - 2/3 */}
           <div className="lg:col-span-2">
-            <CurrentFocusSection />
+            <CurrentFocusSection dashData={dashData} />
           </div>
 
           {/* Side Panel - 1/3 */}
           <div className="space-y-6">
-            <FoundationCard />
+            <FoundationCard dashData={dashData} />
             <QuickActionsCard />
           </div>
         </div>

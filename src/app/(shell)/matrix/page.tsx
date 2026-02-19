@@ -17,7 +17,11 @@ import {
   User,
   Clock,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { movesService } from "@/services/moves.service";
+import { campaignsService } from "@/services/campaigns.service";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MATRIX PAGE — Status Dashboard
@@ -42,101 +46,7 @@ interface StatusCount {
   needsDecision: number;
 }
 
-// Mock Data
-const mockStatusCount: StatusCount = {
-  onTrack: 5,
-  stuck: 1,
-  atRisk: 2,
-  needsDecision: 1,
-};
 
-const mockInitiatives: InitiativeItem[] = [
-  {
-    id: "item-1",
-    name: "Content Sprint Q1",
-    type: "campaign",
-    status: "on-track",
-    owner: "Sarah Chen",
-    lastUpdate: new Date("2024-01-15"),
-    healthScore: 85,
-  },
-  {
-    id: "item-2",
-    name: "Enterprise Positioning",
-    type: "move",
-    status: "stuck",
-    owner: "Mike Ross",
-    lastUpdate: new Date("2024-01-14"),
-    healthScore: 35,
-    blockers: ["Waiting on approval", "Competitive analysis incomplete"],
-  },
-  {
-    id: "item-3",
-    name: "Product Launch Campaign",
-    type: "campaign",
-    status: "at-risk",
-    owner: "Alex Kim",
-    lastUpdate: new Date("2024-01-13"),
-    healthScore: 62,
-    blockers: ["Timeline compressed by 2 weeks"],
-  },
-  {
-    id: "item-4",
-    name: "Q2 Content Calendar",
-    type: "move",
-    status: "needs-decision",
-    owner: "Jordan Lee",
-    lastUpdate: new Date("2024-01-12"),
-    healthScore: 70,
-    blockers: ["Budget allocation pending"],
-  },
-  {
-    id: "item-5",
-    name: "Email Nurture Sequence",
-    type: "campaign",
-    status: "on-track",
-    owner: "Taylor Swift",
-    lastUpdate: new Date("2024-01-15"),
-    healthScore: 92,
-  },
-  {
-    id: "item-6",
-    name: "Landing Page Redesign",
-    type: "move",
-    status: "on-track",
-    owner: "Chris Park",
-    lastUpdate: new Date("2024-01-14"),
-    healthScore: 78,
-  },
-  {
-    id: "item-7",
-    name: "Social Media Strategy",
-    type: "campaign",
-    status: "at-risk",
-    owner: "Morgan Blake",
-    lastUpdate: new Date("2024-01-11"),
-    healthScore: 55,
-    blockers: ["Resource constraints"],
-  },
-  {
-    id: "item-8",
-    name: "Webinar Series",
-    type: "campaign",
-    status: "on-track",
-    owner: "Casey Morgan",
-    lastUpdate: new Date("2024-01-10"),
-    healthScore: 88,
-  },
-  {
-    id: "item-9",
-    name: "Case Study Production",
-    type: "move",
-    status: "on-track",
-    owner: "Jamie Fox",
-    lastUpdate: new Date("2024-01-09"),
-    healthScore: 82,
-  },
-];
 
 // Status Card Component
 function StatusCard({
@@ -228,7 +138,7 @@ function InitiativeCard({
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (days === 0) return "Today";
     if (days === 1) return "Yesterday";
     return `${days} days ago`;
@@ -241,11 +151,10 @@ function InitiativeCard({
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <span
-            className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-[8px] ${
-              item.type === "move"
+            className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-[8px] ${item.type === "move"
                 ? "bg-[var(--bg-canvas)] text-[var(--ink-2)]"
                 : "bg-[var(--status-info-bg)] text-[var(--status-info)]"
-            }`}
+              }`}
           >
             {item.type}
           </span>
@@ -274,26 +183,24 @@ function InitiativeCard({
         <div className="flex items-center justify-between mb-1">
           <span className="rf-mono-xs text-[var(--ink-3)]">Health Score</span>
           <span
-            className={`rf-mono-xs font-semibold ${
-              item.healthScore >= 70
+            className={`rf-mono-xs font-semibold ${item.healthScore >= 70
                 ? "text-[var(--status-success)]"
                 : item.healthScore >= 40
-                ? "text-[var(--status-warning)]"
-                : "text-[var(--status-error)]"
-            }`}
+                  ? "text-[var(--status-warning)]"
+                  : "text-[var(--status-error)]"
+              }`}
           >
             {item.healthScore}%
           </span>
         </div>
         <div className="w-full h-1.5 bg-[var(--bg-canvas)] rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full ${
-              item.healthScore >= 70
+            className={`h-full rounded-full ${item.healthScore >= 70
                 ? "bg-[var(--status-success)]"
                 : item.healthScore >= 40
-                ? "bg-[var(--status-warning)]"
-                : "bg-[var(--status-error)]"
-            }`}
+                  ? "bg-[var(--status-warning)]"
+                  : "bg-[var(--status-error)]"
+              }`}
             style={{ width: `${item.healthScore}%` }}
           />
         </div>
@@ -331,28 +238,95 @@ function InitiativeCard({
 
 // Main Matrix Page
 export default function MatrixPage() {
+  const { workspaceId } = useWorkspace();
   const pageRef = useRef<HTMLDivElement>(null);
+  const [initiatives, setInitiatives] = useState<InitiativeItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | InitiativeItem["status"]>("all");
+
+  // Fetch and derive initiatives from moves + campaigns
+  useEffect(() => {
+    if (!workspaceId) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    Promise.allSettled([
+      movesService.list(workspaceId),
+      campaignsService.list(workspaceId),
+    ]).then(([movesResult, campaignsResult]) => {
+      if (cancelled) return;
+
+      const moves = movesResult.status === "fulfilled" ? movesResult.value : [];
+      const campaigns = campaignsResult.status === "fulfilled" ? campaignsResult.value : [];
+
+      const statusMap = (s: string): InitiativeItem["status"] => {
+        if (s === "active" || s === "completed") return "on-track";
+        if (s === "paused") return "stuck";
+        if (s === "draft") return "needs-decision";
+        return "on-track";
+      };
+
+      const items: InitiativeItem[] = [
+        ...moves.map((m) => ({
+          id: m.id,
+          name: m.name,
+          type: "move" as const,
+          status: statusMap(m.status),
+          owner: "-",
+          lastUpdate: m.createdAt ? new Date(m.createdAt) : new Date(),
+          healthScore: m.progress ?? 50,
+        })),
+        ...campaigns.map((c) => ({
+          id: c.id,
+          name: c.title,
+          type: "campaign" as const,
+          status: statusMap(c.status),
+          owner: "-",
+          lastUpdate: c.created_at ? new Date(c.created_at) : new Date(),
+          healthScore: 70,
+        })),
+      ];
+
+      setInitiatives(items);
+      setLoading(false);
+    }).catch((err) => {
+      if (!cancelled) {
+        setError(err?.message ?? "Failed to load matrix");
+        setLoading(false);
+      }
+    });
+
+    return () => { cancelled = true; };
+  }, [workspaceId]);
 
   // Filter initiatives
   const filteredInitiatives =
     filter === "all"
-      ? mockInitiatives
-      : mockInitiatives.filter((item) => item.status === filter);
+      ? initiatives
+      : initiatives.filter((item) => item.status === filter);
+
+  // Derive status counts
+  const statusCount: StatusCount = {
+    onTrack: initiatives.filter((i) => i.status === "on-track").length,
+    stuck: initiatives.filter((i) => i.status === "stuck").length,
+    atRisk: initiatives.filter((i) => i.status === "at-risk").length,
+    needsDecision: initiatives.filter((i) => i.status === "needs-decision").length,
+  };
 
   // GSAP Entrance Animation
   useEffect(() => {
+    if (loading) return;
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
-      // Header entrance
       tl.fromTo(
         ".matrix-header",
         { y: -20, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.5 }
       );
 
-      // Status cards stagger
       tl.fromTo(
         ".status-card",
         { y: 30, opacity: 0, scale: 0.95 },
@@ -360,7 +334,6 @@ export default function MatrixPage() {
         "-=0.2"
       );
 
-      // Initiative cards stagger
       tl.fromTo(
         ".initiative-card",
         { x: -20, opacity: 0 },
@@ -370,38 +343,63 @@ export default function MatrixPage() {
     }, pageRef);
 
     return () => ctx.revert();
-  }, [filter]);
+  }, [filter, loading]);
 
   const statusCards = [
     {
       title: "On Track",
-      count: mockStatusCount.onTrack,
+      count: statusCount.onTrack,
       variant: "success" as const,
       icon: CheckCircle2,
       filterKey: "on-track" as const,
     },
     {
       title: "Stuck",
-      count: mockStatusCount.stuck,
+      count: statusCount.stuck,
       variant: "error" as const,
       icon: AlertCircle,
       filterKey: "stuck" as const,
     },
     {
       title: "At Risk",
-      count: mockStatusCount.atRisk,
+      count: statusCount.atRisk,
       variant: "warning" as const,
       icon: AlertTriangle,
       filterKey: "at-risk" as const,
     },
     {
       title: "Needs Decision",
-      count: mockStatusCount.needsDecision,
+      count: statusCount.needsDecision,
       variant: "default" as const,
       icon: HelpCircle,
       filterKey: "needs-decision" as const,
     },
   ];
+
+  // Loading State
+  if (loading) {
+    return (
+      <Layout mode="live" activeNavItem="matrix">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 size={32} className="animate-spin text-[#847C82]" />
+          <p className="text-[14px] text-[#847C82]">Loading matrix…</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <Layout mode="live" activeNavItem="matrix">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <AlertCircle size={32} className="text-[#8B3D3D]" />
+          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
+          <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout mode="live" activeNavItem="matrix">
@@ -457,18 +455,17 @@ export default function MatrixPage() {
                   <button
                     key={f}
                     onClick={() => setFilter(f as typeof filter)}
-                    className={`px-3 py-1.5 rounded-[var(--radius-sm)] text-[14px] font-medium transition-colors ${
-                      filter === f
+                    className={`px-3 py-1.5 rounded-[var(--radius-sm)] text-[14px] font-medium transition-colors ${filter === f
                         ? "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
                         : "bg-[var(--bg-surface)] text-[var(--ink-2)] hover:bg-[var(--state-hover)]"
-                    }`}
+                      }`}
                   >
                     {f === "all"
                       ? "All"
                       : f
-                          .split("-")
-                          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                          .join(" ")}
+                        .split("-")
+                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                        .join(" ")}
                   </button>
                 )
               )}

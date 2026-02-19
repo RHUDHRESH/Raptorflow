@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { Layout } from "@/components/raptor/shell/Layout";
 import { Card, CardHeader, CardFooter } from "@/components/raptor/ui/Card";
@@ -22,102 +22,19 @@ import {
   Plus,
   Trash2,
   Check,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import {
+  foundationService,
+  EMPTY_FOUNDATION,
+  type FoundationData,
+  type ICP,
+  type ProofPoint,
+} from "@/services/foundation.service";
 
-// Types
 
-type LockStatus = "draft" | "locked";
-
-interface LockableSection {
-  status: LockStatus;
-  lockedAt?: Date;
-  lockedBy?: string;
-  version: number;
-}
-
-interface ICP {
-  id: string;
-  name: string;
-  description: string;
-  firmographics: string;
-  painPoints: string[];
-  goals: string[];
-}
-
-interface ProofPoint {
-  claim: string;
-  evidence: string;
-  status: "validated" | "pending";
-}
-
-interface FoundationData {
-  status: LockStatus;
-  progress: number;
-  positioning: LockableSection & {
-    companyName: string;
-    tagline: string;
-    valueProp: string;
-    problem: string;
-    solution: string;
-  };
-  icps: ICP[];
-  messaging: LockableSection & {
-    oneLiner: string;
-    elevatorPitch: string;
-    keyMessages: string[];
-    proofPoints: ProofPoint[];
-  };
-}
-
-// Mock Data
-const mockFoundation: FoundationData = {
-  status: "draft",
-  progress: 65,
-  positioning: {
-    status: "draft",
-    version: 1,
-    companyName: "Acme AI",
-    tagline: "Automation for modern teams",
-    valueProp: "We help enterprise teams automate repetitive workflows using intelligent AI agents that integrate seamlessly with their existing tools.",
-    problem: "Teams waste 40% of their time on manual processes, data entry, and repetitive tasks that could be automated.",
-    solution: "AI-powered workflow automation that learns your processes and handles them autonomously, saving hours every week.",
-  },
-  icps: [
-    {
-      id: "icp-1",
-      name: "Enterprise Operations",
-      description: "Large teams struggling with process inefficiency",
-      firmographics: "500+ employees, Tech/Finance",
-      painPoints: ["Manual data entry", "Approval bottlenecks", "Tool sprawl"],
-      goals: ["Reduce processing time", "Improve accuracy", "Scale operations"],
-    },
-    {
-      id: "icp-2",
-      name: "Growing Startups",
-      description: "Scaling teams needing automation",
-      firmographics: "50-200 employees, SaaS",
-      painPoints: ["Tool sprawl", "Inconsistent processes", "Limited engineering resources"],
-      goals: ["Scale operations", "Maintain quality", "Move fast"],
-    },
-  ],
-  messaging: {
-    status: "draft",
-    version: 1,
-    oneLiner: "AI workflow automation that actually works",
-    elevatorPitch: "Acme AI replaces repetitive tasks with intelligent automation. Our agents learn your workflows and handle them autonomously—no coding required. Teams save 10+ hours per week.",
-    keyMessages: [
-      "Save 10+ hours per week",
-      "Zero-code automation",
-      "Enterprise security",
-      "Seamless integrations",
-    ],
-    proofPoints: [
-      { claim: "10x ROI in 90 days", evidence: "case-study", status: "validated" },
-      { claim: "SOC 2 Type II certified", evidence: "certification", status: "validated" },
-      { claim: "99.9% uptime SLA", evidence: "metric", status: "pending" },
-    ],
-  },
-};
 
 // Helper function to calculate field completion
 function calculatePositioningProgress(positioning: FoundationData["positioning"]): number {
@@ -809,9 +726,8 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className={`w-2 h-2 rounded-full ${
-                      point.status === "validated" ? "bg-[#3D5A42]" : "bg-[#8B6B3D]"
-                    }`}
+                    className={`w-2 h-2 rounded-full ${point.status === "validated" ? "bg-[#3D5A42]" : "bg-[#8B6B3D]"
+                      }`}
                   />
                   <div>
                     <p className="text-[14px] font-medium text-[#2A2529]">{point.claim}</p>
@@ -904,10 +820,55 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
 
 // Main Page Component
 export default function FoundationPage() {
-  const [foundation, setFoundation] = useState<FoundationData>(mockFoundation);
-  const headerRef = useRef<HTMLElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
+  const { workspaceId } = useWorkspace();
+  const [foundation, setFoundation] = useState<FoundationData>(EMPTY_FOUNDATION);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const cardsRef = useRef<HTMLDivElement>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fetch foundation data from the backend
+  useEffect(() => {
+    if (!workspaceId) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    foundationService
+      .get(workspaceId)
+      .then((data) => {
+        if (!cancelled) setFoundation(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message ?? "Failed to load foundation");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [workspaceId]);
+
+  // Debounced auto-save whenever foundation state changes (skip initial load)
+  const isFirstRender = useRef(true);
+  const handleUpdate = useCallback(
+    (next: FoundationData) => {
+      setFoundation(next);
+
+      if (!workspaceId) return;
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
+      saveTimerRef.current = setTimeout(() => {
+        setSaving(true);
+        foundationService
+          .save(workspaceId, next)
+          .catch(() => { /* silently retry on next change */ })
+          .finally(() => setSaving(false));
+      }, 800);
+    },
+    [workspaceId]
+  );
 
   // Calculate overall progress
   const positioningProgress = calculatePositioningProgress(foundation.positioning);
@@ -925,6 +886,7 @@ export default function FoundationPage() {
 
   // GSAP Page Entrance Animation
   useEffect(() => {
+    if (loading) return;
     const ctx = gsap.context(() => {
       const tl = gsap.timeline();
 
@@ -948,7 +910,32 @@ export default function FoundationPage() {
     });
 
     return () => ctx.revert();
-  }, []);
+  }, [loading]);
+
+  // ── Loading State ──
+  if (loading) {
+    return (
+      <Layout mode="draft" showDrawer>
+        <div className="max-w-4xl mx-auto p-6 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 size={32} className="animate-spin text-[#847C82]" />
+          <p className="text-[14px] text-[#847C82]">Loading foundation…</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ── Error State ──
+  if (error) {
+    return (
+      <Layout mode="draft" showDrawer>
+        <div className="max-w-4xl mx-auto p-6 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <AlertCircle size={32} className="text-[#8B3D3D]" />
+          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
+          <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout mode="draft" showDrawer>
@@ -970,9 +957,16 @@ export default function FoundationPage() {
                 Define your core positioning, ideal customers, and messaging.
               </p>
             </div>
-            <Badge variant={foundation.status === "locked" ? "success" : "warning"}>
-              {foundation.status === "locked" ? "Locked" : "Draft"}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {saving && (
+                <span className="text-[12px] text-[#847C82] flex items-center gap-1">
+                  <Loader2 size={12} className="animate-spin" /> Saving…
+                </span>
+              )}
+              <Badge variant={foundation.status === "locked" ? "success" : "warning"}>
+                {foundation.status === "locked" ? "Locked" : "Draft"}
+              </Badge>
+            </div>
           </div>
         </header>
 
@@ -1016,16 +1010,16 @@ export default function FoundationPage() {
         <div ref={cardsRef} className="space-y-6">
           <PositioningCard
             data={foundation.positioning}
-            onUpdate={(positioning) => setFoundation({ ...foundation, positioning })}
+            onUpdate={(positioning) => handleUpdate({ ...foundation, positioning })}
           />
           <ICPSection
             icps={foundation.icps}
             isLocked={foundation.status === "locked"}
-            onUpdate={(icps) => setFoundation({ ...foundation, icps })}
+            onUpdate={(icps) => handleUpdate({ ...foundation, icps })}
           />
           <MessagingCard
             data={foundation.messaging}
-            onUpdate={(messaging) => setFoundation({ ...foundation, messaging })}
+            onUpdate={(messaging) => handleUpdate({ ...foundation, messaging })}
           />
         </div>
       </div>

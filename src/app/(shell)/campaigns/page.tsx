@@ -26,7 +26,10 @@ import {
   LayoutGrid,
   List,
   CalendarDays,
+  Loader2,
 } from "lucide-react";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
+import { campaignsService, type ApiCampaign } from "@/services/campaigns.service";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -74,171 +77,33 @@ interface Campaign {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MOCK DATA
+// ADAPTER: Backend ApiCampaign → Frontend Campaign
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const mockCampaigns: Campaign[] = [
-  {
-    id: "camp-1",
-    name: "Content Sprint Q1",
-    moveId: "move-1",
-    moveName: "Q1 Content Sprint",
-    status: "active",
-    objective: "Generate 200 qualified leads through content",
-    metric: {
-      name: "Qualified Leads",
-      target: 200,
-      current: 156,
-      unit: "leads",
-    },
+function apiToCampaign(api: ApiCampaign): Campaign {
+  const now = new Date();
+  const created = api.created_at ? new Date(api.created_at) : now;
+  const deadline = new Date(created.getTime() + 90 * 24 * 60 * 60 * 1000);
+  return {
+    id: api.id,
+    name: api.title,
+    moveId: "",
+    moveName: "",
+    status: (api.status as Campaign["status"]) ?? "draft",
+    objective: api.objective ?? api.description ?? "",
+    metric: { name: "Progress", target: 100, current: 0, unit: "%" },
     timeline: {
-      startDate: new Date("2024-01-01"),
-      endDate: new Date("2024-03-31"),
+      startDate: created,
+      endDate: deadline,
       phases: [
-        { id: "p1", name: "Setup", startDate: new Date("2024-01-01"), endDate: new Date("2024-01-14"), status: "completed" },
-        { id: "p2", name: "Content", startDate: new Date("2024-01-15"), endDate: new Date("2024-02-15"), status: "completed" },
-        { id: "p3", name: "Distribution", startDate: new Date("2024-02-16"), endDate: new Date("2024-03-15"), status: "active" },
-        { id: "p4", name: "Analysis", startDate: new Date("2024-03-16"), endDate: new Date("2024-03-31"), status: "pending" },
+        { id: "p1", name: "Plan", startDate: created, endDate: deadline, status: api.status === "active" ? "active" : "pending" },
       ],
     },
-    tasks: [
-      { id: "t1", title: "Create content calendar", phaseId: "p1", status: "done" },
-      { id: "t2", title: "Write 5 blog posts", phaseId: "p2", status: "done" },
-      { id: "t3", title: "Schedule social posts", phaseId: "p3", status: "in-progress" },
-      { id: "t4", title: "Analyze performance", phaseId: "p4", status: "todo" },
-    ],
-    hypothesis: "Consistent content output drives organic lead generation",
-    deadline: new Date("2024-03-31"),
-  },
-  {
-    id: "camp-2",
-    name: "Enterprise Trial Optimization",
-    moveId: "move-2",
-    moveName: "Enterprise Trial Flow",
-    status: "active",
-    objective: "Reduce trial-to-paid conversion time by 50%",
-    metric: {
-      name: "Time to Convert",
-      target: 14,
-      current: 21,
-      unit: "days",
-    },
-    timeline: {
-      startDate: new Date("2024-02-01"),
-      endDate: new Date("2024-04-15"),
-      phases: [
-        { id: "p1", name: "Research", startDate: new Date("2024-02-01"), endDate: new Date("2024-02-15"), status: "completed" },
-        { id: "p2", name: "Design", startDate: new Date("2024-02-16"), endDate: new Date("2024-03-01"), status: "active" },
-        { id: "p3", name: "Build", startDate: new Date("2024-03-02"), endDate: new Date("2024-03-31"), status: "pending" },
-        { id: "p4", name: "Launch", startDate: new Date("2024-04-01"), endDate: new Date("2024-04-15"), status: "pending" },
-      ],
-    },
-    tasks: [
-      { id: "t1", title: "Interview 10 trial users", phaseId: "p1", status: "done" },
-      { id: "t2", title: "Design new onboarding flow", phaseId: "p2", status: "in-progress" },
-      { id: "t3", title: "Implement new flow", phaseId: "p3", status: "todo" },
-      { id: "t4", title: "A/B test against control", phaseId: "p4", status: "todo" },
-    ],
-    hypothesis: "Guided onboarding reduces time-to-value",
-    deadline: new Date("2024-04-15"),
-  },
-  {
-    id: "camp-3",
-    name: "Product Hunt Launch",
-    moveId: "move-3",
-    moveName: "PH Launch Strategy",
-    status: "draft",
-    objective: "Reach #1 Product of the Day",
-    metric: {
-      name: "Upvotes",
-      target: 1000,
-      current: 0,
-      unit: "upvotes",
-    },
-    timeline: {
-      startDate: new Date("2024-03-01"),
-      endDate: new Date("2024-04-30"),
-      phases: [
-        { id: "p1", name: "Prep", startDate: new Date("2024-03-01"), endDate: new Date("2024-03-31"), status: "pending" },
-        { id: "p2", name: "Pre-launch", startDate: new Date("2024-04-01"), endDate: new Date("2024-04-14"), status: "pending" },
-        { id: "p3", name: "Launch", startDate: new Date("2024-04-15"), endDate: new Date("2024-04-16"), status: "pending" },
-        { id: "p4", name: "Follow-up", startDate: new Date("2024-04-17"), endDate: new Date("2024-04-30"), status: "pending" },
-      ],
-    },
-    tasks: [
-      { id: "t1", title: "Create maker profile", phaseId: "p1", status: "todo" },
-      { id: "t2", title: "Prepare demo video", phaseId: "p1", status: "todo" },
-      { id: "t3", title: "Build hunter list", phaseId: "p2", status: "todo" },
-      { id: "t4", title: "Launch day monitoring", phaseId: "p3", status: "todo" },
-    ],
-    hypothesis: "PH visibility drives early adopter acquisition",
-    deadline: new Date("2024-04-30"),
-  },
-  {
-    id: "camp-4",
-    name: "Email Nurture Sequence",
-    moveId: "move-4",
-    moveName: "Email Automation",
-    status: "completed",
-    objective: "Increase trial activation rate by 25%",
-    metric: {
-      name: "Activation Rate",
-      target: 45,
-      current: 48,
-      unit: "%",
-    },
-    timeline: {
-      startDate: new Date("2023-11-01"),
-      endDate: new Date("2024-01-31"),
-      phases: [
-        { id: "p1", name: "Research", startDate: new Date("2023-11-01"), endDate: new Date("2023-11-15"), status: "completed" },
-        { id: "p2", name: "Copy", startDate: new Date("2023-11-16"), endDate: new Date("2023-12-15"), status: "completed" },
-        { id: "p3", name: "Build", startDate: new Date("2023-12-16"), endDate: new Date("2024-01-15"), status: "completed" },
-        { id: "p4", name: "Deploy", startDate: new Date("2024-01-16"), endDate: new Date("2024-01-31"), status: "completed" },
-      ],
-    },
-    tasks: [
-      { id: "t1", title: "Map user journey", phaseId: "p1", status: "done" },
-      { id: "t2", title: "Write email sequences", phaseId: "p2", status: "done" },
-      { id: "t3", title: "Configure automation", phaseId: "p3", status: "done" },
-      { id: "t4", title: "Monitor metrics", phaseId: "p4", status: "done" },
-    ],
-    hypothesis: "Targeted onboarding emails improve activation",
-    deadline: new Date("2024-01-31"),
-  },
-  {
-    id: "camp-5",
-    name: "Partner Integration Push",
-    moveId: "move-5",
-    moveName: "Partner Strategy",
-    status: "paused",
-    objective: "Launch 3 key integrations",
-    metric: {
-      name: "Integrations",
-      target: 3,
-      current: 1,
-      unit: "integrations",
-    },
-    timeline: {
-      startDate: new Date("2024-01-15"),
-      endDate: new Date("2024-06-30"),
-      phases: [
-        { id: "p1", name: "Outreach", startDate: new Date("2024-01-15"), endDate: new Date("2024-02-28"), status: "completed" },
-        { id: "p2", name: "Negotiation", startDate: new Date("2024-03-01"), endDate: new Date("2024-04-15"), status: "completed" },
-        { id: "p3", name: "Development", startDate: new Date("2024-04-16"), endDate: new Date("2024-06-15"), status: "active" },
-        { id: "p4", name: "Launch", startDate: new Date("2024-06-16"), endDate: new Date("2024-06-30"), status: "pending" },
-      ],
-    },
-    tasks: [
-      { id: "t1", title: "Identify target partners", phaseId: "p1", status: "done" },
-      { id: "t2", title: "Draft partnership terms", phaseId: "p2", status: "done" },
-      { id: "t3", title: "Build Slack integration", phaseId: "p3", status: "in-progress" },
-      { id: "t4", title: "Launch partner program", phaseId: "p4", status: "todo" },
-    ],
-    hypothesis: "Strategic integrations expand addressable market",
-    deadline: new Date("2024-06-30"),
-  },
-];
+    tasks: [],
+    hypothesis: api.description ?? "",
+    deadline,
+  };
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // UTILS
@@ -625,25 +490,52 @@ function StatsCard({
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function CampaignsPage() {
+  const { workspaceId } = useWorkspace();
   const pageRef = useRef<HTMLDivElement>(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"timeline" | "list">("timeline");
   const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
+  // Fetch campaigns from API
+  useEffect(() => {
+    if (!workspaceId) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    campaignsService
+      .list(workspaceId)
+      .then((data) => {
+        if (!cancelled) setCampaigns(data.map(apiToCampaign));
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message ?? "Failed to load campaigns");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [workspaceId]);
+
   // Stats
-  const activeCount = mockCampaigns.filter((c) => c.status === "active").length;
-  const draftCount = mockCampaigns.filter((c) => c.status === "draft").length;
-  const completedCount = mockCampaigns.filter((c) => c.status === "completed").length;
-  const totalCount = mockCampaigns.length;
+  const activeCount = campaigns.filter((c) => c.status === "active").length;
+  const draftCount = campaigns.filter((c) => c.status === "draft").length;
+  const completedCount = campaigns.filter((c) => c.status === "completed").length;
+  const totalCount = campaigns.length;
 
   // Filter campaigns
-  const filteredCampaigns = mockCampaigns.filter((c) => {
+  const filteredCampaigns = campaigns.filter((c) => {
     if (filterStatus === "all") return true;
     return c.status === filterStatus;
   });
 
   // Entrance animations
   useEffect(() => {
+    if (loading) return;
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
     tl.fromTo(
@@ -667,7 +559,7 @@ export default function CampaignsPage() {
     return () => {
       tl.kill();
     };
-  }, [filterStatus]);
+  }, [filterStatus, loading]);
 
   const handleCampaignToggle = (campaignId: string) => {
     setExpandedCampaign(expandedCampaign === campaignId ? null : campaignId);
@@ -748,6 +640,31 @@ export default function CampaignsPage() {
       ),
     },
   ];
+
+  // ── Loading State ──
+  if (loading) {
+    return (
+      <Layout mode="draft" activeNavItem="campaigns">
+        <div className="p-6 lg:p-8 max-w-[1400px] mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 size={32} className="animate-spin text-[#847C82]" />
+          <p className="text-[14px] text-[#847C82]">Loading campaigns…</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ── Error State ──
+  if (error) {
+    return (
+      <Layout mode="draft" activeNavItem="campaigns">
+        <div className="p-6 lg:p-8 max-w-[1400px] mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <AlertCircle size={32} className="text-[#8B3D3D]" />
+          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
+          <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout mode="draft" activeNavItem="campaigns">
