@@ -4,7 +4,7 @@ Uses Redis caching decorator for performance
 """
 
 from typing import List, Optional, Dict, Any, Callable
-from backend.infrastructure.cache.decorator import cached, invalidate_cache
+from backend.core.cache.decorator import cached, invalidate_cache
 
 
 def _workspace_cache_key(workspace_id: str, **_kwargs: Any) -> str:
@@ -23,7 +23,7 @@ def _get_supabase_client():
     getter = getattr(cached_queries_module, "get_supabase_client", None)
     if getter is not None:
         return getter()
-    from backend.infrastructure.database.supabase import get_supabase_client
+    from backend.core.database.supabase import get_supabase_client
 
     return get_supabase_client()
 

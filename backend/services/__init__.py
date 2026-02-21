@@ -53,7 +53,7 @@ except Exception as e:
     auth_service = None
 
 try:
-    from backend.infrastructure.cache import get_cache_client
+    from backend.core.cache import get_cache_client
 
     bcm_cache = get_cache_client()
 except Exception as e:

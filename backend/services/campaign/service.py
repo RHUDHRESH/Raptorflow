@@ -8,7 +8,7 @@ import logging
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from backend.infrastructure.database.supabase import get_supabase_client
+from backend.core.database.supabase import get_supabase_client
 from backend.services.base_service import BaseService
 from backend.services.registry import registry
 from backend.services.exceptions import ResourceNotFoundError, ServiceError

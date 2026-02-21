@@ -12,11 +12,10 @@ import { useEffect } from "react";
  * Clean, minimal version that works at 16x16
  */
 export const FaviconSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <path d="M50 8 L62 50 L50 92 L38 50 Z" fill="#2A2529"/>
-  <path d="M50 8 L54 35 L50 40 L46 35 Z" fill="#8B6914"/>
-  <circle cx="50" cy="50" r="6" fill="#2A2529" stroke="#F3F0E7" stroke-width="2"/>
-  <circle cx="50" cy="50" r="2.5" fill="#F3F0E7"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path d="M12 2L18.5 13H5.5L12 2Z" fill="#2A2529"/>
+  <path d="M12 22L18.5 13H5.5L12 22Z" fill="#5C565B" opacity="0.5"/>
+  <circle cx="12" cy="13" r="1.8" fill="#F3F0E7"/>
 </svg>
 `;
 
@@ -24,11 +23,10 @@ export const FaviconSVG = `
  * Dark mode favicon
  */
 export const FaviconSVGDark = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <path d="M50 8 L62 50 L50 92 L38 50 Z" fill="#F3F0E7"/>
-  <path d="M50 8 L54 35 L50 40 L46 35 Z" fill="#C9B794"/>
-  <circle cx="50" cy="50" r="6" fill="#F3F0E7" stroke="#2A2529" stroke-width="2"/>
-  <circle cx="50" cy="50" r="2.5" fill="#2A2529"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path d="M12 2L18.5 13H5.5L12 2Z" fill="#F3F0E7"/>
+  <path d="M12 22L18.5 13H5.5L12 22Z" fill="#F3F0E7" opacity="0.45"/>
+  <circle cx="12" cy="13" r="1.8" fill="#2A2529"/>
 </svg>
 `;
 
@@ -36,9 +34,9 @@ export const FaviconSVGDark = `
  * Minimal favicon for smallest sizes
  */
 export const FaviconSVGMinimal = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <path d="M50 15 L60 50 L50 85 L40 50 Z" fill="#2A2529"/>
-  <circle cx="50" cy="50" r="5" fill="#2A2529"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path d="M12 2L18.5 13H5.5L12 2Z" fill="#2A2529"/>
+  <path d="M12 22L18.5 13H5.5L12 22Z" fill="#2A2529" opacity="0.4"/>
 </svg>
 `;
 
@@ -82,11 +80,10 @@ export function Favicons() {
     const appleIcon = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
         <rect width="180" height="180" fill="#F3F0E7" rx="40"/>
-        <g transform="translate(40, 40) scale(1)">
-          <path d="M50 8 L62 50 L50 92 L38 50 Z" fill="#2A2529"/>
-          <path d="M50 8 L54 35 L50 40 L46 35 Z" fill="#8B6914"/>
-          <circle cx="50" cy="50" r="6" fill="#2A2529" stroke="#F3F0E7" stroke-width="2"/>
-          <circle cx="50" cy="50" r="2.5" fill="#F3F0E7"/>
+        <g transform="translate(45, 30) scale(3.75)">
+          <path d="M12 2L18.5 13H5.5L12 2Z" fill="#2A2529"/>
+          <path d="M12 22L18.5 13H5.5L12 22Z" fill="#5C565B" opacity="0.5"/>
+          <circle cx="12" cy="13" r="1.8" fill="#F3F0E7"/>
         </g>
       </svg>
     `;
@@ -94,9 +91,9 @@ export function Favicons() {
 
     // Safari Pinned Tab (monochrome)
     const safariIcon = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <path d="M50 8 L62 50 L50 92 L38 50 Z" fill="#2A2529"/>
-        <circle cx="50" cy="50" r="6" fill="#2A2529"/>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 2L18.5 13H5.5L12 2Z" fill="#2A2529"/>
+        <path d="M12 22L18.5 13H5.5L12 22Z" fill="#2A2529" opacity="0.4"/>
       </svg>
     `;
     let maskIcon = document.querySelector('link[rel="mask-icon"]') as HTMLLinkElement;
@@ -162,7 +159,7 @@ export function generateFaviconPNG(size: number, dark = false): string {
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext("2d");
-  
+
   if (!ctx) return "";
 
   // Background
@@ -170,37 +167,32 @@ export function generateFaviconPNG(size: number, dark = false): string {
   ctx.fillRect(0, 0, size, size);
 
   // Scale factor
-  const s = size / 100;
-  
-  // Needle
+  const s = size / 24;
+
+  // Top triangle
   ctx.fillStyle = dark ? "#F3F0E7" : "#2A2529";
   ctx.beginPath();
-  ctx.moveTo(50 * s, 8 * s);
-  ctx.lineTo(62 * s, 50 * s);
-  ctx.lineTo(50 * s, 92 * s);
-  ctx.lineTo(38 * s, 50 * s);
+  ctx.moveTo(12 * s, 2 * s);
+  ctx.lineTo(18.5 * s, 13 * s);
+  ctx.lineTo(5.5 * s, 13 * s);
   ctx.closePath();
   ctx.fill();
 
-  // North highlight
-  ctx.fillStyle = "#8B6914";
+  // Bottom triangle (lighter)
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = dark ? "#F3F0E7" : "#5C565B";
   ctx.beginPath();
-  ctx.moveTo(50 * s, 8 * s);
-  ctx.lineTo(54 * s, 35 * s);
-  ctx.lineTo(50 * s, 40 * s);
-  ctx.lineTo(46 * s, 35 * s);
+  ctx.moveTo(12 * s, 22 * s);
+  ctx.lineTo(18.5 * s, 13 * s);
+  ctx.lineTo(5.5 * s, 13 * s);
   ctx.closePath();
   ctx.fill();
+  ctx.globalAlpha = 1;
 
-  // Center
-  ctx.fillStyle = dark ? "#F3F0E7" : "#2A2529";
-  ctx.beginPath();
-  ctx.arc(50 * s, 50 * s, 6 * s, 0, Math.PI * 2);
-  ctx.fill();
-
+  // Center dot
   ctx.fillStyle = dark ? "#2A2529" : "#F3F0E7";
   ctx.beginPath();
-  ctx.arc(50 * s, 50 * s, 2.5 * s, 0, Math.PI * 2);
+  ctx.arc(12 * s, 13 * s, 1.8 * s, 0, Math.PI * 2);
   ctx.fill();
 
   return canvas.toDataURL("image/png");

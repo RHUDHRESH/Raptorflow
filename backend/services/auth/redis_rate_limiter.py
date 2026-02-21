@@ -21,7 +21,7 @@ class RedisRateLimiter:
     def _init_redis(self) -> None:
         """Initialize Redis connection."""
         try:
-            from backend.infrastructure.cache.redis import get_redis_client
+            from backend.core.cache.redis import get_redis_client
 
             self._redis = get_redis_client()
             if self._redis:

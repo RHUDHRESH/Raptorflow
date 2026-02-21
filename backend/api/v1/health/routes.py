@@ -9,8 +9,8 @@ import os
 from fastapi import APIRouter, HTTPException
 
 from backend.config import settings
-from backend.infrastructure.database.monitor import query_monitor
-from backend.infrastructure.cache.redis import get_redis_client
+from backend.core.database.monitor import query_monitor
+from backend.core.cache.redis import get_redis_client
 from backend.services.registry import registry
 from backend.services.muse_service import REASONING_DEPTH_PROFILES
 from backend.agents import EXECUTION_MODES, INTENSITY_PROFILES
@@ -34,7 +34,7 @@ async def readiness_check():
     all_healthy = True
 
     try:
-        from backend.infrastructure.database.pool import get_pool
+        from backend.core.database.pool import get_pool
 
         pool = get_pool()
         async with pool.connect() as conn:
@@ -45,7 +45,7 @@ async def readiness_check():
         all_healthy = False
 
     try:
-        from backend.infrastructure.cache.redis_sentinel import (
+        from backend.core.cache.redis_sentinel import (
             get_redis_sentinel_manager,
         )
 
@@ -71,7 +71,7 @@ async def readiness_check():
 async def _safe_pool_stats() -> Dict[str, Any]:
     """Best-effort DB pool stats; degrades gracefully when optional deps are absent."""
     try:
-        from backend.infrastructure.database.pool import get_pool_stats
+        from backend.core.database.pool import get_pool_stats
 
         return await get_pool_stats()
     except Exception as exc:

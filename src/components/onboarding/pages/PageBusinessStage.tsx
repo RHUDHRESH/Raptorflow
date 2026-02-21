@@ -1,152 +1,246 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { CompassLogo } from "@/components/compass/CompassLogo";
+import { OnboardingLayout } from "../OnboardingLayout";
+import { Rocket, TrendingUp, Building, Briefcase, Landmark } from "lucide-react";
 
 interface PageBusinessStageProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (val: string) => void;
+  currentPage: number;
+  totalPages: number;
   onNext: () => void;
   onBack?: () => void;
-  totalPages?: number;
-  currentPage?: number;
+  onSaveAndExit?: () => void;
 }
 
 const STAGES = [
-  { id: "pre-seed", label: "Pre-seed", description: "Idea validation & early development" },
-  { id: "seed", label: "Seed", description: "Early traction & product-market fit" },
-  { id: "series-a", label: "Series A", description: "Proven model & scaling" },
-  { id: "series-b", label: "Series B", description: "Rapid growth & expansion" },
-  { id: "series-c", label: "Series C+", description: "Late stage & market dominance" },
-  { id: "growth", label: "Growth", description: "Profitable & scaling efficiently" },
-  { id: "enterprise", label: "Enterprise", description: "Large established company" },
+  { label: "Idea", tagline: "Validating the concept", detail: "Scrappy, low-budget, fast-learning moves", icon: Rocket },
+  { label: "MVP", tagline: "First users in, learning fast", detail: "Trust-building and early-adopter content", icon: TrendingUp },
+  { label: "Growth", tagline: "Found PMF, now scaling", detail: "Multi-channel, data-driven content", icon: Building },
+  { label: "Scale", tagline: "Established and optimising", detail: "Brand authority and retention plays", icon: Briefcase },
+  { label: "Enterprise", tagline: "Large org, multi-product", detail: "Account-based, relationship-first motion", icon: Landmark },
 ];
 
 export function PageBusinessStage({
-  value, onChange, onNext, onBack, totalPages = 21, currentPage = 4,
+  value,
+  onChange,
+  currentPage,
+  totalPages,
+  onNext,
+  onBack,
 }: PageBusinessStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [selectedId, setSelectedId] = useState<string>(value);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  const isValid = selectedId.length > 0;
-
-  useEffect(() => setSelectedId(value), [value]);
-
-  // Clean entrance
+  // Entrance animation with stagger
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-
-      tl.fromTo(".grain", { opacity: 0 }, { opacity: 0.03, duration: 2 });
-      tl.fromTo(".compass", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.8 }, "-=1.5");
-      tl.fromTo(".step", { opacity: 0 }, { opacity: 1, duration: 0.6 }, "-=0.6");
-      tl.fromTo(".progress", { scaleX: (currentPage - 1) / totalPages }, { scaleX: currentPage / totalPages, duration: 1.5 }, "-=0.4");
-      tl.fromTo(".qnum", { opacity: 0 }, { opacity: 1, duration: 0.5 }, "-=1.2");
-      tl.fromTo(".headline", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, "-=0.8");
-      tl.fromTo(".stage", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.08 }, "-=0.4");
-      tl.fromTo(".nav", { opacity: 0 }, { opacity: 1, duration: 0.5 }, "-=0.3");
+      
+      tl.fromTo(".stage-node",
+        { opacity: 0, y: 30, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.1 }
+      )
+      .fromTo(".stage-label",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, stagger: 0.08 },
+        "-=0.3"
+      );
     }, containerRef);
-
     return () => ctx.revert();
-  }, [currentPage, totalPages]);
+  }, []);
 
-  const selectStage = useCallback((id: string) => {
-    setSelectedId(id);
-    onChange(id);
+  // Track fill animation
+  const selectedIdx = STAGES.findIndex(s => s.label === value);
+  const fillPercent = selectedIdx >= 0 ? (selectedIdx / (STAGES.length - 1)) * 100 : 0;
+
+  useEffect(() => {
+    if (trackRef.current) {
+      gsap.to(trackRef.current, {
+        width: `${fillPercent}%`,
+        duration: 0.6,
+        ease: "power2.inOut"
+      });
+    }
+  }, [fillPercent]);
+
+  // Selection handler with animation
+  const handleSelect = useCallback((label: string, idx: number) => {
+    onChange(label);
+    
+    // Node animation
+    const node = document.querySelector(`[data-stage="${label}"]`);
+    if (node) {
+      gsap.fromTo(node,
+        { scale: 0.9 },
+        { scale: 1.1, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out" }
+      );
+    }
+
+    // Detail card animation
+    if (detailRef.current) {
+      gsap.fromTo(detailRef.current,
+        { opacity: 0, y: 20, height: 0 },
+        { opacity: 1, y: 0, height: "auto", duration: 0.4, ease: "power2.out" }
+      );
+    }
+
+    // Note: User must click Continue or press Enter to advance
   }, [onChange]);
 
-  const submit = useCallback(() => {
-    if (!isValid) return;
-    gsap.to(".page", { opacity: 0, x: -30, duration: 0.4, onComplete: onNext });
-  }, [isValid, onNext]);
+  // Detail card update animation
+  useEffect(() => {
+    if (detailRef.current && value) {
+      gsap.fromTo(detailRef.current,
+        { opacity: 0.7, scale: 0.98 },
+        { opacity: 1, scale: 1, duration: 0.25, ease: "power2.out" }
+      );
+    }
+  }, [value]);
 
-  const progressPct = Math.round((currentPage / totalPages) * 100);
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && value) { 
+        onNext(); 
+        return; 
+      }
+      const idx = STAGES.findIndex(s => s.label === value);
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        const newIdx = Math.min(idx + 1, STAGES.length - 1);
+        onChange(STAGES[newIdx].label);
+      }
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        const newIdx = Math.max(idx - 1, 0);
+        onChange(STAGES[newIdx].label);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [value, onNext, onChange]);
 
   return (
-    <div ref={containerRef} className="min-h-screen w-full bg-[var(--bg-canvas)] relative overflow-hidden">
-      <div className="grain absolute inset-0 pointer-events-none z-0 opacity-0" style={{backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`, backgroundSize: "256px"}} />
+    <OnboardingLayout
+      currentStep={currentPage}
+      totalSteps={totalPages}
+      stepTitle="What stage is your business at?"
+      stepDescription="This shapes the type and ambition of strategies we propose."
+      onBack={onBack}
+      onNext={onNext}
+      canGoNext={!!value}
+      showBack={!!onBack}
+    >
+      <div ref={containerRef} className="ob-content-item ob-animate-in">
+        <p className="text-[11px] font-mono text-[var(--ink-3)] mb-8 flex items-center gap-2">
+          <span className="flex gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-surface)] border border-[var(--border-2)]">←</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-surface)] border border-[var(--border-2)]">→</kbd>
+          </span>
+          navigate · click to select
+        </p>
 
-      <div className="page relative z-20 min-h-screen flex flex-col">
-        <header className="flex items-center justify-between px-12 md:px-24 py-10">
-          <div className="compass"><CompassLogo size={40} variant="compact" className="text-[var(--rf-charcoal)]" /></div>
-          <div className="step flex items-center gap-4">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.3em] text-[var(--ink-3)]">Step</span>
-            <div className="flex items-baseline">
-              <span className="rf-mono text-lg font-semibold text-[var(--ink-1)]">{String(currentPage).padStart(2, "0")}</span>
-              <span className="text-[var(--ink-3)] mx-1.5">/</span>
-              <span className="rf-mono text-sm text-[var(--ink-3)]">{String(totalPages).padStart(2, "0")}</span>
-            </div>
-          </div>
-          <button className="text-[10px] uppercase tracking-[0.2em] text-[var(--ink-3)] hover:text-[var(--ink-1)] transition-colors">Save & Exit</button>
-        </header>
-
-        <div className="px-12 md:px-24 mb-12">
-          <div className="max-w-lg mx-auto">
-            <div className="relative h-px bg-[var(--border-1)]">
-              <div className="progress absolute inset-y-0 left-0 bg-[var(--rf-charcoal)] origin-left" style={{transform: "scaleX(0)"}} />
-            </div>
-            <div className="flex justify-between mt-3">
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Start</span>
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-1)]">{progressPct}%</span>
-            </div>
-          </div>
-        </div>
-
-        <main className="flex-1 flex flex-col items-center px-12 md:px-24 pb-32">
-          <div className="qnum mb-10">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.4em] text-[var(--ink-3)]">Question {String(currentPage).padStart(2, "0")}</span>
+        {/* Timeline */}
+        <div className="relative px-4">
+          {/* Track background */}
+          <div className="absolute top-[28px] left-8 right-8 h-[4px] bg-[var(--border-1)] rounded-full overflow-hidden">
+            {/* Animated fill */}
+            <div
+              ref={trackRef}
+              className="h-full bg-[var(--rf-charcoal)] rounded-full"
+              style={{ width: "0%" }}
+            />
           </div>
 
-          <h1 className="headline text-center mb-14">
-            <span className="block text-[clamp(40px,8vw,72px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em]">What stage is</span>
-            <span className="block text-[clamp(40px,8vw,72px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em] mt-2">your business<span className="text-[var(--ink-3)]">?</span></span>
-          </h1>
+          {/* Nodes */}
+          <div className="flex justify-between relative">
+            {STAGES.map((stage, i) => {
+              const isSelected = value === stage.label;
+              const isPast = selectedIdx >= 0 && i < selectedIdx;
+              const isHovered = hoveredIdx === i;
+              const Icon = stage.icon;
 
-          <div className="w-full max-w-2xl space-y-2">
-            {STAGES.map((stage, index) => {
-              const isSelected = selectedId === stage.id;
               return (
                 <button
-                  key={stage.id}
-                  onClick={() => selectStage(stage.id)}
-                  className={`stage w-full relative p-5 rounded-[14px] text-left border transition-all duration-200 ${
-                    isSelected 
-                      ? "bg-[var(--rf-charcoal)] border-[var(--rf-charcoal)] text-[var(--rf-ivory)]" 
-                      : "bg-[var(--bg-raised)] border-[var(--border-1)] text-[var(--ink-1)] hover:border-[var(--ink-2)]"
-                  }`}
+                  key={stage.label}
+                  data-stage={stage.label}
+                  onClick={() => handleSelect(stage.label, i)}
+                  onMouseEnter={() => setHoveredIdx(i)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                  className="stage-node flex flex-col items-center gap-4 group focus:outline-none"
+                  style={{ width: `${100 / STAGES.length}%` }}
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="rf-mono text-sm text-[var(--ink-3)] w-6">{String(index + 1).padStart(2, "0")}</span>
-                    <div className="flex-1">
-                      <span className="block font-semibold text-base">{stage.label}</span>
-                      <span className={`block text-sm ${isSelected ? "text-[var(--rf-ivory)]/60" : "text-[var(--ink-3)]"}`}>{stage.description}</span>
+                  {/* Node circle */}
+                  <div 
+                    className={`relative z-10 transition-transform duration-300 ${isSelected ? "scale-110" : isHovered ? "scale-105" : ""}`}
+                  >
+                    <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isSelected
+                        ? "bg-[var(--rf-charcoal)] border-[var(--rf-charcoal)] shadow-lg shadow-black/20"
+                        : isPast
+                          ? "bg-[var(--rf-charcoal)]/20 border-[var(--rf-charcoal)]/40"
+                          : "bg-[var(--bg-surface)] border-[var(--border-2)] group-hover:border-[var(--ink-2)]"
+                      }`}
+                    >
+                      <Icon 
+                        size={22} 
+                        className={`transition-colors ${isSelected ? "text-[var(--rf-ivory)]" : isPast ? "text-[var(--rf-charcoal)]" : "text-[var(--ink-3)] group-hover:text-[var(--ink-2)]"}`}
+                      />
                     </div>
+                    
+                    {/* Selection ring */}
                     {isSelected && (
-                      <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
+                      <div className="absolute inset-[-6px] rounded-full border-2 border-[var(--rf-charcoal)]/20 animate-ping-once" />
                     )}
+
+                    {/* Hover glow */}
+                    {isHovered && !isSelected && (
+                      <div className="absolute inset-[-4px] rounded-full bg-[var(--rf-charcoal)]/5 -z-10" />
+                    )}
+                  </div>
+
+                  {/* Label */}
+                  <div className="stage-label text-center">
+                    <span className={`text-[13px] font-semibold block transition-colors ${isSelected ? "text-[var(--ink-1)]" : "text-[var(--ink-3)] group-hover:text-[var(--ink-2)]"}`}>
+                      {stage.label}
+                    </span>
+                    <span className={`text-[10px] leading-snug hidden sm:block transition-all mt-1 max-w-[90px] mx-auto ${isSelected ? "text-[var(--ink-2)] opacity-100" : "text-[var(--ink-3)]/60 opacity-0 group-hover:opacity-100"}`}>
+                      {stage.tagline}
+                    </span>
                   </div>
                 </button>
               );
             })}
           </div>
-        </main>
+        </div>
 
-        <footer className="nav fixed bottom-0 left-0 right-0 border-t border-[var(--border-1)] bg-[var(--bg-surface)] z-30">
-          <div className="max-w-2xl mx-auto px-12 md:px-24 py-6 flex items-center justify-between">
-            <button onClick={onBack} className="flex items-center gap-2 text-sm font-medium text-[var(--ink-2)] hover:text-[var(--ink-1)] transition-colors">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              Back
-            </button>
-            <button onClick={submit} disabled={!isValid} className="flex items-center gap-3 px-8 py-4 bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] rounded-[14px] font-semibold text-sm hover:bg-[#3d363b] transition-colors disabled:opacity-30">
-              Continue
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-            </button>
+        {/* Contextual detail card */}
+        {value && (
+          <div
+            ref={detailRef}
+            className="mt-10 p-5 rounded-[var(--radius-lg)] bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] relative overflow-hidden"
+          >
+            {/* Subtle gradient accent */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-2">
+                {(() => {
+                  const stage = STAGES.find(s => s.label === value);
+                  const Icon = stage?.icon || Rocket;
+                  return <Icon size={16} className="opacity-60" />;
+                })()}
+                <p className="text-[11px] font-mono text-white/40 tracking-wider">{value.toUpperCase()}</p>
+              </div>
+              <p className="text-[16px] font-medium leading-relaxed">
+                {STAGES.find(s => s.label === value)?.detail}
+              </p>
+            </div>
           </div>
-        </footer>
+        )}
       </div>
-    </div>
+    </OnboardingLayout>
   );
 }

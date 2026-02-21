@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 import { workspacesService } from "@/services/workspaces.service";
 import { notify } from "@/lib/notifications";
+import { useSaveAndExit } from "./hooks";
 import { PageCompanyName } from "@/components/onboarding/pages/PageCompanyName";
 import { PageCompanyWebsite } from "@/components/onboarding/pages/PageCompanyWebsite";
 import { PageIndustry } from "@/components/onboarding/pages/PageIndustry";
@@ -158,6 +159,9 @@ export default function OnboardingPage() {
     }
   }, [currentPage]);
 
+  // Save and exit handler
+  const { handleSaveAndExit } = useSaveAndExit({ workspaceId, formData });
+
   // Submit onboarding
   const handleComplete = useCallback(async () => {
     if (!workspaceId) {
@@ -194,6 +198,7 @@ export default function OnboardingPage() {
       });
 
       await workspacesService.completeOnboarding(workspaceId, {
+        schema_version: "1.0",
         answers: payloadAnswers,
       });
 
@@ -228,6 +233,7 @@ export default function OnboardingPage() {
       currentPage: currentPage + 1,
       onNext: goToNext,
       onBack: currentPage > 0 ? goToPrev : undefined,
+      onSaveAndExit: handleSaveAndExit,
     };
 
     switch (currentField.id) {

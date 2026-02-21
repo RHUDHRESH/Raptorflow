@@ -2,158 +2,271 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { gsap } from "gsap";
-import { CompassLogo } from "@/components/compass/CompassLogo";
+import { OnboardingLayout } from "../OnboardingLayout";
+import { Search, Check, ChevronDown, X, Building } from "lucide-react";
 
 interface PageIndustryProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (val: string) => void;
+  currentPage: number;
+  totalPages: number;
   onNext: () => void;
   onBack?: () => void;
-  totalPages?: number;
-  currentPage?: number;
+  onSaveAndExit?: () => void;
 }
 
-const INDUSTRIES = [
-  { id: "saas", label: "SaaS", description: "Software as a Service" },
-  { id: "fintech", label: "FinTech", description: "Financial Technology" },
-  { id: "ecommerce", label: "E-commerce", description: "Online retail & marketplaces" },
-  { id: "healthcare", label: "Healthcare", description: "Health & medical technology" },
-  { id: "ai", label: "AI / ML", description: "Artificial Intelligence" },
-  { id: "devtools", label: "DevTools", description: "Developer tools" },
-  { id: "cybersecurity", label: "Cybersecurity", description: "Security & privacy" },
-  { id: "edtech", label: "EdTech", description: "Education technology" },
-  { id: "marketplace", label: "Marketplace", description: "Multi-sided platforms" },
-  { id: "consumer", label: "Consumer", description: "B2C applications" },
-  { id: "enterprise", label: "Enterprise", description: "B2B software" },
-  { id: "other", label: "Other", description: "Something else" },
+const ALL_INDUSTRIES = [
+  "SaaS / Software", "Fintech", "E-commerce / Retail", "Healthcare / MedTech",
+  "Education / EdTech", "Agency / Consulting", "Marketing Technology",
+  "Pharmaceutical", "Legal / LegalTech", "Real Estate / PropTech",
+  "Logistics / Supply Chain", "Manufacturing", "Cybersecurity",
+  "Artificial Intelligence / ML", "Deep Tech / Hardware", "Robotics / Automation",
+  "CleanTech / Sustainability", "FoodTech / AgriTech", "Travel / Hospitality",
+  "Media / Content", "Gaming / Entertainment", "Non-profit / Social Impact",
+  "Government / Public Sector", "HR / Recruiting / HRTech",
+  "Insurance / InsurTech", "Construction / PropTech", "Retail Analytics",
+  "Telecommunications", "Automotive / Mobility", "Aerospace / Defence", "Other",
 ];
 
 export function PageIndustry({
-  value, onChange, onNext, onBack, totalPages = 21, currentPage = 3,
+  value,
+  onChange,
+  currentPage,
+  totalPages,
+  onNext,
+  onBack,
 }: PageIndustryProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [selectedId, setSelectedId] = useState<string>(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const customRef = useRef<HTMLInputElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [query, setQuery] = useState(value === "Other" ? "" : value);
+  const [isOpen, setIsOpen] = useState(false);
+  const [customValue, setCustomValue] = useState("");
+  const [showCustom, setShowCustom] = useState(value === "Other");
 
-  const isValid = selectedId.length > 0;
+  // Focus on mount
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus(), 400);
+    return () => clearTimeout(t);
+  }, []);
 
-  useEffect(() => setSelectedId(value), [value]);
+  // Focus custom input when Other is shown
+  useEffect(() => {
+    if (showCustom) setTimeout(() => customRef.current?.focus(), 100);
+  }, [showCustom]);
 
-  // Clean entrance - subtle fades only
+  // Entrance animation
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-
-      tl.fromTo(".grain", { opacity: 0 }, { opacity: 0.03, duration: 2 });
-      tl.fromTo(".compass", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.8 }, "-=1.5");
-      tl.fromTo(".step", { opacity: 0 }, { opacity: 1, duration: 0.6 }, "-=0.6");
-      tl.fromTo(".progress", { scaleX: (currentPage - 1) / totalPages }, { scaleX: currentPage / totalPages, duration: 1.5 }, "-=0.4");
-      tl.fromTo(".qnum", { opacity: 0 }, { opacity: 1, duration: 0.5 }, "-=1.2");
-      tl.fromTo(".headline", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, "-=0.8");
-      tl.fromTo(".card", { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.04 }, "-=0.4");
-      tl.fromTo(".nav", { opacity: 0 }, { opacity: 1, duration: 0.5 }, "-=0.3");
-    }, containerRef);
-
+      gsap.fromTo(".ob-content-item",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: "power2.out" }
+      );
+    }, wrapperRef);
     return () => ctx.revert();
-  }, [currentPage, totalPages]);
+  }, []);
 
-  // Selection - simple state change
-  const selectIndustry = useCallback((id: string) => {
-    setSelectedId(id);
-    onChange(id);
+  // Filter list
+  const filtered = query.trim()
+    ? ALL_INDUSTRIES.filter(i => i.toLowerCase().includes(query.toLowerCase()))
+    : ALL_INDUSTRIES;
+
+  const handleSelect = useCallback((industry: string) => {
+    if (industry === "Other") {
+      onChange("Other");
+      setShowCustom(true);
+      setIsOpen(false);
+      setQuery("Other");
+    } else {
+      onChange(industry);
+      setQuery(industry);
+      setShowCustom(false);
+      setIsOpen(false);
+      inputRef.current?.blur();
+      // Selection made - user must click Continue or press Enter to advance
+    }
   }, [onChange]);
 
-  // Submit - clean fade
-  const submit = useCallback(() => {
-    if (!isValid) return;
-    gsap.to(".page", { opacity: 0, x: -30, duration: 0.4, onComplete: onNext });
-  }, [isValid, onNext]);
+  const handleClear = () => {
+    onChange("");
+    setQuery("");
+    setShowCustom(false);
+    setCustomValue("");
+    setIsOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
 
-  const progressPct = Math.round((currentPage / totalPages) * 100);
+  const handleCustomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomValue(e.target.value);
+    onChange(e.target.value ? `Other: ${e.target.value}` : "Other");
+  };
+
+  // Keyboard navigation
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") { 
+      e.preventDefault(); 
+      setActiveIdx(i => Math.min(i + 1, filtered.length - 1)); 
+    }
+    if (e.key === "ArrowUp") { 
+      e.preventDefault(); 
+      setActiveIdx(i => Math.max(i - 1, 0)); 
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIdx >= 0 && filtered[activeIdx]) handleSelect(filtered[activeIdx]);
+      else if (value) {
+        gsap.to(wrapperRef.current, {
+          scale: 0.98,
+          duration: 0.1,
+          yoyo: true,
+          repeat: 1,
+          onComplete: () => onNext()
+        });
+      }
+    }
+    if (e.key === "Escape") setIsOpen(false);
+  };
+
+  // Scroll active item into view
+  useEffect(() => {
+    if (activeIdx >= 0 && dropdownRef.current) {
+      const el = dropdownRef.current.querySelector(`[data-idx="${activeIdx}"]`) as HTMLElement;
+      el?.scrollIntoView({ block: "nearest" });
+    }
+  }, [activeIdx]);
+
+  // Dropdown open animation
+  useEffect(() => {
+    if (dropdownRef.current) {
+      if (isOpen) {
+        gsap.fromTo(dropdownRef.current,
+          { opacity: 0, y: -10, scaleY: 0.95 },
+          { opacity: 1, y: 0, scaleY: 1, duration: 0.2, ease: "power2.out" }
+        );
+        // Animate items
+        gsap.fromTo(".dropdown-item",
+          { opacity: 0, x: -10 },
+          { opacity: 1, x: 0, duration: 0.15, stagger: 0.02, delay: 0.1 }
+        );
+      }
+    }
+  }, [isOpen]);
 
   return (
-    <div ref={containerRef} className="min-h-screen w-full bg-[var(--bg-canvas)] relative overflow-hidden">
-      <div className="grain absolute inset-0 pointer-events-none z-0 opacity-0" 
-        style={{backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`, backgroundSize: "256px"}} />
-
-      <div className="page relative z-20 min-h-screen flex flex-col">
-        <header className="flex items-center justify-between px-12 md:px-24 py-10">
-          <div className="compass"><CompassLogo size={40} variant="compact" className="text-[var(--rf-charcoal)]" /></div>
-          <div className="step flex items-center gap-4">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.3em] text-[var(--ink-3)]">Step</span>
-            <div className="flex items-baseline">
-              <span className="rf-mono text-lg font-semibold text-[var(--ink-1)]">{String(currentPage).padStart(2, "0")}</span>
-              <span className="text-[var(--ink-3)] mx-1.5">/</span>
-              <span className="rf-mono text-sm text-[var(--ink-3)]">{String(totalPages).padStart(2, "0")}</span>
-            </div>
-          </div>
-          <button className="text-[10px] uppercase tracking-[0.2em] text-[var(--ink-3)] hover:text-[var(--ink-1)] transition-colors">Save & Exit</button>
-        </header>
-
-        <div className="px-12 md:px-24 mb-12">
-          <div className="max-w-lg mx-auto">
-            <div className="relative h-px bg-[var(--border-1)]">
-              <div className="progress absolute inset-y-0 left-0 bg-[var(--rf-charcoal)] origin-left" style={{transform: "scaleX(0)"}} />
-            </div>
-            <div className="flex justify-between mt-3">
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Start</span>
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-1)]">{progressPct}%</span>
-            </div>
-          </div>
+    <OnboardingLayout
+      currentStep={currentPage}
+      totalSteps={totalPages}
+      stepTitle="What industry are you in?"
+      stepDescription="Start typing — we'll find it."
+      onBack={onBack}
+      onNext={onNext}
+      canGoNext={!!value && value !== "Other"}
+      showBack={!!onBack}
+    >
+      <div ref={wrapperRef} className="ob-content-item ob-animate-in relative">
+        {/* Search input */}
+        <div className={`flex items-center gap-2.5 px-4 py-3.5 rounded-[var(--radius-md)] border bg-[var(--bg-surface)] transition-all duration-200 ${isOpen ? "border-[var(--rf-charcoal)] ring-2 ring-[var(--rf-charcoal)]/10" : "border-[var(--border-2)]"}`}>
+          <Search size={16} className="text-[var(--ink-3)] flex-shrink-0" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={e => { setQuery(e.target.value); setIsOpen(true); setActiveIdx(-1); }}
+            onFocus={() => setIsOpen(true)}
+            onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g. Pharmaceutical, SaaS, Legal..."
+            className="flex-1 bg-transparent border-none outline-none text-[15px] text-[var(--ink-1)] placeholder:text-[var(--ink-3)]/50"
+          />
+          {value && (
+            <button onClick={handleClear} className="flex-shrink-0 text-[var(--ink-3)] hover:text-[var(--ink-1)] transition-colors p-1 hover:bg-[var(--border-1)] rounded-full">
+              <X size={14} />
+            </button>
+          )}
+          {!value && <ChevronDown size={14} className={`flex-shrink-0 text-[var(--ink-3)] transition-transform ${isOpen ? "rotate-180" : ""}`} />}
         </div>
 
-        <main className="flex-1 flex flex-col items-center px-12 md:px-24 pb-32">
-          <div className="qnum mb-10">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.4em] text-[var(--ink-3)]">Question {String(currentPage).padStart(2, "0")}</span>
+        {/* Selected badge */}
+        {value && !isOpen && !showCustom && (
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] w-fit">
+              <Building size={14} />
+              <span className="text-[13px] font-medium">{value}</span>
+              <Check size={12} className="opacity-60" />
+            </div>
           </div>
+        )}
 
-          <h1 className="headline text-center mb-14">
-            <span className="block text-[clamp(40px,8vw,72px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em]">What industry</span>
-            <span className="block text-[clamp(40px,8vw,72px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em] mt-2">are you in<span className="text-[var(--ink-3)]">?</span></span>
-          </h1>
-
-          <div className="w-full max-w-4xl grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {INDUSTRIES.map((industry) => {
-              const isSelected = selectedId === industry.id;
-              return (
+        {/* Dropdown */}
+        {isOpen && (
+          <div
+            ref={dropdownRef}
+            className="absolute top-full mt-1 left-0 right-0 bg-[var(--bg-surface)] border border-[var(--border-1)] rounded-[var(--radius-md)] overflow-auto shadow-xl z-20 origin-top"
+            style={{ maxHeight: "280px" }}
+          >
+            {filtered.length === 0 ? (
+              <div className="px-4 py-4 text-[13px] text-[var(--ink-3)]">
+                No match — select "Other" to enter custom
+              </div>
+            ) : (
+              filtered.map((industry, i) => (
                 <button
-                  key={industry.id}
-                  onClick={() => selectIndustry(industry.id)}
-                  className={`card relative p-5 rounded-[16px] text-left border transition-all duration-200 ${
-                    isSelected
-                      ? "bg-[var(--rf-charcoal)] border-[var(--rf-charcoal)] text-[var(--rf-ivory)]"
-                      : "bg-[var(--bg-raised)] border-[var(--border-1)] text-[var(--ink-1)] hover:border-[var(--ink-2)]"
-                  }`}
+                  key={industry}
+                  data-idx={i}
+                  onMouseDown={() => handleSelect(industry)}
+                  onMouseEnter={() => setActiveIdx(i)}
+                  className={`dropdown-item w-full text-left px-4 py-3 text-[13px] flex items-center justify-between transition-colors ${i === activeIdx ? "bg-[var(--bg-raised)] text-[var(--ink-1)]" : "text-[var(--ink-2)] hover:bg-[var(--bg-raised)]"
+                    } ${industry === value ? "font-semibold" : ""}`}
                 >
-                  {isSelected && (
-                    <div className="absolute top-3 right-3">
-                      <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                  <span className="block font-semibold text-sm mb-1">{industry.label}</span>
-                  <span className={`block text-xs ${isSelected ? "text-[var(--rf-ivory)]/60" : "text-[var(--ink-3)]"}`}>{industry.description}</span>
+                  {industry}
+                  {industry === value && <Check size={14} className="text-[var(--rf-charcoal)]" />}
                 </button>
-              );
-            })}
+              ))
+            )}
           </div>
-
-          <p className="mt-10 text-sm text-[var(--ink-3)] text-center max-w-md">Select your primary market category</p>
-        </main>
-
-        <footer className="nav fixed bottom-0 left-0 right-0 border-t border-[var(--border-1)] bg-[var(--bg-surface)] z-30">
-          <div className="max-w-4xl mx-auto px-12 md:px-24 py-6 flex items-center justify-between">
-            <button onClick={onBack} className="flex items-center gap-2 text-sm font-medium text-[var(--ink-2)] hover:text-[var(--ink-1)] transition-colors">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              Back
-            </button>
-            <button onClick={submit} disabled={!isValid} className="flex items-center gap-3 px-8 py-4 bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] rounded-[14px] font-semibold text-sm hover:bg-[#3d363b] transition-colors disabled:opacity-30">
-              Continue
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-            </button>
-          </div>
-        </footer>
+        )}
       </div>
-    </div>
+
+      {/* Custom input */}
+      {showCustom && (
+        <div className="ob-content-item ob-animate-in mt-4">
+          <label className="text-[11px] font-mono text-[var(--ink-3)] mb-2 block tracking-wide">SPECIFY YOUR INDUSTRY</label>
+          <input
+            ref={customRef}
+            type="text"
+            value={customValue}
+            onChange={handleCustomChange}
+            onKeyDown={e => { if (e.key === "Enter" && customValue.trim()) onNext(); }}
+            placeholder="e.g. Pharmaceutical Logistics, B2B Wholesale..."
+            className="w-full px-4 py-3 rounded-[var(--radius-md)] border border-[var(--border-2)] bg-[var(--bg-surface)] text-[15px] text-[var(--ink-1)] outline-none focus:border-[var(--rf-charcoal)] focus:ring-2 focus:ring-[var(--rf-charcoal)]/10 transition-all"
+          />
+          {customValue.trim() && (
+            <p className="mt-2 text-[12px] text-[var(--status-success)] font-medium flex items-center gap-1">
+              <Check size={12} /> Got it — press Enter or Continue
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Quick picks */}
+      {!value && (
+        <div className="ob-content-item ob-animate-in mt-6">
+          <p className="text-[11px] font-mono text-[var(--ink-3)] mb-3 tracking-wide">POPULAR</p>
+          <div className="flex flex-wrap gap-2">
+            {["SaaS / Software", "Fintech", "E-commerce / Retail", "Agency / Consulting"].map(industry => (
+              <button
+                key={industry}
+                onClick={() => handleSelect(industry)}
+                className="px-3 py-1.5 text-[12px] rounded-full border border-[var(--border-2)] text-[var(--ink-2)] hover:border-[var(--rf-charcoal)] hover:text-[var(--ink-1)] transition-all"
+              >
+                {industry}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </OnboardingLayout>
   );
 }

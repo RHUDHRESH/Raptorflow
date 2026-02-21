@@ -52,9 +52,9 @@ export function DailyWin({
       case "high":
         return "border-l-2 border-l-[#D4A853] bg-[#F5F0E6]";
       case "medium":
-        return "border-l-2 border-l-[#D2CCC0] bg-[#F7F5EF]";
+        return "border-l-2 border-l-[var(--border-2)] bg-[var(--bg-surface)]";
       case "low":
-        return "border-l-2 border-l-[#E3DED3] bg-[#EFEDE6]";
+        return "border-l-2 border-l-[var(--border-1)] bg-[var(--bg-canvas)]";
       default:
         return "";
     }
@@ -78,11 +78,11 @@ export function DailyWin({
       case "high":
         return "bg-[#D4A853]";
       case "medium":
-        return "bg-[#5C565B]";
+        return "bg-[var(--ink-2)]";
       case "low":
-        return "bg-[#847C82]";
+        return "bg-[var(--ink-3)]";
       default:
-        return "bg-[#847C82]";
+        return "bg-[var(--ink-3)]";
     }
   };
 
@@ -90,7 +90,7 @@ export function DailyWin({
     <div
       ref={cardRef}
       className={`
-        relative p-4 rounded-[10px] border border-[#E3DED3]
+        relative p-4 rounded-[10px] border border-[var(--border-1)]
         ${getImpactStyles()}
         ${completed ? "opacity-60" : "opacity-100"}
         transition-opacity duration-200
@@ -104,10 +104,9 @@ export function DailyWin({
           className={`
             flex-shrink-0 w-5 h-5 rounded-[6px] border-2 flex items-center justify-center
             transition-colors duration-200
-            ${
-              completed
-                ? "bg-[#2A2529] border-[#2A2529]"
-                : "bg-transparent border-[#D2CCC0] hover:border-[#2A2529]"
+            ${completed
+              ? "bg-[var(--rf-charcoal)] border-[var(--rf-charcoal)]"
+              : "bg-transparent border-[var(--border-2)] hover:border-[var(--rf-charcoal)]"
             }
           `}
           aria-label={completed ? "Mark as incomplete" : "Mark as complete"}
@@ -119,7 +118,7 @@ export function DailyWin({
               height="12"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#F3F0E7"
+              stroke="var(--rf-ivory)"
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -134,8 +133,8 @@ export function DailyWin({
           <div className="flex items-center gap-2 mb-1">
             <h4
               className={`
-                text-[14px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]
-                ${completed ? "line-through text-[#847C82]" : ""}
+                text-[14px] font-semibold text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]
+                ${completed ? "line-through text-[var(--ink-3)]" : ""}
               `}
             >
               {title}
@@ -159,13 +158,13 @@ export function DailyWin({
             )}
           </div>
 
-          <p className="text-[12px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif] line-clamp-2">
+          <p className="text-[12px] text-[var(--ink-3)] font-['DM_Sans',system-ui,sans-serif] line-clamp-2">
             {description}
           </p>
 
           <div className="mt-2 flex items-center gap-1.5">
             <span className={`w-1.5 h-1.5 rounded-full ${getImpactDotColor()}`} />
-            <span className="text-[10px] font-medium text-[#847C82] font-['JetBrains_Mono',monospace] uppercase tracking-wide">
+            <span className="text-[10px] font-medium text-[var(--ink-3)] font-['JetBrains_Mono',monospace] uppercase tracking-wide">
               {getImpactLabel()}
             </span>
           </div>
@@ -175,7 +174,7 @@ export function DailyWin({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="flex-shrink-0 p-1 text-[#847C82] hover:text-[#2A2529] hover:bg-[#F3F0E7] rounded-[6px] transition-colors"
+            className="flex-shrink-0 p-1 text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:bg-[var(--state-hover)] rounded-[6px] transition-colors"
             aria-label="Dismiss"
           >
             <svg

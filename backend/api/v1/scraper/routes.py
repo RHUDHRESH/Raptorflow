@@ -39,7 +39,7 @@ from backend.services.exceptions import ServiceUnavailableError
 
 
 def _get_redis_client():
-    from backend.infrastructure.cache.redis import get_redis_client
+    from backend.core.cache.redis import get_redis_client
 
     return get_redis_client()
 

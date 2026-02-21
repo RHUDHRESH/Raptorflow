@@ -30,7 +30,7 @@ export function Table<T extends object>({
     const row = rowRefs.current[index];
     if (row) {
       gsap.to(row, {
-        backgroundColor: "#F3F0E7",
+        backgroundColor: "var(--state-hover)",
         duration: 0.15,
         ease: "power2.out",
       });
@@ -40,7 +40,7 @@ export function Table<T extends object>({
   const handleMouseLeave = (index: number, isZebra: boolean, rowIndex: number) => {
     const row = rowRefs.current[index];
     if (row) {
-      const bgColor = isZebra && rowIndex % 2 === 1 ? "#F7F5EF" : "transparent";
+      const bgColor = isZebra && rowIndex % 2 === 1 ? "var(--bg-surface)" : "transparent";
       gsap.to(row, {
         backgroundColor: bgColor,
         duration: 0.15,
@@ -70,8 +70,8 @@ export function Table<T extends object>({
         <thead>
           <tr
             className={`
-              border-b border-[#E3DED3]
-              ${stickyHeader ? "sticky top-0 bg-[#F7F5EF] z-10" : ""}
+              border-b border-[var(--border-1)]
+              ${stickyHeader ? "sticky top-0 bg-[var(--bg-surface)] z-10" : ""}
             `}
           >
             {columns.map((column) => (
@@ -80,7 +80,7 @@ export function Table<T extends object>({
                 style={{ width: column.width }}
                 className={`
                   py-3 px-4 text-[12px] font-semibold uppercase tracking-wide
-                  text-[#847C82] font-['DM_Sans',system-ui,sans-serif]
+                  text-[var(--ink-3)] font-['DM_Sans',system-ui,sans-serif]
                   ${getAlignClass(column.align)}
                 `}
               >
@@ -101,8 +101,8 @@ export function Table<T extends object>({
                   rowRefs.current[refIndex] = el;
                 }}
                 className={`
-                  border-b border-[#E3DED3] transition-colors
-                  ${isZebraRow ? "bg-[#F7F5EF]" : "bg-transparent"}
+                  border-b border-[var(--border-1)] transition-colors
+                  ${isZebraRow ? "bg-[var(--bg-surface)]" : "bg-transparent"}
                 `}
                 onMouseEnter={() => handleMouseEnter(refIndex)}
                 onMouseLeave={() => handleMouseLeave(refIndex, zebra || false, rowIndex)}
@@ -118,7 +118,7 @@ export function Table<T extends object>({
                         py-3 px-4 text-[14px]
                         ${getAlignClass(column.align)}
                         ${isMono ? "font-['JetBrains_Mono',monospace]" : "font-['DM_Sans',system-ui,sans-serif]"}
-                        ${isIdColumn(column.key) ? "text-[#5C565B]" : "text-[#2A2529]"}
+                        ${isIdColumn(column.key) ? "text-[var(--ink-2)]" : "text-[var(--ink-1)]"}
                       `}
                     >
                       {column.render

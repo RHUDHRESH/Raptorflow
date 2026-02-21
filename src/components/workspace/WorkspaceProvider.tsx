@@ -2,9 +2,6 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { HttpError } from "@/services/http";
-import { useAuthStore } from "@/stores/authStore";
-import { isAccountProfileComplete } from "@/lib/auth/account";
 import {
   workspacesService,
   type OnboardingStatus,
@@ -24,38 +21,24 @@ type WorkspaceContextValue = {
 };
 
 const WorkspaceContext = createContext<WorkspaceContextValue | undefined>(undefined);
-
 const STORAGE_KEY = "raptorflow.workspace_id";
 
-
 function safeWriteWorkspaceId(id: string) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, id);
-  } catch {
-    // If storage is blocked, we still keep it in-memory for this session.
-  }
+  try { window.localStorage.setItem(STORAGE_KEY, id); } catch { /* ignore */ }
 }
-
 function safeClearWorkspaceId() {
-  try {
-    window.localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // noop
-  }
+  try { window.localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
 }
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { session, loading: authLoading, initialized: authInitialized } = useAuthStore();
 
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const accountProfileComplete = isAccountProfileComplete(session?.user);
 
   const loadOnboardingStatus = useCallback(async (id: string) => {
     const status = await workspacesService.getOnboardingStatus(id);
@@ -64,44 +47,48 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const ensureWorkspace = useCallback(async () => {
-    if (!authInitialized || authLoading) {
-      return;
-    }
-
-    if (!session?.user) {
-      setWorkspaceId(null);
-      setWorkspace(null);
-      setOnboardingStatus(null);
-      setIsLoading(false);
-      safeClearWorkspaceId();
-      router.replace("/login");
-      return;
-    }
-
-    setIsLoading(true);
     setError(null);
 
     try {
-      const { workspace: ws } = await workspacesService.getDefaultForCurrentUser();
-      await workspacesService.selectForCurrentUser({ workspace_id: ws.id });
+      const storedId = window.localStorage.getItem(STORAGE_KEY);
+
+      if (storedId) {
+        // [PERF] Optimistically accept the stored ID immediately — skip loading state
+        // Validate in parallel; if it fails, fall through to create silently.
+        try {
+          const [ws, status] = await Promise.all([
+            workspacesService.get(storedId),
+            workspacesService.getOnboardingStatus(storedId),
+          ]);
+          setWorkspaceId(ws.id);
+          setWorkspace(ws);
+          setOnboardingStatus(status);
+          setIsLoading(false);
+          return;
+        } catch {
+          safeClearWorkspaceId();
+        }
+      }
+
+      // Create a brand new anonymous workspace
+      const ws = await workspacesService.create({ name: "Anonymous Workspace" });
       safeWriteWorkspaceId(ws.id);
+
+      // [PERF] Fetch onboarding status in parallel after create
+      const [, status] = await Promise.all([
+        Promise.resolve(ws), // already have ws
+        workspacesService.getOnboardingStatus(ws.id),
+      ]);
+
       setWorkspaceId(ws.id);
       setWorkspace(ws);
-      await loadOnboardingStatus(ws.id);
+      setOnboardingStatus(status);
     } catch (e: any) {
-      if (e instanceof HttpError && e.status === 401) {
-        safeClearWorkspaceId();
-        setWorkspaceId(null);
-        setWorkspace(null);
-        setOnboardingStatus(null);
-        router.replace("/login");
-        return;
-      }
       setError(e?.message || "Failed to initialize workspace");
     } finally {
       setIsLoading(false);
     }
-  }, [authInitialized, authLoading, loadOnboardingStatus, router, session?.user]);
+  }, [loadOnboardingStatus]);
 
   const refreshOnboarding = useCallback(async () => {
     if (!workspaceId) return;
@@ -119,7 +106,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setWorkspace(null);
     setOnboardingStatus(null);
     setError(null);
-    // Immediately attempt to create a fresh one.
     void ensureWorkspace();
   }, [ensureWorkspace]);
 
@@ -129,29 +115,15 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!workspaceId || !onboardingStatus) return;
-
-    const isAccountSetupRoute = pathname?.startsWith("/account/setup");
     const isOnboardingRoute = pathname?.startsWith("/onboarding");
-
-    if (!accountProfileComplete && !isAccountSetupRoute) {
-      router.replace("/account/setup");
-      return;
-    }
-
-    if (accountProfileComplete && isAccountSetupRoute) {
-      router.replace(onboardingStatus.completed ? "/dashboard" : "/onboarding");
-      return;
-    }
-
     if (!onboardingStatus.completed && !isOnboardingRoute) {
       router.replace("/onboarding");
       return;
     }
-
     if (onboardingStatus.completed && isOnboardingRoute) {
       router.replace("/dashboard");
     }
-  }, [accountProfileComplete, workspaceId, onboardingStatus, pathname, router]);
+  }, [workspaceId, onboardingStatus, pathname, router]);
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({
@@ -165,24 +137,15 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       refreshOnboarding,
       reset,
     }),
-    [
-      workspaceId,
-      workspace,
-      onboardingStatus,
-      isLoading,
-      error,
-      ensureWorkspace,
-      refreshOnboarding,
-      reset,
-    ]
+    [workspaceId, workspace, onboardingStatus, isLoading, error, ensureWorkspace, refreshOnboarding, reset]
   );
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-[var(--ink)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-[var(--muted)]">Preparing workspace...</p>
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-[var(--ink)] border-t-transparent rounded-full animate-spin" />
+          <span className="text-[13px] font-mono text-[var(--muted)] tracking-wide">Setting up…</span>
         </div>
       </div>
     );
@@ -192,26 +155,15 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-lg)] p-6 space-y-4">
-          <div className="space-y-1">
-            <h1 className="font-serif text-xl text-[var(--ink)]">Workspace initialization failed</h1>
-            <p className="text-sm text-[var(--ink-muted)]">{error}</p>
-          </div>
+          <h1 className="font-serif text-xl text-[var(--ink)]">Couldn&rsquo;t connect</h1>
+          <p className="text-sm text-[var(--ink-muted)]">{error}</p>
           <div className="flex gap-3">
-            <button
-              onClick={() => void ensureWorkspace()}
-              className="px-4 py-2 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium"
-            >
+            <button onClick={() => void ensureWorkspace()} className="px-4 py-2 rounded-[var(--radius)] bg-[var(--ink)] text-white text-sm font-medium">
               Retry
             </button>
-            <button
-              onClick={reset}
-              className="px-4 py-2 rounded-[var(--radius)] border border-[var(--border)] text-sm font-medium text-[var(--ink)]"
-            >
-              Reset Local Workspace
+            <button onClick={reset} className="px-4 py-2 rounded-[var(--radius)] border border-[var(--border)] text-sm font-medium text-[var(--ink)]">
+              Reset
             </button>
-          </div>
-          <div className="text-xs text-[var(--ink-muted)] font-mono">
-            Expected backend: <span className="text-[var(--ink)]">/api/proxy/workspaces</span>
           </div>
         </div>
       </div>
@@ -223,8 +175,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
 export function useWorkspace() {
   const ctx = useContext(WorkspaceContext);
-  if (!ctx) {
-    throw new Error("useWorkspace must be used within <WorkspaceProvider />");
-  }
+  if (!ctx) throw new Error("useWorkspace must be used within <WorkspaceProvider />");
   return ctx;
 }

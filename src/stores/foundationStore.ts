@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { Channel, CoreMessaging, RICP } from "@/types/foundation";
-import { foundationService, type FoundationState } from "@/services/foundation.service";
+import { foundationService, type FoundationData, EMPTY_FOUNDATION } from "@/services/foundation.service";
 
 /* ════════════════════════════════════════════════════════════════════════════════════════
    FOUNDATION STORE — No-Auth Reconstruction
@@ -10,7 +10,7 @@ import { foundationService, type FoundationState } from "@/services/foundation.s
    No Supabase browser client, no onboarding sync, no silent fallbacks.
    ════════════════════════════════════════════════════════════════════════════════════════ */
 
-interface FoundationStoreState extends FoundationState {
+interface FoundationStoreState extends FoundationData {
   positioningConfidence: number;
   isLoading: boolean;
   error: string | null;
@@ -32,14 +32,8 @@ interface FoundationStoreState extends FoundationState {
   reset: () => void;
 }
 
-const EMPTY_STATE: FoundationState = {
-  ricps: [],
-  messaging: null,
-  channels: [],
-};
-
 export const useFoundationStore = create<FoundationStoreState>((set, get) => ({
-  ...EMPTY_STATE,
+  ...EMPTY_FOUNDATION,
   positioningConfidence: 0,
   isLoading: false,
   error: null,
@@ -64,7 +58,7 @@ export const useFoundationStore = create<FoundationStoreState>((set, get) => ({
   saveFoundation: async (workspaceId: string) => {
     const { ricps, messaging, channels } = get();
     try {
-      await foundationService.save(workspaceId, { ricps, messaging, channels });
+      await foundationService.save(workspaceId, { ricps, messaging, channels } as any);
     } catch (err: any) {
       console.error("Error saving foundation:", err);
       set({ error: err?.message || "Failed to save foundation" });
@@ -100,35 +94,35 @@ export const useFoundationStore = create<FoundationStoreState>((set, get) => ({
       messaging: state.messaging
         ? { ...state.messaging, ...updates, updatedAt: Date.now() }
         : {
-            id: `msg-${Date.now()}`,
-            oneLiner: "",
-            positioningStatement: {
-              target: "",
-              situation: "",
-              product: "",
-              category: "",
-              keyBenefit: "",
-              alternatives: "",
-              differentiator: "",
-            },
-            valueProps: [],
-            brandVoice: { tone: [], doList: [], dontList: [] },
-            storyBrand: {
-              character: "",
-              problemExternal: "",
-              problemInternal: "",
-              problemPhilosophical: "",
-              guide: "",
-              plan: [],
-              callToAction: "",
-              transitionalCTA: "",
-              avoidFailure: [],
-              success: [],
-            },
-            updatedAt: Date.now(),
-            confidence: 0,
-            ...updates,
+          id: `msg-${Date.now()}`,
+          oneLiner: "",
+          positioningStatement: {
+            target: "",
+            situation: "",
+            product: "",
+            category: "",
+            keyBenefit: "",
+            alternatives: "",
+            differentiator: "",
           },
+          valueProps: [],
+          brandVoice: { tone: [], doList: [], dontList: [] },
+          storyBrand: {
+            character: "",
+            problemExternal: "",
+            problemInternal: "",
+            problemPhilosophical: "",
+            guide: "",
+            plan: [],
+            callToAction: "",
+            transitionalCTA: "",
+            avoidFailure: [],
+            success: [],
+          },
+          updatedAt: Date.now(),
+          confidence: 0,
+          ...updates,
+        },
       error: null,
     }));
     await get().saveFoundation(workspaceId);
@@ -154,7 +148,7 @@ export const useFoundationStore = create<FoundationStoreState>((set, get) => ({
 
   reset: () =>
     set({
-      ...EMPTY_STATE,
+      ...EMPTY_FOUNDATION,
       positioningConfidence: 0,
       isLoading: false,
       error: null,

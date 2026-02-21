@@ -105,8 +105,8 @@ export function TopBar({
       className="flex items-center justify-between px-6 flex-shrink-0"
       style={{
         height: "var(--shell-topbar, 56px)",
-        backgroundColor: "var(--bg-canvas, #EFEDE6)",
-        borderBottom: "1px solid var(--border-1, #E3DED3)",
+        backgroundColor: "var(--bg-canvas)",
+        borderBottom: "1px solid var(--border-1)",
       }}
     >
       {/* Left: Brand Name */}
@@ -114,7 +114,7 @@ export function TopBar({
         <span
           className="text-sm font-medium"
           style={{
-            color: "var(--ink-1, #2A2529)",
+            color: "var(--ink-1)",
             fontFamily: "'DM Sans', system-ui, sans-serif",
           }}
         >
@@ -127,7 +127,7 @@ export function TopBar({
         <p
           className="text-sm text-center truncate max-w-md"
           style={{
-            color: "var(--ink-2, #5C565B)",
+            color: "var(--ink-2)",
             fontFamily: "'DM Sans', system-ui, sans-serif",
           }}
         >

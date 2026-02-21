@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from supabase import Client
 
-from backend.infrastructure.storage.manager import StorageManager
+from backend.core.storage.manager import StorageManager
 from backend.schemas.asset import AssetRecordOut, AssetType
 
 _INVALID_FILENAME = re.compile(r"[^a-zA-Z0-9._-]+")

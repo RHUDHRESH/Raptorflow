@@ -74,7 +74,7 @@ UNAUTHORIZED_WORKSPACE_DETAIL = "Unauthorized workspace access"
 
 @lru_cache(maxsize=1)
 def _get_supabase_client():
-    from backend.infrastructure.database.supabase import get_supabase_client
+    from backend.core.database.supabase import get_supabase_client
 
     return get_supabase_client()
 

@@ -14,12 +14,12 @@ const colors = {
   charcoal: "#3D383C",      // Was #2A2529 - now lighter
   charcoalDark: "#2A2529",  // For contrast when needed
   charcoalLight: "#5C565B", // For secondary elements
-  
+
   // Pale tones
   paleIvory: "#F7F5EF",     // Was #F3F0E7 - warmer
   paleCream: "#FAF9F6",     // Even lighter for highlights
   paleFog: "#EFEDE6",       // Background blend
-  
+
   // Accents (muted, not harsh)
   muted: "#9B9599",         // Soft gray
   subtle: "#B8B2A7",        // Warm gray
@@ -50,7 +50,7 @@ const animations = {
     y: 8,
     opacity: 0,
   },
-  
+
   // Hover - gentle lift and rotate
   hover: {
     duration: 0.35,
@@ -59,21 +59,21 @@ const animations = {
     y: -3,
     scale: 1.05,
   },
-  
+
   // Success - checkmark morph
   success: {
     duration: 0.5,
     ease: "back.out(1.7)",
     scale: 1.1,
   },
-  
+
   // Pulse - breathing effect
   pulse: {
     duration: 2,
     ease: "sine.inOut",
     scale: 1.08,
   },
-  
+
   // Loading - continuous gentle spin
   loading: {
     duration: 8,
@@ -106,13 +106,13 @@ export interface CompassLogoRef {
 
 export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
   function CompassLogo(
-    { 
-      size = "md", 
-      showText = false, 
+    {
+      size = "md",
+      showText = false,
       state: controlledState,
       animate = true,
       className,
-      onClick 
+      onClick
     },
     ref
   ) {
@@ -121,7 +121,7 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
     const outerRef = useRef<SVGPathElement>(null);
     const innerRef = useRef<SVGPathElement>(null);
     const centerRef = useRef<SVGCircleElement>(null);
-    
+
     const [internalState, setInternalState] = useState<LogoState>("static");
     const state = controlledState ?? internalState;
     const pixelSize = typeof size === "number" ? size : sizeMap[size];
@@ -146,16 +146,16 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
     // Entrance animation
     useEffect(() => {
       if (!animate || !svgRef.current) return;
-      
+
       const ctx = gsap.context(() => {
         gsap.fromTo(svgRef.current,
-          { 
-            opacity: animations.entrance.opacity, 
-            y: animations.entrance.y 
+          {
+            opacity: animations.entrance.opacity,
+            y: animations.entrance.y
           },
-          { 
-            opacity: 1, 
-            y: 0, 
+          {
+            opacity: 1,
+            y: 0,
             duration: animations.entrance.duration,
             ease: animations.entrance.ease,
           }
@@ -168,13 +168,13 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
     // Hover animations
     useEffect(() => {
       if (!animate || !containerRef.current || !svgRef.current) return;
-      
+
       const container = containerRef.current;
       const svg = svgRef.current;
 
       const handleEnter = () => {
         if (state === "loading") return;
-        
+
         gsap.to(svg, {
           rotation: animations.hover.rotation,
           y: animations.hover.y,
@@ -183,7 +183,7 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
           ease: animations.hover.ease,
           transformOrigin: "center center",
         });
-        
+
         // Subtle color shift on inner
         if (innerRef.current) {
           gsap.to(innerRef.current, {
@@ -195,7 +195,7 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
 
       const handleLeave = () => {
         if (state === "loading") return;
-        
+
         gsap.to(svg, {
           rotation: 0,
           y: 0,
@@ -204,7 +204,7 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
           ease: animations.hover.ease,
           transformOrigin: "center center",
         });
-        
+
         if (innerRef.current) {
           gsap.to(innerRef.current, {
             fill: colors.paleIvory,
@@ -225,7 +225,7 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
     // Loading animation
     useEffect(() => {
       if (!svgRef.current) return;
-      
+
       if (state === "loading") {
         gsap.to(svgRef.current, {
           rotation: animations.loading.rotation,
@@ -247,11 +247,11 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
     // Pulse animation
     useEffect(() => {
       if (!svgRef.current || state !== "pulse") return;
-      
+
       const tl = gsap.timeline({
         onComplete: () => setInternalState("static"),
       });
-      
+
       tl.to(svgRef.current, {
         scale: animations.pulse.scale,
         duration: animations.pulse.duration / 2,
@@ -267,11 +267,11 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
     // Success animation
     useEffect(() => {
       if (!svgRef.current || state !== "success") return;
-      
+
       const tl = gsap.timeline({
         onComplete: () => setInternalState("static"),
       });
-      
+
       tl.to(svgRef.current, {
         scale: animations.success.scale,
         duration: animations.success.duration / 2,
@@ -293,10 +293,9 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
     return (
       <div
         ref={containerRef}
-        className={`inline-flex items-center select-none ${className || ""} ${
-          onClick ? "cursor-pointer" : isInteractive ? "cursor-default" : ""
-        }`}
-        style={{ 
+        className={`inline-flex items-center select-none ${className || ""} ${onClick ? "cursor-pointer" : isInteractive ? "cursor-default" : ""
+          }`}
+        style={{
           gap: showText ? pixelSize * 0.4 : 0,
         }}
         onClick={onClick}
@@ -310,46 +309,40 @@ export const CompassLogo = forwardRef<CompassLogoRef, CompassLogoProps>(
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="block will-change-transform"
-          style={{ 
-            filter: state === "hover" 
-              ? "drop-shadow(0 2px 4px rgba(42, 37, 41, 0.08))" 
+          style={{
+            filter: state === "hover"
+              ? "drop-shadow(0 2px 4px rgba(42, 37, 41, 0.08))"
               : "none",
             transition: "filter 0.3s ease",
           }}
         >
-          {/* Outer shape - softened charcoal */}
+          {/* Top triangle — north / primary */}
           <path
             ref={outerRef}
-            d="M12 2.5L19.5 12L12 21.5L4.5 12L12 2.5Z"
+            d="M12 2L18.5 13H5.5L12 2Z"
             fill={colors.charcoal}
             style={{ transition: "fill 0.3s ease" }}
           />
-          
-          {/* Inner accent - pale ivory */}
+
+          {/* Bottom triangle — south / secondary */}
           <path
             ref={innerRef}
-            d="M12 6L16.5 12L12 18L7.5 12L12 6Z"
-            fill={colors.paleIvory}
-            style={{ transition: "fill 0.3s ease" }}
+            d="M12 22L18.5 13H5.5L12 22Z"
+            fill={colors.charcoalLight}
+            opacity="0.5"
+            style={{ transition: "fill 0.3s ease, opacity 0.3s ease" }}
           />
-          
-          {/* Center focal - subtle */}
+
+          {/* Center dot at intersection */}
           <circle
             ref={centerRef}
             cx="12"
-            cy="12"
-            r="1.5"
-            fill={colors.charcoalDark}
-          />
-          
-          {/* Subtle highlight for depth */}
-          <path
-            d="M12 2.5L15 7.5L12 6L9 7.5L12 2.5Z"
-            fill={colors.paleCream}
-            opacity="0.5"
+            cy="13"
+            r="1.8"
+            fill={colors.paleIvory}
           />
         </svg>
-        
+
         {/* Text wordmark */}
         {showText && (
           <span
@@ -396,7 +389,7 @@ export function LottieLogo({
 
   useEffect(() => {
     let animationInstance: any = null;
-    
+
     const loadLottie = async () => {
       try {
         let lottie: any;
@@ -413,7 +406,7 @@ export function LottieLogo({
           setHasError(true);
           return;
         }
-        
+
         if (containerRef.current && lottie) {
           animationInstance = lottie.loadAnimation({
             container: containerRef.current,
@@ -422,7 +415,7 @@ export function LottieLogo({
             autoplay,
             path: "/lottie/compass-pointer.json",
           });
-          
+
           animationInstance.addEventListener("DOMLoaded", () => {
             setIsLoaded(true);
             gsap.fromTo(containerRef.current,
@@ -456,24 +449,24 @@ export function LottieLogo({
   }
 
   return (
-    <div 
+    <div
       className={`inline-flex items-center ${className || ""}`}
       style={{ gap: showText ? pixelSize * 0.4 : 0 }}
     >
       <div
         ref={containerRef}
-        style={{ 
-          width: pixelSize, 
+        style={{
+          width: pixelSize,
           height: pixelSize,
           opacity: isLoaded ? 1 : 0,
           transition: "opacity 0.3s ease",
         }}
       />
-      
+
       {!isLoaded && !hasError && (
         <CompassIcon size={size} animate />
       )}
-      
+
       {showText && (
         <span
           className="font-semibold tracking-tight whitespace-nowrap"
@@ -508,7 +501,7 @@ export function CompassIcon({ size = "md", className, animate = false }: Compass
 
   useEffect(() => {
     if (!animate || !svgRef.current) return;
-    
+
     const ctx = gsap.context(() => {
       gsap.to(svgRef.current, {
         rotation: 360,
@@ -532,24 +525,23 @@ export function CompassIcon({ size = "md", className, animate = false }: Compass
       xmlns="http://www.w3.org/2000/svg"
       className={`block ${className || ""}`}
     >
+      {/* Top triangle */}
       <path
-        d="M12 2.5L19.5 12L12 21.5L4.5 12L12 2.5Z"
+        d="M12 2L18.5 13H5.5L12 2Z"
         fill={colors.charcoal}
       />
+      {/* Bottom triangle */}
       <path
-        d="M12 6L16.5 12L12 18L7.5 12L12 6Z"
-        fill={colors.paleIvory}
+        d="M12 22L18.5 13H5.5L12 22Z"
+        fill={colors.charcoalLight}
+        opacity="0.5"
       />
+      {/* Center dot */}
       <circle
         cx="12"
-        cy="12"
-        r="1.5"
-        fill={colors.charcoalDark}
-      />
-      <path
-        d="M12 2.5L15 7.5L12 6L9 7.5L12 2.5Z"
-        fill={colors.paleCream}
-        opacity="0.5"
+        cy="13"
+        r="1.8"
+        fill={colors.paleIvory}
       />
     </svg>
   );
@@ -600,13 +592,13 @@ export function LockSeal({ size = "sm", locked = true, className }: LockSealProp
 
   useEffect(() => {
     if (!sealRef.current) return;
-    
+
     gsap.fromTo(sealRef.current,
       { scale: 0, rotation: -180 },
-      { 
-        scale: 1, 
-        rotation: 0, 
-        duration: 0.5, 
+      {
+        scale: 1,
+        rotation: 0,
+        duration: 0.5,
         ease: "back.out(1.7)",
       }
     );

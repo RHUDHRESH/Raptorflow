@@ -7,7 +7,7 @@ from typing import Annotated, Optional
 
 from fastapi import Header, HTTPException, Request, Depends
 
-from backend.infrastructure.rate_limiting import RateLimiter
+from backend.core.rate_limiting import RateLimiter
 from backend.bootstrap.dependencies import (
     get_campaign_repository,
     get_campaign_service,
@@ -17,8 +17,8 @@ from backend.bootstrap.dependencies import (
     get_auth_service,
     get_authentication_service,
 )
-from backend.features.campaign.application import CampaignService
-from backend.features.asset.application import AssetService
+from backend.services.campaign.application import CampaignService
+from backend.services.asset.application import AssetService
 
 
 # =============================================================================

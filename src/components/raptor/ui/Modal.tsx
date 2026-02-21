@@ -99,7 +99,7 @@ export function Modal({
         ref={contentRef}
         className={`
           w-full ${maxWidthStyles[size]}
-          bg-[#FFFFFF] border border-[#E3DED3] rounded-[14px]
+          bg-[var(--bg-raised)] border border-[var(--border-1)] rounded-[14px]
           shadow-[0_8px_32px_rgba(42,37,41,0.08)]
           overflow-hidden
         `}
@@ -107,18 +107,18 @@ export function Modal({
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-0">
           <div>
-            <h2 className="text-[20px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+            <h2 className="text-[20px] font-semibold text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
               {title}
             </h2>
             {subtitle && (
-              <p className="mt-1 text-[14px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">
+              <p className="mt-1 text-[14px] text-[var(--ink-3)] font-['DM_Sans',system-ui,sans-serif]">
                 {subtitle}
               </p>
             )}
           </div>
           <button
             onClick={handleClose}
-            className="p-2 -mr-2 -mt-2 text-[#847C82] hover:text-[#2A2529] hover:bg-[#F3F0E7] rounded-[10px] transition-colors"
+            className="p-2 -mr-2 -mt-2 text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:bg-[var(--state-hover)] rounded-[10px] transition-colors"
             aria-label="Close modal"
           >
             <svg
@@ -143,7 +143,7 @@ export function Modal({
 
         {/* Footer */}
         {footer && (
-          <div className="px-6 py-4 border-t border-[#E3DED3] bg-[#F7F5EF]">
+          <div className="px-6 py-4 border-t border-[var(--border-1)] bg-[var(--bg-surface)]">
             {footer}
           </div>
         )}
@@ -185,7 +185,7 @@ export function ConfirmDialog({
         <div className="flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-[14px] font-medium text-[#5C565B] hover:text-[#2A2529] hover:bg-[#EFEDE6] rounded-[10px] transition-colors"
+            className="px-4 py-2 text-[14px] font-medium text-[var(--ink-2)] hover:text-[var(--ink-1)] hover:bg-[var(--bg-canvas)] rounded-[10px] transition-colors"
           >
             {cancelText}
           </button>
@@ -194,18 +194,17 @@ export function ConfirmDialog({
               onConfirm();
               onClose();
             }}
-            className={`px-4 py-2 text-[14px] font-medium rounded-[10px] transition-colors ${
-              variant === "danger"
+            className={`px-4 py-2 text-[14px] font-medium rounded-[10px] transition-colors ${variant === "danger"
                 ? "bg-[#8B3D3D] text-white hover:bg-[#6B2D2D]"
-                : "bg-[#2A2529] text-white hover:bg-[#3D383C]"
-            }`}
+                : "bg-[var(--ink-1)] text-white hover:bg-[#3D383C]"
+              }`}
           >
             {confirmText}
           </button>
         </div>
       }
     >
-      <p className="text-[14px] text-[#5C565B] font-['DM_Sans',system-ui,sans-serif]">
+      <p className="text-[14px] text-[var(--ink-2)] font-['DM_Sans',system-ui,sans-serif]">
         {description}
       </p>
     </Modal>

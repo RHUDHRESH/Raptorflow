@@ -1,381 +1,133 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { gsap } from "gsap";
-import { CompassLogo } from "@/components/compass/CompassLogo";
+import { OnboardingLayout } from "../OnboardingLayout";
+import { Volume2, Quote } from "lucide-react";
 
 interface PageBrandToneProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (val: string) => void;
+  currentPage: number;
+  totalPages: number;
   onNext: () => void;
   onBack?: () => void;
-  totalPages?: number;
-  currentPage?: number;
+  onSaveAndExit?: () => void;
 }
 
 const TONES = [
-  { id: "direct", label: "Direct", icon: "➤", description: "Straight to the point" },
-  { id: "confident", label: "Confident", icon: "★", description: "Assured & authoritative" },
-  { id: "professional", label: "Professional", icon: "◆", description: "Polished & formal" },
-  { id: "friendly", label: "Friendly", icon: "☺", description: "Warm & approachable" },
-  { id: "technical", label: "Technical", icon: "⚙", description: "Precise & detailed" },
-  { id: "casual", label: "Casual", icon: "☕", description: "Relaxed & conversational" },
-  { id: "bold", label: "Bold", icon: "⚡", description: "Daring & impactful" },
-  { id: "playful", label: "Playful", icon: "✦", description: "Fun & creative" },
+  { label: "Professional", description: "Clear, authoritative, trustworthy", sample: "We partner with leading organizations to deliver measurable outcomes." },
+  { label: "Conversational", description: "Friendly, approachable, warm", sample: "Hey — we make this stuff easy. No jargon, just results." },
+  { label: "Bold", description: "Assertive, direct, confident", sample: "Stop settling. Ship faster. Win more. Here's how." },
+  { label: "Witty", description: "Clever, playful, sharp", sample: "Your content strategy shouldn't give you an existential crisis." },
+  { label: "Technical", description: "Precise, data-driven, detailed", sample: "Latency under 50ms across 99th percentile workloads." },
+  { label: "Inspirational", description: "Visionary, motivating, aspirational", sample: "The future of marketing is here. Are you ready to lead it?" },
+  { label: "Minimal", description: "Sparse, elegant, to the point", sample: "Clear thinking. Better results." },
+  { label: "Empathetic", description: "Understanding, human, supportive", sample: "We know how hard this is. We built this for you." },
 ];
 
 export function PageBrandTone({
   value,
   onChange,
+  currentPage,
+  totalPages,
   onNext,
   onBack,
-  totalPages = 21,
-  currentPage = 14,
 }: PageBrandToneProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isExiting, setIsExiting] = useState(false);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
 
-  const isValid = value.length > 0;
-
+  // Entrance animation with stagger
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        defaults: { ease: "power3.out" },
-        delay: 0.1,
-      });
-
-      tl.fromTo(
-        ".grain",
-        { opacity: 0 },
-        { opacity: 0.03, duration: 2, ease: "none" }
+      gsap.fromTo(".tone-card",
+        { opacity: 0, y: 30, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.4, stagger: 0.06, ease: "power2.out" }
       );
-
-      tl.fromTo(
-        ".compass",
-        { y: -60, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1 },
-        "-=1.6"
-      );
-
-      tl.fromTo(
-        ".step",
-        { opacity: 0, x: 20 },
-        { opacity: 1, x: 0, duration: 0.8 },
-        "-=0.6"
-      );
-
-      tl.fromTo(
-        ".progress",
-        { scaleX: (currentPage - 1) / totalPages },
-        {
-          scaleX: currentPage / totalPages,
-          duration: 2,
-          ease: "power2.inOut",
-        },
-        "-=0.4"
-      );
-
-      tl.fromTo(
-        ".qnum",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.6 },
-        "-=1.6"
-      );
-
-      tl.fromTo(
-        ".hword",
-        { opacity: 0, y: 50 },
-        { opacity: 1, y: 0, duration: 1, stagger: 0.1 },
-        "-=1.2"
-      );
-
-      tl.fromTo(
-        ".tone-card",
-        { opacity: 0, y: 40, scale: 0.9 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.05,
-          ease: "power2.out",
-        },
-        "-=0.6"
-      );
-
-      tl.fromTo(
-        ".nav",
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8 },
-        "-=0.4"
-      );
-
-      gsap.to(".compass", {
-        y: "-=6",
-        duration: 8,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    }, containerRef);
-
+    }, wrapperRef);
     return () => ctx.revert();
-  }, [currentPage, totalPages]);
+  }, []);
 
-  const selectTone = (id: string) => {
-    onChange(id);
-
-    const card = document.querySelector(`[data-tone="${id}"]`);
+  // Selection handler
+  const handleSelect = useCallback((label: string) => {
+    onChange(label);
+    
+    // Animate selected card
+    const card = document.querySelector(`[data-tone="${label}"]`);
     if (card) {
-      gsap.to(card, {
-        scale: 0.95,
-        duration: 0.1,
-        yoyo: true,
-        repeat: 1,
-      });
+      gsap.fromTo(card,
+        { scale: 0.95 },
+        { scale: 1.02, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out" }
+      );
     }
 
-    gsap.to(".btn", {
-      opacity: 1,
-      y: 0,
-      duration: 0.5,
-      ease: "power2.out",
-    });
-  };
-
-  const onHover = (id: string) => {
-    setHoveredId(id);
-    const card = document.querySelector(`[data-tone="${id}"]`);
-    if (card && id !== value) {
-      gsap.to(card, {
-        y: -4,
-        boxShadow: "0 20px 60px rgba(42, 37, 41, 0.1)",
-        duration: 0.3,
-      });
+    // Animate preview
+    if (previewRef.current) {
+      gsap.fromTo(previewRef.current,
+        { opacity: 0, y: 15, height: 0 },
+        { opacity: 1, y: 0, height: "auto", duration: 0.35, ease: "power2.out" }
+      );
     }
-  };
 
-  const onLeave = (id: string) => {
-    setHoveredId(null);
-    const card = document.querySelector(`[data-tone="${id}"]`);
-    if (card && id !== value) {
-      gsap.to(card, {
-        y: 0,
-        boxShadow: "0 4px 20px rgba(42, 37, 41, 0.04)",
-        duration: 0.3,
-      });
-    }
-  };
+    // Note: User must click Continue or press Enter to advance
+  }, [onChange]);
 
-  const submit = () => {
-    if (!isValid) return;
-
-    setIsExiting(true);
-    gsap.to(".page", {
-      opacity: 0,
-      x: -100,
-      duration: 0.5,
-      ease: "power3.in",
-      onComplete: onNext,
-    });
-  };
-
-  const pct = Math.round((currentPage / totalPages) * 100);
+  const selectedTone = TONES.find(t => t.label === value);
 
   return (
-    <div
-      ref={containerRef}
-      className="min-h-screen w-full bg-[var(--bg-canvas)] relative overflow-hidden"
+    <OnboardingLayout
+      currentStep={currentPage}
+      totalSteps={totalPages}
+      stepTitle="What's your brand voice?"
+      stepDescription="Pick the tone that best matches how you want to sound."
+      onBack={onBack}
+      onNext={onNext}
+      canGoNext={!!value}
+      showBack={!!onBack}
     >
-      <div
-        className="grain absolute inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          backgroundSize: "256px 256px",
-        }}
-      />
-
-      <div className="page relative z-20 min-h-screen flex flex-col pb-32">
-        <header className="flex items-center justify-between px-12 md:px-24 py-10">
-          <div className="compass">
-            <CompassLogo
-              size={40}
-              variant="compact"
-              className="text-[var(--rf-charcoal)]"
-              animate
-            />
-          </div>
-
-          <div className="step flex items-center gap-4">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.3em] text-[var(--ink-3)]">
-              Step
-            </span>
-            <div className="flex items-baseline">
-              <span className="rf-mono text-xl font-semibold text-[var(--ink-1)]">
-                {String(currentPage).padStart(2, "0")}
-              </span>
-              <span className="text-[var(--ink-3)] mx-1.5">/</span>
-              <span className="rf-mono text-sm text-[var(--ink-3)]">
-                {String(totalPages).padStart(2, "0")}
-              </span>
+      <div ref={wrapperRef} className="ob-animate-in">
+        {/* Sample preview */}
+        {selectedTone && (
+          <div ref={previewRef} className="ob-content-item ob-animate-in mb-5 p-5 rounded-[var(--radius-lg)] bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-3">
+                <Quote size={14} className="opacity-40" />
+                <p className="text-[11px] font-mono opacity-40 tracking-wider">{selectedTone.label.toUpperCase()}</p>
+              </div>
+              <p className="text-[16px] italic leading-relaxed">&ldquo;{selectedTone.sample}&rdquo;</p>
             </div>
           </div>
+        )}
 
-          <button className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--ink-3)] hover:text-[var(--ink-1)] transition-colors">
-            Save & Exit
-          </button>
-        </header>
-
-        <div className="px-12 md:px-24 mb-12">
-          <div className="max-w-lg mx-auto">
-            <div className="relative h-px bg-[var(--border-1)] overflow-hidden">
-              <div
-                className="progress absolute inset-y-0 left-0 bg-[var(--rf-charcoal)] origin-left"
-                style={{ transform: "scaleX(0)" }}
-              />
-            </div>
-            <div className="flex justify-between mt-3">
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-3)]">
-                Start
-              </span>
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-1)] font-medium">
-                {pct}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <main className="flex-1 flex flex-col items-center px-12 md:px-24">
-          <div className="qnum mb-8">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.5em] text-[var(--ink-3)]">
-              Question {String(currentPage).padStart(2, "0")}
-            </span>
-          </div>
-
-          <h1 className="text-center mb-12">
-            <span className="hword block text-[clamp(36px,7vw,64px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em]">
-              What&apos;s your brand
-            </span>
-            <span className="hword block text-[clamp(36px,7vw,64px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em] mt-2">
-              tone<span className="text-[var(--ink-3)]">?</span>
-            </span>
-          </h1>
-
-          <div className="w-full max-w-4xl grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {TONES.map((tone) => {
-              const isSelected = value === tone.id;
-              const isHovered = hoveredId === tone.id;
-
-              return (
-                <button
-                  key={tone.id}
-                  data-tone={tone.id}
-                  onClick={() => selectTone(tone.id)}
-                  onMouseEnter={() => onHover(tone.id)}
-                  onMouseLeave={() => onLeave(tone.id)}
-                  className={`tone-card relative p-6 rounded-[20px] text-left transition-all duration-300 ${
-                    isSelected
-                      ? "bg-[var(--rf-charcoal)] text-[var(--rf-ivory)]"
-                      : "bg-[var(--bg-raised)] text-[var(--ink-1)] hover:bg-[var(--bg-surface)]"
+        {/* Tone grid */}
+        <div className="ob-interactive grid grid-cols-2 gap-3">
+          {TONES.map((tone) => {
+            const isSelected = value === tone.label;
+            return (
+              <button
+                key={tone.label}
+                data-tone={tone.label}
+                onClick={() => handleSelect(tone.label)}
+                className={`tone-card text-left p-4 rounded-[var(--radius-md)] border transition-all duration-250 ${isSelected
+                    ? "bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] border-[var(--rf-charcoal)] scale-[1.02]"
+                    : "bg-[var(--bg-surface)] border-[var(--border-1)] hover:border-[var(--border-2)] hover:bg-[var(--bg-raised)]"
                   }`}
-                  style={{
-                    boxShadow: isSelected
-                      ? "0 20px 60px rgba(42, 37, 41, 0.2)"
-                      : "0 4px 20px rgba(42, 37, 41, 0.04)",
-                  }}
-                >
-                  {isSelected && (
-                    <div className="absolute top-4 right-4 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={3}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
-                  )}
-
-                  <span className="text-3xl mb-3 block">{tone.icon}</span>
-                  <span className="block font-semibold text-sm mb-1">
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Volume2 size={14} className={isSelected ? "opacity-60" : "text-[var(--ink-3)]"} />
+                  <span className={`text-[14px] font-semibold ${isSelected ? "text-[var(--rf-ivory)]" : "text-[var(--ink-1)]"}`}>
                     {tone.label}
                   </span>
-                  <span
-                    className={`block text-xs ${
-                      isSelected
-                        ? "text-[var(--rf-ivory)]/60"
-                        : "text-[var(--ink-3)]"
-                    }`}
-                  >
-                    {tone.description}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </main>
-
-        <footer className="nav fixed bottom-0 left-0 right-0 border-t border-[var(--border-1)] bg-[var(--bg-surface)] z-30">
-          <div className="max-w-4xl mx-auto px-12 md:px-24 py-6 flex items-center justify-between">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-sm font-medium text-[var(--ink-2)] hover:text-[var(--ink-1)] transition-colors"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Back
-            </button>
-
-            <button
-              onClick={submit}
-              disabled={!isValid}
-              className="btn flex items-center gap-3 px-8 py-4 bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] rounded-[16px] font-semibold text-sm tracking-wide hover:bg-[#3a3338] transition-colors disabled:cursor-not-allowed"
-              style={{
-                opacity: isValid ? 1 : 0.2,
-                transform: isValid ? "translateY(0)" : "translateY(10px)",
-              }}
-            >
-              Continue
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
-            </button>
-          </div>
-        </footer>
+                </div>
+                <span className={`text-[11px] leading-snug ${isSelected ? "text-white/50" : "text-[var(--ink-3)]"}`}>
+                  {tone.description}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
-
-      <div className="absolute top-8 left-8 w-20 h-20 pointer-events-none opacity-20">
-        <div className="absolute top-0 left-0 w-px h-12 bg-gradient-to-b from-[var(--border-2)] to-transparent" />
-        <div className="absolute top-0 left-0 h-px w-12 bg-gradient-to-r from-[var(--border-2)] to-transparent" />
-      </div>
-    </div>
+    </OnboardingLayout>
   );
 }

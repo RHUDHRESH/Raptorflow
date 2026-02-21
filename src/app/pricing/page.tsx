@@ -1,20 +1,19 @@
 "use client";
 
-import { Navbar } from "@/components/landing/Navbar";
-import { Pricing } from "@/components/landing/Pricing";
-import { FinalCTA } from "@/components/landing/FinalCTA";
-import { Footer } from "@/components/landing/Footer";
+import { LandingNavbar } from "@/features/landing/components/LandingNavbar";
+import { PricingSection } from "@/features/landing/components/PricingSection";
+import { FinalCTASection } from "@/features/landing/components/FinalCTASection";
+import { FooterSection } from "@/features/landing/components/FooterSection";
 
 export default function PricingPage() {
   return (
-    <main className="relative">
-      <Navbar />
+    <main className="relative min-h-screen bg-[var(--bg-canvas)]">
+      <LandingNavbar />
       <div className="pt-24">
-        <Pricing />
-        <FinalCTA />
-        <Footer />
+        <PricingSection />
+        <FinalCTASection />
+        <FooterSection />
       </div>
     </main>
   );
 }
-

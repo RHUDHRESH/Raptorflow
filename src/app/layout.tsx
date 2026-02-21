@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ScrollProgress } from "@/components/raptor";
 import { Toaster } from "@/components/ui/sonner";
+
+const dmSans = DM_Sans({ subsets: ["latin"], display: "swap" });
+const jetBrainsMono = JetBrains_Mono({ subsets: ["latin"], display: "swap", variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: "RaptorFlow — Navigate Your Marketing",
@@ -16,7 +20,7 @@ export const metadata: Metadata = {
     apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
   },
   manifest: "/site.webmanifest",
-  themeColor: "#F3F0E7",
+  themeColor: "#EFEDE6",
 };
 
 export default function RootLayout({
@@ -25,15 +29,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${dmSans.className} ${jetBrainsMono.variable}`}>
       <head>
       </head>
-      <body className="min-h-screen bg-[#F3F0E7] text-[#2A2529]">
+      <body className="min-h-screen bg-[var(--bg-canvas)] text-[var(--ink-1)]">
         {/* Subtle scroll progress */}
         <ScrollProgress />
-        
+
         {children}
-        
+
         <Toaster />
       </body>
     </html>

@@ -45,8 +45,8 @@ export function Tag({ active = false, children, onClick }: TagProps) {
     "inline-flex items-center h-[28px] px-3 text-[13px] font-medium rounded-[10px] border transition-colors duration-200 font-['DM_Sans',system-ui,sans-serif]";
 
   const activeStyles = active
-    ? "bg-[#2A2529] text-[#F3F0E7] border-[#2A2529]"
-    : "bg-[#EFEDE6] text-[#2A2529] border-[#D2CCC0] hover:bg-[#F3F0E7] hover:border-[#2A2529]";
+    ? "bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] border-[var(--rf-charcoal)]"
+    : "bg-[var(--bg-canvas)] text-[var(--ink-1)] border-[var(--border-2)] hover:bg-[var(--state-hover)] hover:border-[var(--rf-charcoal)]";
 
   if (onClick) {
     return (

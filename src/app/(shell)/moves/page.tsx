@@ -33,7 +33,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
-import { movesService, type Move as ApiMove } from "@/services/moves.service";
+import { movesService } from "@/services/moves.service";
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    MOVES PAGE — "Choose Battles" Loop
@@ -68,10 +68,10 @@ interface ActiveMove {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ADAPTERS: ApiMove → Frontend types
+// ADAPTERS: any → Frontend types
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function apiToProposed(api: ApiMove): ProposedMove {
+function apiToProposed(api: any): ProposedMove {
   return {
     id: api.id,
     title: api.name,
@@ -84,7 +84,7 @@ function apiToProposed(api: ApiMove): ProposedMove {
   };
 }
 
-function apiToActive(api: ApiMove): ActiveMove {
+function apiToActive(api: any): ActiveMove {
   const now = new Date();
   const start = api.createdAt ? new Date(api.createdAt) : (api.startDate ? new Date(api.startDate) : now);
   const end = api.endDate ? new Date(api.endDate) : new Date(start.getTime() + (api.duration ?? 14) * 24 * 60 * 60 * 1000);
@@ -106,10 +106,10 @@ function apiToActive(api: ApiMove): ActiveMove {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const CATEGORY_CONFIG: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
-  growth: { icon: <TrendingUp size={16} />, label: "Growth", color: "#2A2529" },
-  retention: { icon: <CheckCircle2 size={16} />, label: "Retention", color: "#5C565B" },
-  positioning: { icon: <Target size={16} />, label: "Positioning", color: "#D2CCC0" },
-  conversion: { icon: <Zap size={16} />, label: "Conversion", color: "#847C82" },
+  growth: { icon: <TrendingUp size={16} />, label: "Growth", color: "var(--ink-1)" },
+  retention: { icon: <CheckCircle2 size={16} />, label: "Retention", color: "var(--ink-2)" },
+  positioning: { icon: <Target size={16} />, label: "Positioning", color: "var(--border-2)" },
+  conversion: { icon: <Zap size={16} />, label: "Conversion", color: "var(--ink-3)" },
 };
 
 const EFFORT_BADGES: Record<string, { label: string; color: string }> = {
@@ -119,9 +119,9 @@ const EFFORT_BADGES: Record<string, { label: string; color: string }> = {
 };
 
 const RISK_BADGES: Record<string, { label: string; color: string; textColor: string }> = {
-  low: { label: "Low Risk", color: "#E8F0E9", textColor: "#3D5A42" },
-  medium: { label: "Medium Risk", color: "#F5F0E6", textColor: "#8B6B3D" },
-  high: { label: "High Risk", color: "#F5E6E6", textColor: "#8B3D3D" },
+  low: { label: "Low Risk", color: "var(--bg-success)", textColor: "var(--status-success)" },
+  medium: { label: "Medium Risk", color: "var(--bg-warning)", textColor: "var(--status-warning)" },
+  high: { label: "High Risk", color: "var(--bg-error)", textColor: "var(--status-error)" },
 };
 
 const CONFIDENCE_BADGES: Record<string, { label: string; variant: "success" | "warning" | "info" }> = {
@@ -140,7 +140,7 @@ export default function MovesPage() {
   const proposedSectionRef = useRef<HTMLDivElement>(null);
   const activeSectionRef = useRef<HTMLDivElement>(null);
 
-  const [allMoves, setAllMoves] = useState<ApiMove[]>([]);
+  const [allMoves, setAllMoves] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
@@ -292,8 +292,8 @@ export default function MovesPage() {
     return (
       <Layout activeNavItem="moves">
         <div className="p-6 max-w-[1400px] mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <Loader2 size={32} className="animate-spin text-[#847C82]" />
-          <p className="text-[14px] text-[#847C82]">Loading moves…</p>
+          <Loader2 size={32} className="animate-spin text-[var(--ink-3)]" />
+          <p className="text-[14px] text-[var(--ink-3)]">Loading moves…</p>
         </div>
       </Layout>
     );
@@ -304,8 +304,8 @@ export default function MovesPage() {
     return (
       <Layout activeNavItem="moves">
         <div className="p-6 max-w-[1400px] mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <AlertCircle size={32} className="text-[#8B3D3D]" />
-          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
+          <AlertCircle size={32} className="text-[var(--status-error)]" />
+          <p className="text-[14px] text-[var(--status-error)]">{error}</p>
           <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
         </div>
       </Layout>
@@ -318,22 +318,22 @@ export default function MovesPage() {
         {/* Header */}
         <header className="moves-header flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-[32px] font-bold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif] leading-[40px]">
+            <h1 className="text-[32px] font-bold text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif] leading-[40px]">
               Moves
             </h1>
-            <p className="text-[16px] text-[#5C565B] mt-1 font-['DM_Sans',system-ui,sans-serif]">
+            <p className="text-[16px] text-[var(--ink-2)] mt-1 font-['DM_Sans',system-ui,sans-serif]">
               Strategic initiatives ranked by expected payoff
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {/* View Toggle */}
-            <div className="flex border border-[#D2CCC0] rounded-[10px] overflow-hidden bg-[#F7F5EF]">
+            <div className="flex border border-[var(--border-2)] rounded-[10px] overflow-hidden bg-[var(--bg-surface)]">
               <button
                 onClick={() => setViewMode("list")}
                 className={`flex items-center gap-2 px-3 py-2 text-[13px] font-medium transition-colors ${viewMode === "list"
-                  ? "bg-[#2A2529] text-[#F3F0E7]"
-                  : "text-[#5C565B] hover:text-[#2A2529]"
+                  ? "bg-[var(--rf-charcoal)] text-[var(--rf-ivory)]"
+                  : "text-[var(--ink-2)] hover:text-[var(--ink-1)]"
                   }`}
               >
                 <List size={16} />
@@ -342,8 +342,8 @@ export default function MovesPage() {
               <button
                 onClick={() => setViewMode("calendar")}
                 className={`flex items-center gap-2 px-3 py-2 text-[13px] font-medium transition-colors ${viewMode === "calendar"
-                  ? "bg-[#2A2529] text-[#F3F0E7]"
-                  : "text-[#5C565B] hover:text-[#2A2529]"
+                  ? "bg-[var(--rf-charcoal)] text-[var(--rf-ivory)]"
+                  : "text-[var(--ink-2)] hover:text-[var(--ink-1)]"
                   }`}
               >
                 <CalendarIcon size={16} />
@@ -364,14 +364,14 @@ export default function MovesPage() {
         {proposedMoves.length > 0 && (
           <section ref={proposedSectionRef} className="proposed-section mb-10">
             <div className="flex items-center gap-3 mb-4">
-              <Zap size={20} className="text-[#2A2529]" />
-              <h2 className="text-[20px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+              <Zap size={20} className="text-[var(--ink-1)]" />
+              <h2 className="text-[20px] font-semibold text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
                 Proposed Moves
               </h2>
               <Badge variant="info" size="sm">
                 AI Suggested
               </Badge>
-              <span className="text-[13px] text-[#847C82] ml-2">
+              <span className="text-[13px] text-[var(--ink-3)] ml-2">
                 Commit to 1-2 moves max
               </span>
             </div>
@@ -394,8 +394,8 @@ export default function MovesPage() {
         {/* Active Moves */}
         <section ref={activeSectionRef} className="active-section">
           <div className="flex items-center gap-3 mb-4">
-            <Target size={20} className="text-[#2A2529]" />
-            <h2 className="text-[20px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+            <Target size={20} className="text-[var(--ink-1)]" />
+            <h2 className="text-[20px] font-semibold text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
               Active Moves
             </h2>
             <Badge variant="success" size="sm">
@@ -496,7 +496,7 @@ function ProposedMoveCard({
       ref={cardRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="proposed-card bg-[#F7F5EF] border border-[#E3DED3] rounded-[14px] p-4 relative overflow-hidden"
+      className="proposed-card bg-[var(--bg-surface)] border border-[var(--border-1)] rounded-[14px] p-4 relative overflow-hidden"
       style={{ boxShadow: "0 1px 3px rgba(42, 37, 41, 0.04)" }}
     >
       {/* Header */}
@@ -509,7 +509,7 @@ function ProposedMoveCard({
         </div>
         <button
           onClick={onShowReasoning}
-          className="p-1.5 text-[#847C82] hover:text-[#2A2529] hover:bg-[#EFEDE6] rounded-[8px] transition-colors"
+          className="p-1.5 text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:bg-[var(--bg-canvas)] rounded-[8px] transition-colors"
           title="Why this move?"
         >
           <HelpCircle size={16} />
@@ -517,13 +517,13 @@ function ProposedMoveCard({
       </div>
 
       {/* Title */}
-      <h3 className="text-[16px] font-semibold text-[#2A2529] mb-2 font-['DM_Sans',system-ui,sans-serif] line-clamp-2">
+      <h3 className="text-[16px] font-semibold text-[var(--ink-1)] mb-2 font-['DM_Sans',system-ui,sans-serif] line-clamp-2">
         {move.title}
       </h3>
 
       {/* Expected Payoff */}
       <div className="mb-3">
-        <span className="text-[24px] font-bold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+        <span className="text-[24px] font-bold text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
           {move.expectedPayoff}
         </span>
       </div>
@@ -532,7 +532,7 @@ function ProposedMoveCard({
       <div className="flex flex-wrap gap-2 mb-3">
         <span
           className="px-2 py-1 text-[10px] font-medium rounded-[6px] uppercase tracking-wide"
-          style={{ backgroundColor: effort.color, color: "#2A2529" }}
+          style={{ backgroundColor: effort.color, color: "var(--ink-1)" }}
         >
           {effort.label}
         </span>
@@ -546,24 +546,24 @@ function ProposedMoveCard({
 
       {/* Reasoning Tooltip */}
       {showingReasoning && (
-        <div className="mb-3 p-3 bg-[#EFEDE6] rounded-[10px] text-[12px] text-[#5C565B] font-['DM_Sans',system-ui,sans-serif]">
+        <div className="mb-3 p-3 bg-[var(--bg-canvas)] rounded-[10px] text-[12px] text-[var(--ink-2)] font-['DM_Sans',system-ui,sans-serif]">
           <div className="flex items-center gap-1 mb-1">
-            <Zap size={12} className="text-[#8B6B3D]" />
-            <span className="font-semibold text-[#2A2529]">Why this?</span>
+            <Zap size={12} className="text-[var(--status-warning)]" />
+            <span className="font-semibold text-[var(--ink-1)]">Why this?</span>
           </div>
           {move.reasoning}
         </div>
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-[#E3DED3]">
+      <div className="flex items-center justify-between pt-3 border-t border-[var(--border-1)]">
         <Badge variant={confidence.variant} size="sm">
           {confidence.label}
         </Badge>
         <div className="flex items-center gap-2">
           <button
             onClick={() => onDismiss(cardEl)}
-            className="p-2 text-[#847C82] hover:text-[#8B3D3D] hover:bg-[#F5E6E6] rounded-[8px] transition-colors"
+            className="p-2 text-[var(--ink-3)] hover:text-[var(--status-error)] hover:bg-[var(--state-hover)] rounded-[8px] transition-colors"
             title="Dismiss"
           >
             <X size={16} />
@@ -639,7 +639,7 @@ function ActiveMoveCard({ move, daysRemaining, onClick }: ActiveMoveCardProps) {
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="bg-[#F7F5EF] border border-[#E3DED3] rounded-[14px] p-5 cursor-pointer transition-colors hover:border-[#D2CCC0]"
+      className="bg-[var(--bg-surface)] border border-[var(--border-1)] rounded-[14px] p-5 cursor-pointer transition-colors hover:border-[var(--border-2)]"
       style={{ boxShadow: "0 1px 3px rgba(42, 37, 41, 0.04)" }}
     >
       {/* Header */}
@@ -663,29 +663,29 @@ function ActiveMoveCard({ move, daysRemaining, onClick }: ActiveMoveCardProps) {
             e.stopPropagation();
             onClick();
           }}
-          className="p-2 text-[#847C82] hover:text-[#2A2529] hover:bg-[#EFEDE6] rounded-[8px] transition-colors"
+          className="p-2 text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:bg-[var(--bg-canvas)] rounded-[8px] transition-colors"
         >
           <Eye size={16} />
         </button>
       </div>
 
       {/* Title & Goal */}
-      <h3 className="text-[18px] font-semibold text-[#2A2529] mb-1 font-['DM_Sans',system-ui,sans-serif]">
+      <h3 className="text-[18px] font-semibold text-[var(--ink-1)] mb-1 font-['DM_Sans',system-ui,sans-serif]">
         {move.title}
       </h3>
-      <p className="text-[14px] text-[#5C565B] mb-4 font-['DM_Sans',system-ui,sans-serif] line-clamp-1">
+      <p className="text-[14px] text-[var(--ink-2)] mb-4 font-['DM_Sans',system-ui,sans-serif] line-clamp-1">
         {move.goal}
       </p>
 
       {/* Progress */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[12px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">Progress</span>
-          <span className="text-[12px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+          <span className="text-[12px] text-[var(--ink-3)] font-['DM_Sans',system-ui,sans-serif]">Progress</span>
+          <span className="text-[12px] font-semibold text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
             {move.progress}%
           </span>
         </div>
-        <div className="h-2 bg-[#EFEDE6] rounded-full overflow-hidden">
+        <div className="h-2 bg-[var(--bg-canvas)] rounded-full overflow-hidden">
           <div
             ref={progressRef}
             className="h-full rounded-full transition-all"
@@ -698,13 +698,13 @@ function ActiveMoveCard({ move, daysRemaining, onClick }: ActiveMoveCardProps) {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-[#E3DED3]">
+      <div className="flex items-center justify-between pt-3 border-t border-[var(--border-1)]">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-[12px] text-[#847C82]">
+          <div className="flex items-center gap-1.5 text-[12px] text-[var(--ink-3)]">
             <Clock size={14} />
             <span className="font-['DM_Sans',system-ui,sans-serif]">{daysRemaining}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[12px] text-[#847C82]">
+          <div className="flex items-center gap-1.5 text-[12px] text-[var(--ink-3)]">
             <Target size={14} />
             <span className="font-['DM_Sans',system-ui,sans-serif]">{move.campaignsCount} campaigns</span>
           </div>
@@ -791,29 +791,29 @@ function MoveDetailModal({ move, onClose }: MoveDetailModalProps) {
 
         {/* Goal */}
         <div>
-          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-2 font-['DM_Sans',system-ui,sans-serif]">
+          <h4 className="text-[12px] font-semibold text-[var(--ink-3)] uppercase tracking-wide mb-2 font-['DM_Sans',system-ui,sans-serif]">
             Goal
           </h4>
-          <p className="text-[16px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+          <p className="text-[16px] text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
             {move.goal}
           </p>
         </div>
 
         {/* Timeline */}
         <div>
-          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
+          <h4 className="text-[12px] font-semibold text-[var(--ink-3)] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
             Timeline
           </h4>
           <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center gap-2 px-3 py-2 bg-[#EFEDE6] rounded-[8px]">
-              <CalendarIcon size={16} className="text-[#5C565B]" />
-              <span className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+            <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-canvas)] rounded-[8px]">
+              <CalendarIcon size={16} className="text-[var(--ink-2)]" />
+              <span className="text-[14px] text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
                 {move.startDate.toLocaleDateString()} — {move.endDate.toLocaleDateString()}
               </span>
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 bg-[#EFEDE6] rounded-[8px]">
-              <Clock size={16} className="text-[#5C565B]" />
-              <span className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+            <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-canvas)] rounded-[8px]">
+              <Clock size={16} className="text-[var(--ink-2)]" />
+              <span className="text-[14px] text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
                 {Math.ceil((move.endDate.getTime() - move.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
               </span>
             </div>
@@ -824,16 +824,16 @@ function MoveDetailModal({ move, onClose }: MoveDetailModalProps) {
             {milestones.map((milestone, index) => (
               <div
                 key={index}
-                className="flex items-center gap-3 p-3 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3]"
+                className="flex items-center gap-3 p-3 bg-[var(--bg-surface)] rounded-[10px] border border-[var(--border-1)]"
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center ${milestone.completed ? "bg-[#3D5A42] text-white" : "bg-[#EFEDE6] text-[#847C82]"
+                  className={`w-6 h-6 rounded-full flex items-center justify-center ${milestone.completed ? "bg-[#3D5A42] text-white" : "bg-[var(--bg-canvas)] text-[var(--ink-3)]"
                     }`}
                 >
                   {milestone.completed ? <CheckCircle2 size={14} /> : <span className="text-[10px]">{milestone.day}</span>}
                 </div>
                 <span
-                  className={`text-[14px] font-['DM_Sans',system-ui,sans-serif] ${milestone.completed ? "text-[#2A2529]" : "text-[#847C82]"
+                  className={`text-[14px] font-['DM_Sans',system-ui,sans-serif] ${milestone.completed ? "text-[var(--ink-1)]" : "text-[var(--ink-3)]"
                     }`}
                 >
                   {milestone.title}
@@ -845,30 +845,30 @@ function MoveDetailModal({ move, onClose }: MoveDetailModalProps) {
 
         {/* Linked Campaigns */}
         <div>
-          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
+          <h4 className="text-[12px] font-semibold text-[var(--ink-3)] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
             Linked Campaigns ({move.campaignsCount})
           </h4>
           <div className="grid grid-cols-1 gap-2">
             {move.campaignsCount > 0 ? (
               <>
-                <div className="flex items-center gap-3 p-3 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3] hover:border-[#D2CCC0] cursor-pointer transition-colors">
-                  <Target size={16} className="text-[#5C565B]" />
-                  <span className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+                <div className="flex items-center gap-3 p-3 bg-[var(--bg-surface)] rounded-[10px] border border-[var(--border-1)] hover:border-[var(--border-2)] cursor-pointer transition-colors">
+                  <Target size={16} className="text-[var(--ink-2)]" />
+                  <span className="text-[14px] text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
                     Campaign Alpha
                   </span>
-                  <ArrowRight size={14} className="ml-auto text-[#847C82]" />
+                  <ArrowRight size={14} className="ml-auto text-[var(--ink-3)]" />
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3] hover:border-[#D2CCC0] cursor-pointer transition-colors">
-                  <Target size={16} className="text-[#5C565B]" />
-                  <span className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+                <div className="flex items-center gap-3 p-3 bg-[var(--bg-surface)] rounded-[10px] border border-[var(--border-1)] hover:border-[var(--border-2)] cursor-pointer transition-colors">
+                  <Target size={16} className="text-[var(--ink-2)]" />
+                  <span className="text-[14px] text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
                     Campaign Beta
                   </span>
-                  <ArrowRight size={14} className="ml-auto text-[#847C82]" />
+                  <ArrowRight size={14} className="ml-auto text-[var(--ink-3)]" />
                 </div>
               </>
             ) : (
-              <div className="p-4 text-center border border-dashed border-[#D2CCC0] rounded-[10px]">
-                <p className="text-[14px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">
+              <div className="p-4 text-center border border-dashed border-[var(--border-2)] rounded-[10px]">
+                <p className="text-[14px] text-[var(--ink-3)] font-['DM_Sans',system-ui,sans-serif]">
                   No campaigns linked yet
                 </p>
               </div>
@@ -878,19 +878,19 @@ function MoveDetailModal({ move, onClose }: MoveDetailModalProps) {
 
         {/* Evidence Panel */}
         <div>
-          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
+          <h4 className="text-[12px] font-semibold text-[var(--ink-3)] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
             Evidence
           </h4>
-          <div className="p-4 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3]">
+          <div className="p-4 bg-[var(--bg-surface)] rounded-[10px] border border-[var(--border-1)]">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-[8px] bg-[#E6F0F5] flex items-center justify-center shrink-0">
-                <TrendingUp size={16} className="text-[#3D5A6B]" />
+              <div className="w-8 h-8 rounded-[8px] bg-[var(--bg-info)] flex items-center justify-center shrink-0">
+                <TrendingUp size={16} className="text-[var(--status-success)]" />
               </div>
               <div>
-                <p className="text-[14px] text-[#2A2529] font-['DM_Sans',system-ui,sans-serif] mb-1">
+                <p className="text-[14px] text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif] mb-1">
                   Progress tracking active
                 </p>
-                <p className="text-[12px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">
+                <p className="text-[12px] text-[var(--ink-3)] font-['DM_Sans',system-ui,sans-serif]">
                   {move.progress}% complete — {move.progress > 50 ? "On track" : "Just started"}
                 </p>
               </div>
@@ -900,16 +900,16 @@ function MoveDetailModal({ move, onClose }: MoveDetailModalProps) {
 
         {/* Assumptions Panel */}
         <div>
-          <h4 className="text-[12px] font-semibold text-[#847C82] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
+          <h4 className="text-[12px] font-semibold text-[var(--ink-3)] uppercase tracking-wide mb-3 font-['DM_Sans',system-ui,sans-serif]">
             Key Assumptions
           </h4>
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[14px] text-[#5C565B] font-['DM_Sans',system-ui,sans-serif]">
-              <AlertTriangle size={14} className="text-[#8B6B3D]" />
+            <div className="flex items-center gap-2 text-[14px] text-[var(--ink-2)] font-['DM_Sans',system-ui,sans-serif]">
+              <AlertTriangle size={14} className="text-[var(--status-warning)]" />
               <span>Target audience engagement rate stays above 3%</span>
             </div>
-            <div className="flex items-center gap-2 text-[14px] text-[#5C565B] font-['DM_Sans',system-ui,sans-serif]">
-              <AlertTriangle size={14} className="text-[#8B6B3D]" />
+            <div className="flex items-center gap-2 text-[14px] text-[var(--ink-2)] font-['DM_Sans',system-ui,sans-serif]">
+              <AlertTriangle size={14} className="text-[var(--status-warning)]" />
               <span>Content production capacity remains consistent</span>
             </div>
           </div>

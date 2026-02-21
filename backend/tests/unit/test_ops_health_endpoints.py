@@ -57,7 +57,7 @@ def test_ops_health_endpoints_smoke(monkeypatch) -> None:
     import backend.services.registry as registry_mod
     from backend.app_factory import create_app
 
-    lifespan_mod = importlib.import_module("backend.app.lifespan")
+    lifespan_mod = importlib.import_module("backend.core.lifespan")
 
     monkeypatch.setattr(registry_mod.registry, "initialize_all", fake_initialize_all)
     monkeypatch.setattr(registry_mod.registry, "shutdown_all", fake_shutdown_all)

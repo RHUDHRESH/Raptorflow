@@ -1,331 +1,157 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { gsap } from "gsap";
-import { CompassLogo } from "@/components/compass/CompassLogo";
+import { OnboardingLayout } from "../OnboardingLayout";
+import { Globe, MapPin, Check, ArrowRight } from "lucide-react";
 
 interface PageGeographicFocusProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (val: string) => void;
+  currentPage: number;
+  totalPages: number;
   onNext: () => void;
   onBack?: () => void;
-  totalPages?: number;
-  currentPage?: number;
+  onSaveAndExit?: () => void;
 }
 
-const EXAMPLES = [
-  "North America",
-  "Europe",
-  "APAC",
-  "Global",
-  "United States",
-  "United Kingdom",
+const REGIONS = [
+  { label: "North America", desc: "US, Canada, Mexico" },
+  { label: "Europe", desc: "UK, EU, EEA" },
+  { label: "Asia-Pacific", desc: "APAC, ANZ, Southeast Asia" },
+  { label: "Global", desc: "No geographic limits" },
 ];
 
 export function PageGeographicFocus({
   value,
   onChange,
+  currentPage,
+  totalPages,
   onNext,
   onBack,
-  totalPages = 21,
-  currentPage = 17,
 }: PageGeographicFocusProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  const [isFocused, setIsFocused] = useState(false);
-  const [charCount, setCharCount] = useState(0);
-
-  useEffect(() => {
-    const trimmed = value.trim();
-    setCharCount(trimmed.length);
-  }, [value]);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const customRef = useRef<HTMLInputElement>(null);
+  const [customValue, setCustomValue] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        defaults: { ease: "power3.out" },
-        delay: 0.1,
-      });
-      tl.fromTo(
-        ".grain",
-        { opacity: 0 },
-        { opacity: 0.03, duration: 2, ease: "none" }
+      gsap.fromTo(".region-card",
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: "power2.out" }
       );
-      tl.fromTo(
-        ".compass",
-        { y: -60, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1 },
-        "-=1.6"
-      );
-      tl.fromTo(
-        ".step",
-        { opacity: 0, x: 20 },
-        { opacity: 1, x: 0, duration: 0.8 },
-        "-=0.6"
-      );
-      tl.fromTo(
-        ".progress",
-        { scaleX: (currentPage - 1) / totalPages },
-        {
-          scaleX: currentPage / totalPages,
-          duration: 2,
-          ease: "power2.inOut",
-        },
-        "-=0.4"
-      );
-      tl.fromTo(
-        ".qnum",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.6 },
-        "-=1.6"
-      );
-      tl.fromTo(
-        ".hword",
-        { opacity: 0, y: 50 },
-        { opacity: 1, y: 0, duration: 1, stagger: 0.1 },
-        "-=1.2"
-      );
-      tl.fromTo(
-        ".input-wrap",
-        { opacity: 0, y: 80 },
-        { opacity: 1, y: 0, duration: 1.2 },
-        "-=0.6"
-      );
-      tl.fromTo(
-        ".examples",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.8 },
-        "-=0.6"
-      );
-      tl.fromTo(
-        ".nav",
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8 },
-        "-=0.4"
-      );
-      gsap.to(".compass", {
-        y: "-=6",
-        duration: 8,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    }, containerRef);
+    }, wrapperRef);
     return () => ctx.revert();
-  }, [currentPage, totalPages]);
-
-  useEffect(() => {
-    if (!wrapRef.current) return;
-    if (isFocused) {
-      gsap.to(wrapRef.current, {
-        y: -10,
-        boxShadow: "0 60px 160px rgba(42, 37, 41, 0.12)",
-        duration: 0.5,
-      });
-      gsap.to(".dim", { opacity: 0.3, duration: 0.5 });
-    } else {
-      gsap.to(wrapRef.current, {
-        y: 0,
-        boxShadow: "0 10px 40px rgba(42, 37, 41, 0.04)",
-        duration: 0.4,
-      });
-      gsap.to(".dim", { opacity: 0, duration: 0.4 });
-    }
-  }, [isFocused]);
-
-  useEffect(() => {
-    gsap.to(".btn", { opacity: 1, y: 0, duration: 0.5 });
   }, []);
 
-  const onType = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-    gsap.fromTo(".count", { scale: 1.2 }, { scale: 1, duration: 0.3 });
-  };
+  const handleSelect = useCallback((label: string) => {
+    if (label === "Custom") {
+      setShowCustom(true);
+      setTimeout(() => customRef.current?.focus(), 100);
+    } else {
+      onChange(label);
+      // Note: User must click Continue or press Enter to advance
+    }
+  }, [onChange]);
 
-  const submit = () => {
-    gsap.to(".page", {
-      opacity: 0,
-      x: -100,
-      duration: 0.5,
-      ease: "power3.in",
-      onComplete: onNext,
-    });
-  };
+  const handleCustomSubmit = useCallback(() => {
+    if (customValue.trim()) {
+      onChange(customValue.trim());
+      // Note: User must click Continue or press Enter to advance
+    }
+  }, [customValue, onChange]);
 
-  const selectExample = (example: string) => {
-    onChange(example);
-    gsap.fromTo(".count", { scale: 1.2 }, { scale: 1, duration: 0.3 });
-  };
-
-  const pct = Math.round((currentPage / totalPages) * 100);
+  // Enter to skip (optional)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && !value && !showCustom) {
+        gsap.to(wrapperRef.current, {
+          scale: 0.98,
+          duration: 0.1,
+          yoyo: true,
+          repeat: 1,
+          onComplete: () => onNext()
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [value, showCustom, onNext]);
 
   return (
-    <div
-      ref={containerRef}
-      className="min-h-screen w-full bg-[var(--bg-canvas)] relative overflow-hidden"
+    <OnboardingLayout
+      currentStep={currentPage}
+      totalSteps={totalPages}
+      stepTitle="Geographic focus (optional)"
+      stepDescription="Where are your target customers located?"
+      onBack={onBack}
+      onNext={onNext}
+      canGoNext={true}
+      showBack={!!onBack}
     >
-      <div className="dim absolute inset-0 bg-[var(--rf-charcoal)] opacity-0 pointer-events-none z-10" />
-      <div
-        className="grain absolute inset-0 pointer-events-none z-0 opacity-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          backgroundSize: "256px",
-        }}
-      />
-      <div className="page relative z-20 min-h-screen flex flex-col pb-32">
-        <header className="flex items-center justify-between px-12 md:px-24 py-10">
-          <div className="compass">
-            <CompassLogo
-              size={40}
-              variant="compact"
-              className="text-[var(--rf-charcoal)]"
-              animate
-            />
-          </div>
-          <div className="step flex items-center gap-4">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.3em] text-[var(--ink-3)]">
-              Step
-            </span>
-            <div className="flex items-baseline">
-              <span className="rf-mono text-xl font-semibold text-[var(--ink-1)]">
-                {String(currentPage).padStart(2, "0")}
-              </span>
-              <span className="text-[var(--ink-3)] mx-1.5">/</span>
-              <span className="rf-mono text-sm text-[var(--ink-3)]">
-                {String(totalPages).padStart(2, "0")}
-              </span>
-            </div>
-          </div>
-          <button className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--ink-3)] hover:text-[var(--ink-1)] transition-colors">
-            Save & Exit
-          </button>
-        </header>
-        <div className="px-12 md:px-24 mb-12">
-          <div className="max-w-lg mx-auto">
-            <div className="relative h-px bg-[var(--border-1)] overflow-hidden">
-              <div
-                className="progress absolute inset-y-0 left-0 bg-[var(--rf-charcoal)] origin-left"
-                style={{ transform: "scaleX(0)" }}
+      <div ref={wrapperRef} className="ob-animate-in">
+        {/* Region grid */}
+        <div className="ob-interactive grid grid-cols-2 gap-3">
+          {REGIONS.map((region) => {
+            const isSelected = value === region.label;
+            return (
+              <button
+                key={region.label}
+                onClick={() => handleSelect(region.label)}
+                className={`region-card flex flex-col items-start gap-2 p-4 rounded-[var(--radius-md)] border transition-all text-left ${isSelected
+                    ? "bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] border-[var(--rf-charcoal)]"
+                    : "bg-[var(--bg-surface)] border-[var(--border-1)] hover:border-[var(--border-2)]"
+                  }`}
+              >
+                <Globe size={18} className={isSelected ? "opacity-80" : "text-[var(--ink-3)]"} />
+                <div>
+                  <p className={`text-[14px] font-semibold ${isSelected ? "text-[var(--rf-ivory)]" : "text-[var(--ink-1)]"}`}>
+                    {region.label}
+                  </p>
+                  <p className={`text-[11px] mt-0.5 ${isSelected ? "text-white/50" : "text-[var(--ink-3)]"}`}>
+                    {region.desc}
+                  </p>
+                </div>
+                {isSelected && <Check size={16} className="ml-auto mt-2 opacity-60" />}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Custom input */}
+        {showCustom && (
+          <div className="ob-content-item ob-interactive mt-4 flex gap-2">
+            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] border border-[var(--border-2)] bg-[var(--bg-surface)] focus-within:border-[var(--rf-charcoal)] transition-all">
+              <MapPin size={16} className="text-[var(--ink-3)]" />
+              <input
+                ref={customRef}
+                type="text"
+                value={customValue}
+                onChange={e => setCustomValue(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleCustomSubmit()}
+                placeholder="e.g. UK + Ireland only"
+                className="flex-1 bg-transparent border-none outline-none text-[15px] text-[var(--ink-1)] placeholder:text-[var(--ink-3)]/40"
               />
             </div>
-            <div className="flex justify-between mt-3">
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-3)]">
-                Start
-              </span>
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-1)] font-medium">
-                {pct}%
-              </span>
-            </div>
-          </div>
-        </div>
-        <main className="flex-1 flex flex-col items-center px-12 md:px-24">
-          <div className="qnum mb-8">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.5em] text-[var(--ink-3)]">
-              Question {String(currentPage).padStart(2, "0")}
-            </span>
-          </div>
-          <h1 className="text-center mb-4">
-            <span className="hword block text-[clamp(36px,7vw,64px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em]">
-              What markets do
-            </span>
-            <span className="hword block text-[clamp(36px,7vw,64px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em] mt-2">
-              you serve<span className="text-[var(--ink-3)]">?</span>
-            </span>
-          </h1>
-          <p className="text-center text-[var(--ink-3)] mb-12 max-w-md">
-            Optional — leave blank if you serve global markets
-          </p>
-          <div className="w-full max-w-3xl relative">
-            <div
-              ref={wrapRef}
-              className="input-wrap relative bg-[var(--bg-raised)] rounded-[24px] overflow-hidden"
-              style={{ boxShadow: "0 10px 40px rgba(42, 37, 41, 0.04)" }}
-            >
-              <div className="relative flex items-center px-10 py-8">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={value}
-                  onChange={onType}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  onKeyDown={(e) => e.key === "Enter" && submit()}
-                  placeholder="North America, Europe, APAC..."
-                  maxLength={100}
-                  className="flex-1 bg-transparent text-[clamp(24px,4vw,48px)] font-semibold text-[var(--ink-1)] placeholder:text-[var(--border-2)] outline-none tracking-tight"
-                  style={{ caretColor: "var(--rf-charcoal)" }}
-                />
-                <div className="flex items-center gap-5 ml-8">
-                  <span className="rf-mono text-[11px] tabular-nums">
-                    <span className="count text-[var(--ink-3)]">{charCount}</span>
-                    <span className="text-[var(--border-2)] mx-1">/</span>
-                    <span className="text-[var(--border-2)]">100</span>
-                  </span>
-                </div>
-              </div>
-              <div className="absolute bottom-0 left-10 right-10 h-[2px] bg-[var(--rf-charcoal)] origin-left" style={{ transform: "scaleX(0)" }} />
-            </div>
-            <div className="examples mt-6">
-              <p className="text-sm text-[var(--ink-3)] mb-3">Examples:</p>
-              <div className="flex flex-wrap gap-2">
-                {EXAMPLES.map((ex) => (
-                  <button
-                    key={ex}
-                    onClick={() => selectExample(ex)}
-                    className="px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-2)] text-xs text-[var(--ink-2)] hover:bg-[var(--border-1)] hover:text-[var(--ink-1)] transition-colors"
-                  >
-                    {ex}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </main>
-        <footer className="nav fixed bottom-0 left-0 right-0 border-t border-[var(--border-1)] bg-[var(--bg-surface)] z-30">
-          <div className="max-w-3xl mx-auto px-12 md:px-24 py-6 flex items-center justify-between">
             <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-sm font-medium text-[var(--ink-2)] hover:text-[var(--ink-1)] transition-colors"
+              onClick={handleCustomSubmit}
+              disabled={!customValue.trim()}
+              className="px-4 py-3 rounded-[var(--radius-md)] bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] disabled:opacity-40 transition-opacity"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Back
-            </button>
-            <button
-              onClick={submit}
-              className="btn flex items-center gap-3 px-8 py-4 bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] rounded-[16px] font-semibold text-sm tracking-wide hover:bg-[#3a3338] transition-colors"
-            >
-              Continue
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
+              <ArrowRight size={18} />
             </button>
           </div>
-        </footer>
+        )}
+
+        {/* Skip hint */}
+        {!showCustom && (
+          <div className="ob-content-item ob-animate-in mt-6 flex items-center gap-2 p-3 rounded-[var(--bg-surface)] border border-dashed border-[var(--border-2)]">
+            <ArrowRight size={14} className="text-[var(--ink-3)]" />
+            <span className="text-[13px] text-[var(--ink-2)]">Press Enter to skip — we'll assume global</span>
+          </div>
+        )}
       </div>
-    </div>
+    </OnboardingLayout>
   );
 }

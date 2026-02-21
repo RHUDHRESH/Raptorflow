@@ -12,14 +12,14 @@ This separation maintains hexagonal architecture:
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
-from backend.infrastructure.database.supabase import get_supabase_client
-from backend.features.campaign.adapters import SupabaseCampaignRepository
-from backend.features.campaign.application import CampaignService
-from backend.features.asset.adapters import (
+from backend.core.database.supabase import get_supabase_client
+from backend.services.campaign.adapters import SupabaseCampaignRepository
+from backend.services.campaign.application import CampaignService
+from backend.services.asset.adapters import (
     SupabaseAssetRepository,
     SupabaseStorageService,
 )
-from backend.features.asset.application import AssetService
+from backend.services.asset.application import AssetService
 
 if TYPE_CHECKING:
     from supabase import Client
@@ -75,7 +75,7 @@ def get_asset_repository() -> SupabaseAssetRepository:
 
 def get_storage_service() -> SupabaseStorageService:
     """Get a Supabase storage service."""
-    from backend.infrastructure.storage.manager import StorageManager
+    from backend.core.storage.manager import StorageManager
 
     storage = StorageManager()
     return SupabaseStorageService(storage)
@@ -106,6 +106,6 @@ def get_auth_service():
 
 def get_authentication_service(auth_service):
     """Get an AuthenticationService with injected dependencies."""
-    from backend.features.auth.application import AuthenticationService
+    from backend.services.auth.application import AuthenticationService
 
     return AuthenticationService(auth_service)

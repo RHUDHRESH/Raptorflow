@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from backend.infrastructure.storage.manager import StorageManager
+from backend.core.storage.manager import StorageManager
 from backend.services.asset import AssetService
 
 

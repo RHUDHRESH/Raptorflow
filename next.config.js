@@ -8,12 +8,10 @@ const nextConfig = {
     workerThreads: true,
   },
   typescript: {
-    // We'll tighten this once the repo is fully green; for now keep prod builds unblocked.
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
-    // We'll tighten this once the repo is fully green; for now keep prod builds unblocked.
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   webpack: (config, { isServer, dev }) => {
     if (isServer) {

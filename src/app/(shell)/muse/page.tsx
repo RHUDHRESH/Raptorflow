@@ -400,7 +400,7 @@ export default function MusePage() {
         content: response.content ?? "I couldn't generate a response. Please try again.",
         timestamp: new Date(),
         confidence: "high",
-        sources: response.sources ?? [],
+        // sources: response.sources ?? [],
         suggestions: response.suggestions ?? [],
       };
 

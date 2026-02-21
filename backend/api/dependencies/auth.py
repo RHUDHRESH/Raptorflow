@@ -125,7 +125,7 @@ async def get_workspace_id_from_header(
 
     # Check if user has access to the requested workspace via workspace_members
     try:
-        from backend.infrastructure.database.supabase import get_supabase_client
+        from backend.core.database.supabase import get_supabase_client
 
         supabase = get_supabase_client()
 

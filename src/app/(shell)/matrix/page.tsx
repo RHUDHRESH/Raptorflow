@@ -152,8 +152,8 @@ function InitiativeCard({
         <div className="flex items-center gap-2">
           <span
             className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-[8px] ${item.type === "move"
-                ? "bg-[var(--bg-canvas)] text-[var(--ink-2)]"
-                : "bg-[var(--status-info-bg)] text-[var(--status-info)]"
+              ? "bg-[var(--bg-canvas)] text-[var(--ink-2)]"
+              : "bg-[var(--status-info-bg)] text-[var(--status-info)]"
               }`}
           >
             {item.type}
@@ -184,10 +184,10 @@ function InitiativeCard({
           <span className="rf-mono-xs text-[var(--ink-3)]">Health Score</span>
           <span
             className={`rf-mono-xs font-semibold ${item.healthScore >= 70
-                ? "text-[var(--status-success)]"
-                : item.healthScore >= 40
-                  ? "text-[var(--status-warning)]"
-                  : "text-[var(--status-error)]"
+              ? "text-[var(--status-success)]"
+              : item.healthScore >= 40
+                ? "text-[var(--status-warning)]"
+                : "text-[var(--status-error)]"
               }`}
           >
             {item.healthScore}%
@@ -196,10 +196,10 @@ function InitiativeCard({
         <div className="w-full h-1.5 bg-[var(--bg-canvas)] rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full ${item.healthScore >= 70
-                ? "bg-[var(--status-success)]"
-                : item.healthScore >= 40
-                  ? "bg-[var(--status-warning)]"
-                  : "bg-[var(--status-error)]"
+              ? "bg-[var(--status-success)]"
+              : item.healthScore >= 40
+                ? "bg-[var(--status-warning)]"
+                : "bg-[var(--status-error)]"
               }`}
             style={{ width: `${item.healthScore}%` }}
           />
@@ -381,8 +381,8 @@ export default function MatrixPage() {
     return (
       <Layout mode="live" activeNavItem="matrix">
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <Loader2 size={32} className="animate-spin text-[#847C82]" />
-          <p className="text-[14px] text-[#847C82]">Loading matrix…</p>
+          <Loader2 size={32} className="animate-spin text-[var(--ink-3)]" />
+          <p className="text-[14px] text-[var(--ink-3)]">Loading matrix…</p>
         </div>
       </Layout>
     );
@@ -393,8 +393,8 @@ export default function MatrixPage() {
     return (
       <Layout mode="live" activeNavItem="matrix">
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <AlertCircle size={32} className="text-[#8B3D3D]" />
-          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
+          <AlertCircle size={32} className="text-[var(--status-error)]" />
+          <p className="text-[14px] text-[var(--status-error)]">{error}</p>
           <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
         </div>
       </Layout>
@@ -456,8 +456,8 @@ export default function MatrixPage() {
                     key={f}
                     onClick={() => setFilter(f as typeof filter)}
                     className={`px-3 py-1.5 rounded-[var(--radius-sm)] text-[14px] font-medium transition-colors ${filter === f
-                        ? "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
-                        : "bg-[var(--bg-surface)] text-[var(--ink-2)] hover:bg-[var(--state-hover)]"
+                      ? "bg-[var(--ink-1)] text-[var(--ink-inverse)]"
+                      : "bg-[var(--bg-surface)] text-[var(--ink-2)] hover:bg-[var(--state-hover)]"
                       }`}
                   >
                     {f === "all"

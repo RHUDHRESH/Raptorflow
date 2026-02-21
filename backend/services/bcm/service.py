@@ -11,7 +11,7 @@ import logging
 import asyncio
 from typing import Any, Dict, List, Optional
 
-from backend.infrastructure.database.supabase import get_supabase_client
+from backend.core.database.supabase import get_supabase_client
 from backend.services.base_service import BaseService
 from backend.services.registry import registry
 from backend.services.bcm.reducer import reduce_business_context

@@ -18,7 +18,7 @@ from backend.api.v1.workspace_guard import (
 )
 from backend.bootstrap.dependencies import CampaignServiceDep
 from backend.core.exceptions import NotFoundError, ValidationError
-from backend.features.campaign.domain.entities import Campaign
+from backend.services.campaign.domain.entities import Campaign
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 

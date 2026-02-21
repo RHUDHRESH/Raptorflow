@@ -452,7 +452,7 @@ async def sign_in(
 
     # Create Redis session for horizontal scaling
     try:
-        from backend.infrastructure.cache.redis_sentinel import (
+        from backend.core.cache.redis_sentinel import (
             get_redis_sentinel_manager,
         )
 
@@ -531,7 +531,7 @@ async def logout(
             "session_id"
         )
         if session_id:
-            from backend.infrastructure.cache.redis_sentinel import (
+            from backend.core.cache.redis_sentinel import (
                 get_redis_sentinel_manager,
             )
 

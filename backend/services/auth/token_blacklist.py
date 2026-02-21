@@ -11,7 +11,7 @@ class TokenBlacklist:
 
     async def _get_redis(self):
         if self._redis is None:
-            from backend.infrastructure.cache.redis_sentinel import (
+            from backend.core.cache.redis_sentinel import (
                 get_redis_sentinel_manager,
             )
 

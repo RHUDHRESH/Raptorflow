@@ -35,7 +35,7 @@ def require_workspace_id(x_workspace_id: Optional[str]) -> str:
 
 
 def get_workspace_row(workspace_id: str) -> Dict[str, Any]:
-    from backend.infrastructure.database.supabase import get_supabase_client
+    from backend.core.database.supabase import get_supabase_client
 
     supabase = get_supabase_client()
     result = (

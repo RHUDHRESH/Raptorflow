@@ -91,13 +91,13 @@ export function Footer({
   const getAutosaveColor = () => {
     switch (autosaveState) {
       case "saving":
-        return "var(--rf-muted-ink, #5C565B)";
+        return "var(--ink-2)";
       case "saved":
         return "#3D5A42";
       case "error":
         return "#8B4545";
       default:
-        return "var(--ink-3, #847C82)";
+        return "var(--ink-3)";
     }
   };
 
@@ -107,8 +107,8 @@ export function Footer({
       className="flex items-center justify-between px-4 flex-shrink-0"
       style={{
         height: "40px",
-        backgroundColor: "var(--bg-canvas, #EFEDE6)",
-        borderTop: "1px solid var(--border-1, #E3DED3)",
+        backgroundColor: "var(--bg-canvas)",
+        borderTop: "1px solid var(--border-1)",
         fontFamily: "'JetBrains Mono', monospace",
       }}
     >
@@ -123,7 +123,7 @@ export function Footer({
         </div>
         <span
           className="text-xs"
-          style={{ color: "var(--ink-3, #847C82)" }}
+          style={{ color: "var(--ink-3)" }}
         >
           Synced {lastSync}
         </span>
@@ -147,7 +147,7 @@ export function Footer({
         ) : (
           <span
             className="text-xs"
-            style={{ color: "var(--ink-3, #847C82)" }}
+            style={{ color: "var(--ink-3)" }}
           >
             All validations complete
           </span>
@@ -158,14 +158,14 @@ export function Footer({
       <div ref={rightRef} className="flex items-center gap-4">
         <span
           className="text-xs"
-          style={{ color: "var(--ink-3, #847C82)" }}
+          style={{ color: "var(--ink-3)" }}
         >
           {version}
         </span>
         <a
           href="/help"
           className="flex items-center gap-1 text-xs transition-opacity hover:opacity-70"
-          style={{ color: "var(--rf-muted-ink, #5C565B)" }}
+          style={{ color: "var(--ink-2)" }}
         >
           <HelpCircle size={12} />
           <span>Help</span>

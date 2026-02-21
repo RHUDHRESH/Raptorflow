@@ -98,8 +98,8 @@ export function Sidebar({ activeItem = "foundation" }: SidebarProps) {
       className="flex flex-col h-full"
       style={{
         width: "var(--shell-rail, 280px)",
-        backgroundColor: "var(--bg-surface, #F7F5EF)",
-        borderRight: "1px solid var(--border-1, #E3DED3)",
+        backgroundColor: "var(--bg-surface)",
+        borderRight: "1px solid var(--border-1)",
       }}
     >
       {/* Logo Section */}
@@ -107,19 +107,19 @@ export function Sidebar({ activeItem = "foundation" }: SidebarProps) {
         className="flex items-center px-4"
         style={{
           height: "var(--shell-topbar, 56px)",
-          borderBottom: "1px solid var(--border-1, #E3DED3)",
+          borderBottom: "1px solid var(--border-1)",
         }}
       >
-        <a 
-          href="/dashboard" 
+        <a
+          href="/dashboard"
           className="hover:opacity-80 transition-opacity"
           onMouseEnter={() => logoRef.current?.pulse()}
         >
-          <CompassLogo 
+          <CompassLogo
             ref={logoRef}
-            size="md" 
-            showText 
-            animate 
+            size="md"
+            showText
+            animate
           />
         </a>
       </div>
@@ -145,11 +145,11 @@ export function Sidebar({ activeItem = "foundation" }: SidebarProps) {
                   height: "40px",
                   padding: "0 16px",
                   backgroundColor: isActive
-                    ? "var(--rf-charcoal, #2A2529)"
+                    ? "var(--rf-charcoal)"
                     : "transparent",
                   color: isActive
-                    ? "var(--rf-ivory, #F3F0E7)"
-                    : "var(--rf-muted-ink, #5C565B)",
+                    ? "var(--rf-ivory)"
+                    : "var(--ink-2)",
                   fontFamily: "'DM Sans', system-ui, sans-serif",
                   fontSize: "14px",
                   fontWeight: 500,
@@ -160,8 +160,8 @@ export function Sidebar({ activeItem = "foundation" }: SidebarProps) {
                   className="mr-3"
                   style={{
                     color: isActive
-                      ? "var(--rf-ivory, #F3F0E7)"
-                      : "var(--rf-muted-ink, #5C565B)",
+                      ? "var(--rf-ivory)"
+                      : "var(--ink-2)",
                   }}
                 />
                 <span>{item.label}</span>
@@ -171,10 +171,10 @@ export function Sidebar({ activeItem = "foundation" }: SidebarProps) {
                     style={{
                       backgroundColor: isActive
                         ? "rgba(243, 240, 231, 0.2)"
-                        : "var(--rf-fog, #EFEDE6)",
+                        : "var(--bg-canvas)",
                       color: isActive
-                        ? "var(--rf-ivory, #F3F0E7)"
-                        : "var(--rf-muted-ink, #5C565B)",
+                        ? "var(--rf-ivory)"
+                        : "var(--ink-2)",
                     }}
                   >
                     AI
@@ -191,8 +191,8 @@ export function Sidebar({ activeItem = "foundation" }: SidebarProps) {
         ref={dailyWinRef}
         className="mx-3 mb-4 p-3 rounded-lg"
         style={{
-          backgroundColor: "var(--rf-fog, #EFEDE6)",
-          border: "1px solid var(--border-1, #E3DED3)",
+          backgroundColor: "var(--bg-canvas)",
+          border: "1px solid var(--border-1)",
         }}
       >
         <div
@@ -203,33 +203,33 @@ export function Sidebar({ activeItem = "foundation" }: SidebarProps) {
         >
           <span
             className="text-xs font-medium uppercase tracking-wider"
-            style={{ color: "var(--rf-muted-ink, #5C565B)" }}
+            style={{ color: "var(--ink-2)" }}
           >
             Daily Win
           </span>
           <span
             className="text-xs"
-            style={{ color: "var(--ink-3, #847C82)" }}
+            style={{ color: "var(--ink-3)" }}
           >
             3/5
           </span>
         </div>
         <div
           className="h-1.5 rounded-full overflow-hidden"
-          style={{ backgroundColor: "var(--border-1, #E3DED3)" }}
+          style={{ backgroundColor: "var(--border-1)" }}
         >
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
               width: "60%",
-              backgroundColor: "var(--rf-charcoal, #2A2529)",
+              backgroundColor: "var(--rf-charcoal)",
             }}
           />
         </div>
         <p
           className="mt-2 text-xs"
           style={{
-            color: "var(--rf-muted-ink, #5C565B)",
+            color: "var(--ink-2)",
             fontFamily: "'DM Sans', system-ui, sans-serif",
           }}
         >

@@ -7,9 +7,9 @@ import logging
 from pathlib import Path
 
 from backend.api.system import router as system_router
-from backend.app.lifespan import lifespan
-from backend.app.middleware import add_middleware
-from backend.app.metrics import setup_metrics
+from backend.core.lifespan import lifespan
+from backend.core.middleware import add_middleware
+from backend.core.metrics import setup_metrics
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

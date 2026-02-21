@@ -39,7 +39,7 @@ export function Card({
 
     const handleMouseEnter = () => {
       gsap.to(card, {
-        borderColor: "#D2CCC0",
+        borderColor: "var(--border-2)",
         duration: 0.2,
         ease: "power2.out",
       });
@@ -47,7 +47,7 @@ export function Card({
 
     const handleMouseLeave = () => {
       gsap.to(card, {
-        borderColor: "#E3DED3",
+        borderColor: "var(--border-1)",
         duration: 0.2,
         ease: "power2.out",
       });
@@ -63,7 +63,7 @@ export function Card({
   }, [variant]);
 
   const baseStyles =
-    "bg-[#F7F5EF] border border-[#E3DED3] rounded-[14px] relative";
+    "bg-[var(--bg-surface)] border border-[var(--border-1)] rounded-[14px] relative";
 
   const paddingStyles = {
     sm: "p-3",
@@ -75,7 +75,7 @@ export function Card({
   const variantStyles = {
     default: "",
     interactive: "cursor-pointer transition-colors",
-    highlight: "ring-2 ring-[#2A2529]",
+    highlight: "ring-2 ring-[var(--ink-1)]",
   };
 
   return (
@@ -91,7 +91,7 @@ export function Card({
       `}
     >
       {isLocked && (
-        <div className="absolute top-3 right-3 text-[#847C82]">
+        <div className="absolute top-3 right-3 text-[var(--ink-3)]">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -116,9 +116,9 @@ export function Card({
 export function CardHeader({ title, subtitle, badge }: CardHeaderProps) {
   const getBadgeStyles = (variant: string) => {
     const styles = {
-      success: "bg-[#E8F0E9] text-[#3D5A42]",
-      warning: "bg-[#F5F0E6] text-[#8B6B3D]",
-      info: "bg-[#E6F0F5] text-[#3D5A6B]",
+      success: "bg-[var(--status-success-bg)] text-[var(--status-success)]",
+      warning: "bg-[var(--status-warning-bg)] text-[var(--status-warning)]",
+      info: "bg-[var(--status-info-bg)] text-[var(--status-info)]",
     };
     return styles[variant as keyof typeof styles] || styles.info;
   };
@@ -126,7 +126,7 @@ export function CardHeader({ title, subtitle, badge }: CardHeaderProps) {
   return (
     <div className="mb-3">
       <div className="flex items-center gap-2">
-        <h3 className="text-[16px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+        <h3 className="text-[16px] font-semibold text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
           {title}
         </h3>
         {badge && (
@@ -140,7 +140,7 @@ export function CardHeader({ title, subtitle, badge }: CardHeaderProps) {
         )}
       </div>
       {subtitle && (
-        <p className="mt-1 text-[14px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">
+        <p className="mt-1 text-[14px] text-[var(--ink-3)] font-['DM_Sans',system-ui,sans-serif]">
           {subtitle}
         </p>
       )}
@@ -157,7 +157,7 @@ export function CardFooter({ children, align = "left" }: CardFooterProps) {
 
   return (
     <div
-      className={`mt-4 pt-3 border-t border-[#E3DED3] flex items-center gap-2 ${alignStyles[align]}`}
+      className={`mt-4 pt-3 border-t border-[var(--border-1)] flex items-center gap-2 ${alignStyles[align]}`}
     >
       {children}
     </div>

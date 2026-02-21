@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from backend.infrastructure.database.supabase import get_supabase_client
+from backend.core.database.supabase import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

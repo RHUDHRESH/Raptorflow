@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { Navbar } from "@/components/landing/Navbar";
-import { Footer } from "@/components/landing/Footer";
+import { LandingNavbar } from "@/features/landing/components/LandingNavbar";
+import { FooterSection } from "@/features/landing/components/FooterSection";
 import { communicationsService } from "@/services/communications.service";
 
 export default function ContactPage() {
@@ -45,25 +45,25 @@ export default function ContactPage() {
   }
 
   return (
-    <main className="relative">
-      <Navbar />
-      <div className="pt-24 bg-[var(--bg-primary)]">
+    <main className="relative min-h-screen bg-[var(--bg-canvas)]">
+      <LandingNavbar />
+      <div className="pt-24">
         <div className="max-w-3xl mx-auto px-6 py-16 space-y-8">
           <header className="space-y-3">
-            <h1 className="font-display text-4xl md:text-5xl font-semibold text-[var(--text-primary)]">
+            <h1 className="text-[40px] leading-[48px] font-bold tracking-[-0.02em] text-[var(--ink-1)]">
               Contact
             </h1>
-            <p className="text-[var(--text-secondary)]">
-              Reconstruction mode is active: billing and auth are disabled. If you need sales or
-              support, use the links below.
+            <p className="text-[var(--ink-2)]">
+              Have a question or need support? Reach out and we&apos;ll get back
+              to you.
             </p>
           </header>
 
-          <section className="rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] p-6 space-y-4">
+          <section className="rounded-[var(--radius-lg)] border border-[var(--border-1)] bg-[var(--bg-surface)] p-6 space-y-4">
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <input
-                  className="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                  className="rf-input"
                   placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -71,7 +71,7 @@ export default function ContactPage() {
                   required
                 />
                 <input
-                  className="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                  className="rf-input"
                   placeholder="you@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -80,7 +80,7 @@ export default function ContactPage() {
                 />
               </div>
               <input
-                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                className="rf-input"
                 placeholder="Subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
@@ -88,7 +88,7 @@ export default function ContactPage() {
                 required
               />
               <textarea
-                className="w-full min-h-[140px] px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                className="rf-textarea"
                 placeholder="How can we help?"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -99,34 +99,34 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={isSending}
-                  className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium disabled:opacity-50"
+                  className="rf-btn rf-btn-primary"
                 >
                   {isSending ? "Sending..." : "Send Message"}
                 </button>
-                {result ? <p className="text-sm text-[var(--text-secondary)]">{result}</p> : null}
+                {result ? (
+                  <p className="text-sm text-[var(--ink-2)]">{result}</p>
+                ) : null}
               </div>
             </form>
 
-            <div className="space-y-1">
-              <h2 className="font-display text-xl font-semibold text-[var(--text-primary)]">
+            <div className="space-y-1 pt-4 border-t border-[var(--border-1)]">
+              <h2 className="text-xl font-semibold text-[var(--ink-1)]">
                 Open The App
               </h2>
-              <p className="text-sm text-[var(--text-secondary)]">
+              <p className="text-sm text-[var(--ink-2)]">
                 Go to{" "}
-                <Link className="text-[var(--accent)] hover:underline" href="/dashboard">
+                <Link
+                  className="text-[var(--ink-1)] underline hover:no-underline"
+                  href="/dashboard"
+                >
                   /dashboard
-                </Link>{" "}
-                (no login required).
+                </Link>
               </p>
-            </div>
-
-            <div className="text-xs text-[var(--text-muted)] font-mono">
-              Tenant boundary: <span className="text-[var(--text-primary)]">x-workspace-id</span>
             </div>
           </section>
         </div>
 
-        <Footer />
+        <FooterSection />
       </div>
     </main>
   );

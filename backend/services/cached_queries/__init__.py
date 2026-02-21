@@ -2,7 +2,7 @@
 Cached Queries Service - Cached database queries.
 """
 
-from backend.infrastructure.database.supabase import get_supabase_client
+from backend.core.database.supabase import get_supabase_client
 from backend.services.cached_queries.service import (
     get_foundation_data,
     get_workspace_by_id,

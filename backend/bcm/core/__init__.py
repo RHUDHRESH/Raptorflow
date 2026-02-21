@@ -54,7 +54,7 @@ class BCMClient:
     def _get_db(self):
         """Get database client (lazy initialization)."""
         if self._db is None:
-            from backend.infrastructure.database.supabase import get_supabase_client
+            from backend.core.database.supabase import get_supabase_client
 
             self._db = get_supabase_client()
         return self._db

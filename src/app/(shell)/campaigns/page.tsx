@@ -176,20 +176,20 @@ function PhaseIndicator({ phases, activePhase }: { phases: Phase[]; activePhase:
               <div
                 className={`
                   relative w-3 h-3 rounded-full border-2 transition-all duration-300
-                  ${isCompleted ? "bg-[#2A2529] border-[#2A2529]" : ""}
-                  ${isActive ? "bg-[#2A2529] border-[#2A2529]" : ""}
-                  ${!isCompleted && !isActive ? "bg-transparent border-[#D2CCC0]" : ""}
+                  ${isCompleted ? "bg-[var(--rf-charcoal)] border-[var(--rf-charcoal)]" : ""}
+                  ${isActive ? "bg-[var(--rf-charcoal)] border-[var(--rf-charcoal)]" : ""}
+                  ${!isCompleted && !isActive ? "bg-transparent border-[var(--border-2)]" : ""}
                 `}
               >
                 {isActive && (
                   <div
                     ref={pulseRef}
-                    className="absolute inset-0 rounded-full bg-[#2A2529] opacity-30"
+                    className="absolute inset-0 rounded-full bg-[var(--rf-charcoal)] opacity-30"
                   />
                 )}
                 {isCompleted && (
                   <svg
-                    className="absolute inset-0 w-full h-full p-0.5 text-[#F3F0E7]"
+                    className="absolute inset-0 w-full h-full p-0.5 text-[var(--rf-ivory)]"
                     viewBox="0 0 12 12"
                     fill="none"
                   >
@@ -203,7 +203,7 @@ function PhaseIndicator({ phases, activePhase }: { phases: Phase[]; activePhase:
                   </svg>
                 )}
               </div>
-              <span className="text-[10px] text-[#847C82] font-medium whitespace-nowrap">
+              <span className="text-[10px] text-[var(--ink-3)] font-medium whitespace-nowrap">
                 {phase.name}
               </span>
             </div>
@@ -211,7 +211,7 @@ function PhaseIndicator({ phases, activePhase }: { phases: Phase[]; activePhase:
               <div
                 className={`
                   w-6 h-0.5 mx-1 transition-all duration-300
-                  ${isCompleted ? "bg-[#2A2529]" : "bg-[#E3DED3]"}
+                  ${isCompleted ? "bg-[var(--rf-charcoal)]" : "bg-[var(--bg-canvas)]"}
                 `}
               />
             )}
@@ -250,14 +250,14 @@ function TaskCheckbox({
         className={`
           relative w-5 h-5 rounded border-2 flex items-center justify-center
           transition-all duration-200
-          ${isDone ? "bg-[#2A2529] border-[#2A2529]" : "bg-transparent border-[#D2CCC0] group-hover:border-[#2A2529]"}
+          ${isDone ? "bg-[var(--rf-charcoal)] border-[var(--rf-charcoal)]" : "bg-transparent border-[var(--border-2)] group-hover:border-[var(--rf-charcoal)]"}
         `}
         onClick={() => onToggle(task.id)}
       >
         {isDone && (
           <svg
             ref={checkRef}
-            className="w-3 h-3 text-[#F3F0E7]"
+            className="w-3 h-3 text-[var(--rf-ivory)]"
             viewBox="0 0 12 12"
             fill="none"
           >
@@ -275,7 +275,7 @@ function TaskCheckbox({
         ref={textRef}
         className={`
           text-[14px] transition-all duration-300
-          ${isDone ? "text-[#847C82] line-through" : "text-[#2A2529]"}
+          ${isDone ? "text-[var(--ink-3)] line-through" : "text-[var(--ink-1)]"}
         `}
       >
         {task.title}
@@ -332,7 +332,7 @@ function CampaignCard({
     <Card
       variant="interactive"
       padding="lg"
-      className={`campaign-card transition-all duration-300 ${isExpanded ? "ring-2 ring-[#2A2529]" : ""}`}
+      className={`campaign-card transition-all duration-300 ${isExpanded ? "ring-2 ring-[var(--rf-charcoal)]" : ""}`}
       onClick={onToggle}
     >
       {/* Main Card Content */}
@@ -342,22 +342,22 @@ function CampaignCard({
           <div
             className={`
               w-2.5 h-2.5 rounded-full mt-2 flex-shrink-0
-              ${campaign.status === "active" ? "bg-[#3D5A42]" : ""}
-              ${campaign.status === "completed" ? "bg-[#3D5A6B]" : ""}
-              ${campaign.status === "paused" ? "bg-[#8B6B3D]" : ""}
+              ${campaign.status === "active" ? "bg-[var(--status-success)]" : ""}
+              ${campaign.status === "completed" ? "bg-[var(--status-info)]" : ""}
+              ${campaign.status === "paused" ? "bg-[var(--status-warning)]" : ""}
               ${campaign.status === "draft" ? "bg-[#847C82]" : ""}
             `}
           />
           <div>
-            <h3 className="text-[18px] font-semibold text-[#2A2529] font-['DM_Sans',system-ui,sans-serif]">
+            <h3 className="text-[18px] font-semibold text-[var(--ink-1)] font-['DM_Sans',system-ui,sans-serif]">
               {campaign.name}
             </h3>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant={getStatusVariant(campaign.status)} size="sm">
                 {campaign.status}
               </Badge>
-              <span className="text-[12px] text-[#847C82]">→</span>
-              <span className="text-[12px] text-[#5C565B]">{campaign.moveName}</span>
+              <span className="text-[12px] text-[var(--ink-3)]">→</span>
+              <span className="text-[12px] text-[var(--ink-2)]">{campaign.moveName}</span>
             </div>
           </div>
         </div>
@@ -365,10 +365,10 @@ function CampaignCard({
         {/* Center: Progress + Phases */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[12px] text-[#847C82]">
+            <span className="text-[12px] text-[var(--ink-3)]">
               Phase {activePhaseIndex} of {campaign.timeline.phases.length}: {activePhase?.name}
             </span>
-            <span className="text-[12px] font-medium text-[#2A2529]">{progress}%</span>
+            <span className="text-[12px] font-medium text-[var(--ink-1)]">{progress}%</span>
           </div>
           <div className="mb-4">
             <Progress value={progress} size="sm" />
@@ -380,14 +380,14 @@ function CampaignCard({
         <div className="lg:w-[200px] flex-shrink-0 flex flex-col items-end gap-2">
           <div className="text-right">
             <div className="flex items-baseline gap-1 justify-end">
-              <span className="text-[24px] font-bold text-[#2A2529]">
+              <span className="text-[24px] font-bold text-[var(--ink-1)]">
                 {campaign.metric.current}
               </span>
-              <span className="text-[14px] text-[#847C82]">/ {campaign.metric.target}</span>
+              <span className="text-[14px] text-[var(--ink-3)]">/ {campaign.metric.target}</span>
             </div>
-            <div className="text-[12px] text-[#5C565B]">{campaign.metric.name}</div>
+            <div className="text-[12px] text-[var(--ink-2)]">{campaign.metric.name}</div>
           </div>
-          <div className="flex items-center gap-1.5 text-[12px] text-[#847C82]">
+          <div className="flex items-center gap-1.5 text-[12px] text-[var(--ink-3)]">
             <Clock size={12} />
             <span>
               {daysUntil > 0 ? `${daysUntil} days left` : daysUntil === 0 ? "Due today" : `${Math.abs(daysUntil)} days overdue`}
@@ -397,47 +397,47 @@ function CampaignCard({
 
         {/* Expand Icon */}
         <div className="hidden lg:flex items-center justify-center w-8 h-8">
-          {isExpanded ? <ChevronUp size={20} className="text-[#847C82]" /> : <ChevronDown size={20} className="text-[#847C82]" />}
+          {isExpanded ? <ChevronUp size={20} className="text-[var(--ink-3)]" /> : <ChevronDown size={20} className="text-[var(--ink-3)]" />}
         </div>
       </div>
 
       {/* Expanded Content */}
       <div ref={contentRef} className="overflow-hidden" style={{ height: 0, opacity: 0 }}>
-        <div className="pt-6 mt-6 border-t border-[#E3DED3]">
+        <div className="pt-6 mt-6 border-t border-[var(--border-1)]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left: Details */}
             <div className="space-y-4">
               <div>
-                <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-2">
+                <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-3)] mb-2">
                   Objective
                 </h4>
-                <p className="text-[14px] text-[#2A2529]">{campaign.objective}</p>
+                <p className="text-[14px] text-[var(--ink-1)]">{campaign.objective}</p>
               </div>
               <div>
-                <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-2">
+                <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-3)] mb-2">
                   Hypothesis
                 </h4>
-                <p className="text-[14px] text-[#5C565B] italic">"{campaign.hypothesis}"</p>
+                <p className="text-[14px] text-[var(--ink-2)] italic">"{campaign.hypothesis}"</p>
               </div>
               <div className="flex items-center gap-4">
                 <div>
-                  <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-1">
+                  <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-3)] mb-1">
                     Start Date
                   </h4>
-                  <p className="text-[14px] text-[#2A2529]">{formatDate(campaign.timeline.startDate)}</p>
+                  <p className="text-[14px] text-[var(--ink-1)]">{formatDate(campaign.timeline.startDate)}</p>
                 </div>
                 <div>
-                  <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-1">
+                  <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-3)] mb-1">
                     Deadline
                   </h4>
-                  <p className="text-[14px] text-[#2A2529]">{formatDate(campaign.deadline)}</p>
+                  <p className="text-[14px] text-[var(--ink-1)]">{formatDate(campaign.deadline)}</p>
                 </div>
               </div>
             </div>
 
             {/* Right: Tasks */}
             <div>
-              <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[#847C82] mb-3">
+              <h4 className="text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-3)] mb-3">
                 Tasks
               </h4>
               <div className="space-y-1">
@@ -468,17 +468,17 @@ function StatsCard({
     <Card padding="md" className="stats-card">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[12px] text-[#847C82] uppercase tracking-wide mb-1">{label}</p>
-          <p className="text-[28px] font-bold text-[#2A2529]">{value}</p>
+          <p className="text-[12px] text-[var(--ink-3)] uppercase tracking-wide mb-1">{label}</p>
+          <p className="text-[28px] font-bold text-[var(--ink-1)]">{value}</p>
           {trend && (
-            <div className={`flex items-center gap-1 mt-1 ${trend.positive ? "text-[#3D5A42]" : "text-[#8B6B3D]"}`}>
+            <div className={`flex items-center gap-1 mt-1 ${trend.positive ? "text-[var(--status-success)]" : "text-[var(--status-warning)]"}`}>
               <TrendingUp size={14} />
               <span className="text-[12px] font-medium">{trend.value}</span>
             </div>
           )}
         </div>
-        <div className="p-2 bg-[#EFEDE6] rounded-[10px]">
-          <Icon size={20} className="text-[#5C565B]" />
+        <div className="p-2 bg-[var(--bg-canvas)] rounded-[10px]">
+          <Icon size={20} className="text-[var(--ink-2)]" />
         </div>
       </div>
     </Card>
@@ -573,8 +573,8 @@ export default function CampaignsPage() {
       width: "30%",
       render: (row: Campaign) => (
         <div>
-          <p className="font-semibold text-[#2A2529]">{row.name}</p>
-          <p className="text-[12px] text-[#847C82]">{row.objective}</p>
+          <p className="font-semibold text-[var(--ink-1)]">{row.name}</p>
+          <p className="text-[12px] text-[var(--ink-3)]">{row.objective}</p>
         </div>
       ),
     },
@@ -599,13 +599,13 @@ export default function CampaignsPage() {
       width: "15%",
       render: (row: Campaign) => (
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-2 bg-[#EFEDE6] rounded-full overflow-hidden">
+          <div className="flex-1 h-2 bg-[var(--bg-canvas)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#2A2529] rounded-full"
+              className="h-full bg-[var(--rf-charcoal)] rounded-full"
               style={{ width: `${calculateProgress(row)}%` }}
             />
           </div>
-          <span className="text-[12px] text-[#847C82]">{calculateProgress(row)}%</span>
+          <span className="text-[12px] text-[var(--ink-3)]">{calculateProgress(row)}%</span>
         </div>
       ),
     },
@@ -616,10 +616,10 @@ export default function CampaignsPage() {
       align: "right" as const,
       render: (row: Campaign) => (
         <div className="text-right">
-          <p className="text-[14px] font-semibold text-[#2A2529]">
+          <p className="text-[14px] font-semibold text-[var(--ink-1)]">
             {row.metric.current} / {row.metric.target}
           </p>
-          <p className="text-[11px] text-[#847C82]">{row.metric.name}</p>
+          <p className="text-[11px] text-[var(--ink-3)]">{row.metric.name}</p>
         </div>
       ),
     },
@@ -630,8 +630,8 @@ export default function CampaignsPage() {
       align: "right" as const,
       render: (row: Campaign) => (
         <div className="text-right">
-          <p className="text-[14px] text-[#2A2529]">{formatDate(row.deadline)}</p>
-          <p className="text-[11px] text-[#847C82]">
+          <p className="text-[14px] text-[var(--ink-1)]">{formatDate(row.deadline)}</p>
+          <p className="text-[11px] text-[var(--ink-3)]">
             {getDaysUntil(row.deadline) > 0
               ? `${getDaysUntil(row.deadline)} days left`
               : "Overdue"}
@@ -646,8 +646,8 @@ export default function CampaignsPage() {
     return (
       <Layout mode="draft" activeNavItem="campaigns">
         <div className="p-6 lg:p-8 max-w-[1400px] mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <Loader2 size={32} className="animate-spin text-[#847C82]" />
-          <p className="text-[14px] text-[#847C82]">Loading campaigns…</p>
+          <Loader2 size={32} className="animate-spin text-[var(--ink-3)]" />
+          <p className="text-[14px] text-[var(--ink-3)]">Loading campaigns…</p>
         </div>
       </Layout>
     );
@@ -658,8 +658,8 @@ export default function CampaignsPage() {
     return (
       <Layout mode="draft" activeNavItem="campaigns">
         <div className="p-6 lg:p-8 max-w-[1400px] mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <AlertCircle size={32} className="text-[#8B3D3D]" />
-          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
+          <AlertCircle size={32} className="text-[var(--status-error)]" />
+          <p className="text-[14px] text-[var(--status-error)]">{error}</p>
           <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
         </div>
       </Layout>
@@ -673,8 +673,8 @@ export default function CampaignsPage() {
         <header className="campaigns-header mb-8">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
             <div>
-              <h1 className="rf-h2 text-[#2A2529] mb-2">Campaigns</h1>
-              <p className="rf-body text-[#5C565B]">Outcome-linked execution plans</p>
+              <h1 className="rf-h2 text-[var(--ink-1)] mb-2">Campaigns</h1>
+              <p className="rf-body text-[var(--ink-2)]">Outcome-linked execution plans</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -689,7 +689,7 @@ export default function CampaignsPage() {
                   <option value="paused">Paused</option>
                   <option value="completed">Completed</option>
                 </select>
-                <Filter size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#847C82] pointer-events-none" />
+                <Filter size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-3)] pointer-events-none" />
               </div>
               <Button variant="primary" leftIcon={<Plus size={16} />}>
                 Create Campaign
@@ -713,12 +713,12 @@ export default function CampaignsPage() {
 
         {/* View Toggle */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-1 p-1 bg-[#EFEDE6] rounded-[10px]">
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-canvas)] rounded-[10px]">
             <button
               onClick={() => setViewMode("timeline")}
               className={`
                 flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-[14px] font-medium transition-all
-                ${viewMode === "timeline" ? "bg-[#F7F5EF] text-[#2A2529] shadow-sm" : "text-[#847C82] hover:text-[#5C565B]"}
+                ${viewMode === "timeline" ? "bg-[var(--bg-surface)] text-[var(--ink-1)] shadow-sm" : "text-[var(--ink-3)] hover:text-[var(--ink-2)]"}
               `}
             >
               <LayoutGrid size={14} />
@@ -728,14 +728,14 @@ export default function CampaignsPage() {
               onClick={() => setViewMode("list")}
               className={`
                 flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-[14px] font-medium transition-all
-                ${viewMode === "list" ? "bg-[#F7F5EF] text-[#2A2529] shadow-sm" : "text-[#847C82] hover:text-[#5C565B]"}
+                ${viewMode === "list" ? "bg-[var(--bg-surface)] text-[var(--ink-1)] shadow-sm" : "text-[var(--ink-3)] hover:text-[var(--ink-2)]"}
               `}
             >
               <List size={14} />
               List
             </button>
           </div>
-          <span className="text-[12px] text-[#847C82]">
+          <span className="text-[12px] text-[var(--ink-3)]">
             Showing {filteredCampaigns.length} campaigns
           </span>
         </div>
@@ -761,11 +761,11 @@ export default function CampaignsPage() {
         {/* Empty State */}
         {filteredCampaigns.length === 0 && (
           <Card padding="lg" className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#EFEDE6] flex items-center justify-center">
-              <Megaphone size={24} className="text-[#847C82]" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--bg-canvas)] flex items-center justify-center">
+              <Megaphone size={24} className="text-[var(--ink-3)]" />
             </div>
-            <h3 className="text-[18px] font-semibold text-[#2A2529] mb-2">No campaigns found</h3>
-            <p className="text-[14px] text-[#847C82] mb-6">
+            <h3 className="text-[18px] font-semibold text-[var(--ink-1)] mb-2">No campaigns found</h3>
+            <p className="text-[14px] text-[var(--ink-3)] mb-6">
               Try adjusting your filters or create a new campaign.
             </p>
             <Button variant="secondary" onClick={() => setFilterStatus("all")}>

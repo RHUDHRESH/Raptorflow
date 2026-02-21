@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 
 from backend.agents import format_bcm_row, langgraph_context_orchestrator
 from backend.config.settings import get_settings
-from backend.infrastructure.database.supabase import get_supabase_client
+from backend.core.database.supabase import get_supabase_client
 from backend.services import bcm_service
 from backend.services.bcm.templates import (
     TemplateType,
@@ -862,7 +862,7 @@ def _ensure_workspace_membership(*, user_id: str, workspace_id: str) -> None:
 
 
 async def _create_workspace_for_user(
-    *, workspace: WorkspaceCreate, user_id: str
+    *, workspace: WorkspaceCreate, user_id: Optional[str] = None
 ) -> Dict[str, Any]:
     base_slug = workspace.slug or _slugify(workspace.name)
     settings = _build_default_settings(workspace.settings or {})
@@ -892,7 +892,8 @@ async def _create_workspace_for_user(
             detail=f"Failed to create workspace (slug collision). Last error: {last_error}",
         )
 
-    _ensure_workspace_membership(user_id=user_id, workspace_id=created_workspace["id"])
+    if user_id:
+        _ensure_workspace_membership(user_id=user_id, workspace_id=created_workspace["id"])
 
     config = get_settings()
     if config.DEFAULT_BUSINESS_TEMPLATE:
@@ -961,62 +962,18 @@ async def _seed_workspace_foundation(
 @router.post("/", response_model=WorkspaceResponse, status_code=status.HTTP_201_CREATED)
 async def create_workspace(
     workspace: WorkspaceCreate,
-    current_user: Dict[str, Any] = Depends(get_current_user),
 ) -> WorkspaceResponse:
     """
     Create a workspace with deterministic onboarding defaults.
 
     If DEFAULT_BUSINESS_TEMPLATE is configured, foundation data is seeded from that template.
     """
-    user_id = _current_user_id(current_user)
     created_workspace = await _create_workspace_for_user(
         workspace=workspace,
-        user_id=user_id,
+        user_id=None,
     )
 
     return WorkspaceResponse(**created_workspace)
-
-
-@router.get("/me/default", response_model=WorkspaceSelectionResponse)
-async def get_default_workspace_for_current_user(
-    current_user: Dict[str, Any] = Depends(get_current_user),
-) -> WorkspaceSelectionResponse:
-    user_id = _current_user_id(current_user)
-    preferred_workspace_id = str(current_user.get("workspace_id") or "").strip()
-    workspace_ids = _workspace_ids_for_user(user_id)
-
-    selected_workspace_id = None
-    if preferred_workspace_id and preferred_workspace_id in workspace_ids:
-        selected_workspace_id = preferred_workspace_id
-    elif workspace_ids:
-        selected_workspace_id = workspace_ids[0]
-
-    if selected_workspace_id:
-        row = _get_workspace_row(selected_workspace_id)
-        row["settings"] = _build_default_settings(_workspace_settings(row))
-        return WorkspaceSelectionResponse(workspace=WorkspaceResponse(**row))
-
-    suffix = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    created = await _create_workspace_for_user(
-        workspace=WorkspaceCreate(name=f"Workspace {suffix}"),
-        user_id=user_id,
-    )
-    return WorkspaceSelectionResponse(workspace=WorkspaceResponse(**created))
-
-
-@router.post("/me/select", response_model=WorkspaceSelectionResponse)
-async def select_workspace_for_current_user(
-    payload: WorkspaceSelectionRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-) -> WorkspaceSelectionResponse:
-    user_id = _current_user_id(current_user)
-    _ensure_workspace_id(payload.workspace_id)
-
-    workspace_row = _get_workspace_row(payload.workspace_id)
-    _ensure_workspace_membership(user_id=user_id, workspace_id=payload.workspace_id)
-
-    workspace_row["settings"] = _build_default_settings(_workspace_settings(workspace_row))
-    return WorkspaceSelectionResponse(workspace=WorkspaceResponse(**workspace_row))
 
 
 @router.get("/onboarding/steps", response_model=OnboardingStepsResponse)

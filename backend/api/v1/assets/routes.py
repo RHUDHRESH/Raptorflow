@@ -9,8 +9,8 @@ from uuid import UUID
 from fastapi import APIRouter, Header, HTTPException, Query, Depends, status
 
 from backend.config import settings
-from backend.infrastructure.storage.manager import StorageManager
-from backend.infrastructure.database.supabase import get_supabase_client
+from backend.core.storage.manager import StorageManager
+from backend.core.database.supabase import get_supabase_client
 from backend.schemas.asset import (
     AssetConfirmUploadIn,
     AssetCreateSessionIn,

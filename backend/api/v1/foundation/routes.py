@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from backend.infrastructure.database.supabase import get_supabase_client
+from backend.core.database.supabase import get_supabase_client
 from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 

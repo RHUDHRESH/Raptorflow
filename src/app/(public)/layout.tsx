@@ -26,9 +26,9 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between">
             {/* Logo with Wordmark */}
             <Link href="/" className="flex items-center gap-3 group">
-              <Logo 
-                size={36} 
-                className="transition-transform duration-300 group-hover:scale-105" 
+              <Logo
+                size={36}
+                className="transition-transform duration-300 group-hover:scale-105"
               />
               <span className="font-semibold text-xl text-[#2A2529] tracking-tight">
                 RaptorFlow
@@ -53,14 +53,14 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="hidden sm:block rf-body-sm text-[#5C565B] hover:text-[#2A2529] px-4 py-2 transition-colors"
               >
                 Sign In
               </Link>
-              <Link 
-                href="/dashboard" 
+              <Link
+                href="/dashboard"
                 className="rf-btn rf-btn-primary h-10 px-5 text-sm flex items-center gap-2 bg-[#2A2529] text-[#F3F0E7] rounded-lg hover:bg-[#3A3539] transition-colors"
               >
                 Start Building
@@ -106,9 +106,9 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <div>
               <h4 className="rf-label mb-4 text-[#2A2529]">Legal</h4>
               <ul className="space-y-2">
-                <li><Link href="/legal/privacy" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><Shield size={14}/> Privacy</Link></li>
-                <li><Link href="/legal/terms" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><Scale size={14}/> Terms</Link></li>
-                <li><Link href="/legal/cookies" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><Cookie size={14}/> Cookies</Link></li>
+                <li><Link href="/legal/privacy" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><Shield size={14} /> Privacy</Link></li>
+                <li><Link href="/legal/terms" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><Scale size={14} /> Terms</Link></li>
+                <li><Link href="/legal/cookies" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><Cookie size={14} /> Cookies</Link></li>
               </ul>
             </div>
 
@@ -116,15 +116,15 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <div>
               <h4 className="rf-label mb-4 text-[#2A2529]">Contact</h4>
               <ul className="space-y-2">
-                <li><a href="mailto:hello@raptorflow.ai" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><MessageCircle size={14}/> hello@raptorflow.ai</a></li>
-                <li><a href="mailto:support@raptorflow.ai" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><HelpCircle size={14}/> Support</a></li>
+                <li><a href="mailto:hello@raptorflow.ai" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><MessageCircle size={14} /> hello@raptorflow.ai</a></li>
+                <li><a href="mailto:support@raptorflow.ai" className="rf-body-sm text-[#5C565B] hover:text-[#2A2529] flex items-center gap-2"><HelpCircle size={14} /> Support</a></li>
               </ul>
             </div>
           </div>
 
           <div className="pt-8 border-t border-[#E3DED3] flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="rf-mono-xs text-[#847C82]">
-              © 2025 RaptorFlow. All rights reserved.
+              © 2026 RaptorFlow. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
               <Link href="/legal/privacy" className="rf-mono-xs text-[#847C82] hover:text-[#2A2529]">Privacy</Link>

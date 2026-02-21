@@ -30,9 +30,8 @@ import {
   foundationService,
   EMPTY_FOUNDATION,
   type FoundationData,
-  type ICP,
-  type ProofPoint,
 } from "@/services/foundation.service";
+import type { RICP, CoreMessaging } from "@/types/foundation";
 
 
 
@@ -50,12 +49,13 @@ function calculatePositioningProgress(positioning: FoundationData["positioning"]
 }
 
 function calculateMessagingProgress(messaging: FoundationData["messaging"]): number {
+  if (!messaging) return 0;
   const fields = [
     messaging.oneLiner,
-    messaging.elevatorPitch,
-    ...messaging.keyMessages,
+    messaging.positioningStatement?.situation || "",
+    ...(messaging.valueProps?.map(v => v.title) || []),
   ];
-  const completed = fields.filter((f) => f.trim().length > 0).length;
+  const completed = fields.filter((f) => f && f.trim().length > 0).length;
   return Math.min(completed, 6);
 }
 
@@ -112,7 +112,7 @@ function EditableField({
   return (
     <div ref={inputRef} className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-[14px] font-medium text-[#2A2529]">{label}</label>
+        <label className="text-[14px] font-medium text-[var(--ink-1)]">{label}</label>
         {!isLocked && (
           <div className="flex items-center gap-2">
             {!isEditing ? (
@@ -138,10 +138,10 @@ function EditableField({
             ) : (
               <div className="flex items-center gap-1">
                 <Button variant="ghost" onClick={handleSave} className="w-[32px] h-[32px]">
-                  <Check size={16} className="text-[#3D5A42]" />
+                  <Check size={16} className="text-[var(--status-success)]" />
                 </Button>
                 <Button variant="ghost" onClick={handleCancel} className="w-[32px] h-[32px]">
-                  <span className="text-[14px] text-[#847C82]">×</span>
+                  <span className="text-[14px] text-[var(--ink-3)]">×</span>
                 </Button>
               </div>
             )}
@@ -163,17 +163,17 @@ function EditableField({
           <div
             className={`
               min-h-[44px] px-3 py-2.5 rounded-[10px] border transition-colors
-              ${value.trim() ? "border-[#E3DED3] bg-[#F7F5EF]" : "border-dashed border-[#D2CCC0] bg-[#EFEDE6]"}
-              ${isLocked ? "" : "group-hover:border-[#D2CCC0] cursor-pointer"}
+              ${value.trim() ? "border-[var(--border-1)] bg-[var(--bg-surface)]" : "border-dashed border-[var(--border-2)] bg-[var(--bg-canvas)]"}
+              ${isLocked ? "" : "group-hover:border-[var(--border-2)] cursor-pointer"}
             `}
             onClick={() => !isLocked && setIsEditing(true)}
           >
-            <p className={`text-[14px] ${value.trim() ? "text-[#2A2529]" : "text-[#847C82]"}`}>
+            <p className={`text-[14px] ${value.trim() ? "text-[var(--ink-1)]" : "text-[var(--ink-3)]"}`}>
               {value.trim() || placeholder || `Add ${label.toLowerCase()}...`}
             </p>
           </div>
           {showCheck && (
-            <span className="check-icon absolute right-3 top-1/2 -translate-y-1/2 text-[#3D5A42]">
+            <span className="check-icon absolute right-3 top-1/2 -translate-y-1/2 text-[var(--status-success)]">
               <Check size={16} />
             </span>
           )}
@@ -243,10 +243,10 @@ function PositioningCard({ data, onUpdate }: PositioningCardProps) {
       />
 
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 bg-[#EFEDE6] rounded-[10px]">
-          <Building2 size={20} className="text-[#2A2529]" />
+        <div className="p-2 bg-[var(--bg-canvas)] rounded-[10px]">
+          <Building2 size={20} className="text-[var(--ink-1)]" />
         </div>
-        <span className="text-[12px] text-[#847C82] font-medium uppercase tracking-wide">
+        <span className="text-[12px] text-[var(--ink-3)] font-medium uppercase tracking-wide">
           Company & Value Proposition
         </span>
       </div>
@@ -342,13 +342,13 @@ function PositioningCard({ data, onUpdate }: PositioningCardProps) {
         }
       >
         <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-[#F7F5EF] rounded-[10px]">
-            <Check size={16} className="text-[#3D5A42]" />
-            <span className="text-[14px] text-[#2A2529]">
+          <div className="flex items-center gap-3 p-3 bg-[var(--bg-surface)] rounded-[10px]">
+            <Check size={16} className="text-[var(--status-success)]" />
+            <span className="text-[14px] text-[var(--ink-1)]">
               {completedFields} fields completed
             </span>
           </div>
-          <p className="text-[14px] text-[#847C82]">
+          <p className="text-[14px] text-[var(--ink-3)]">
             Once locked, this positioning will be used across all your campaigns
             and content.
           </p>
@@ -359,14 +359,14 @@ function PositioningCard({ data, onUpdate }: PositioningCardProps) {
 }
 
 // ICP Card Component
-interface ICPCardProps {
-  icp: ICP;
+interface RICPCardProps {
+  icp: RICP;
   isLocked: boolean;
-  onUpdate: (icp: ICP) => void;
+  onUpdate: (icp: RICP) => void;
   onDelete: () => void;
 }
 
-function ICPCardItem({ icp, isLocked, onUpdate, onDelete }: ICPCardProps) {
+function ICPCardItem({ icp, isLocked, onUpdate, onDelete }: RICPCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -411,14 +411,14 @@ function ICPCardItem({ icp, isLocked, onUpdate, onDelete }: ICPCardProps) {
         />
         <Input
           type="textarea"
-          label="Description"
-          value={icp.description}
-          onChange={(v) => onUpdate({ ...icp, description: v })}
+          label="Role"
+          value={icp.demographics?.role || ""}
+          onChange={(v) => onUpdate({ ...icp, demographics: { ...icp.demographics, role: v } })}
         />
         <Input
-          label="Firmographics"
-          value={icp.firmographics}
-          onChange={(v) => onUpdate({ ...icp, firmographics: v })}
+          label="Income"
+          value={icp.demographics?.income || ""}
+          onChange={(v) => onUpdate({ ...icp, demographics: { ...icp.demographics, income: v } })}
         />
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" size="sm" onClick={() => setIsEditing(false)}>
@@ -430,11 +430,11 @@ function ICPCardItem({ icp, isLocked, onUpdate, onDelete }: ICPCardProps) {
   }
 
   return (
-    <div ref={cardRef} className="bg-[#F7F5EF] border border-[#E3DED3] rounded-[14px] p-4">
+    <div ref={cardRef} className="bg-[var(--bg-surface)] border border-[var(--border-1)] rounded-[14px] p-4">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h4 className="text-[16px] font-semibold text-[#2A2529]">{icp.name}</h4>
-          <p className="text-[13px] text-[#847C82] mt-0.5">{icp.description}</p>
+          <h4 className="text-[16px] font-semibold text-[var(--ink-1)]">{icp.name}</h4>
+          <p className="text-[13px] text-[var(--ink-3)] mt-0.5">{icp.demographics?.role || ""}</p>
         </div>
         {!isLocked && (
           <div className="flex gap-1">
@@ -442,7 +442,7 @@ function ICPCardItem({ icp, isLocked, onUpdate, onDelete }: ICPCardProps) {
               <Edit3 size={14} />
             </Button>
             <Button variant="ghost" onClick={onDelete} className="w-[32px] h-[32px]">
-              <Trash2 size={14} className="text-[#8B3D3D]" />
+              <Trash2 size={14} className="text-[var(--status-error)]" />
             </Button>
           </div>
         )}
@@ -450,22 +450,22 @@ function ICPCardItem({ icp, isLocked, onUpdate, onDelete }: ICPCardProps) {
 
       <div className="space-y-3">
         <div>
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-[#847C82]">
-            Firmographics
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--ink-3)]">
+            Income/Role
           </span>
-          <p className="text-[13px] text-[#2A2529] mt-1">{icp.firmographics}</p>
+          <p className="text-[13px] text-[var(--ink-1)] mt-1">{icp.demographics?.income || ""}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-[#847C82]">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--ink-3)]">
               Pain Points
             </span>
             <div className="flex flex-wrap gap-1 mt-1.5">
               {icp.painPoints.map((point, i) => (
                 <span
                   key={i}
-                  className="px-2 py-0.5 text-[11px] bg-[#F5E6E6] text-[#8B3D3D] rounded-[6px]"
+                  className="px-2 py-0.5 text-[11px] bg-[#F5E6E6] text-[var(--status-error)] rounded-[6px]"
                 >
                   {point}
                 </span>
@@ -473,14 +473,14 @@ function ICPCardItem({ icp, isLocked, onUpdate, onDelete }: ICPCardProps) {
             </div>
           </div>
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-[#847C82]">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--ink-3)]">
               Goals
             </span>
             <div className="flex flex-wrap gap-1 mt-1.5">
               {icp.goals.map((goal, i) => (
                 <span
                   key={i}
-                  className="px-2 py-0.5 text-[11px] bg-[#E8F0E9] text-[#3D5A42] rounded-[6px]"
+                  className="px-2 py-0.5 text-[11px] bg-[#E8F0E9] text-[var(--status-success)] rounded-[6px]"
                 >
                   {goal}
                 </span>
@@ -495,25 +495,27 @@ function ICPCardItem({ icp, isLocked, onUpdate, onDelete }: ICPCardProps) {
 
 // ICPs Section Component
 interface ICPSectionProps {
-  icps: ICP[];
+  icps: RICP[];
   isLocked: boolean;
-  onUpdate: (icps: ICP[]) => void;
+  onUpdate: (icps: RICP[]) => void;
 }
 
 function ICPSection({ icps, isLocked, onUpdate }: ICPSectionProps) {
   const handleAddICP = () => {
-    const newICP: ICP = {
+    const newICP: RICP = {
       id: `icp-${Date.now()}`,
       name: "New ICP",
-      description: "Describe this customer profile",
-      firmographics: "Company size, industry",
+      demographics: { ageRange: "", income: "", location: "", role: "Describe their role", stage: "" },
+      psychographics: { beliefs: "", identity: "", becoming: "", fears: "", values: [], hangouts: [], contentConsumed: [], whoTheyFollow: [], language: [], timing: [], triggers: [] },
+      marketSophistication: 1,
       painPoints: ["Pain point 1"],
       goals: ["Goal 1"],
+      objections: [],
     };
     onUpdate([...icps, newICP]);
   };
 
-  const handleUpdateICP = (updated: ICP) => {
+  const handleUpdateICP = (updated: RICP) => {
     onUpdate(icps.map((icp) => (icp.id === updated.id ? updated : icp)));
   };
 
@@ -529,10 +531,10 @@ function ICPSection({ icps, isLocked, onUpdate }: ICPSectionProps) {
       />
 
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 bg-[#EFEDE6] rounded-[10px]">
-          <Users size={20} className="text-[#2A2529]" />
+        <div className="p-2 bg-[var(--bg-canvas)] rounded-[10px]">
+          <Users size={20} className="text-[var(--ink-1)]" />
         </div>
-        <span className="text-[12px] text-[#847C82] font-medium uppercase tracking-wide">
+        <span className="text-[12px] text-[var(--ink-3)] font-medium uppercase tracking-wide">
           Target Audiences
         </span>
       </div>
@@ -551,12 +553,12 @@ function ICPSection({ icps, isLocked, onUpdate }: ICPSectionProps) {
         {!isLocked && (
           <button
             onClick={handleAddICP}
-            className="group flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-[#D2CCC0] rounded-[14px] hover:border-[#2A2529] hover:bg-[#F3F0E7] transition-colors min-h-[200px]"
+            className="group flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-[var(--border-2)] rounded-[14px] hover:border-[var(--rf-charcoal)] hover:bg-[var(--state-hover)] transition-colors min-h-[200px]"
           >
-            <div className="w-12 h-12 rounded-full bg-[#EFEDE6] group-hover:bg-[#F7F5EF] flex items-center justify-center transition-colors">
-              <Plus size={24} className="text-[#847C82] group-hover:text-[#2A2529]" />
+            <div className="w-12 h-12 rounded-full bg-[var(--bg-canvas)] group-hover:bg-[var(--bg-surface)] flex items-center justify-center transition-colors">
+              <Plus size={24} className="text-[var(--ink-3)] group-hover:text-[var(--ink-1)]" />
             </div>
-            <span className="text-[14px] font-medium text-[#847C82] group-hover:text-[#2A2529]">
+            <span className="text-[14px] font-medium text-[var(--ink-3)] group-hover:text-[var(--ink-1)]">
               Add ICP
             </span>
           </button>
@@ -577,13 +579,15 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
   const [showLockModal, setShowLockModal] = useState(false);
   const lockIconRef = useRef<HTMLDivElement>(null);
 
-  const isLocked = data.status === "locked";
+
+  if (!data) return <Card className="foundation-card"><CardHeader title="Messaging" subtitle="Start by setting up core messaging" /><div className="p-4"><Button onClick={() => onUpdate({ oneLiner: "", positioningStatement: {} as any, valueProps: [], brandVoice: {} as any, storyBrand: {} as any, confidence: 0 })}>Initialize Messaging</Button></div></Card>;
+  const isLocked = (data?.confidence === 100);
   const completedItems = calculateMessagingProgress(data);
   const totalItems = 6;
 
   const tabs = [
     { id: "core", label: "Core", badge: completedItems },
-    { id: "proof", label: "Proof Points", badge: data.proofPoints.length },
+    { id: "proof", label: "Proof Points", badge: (data?.storyBrand?.plan?.length || 0) },
   ];
 
   const handleLock = () => {
@@ -605,9 +609,7 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
     }
     onUpdate({
       ...data,
-      status: "locked",
-      version: data.version + 1,
-      lockedAt: new Date(),
+      confidence: 100,
     });
     setShowLockModal(false);
   };
@@ -615,7 +617,7 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
   const handleUnlock = () => {
     onUpdate({
       ...data,
-      status: "draft",
+      confidence: 0,
     });
   };
 
@@ -626,16 +628,16 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
         subtitle={`${completedItems} of ${totalItems} items complete`}
         badge={
           isLocked
-            ? { text: "v" + data.version, variant: "success" }
+            ? { text: "v" + (data?.confidence || 1), variant: "success" }
             : { text: "Draft", variant: "warning" }
         }
       />
 
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 bg-[#EFEDE6] rounded-[10px]">
-          <MessageSquare size={20} className="text-[#2A2529]" />
+        <div className="p-2 bg-[var(--bg-canvas)] rounded-[10px]">
+          <MessageSquare size={20} className="text-[var(--ink-1)]" />
         </div>
-        <span className="text-[12px] text-[#847C82] font-medium uppercase tracking-wide">
+        <span className="text-[12px] text-[var(--ink-3)] font-medium uppercase tracking-wide">
           Core Messaging & Proof
         </span>
       </div>
@@ -647,7 +649,7 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
           <div className="space-y-4">
             <EditableField
               label="One-liner"
-              value={data.oneLiner}
+              value={(data?.oneLiner || "")}
               placeholder="The one-sentence pitch"
               isLocked={isLocked}
               onChange={(v) => onUpdate({ ...data, oneLiner: v })}
@@ -656,14 +658,14 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
             <EditableField
               label="Elevator Pitch"
               type="textarea"
-              value={data.elevatorPitch}
+              value={(data?.positioningStatement?.situation || "")}
               placeholder="Short paragraph explaining what you do"
               isLocked={isLocked}
-              onChange={(v) => onUpdate({ ...data, elevatorPitch: v })}
+              onChange={(v) => onUpdate({ ...data, positioningStatement: { ...data?.positioningStatement, situation: v } as any })}
             />
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-[14px] font-medium text-[#2A2529]">Key Messages</label>
+                <label className="text-[14px] font-medium text-[var(--ink-1)]">Key Messages</label>
                 {!isLocked && (
                   <Button
                     variant="tertiary"
@@ -672,7 +674,7 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
                     onClick={() =>
                       onUpdate({
                         ...data,
-                        keyMessages: [...data.keyMessages, "New key message"],
+                        valueProps: [...(data?.valueProps || []), { title: "New value prop", description: "" }],
                       })
                     }
                   >
@@ -681,20 +683,20 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
                 )}
               </div>
               <div className="space-y-2">
-                {data.keyMessages.map((msg, i) => (
+                {(data?.valueProps || []).map((msg, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-[#2A2529] text-[#F3F0E7] text-[11px] font-semibold flex items-center justify-center flex-shrink-0">
+                    <span className="w-5 h-5 rounded-full bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] text-[11px] font-semibold flex items-center justify-center flex-shrink-0">
                       {i + 1}
                     </span>
                     {isLocked ? (
-                      <span className="text-[14px] text-[#2A2529]">{msg}</span>
+                      <span className="text-[14px] text-[var(--ink-1)]">{msg.title || ""}</span>
                     ) : (
                       <Input
-                        value={msg}
+                        value={msg.title || ""}
                         onChange={(v) => {
-                          const newMessages = [...data.keyMessages];
-                          newMessages[i] = v;
-                          onUpdate({ ...data, keyMessages: newMessages });
+                          const newMessages = [...(data?.valueProps || [])];
+                          newMessages[i] = { ...newMessages[i], title: v, description: newMessages[i]?.description || "" };
+                          onUpdate({ ...data, valueProps: newMessages } as any);
                         }}
                       />
                     )}
@@ -702,12 +704,12 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
                       <Button
                         variant="ghost"
                         onClick={() => {
-                          const newMessages = data.keyMessages.filter((_, idx) => idx !== i);
-                          onUpdate({ ...data, keyMessages: newMessages });
+                          const newMessages = (data?.valueProps || []).filter((_, idx) => idx !== i);
+                          onUpdate({ ...data, valueProps: newMessages });
                         }}
                         className="w-[32px] h-[32px] flex-shrink-0"
                       >
-                        <Trash2 size={14} className="text-[#8B3D3D]" />
+                        <Trash2 size={14} className="text-[var(--status-error)]" />
                       </Button>
                     )}
                   </div>
@@ -719,25 +721,25 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
 
         {activeTab === "proof" && (
           <div className="space-y-3">
-            {data.proofPoints.map((point, i) => (
+            {(data?.storyBrand?.plan || []).map((point, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between p-3 bg-[#F7F5EF] rounded-[10px] border border-[#E3DED3]"
+                className="flex items-center justify-between p-3 bg-[var(--bg-surface)] rounded-[10px] border border-[var(--border-1)]"
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className={`w-2 h-2 rounded-full ${point.status === "validated" ? "bg-[#3D5A42]" : "bg-[#8B6B3D]"
+                    className={`w-2 h-2 rounded-full ${point.trim().length > 0 ? "bg-[var(--status-success)]" : "bg-[var(--status-warning)]"
                       }`}
                   />
                   <div>
-                    <p className="text-[14px] font-medium text-[#2A2529]">{point.claim}</p>
-                    <p className="text-[12px] text-[#847C82] capitalize">
-                      {point.evidence} • {point.status}
+                    <p className="text-[14px] font-medium text-[var(--ink-1)]">{point}</p>
+                    <p className="text-[12px] text-[var(--ink-3)] capitalize">
+                      {"Plan Step"} • {"Active"}
                     </p>
                   </div>
                 </div>
-                <Tag active={point.status === "validated"}>
-                  {point.status === "validated" ? "Validated" : "Pending"}
+                <Tag active={point.trim().length > 0}>
+                  {point.trim().length > 0 ? "Validated" : "Pending"}
                 </Tag>
               </div>
             ))}
@@ -748,10 +750,12 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
                 onClick={() =>
                   onUpdate({
                     ...data,
-                    proofPoints: [
-                      ...data.proofPoints,
-                      { claim: "New proof point", evidence: "metric", status: "pending" },
-                    ],
+                    storyBrand: {
+                      ...data?.storyBrand, plan: [
+                        ...(data?.storyBrand?.plan || []),
+                        "New Plan Step",
+                      ]
+                    } as any,
                   })
                 }
               >
@@ -804,11 +808,11 @@ function MessagingCard({ data, onUpdate }: MessagingCardProps) {
         }
       >
         <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-[#F7F5EF] rounded-[10px]">
-            <Check size={16} className="text-[#3D5A42]" />
-            <span className="text-[14px] text-[#2A2529]">{completedItems} items completed</span>
+          <div className="flex items-center gap-3 p-3 bg-[var(--bg-surface)] rounded-[10px]">
+            <Check size={16} className="text-[var(--status-success)]" />
+            <span className="text-[14px] text-[var(--ink-1)]">{completedItems} items completed</span>
           </div>
-          <p className="text-[14px] text-[#847C82]">
+          <p className="text-[14px] text-[var(--ink-3)]">
             Once locked, this messaging will be used across all your campaigns
             and content.
           </p>
@@ -874,12 +878,12 @@ export default function FoundationPage() {
   const positioningProgress = calculatePositioningProgress(foundation.positioning);
   const messagingProgress = calculateMessagingProgress(foundation.messaging);
   const totalProgress = Math.round(
-    ((positioningProgress + foundation.icps.length + messagingProgress) / 13) * 100
+    ((positioningProgress + (foundation.ricps?.length || 0) + messagingProgress) / 13) * 100
   );
 
   const completedSections = [
     positioningProgress === 5,
-    foundation.icps.length > 0,
+    (foundation.ricps?.length || 0) > 0,
     messagingProgress >= 4,
   ].filter(Boolean).length;
   const totalSections = 3;
@@ -917,8 +921,8 @@ export default function FoundationPage() {
     return (
       <Layout mode="draft" showDrawer>
         <div className="max-w-4xl mx-auto p-6 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <Loader2 size={32} className="animate-spin text-[#847C82]" />
-          <p className="text-[14px] text-[#847C82]">Loading foundation…</p>
+          <Loader2 size={32} className="animate-spin text-[var(--ink-3)]" />
+          <p className="text-[14px] text-[var(--ink-3)]">Loading foundation…</p>
         </div>
       </Layout>
     );
@@ -929,8 +933,8 @@ export default function FoundationPage() {
     return (
       <Layout mode="draft" showDrawer>
         <div className="max-w-4xl mx-auto p-6 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <AlertCircle size={32} className="text-[#8B3D3D]" />
-          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
+          <AlertCircle size={32} className="text-[var(--status-error)]" />
+          <p className="text-[14px] text-[var(--status-error)]">{error}</p>
           <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
         </div>
       </Layout>
@@ -945,13 +949,13 @@ export default function FoundationPage() {
           <div className="flex items-start justify-between">
             <div>
               <h1
-                className="text-[32px] font-bold text-[#2A2529]"
+                className="text-[32px] font-bold text-[var(--ink-1)]"
                 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", lineHeight: "40px" }}
               >
                 Foundation
               </h1>
               <p
-                className="text-[16px] text-[#5C565B] mt-2"
+                className="text-[16px] text-[var(--ink-2)] mt-2"
                 style={{ fontFamily: "'DM_Sans', system-ui, sans-serif", lineHeight: "26px" }}
               >
                 Define your core positioning, ideal customers, and messaging.
@@ -959,7 +963,7 @@ export default function FoundationPage() {
             </div>
             <div className="flex items-center gap-2">
               {saving && (
-                <span className="text-[12px] text-[#847C82] flex items-center gap-1">
+                <span className="text-[12px] text-[var(--ink-3)] flex items-center gap-1">
                   <Loader2 size={12} className="animate-spin" /> Saving…
                 </span>
               )}
@@ -975,13 +979,13 @@ export default function FoundationPage() {
           <div className="flex items-center justify-between">
             <div>
               <h3
-                className="text-[20px] font-semibold text-[#2A2529]"
+                className="text-[20px] font-semibold text-[var(--ink-1)]"
                 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", lineHeight: "28px" }}
               >
                 Foundation Progress
               </h3>
               <p
-                className="text-[14px] text-[#5C565B] mt-1"
+                className="text-[14px] text-[var(--ink-2)] mt-1"
                 style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
               >
                 {completedSections} of {totalSections} sections complete
@@ -989,7 +993,7 @@ export default function FoundationPage() {
             </div>
             <div className="text-right">
               <span
-                className="text-[32px] font-bold text-[#2A2529]"
+                className="text-[32px] font-bold text-[var(--ink-1)]"
                 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", lineHeight: "40px" }}
               >
                 {totalProgress}%
@@ -998,11 +1002,11 @@ export default function FoundationPage() {
           </div>
           <Progress value={totalProgress} className="mt-4" />
           <div className="flex items-center gap-4 mt-3">
-            <span className="text-[12px] text-[#847C82]">
+            <span className="text-[12px] text-[var(--ink-3)]">
               Positioning: {positioningProgress}/5
             </span>
-            <span className="text-[12px] text-[#847C82]">ICPs: {foundation.icps.length}</span>
-            <span className="text-[12px] text-[#847C82]">Messaging: {messagingProgress}/6</span>
+            <span className="text-[12px] text-[var(--ink-3)]">ICPs: {(foundation.ricps?.length || 0)}</span>
+            <span className="text-[12px] text-[var(--ink-3)]">Messaging: {messagingProgress}/6</span>
           </div>
         </Card>
 
@@ -1013,9 +1017,9 @@ export default function FoundationPage() {
             onUpdate={(positioning) => handleUpdate({ ...foundation, positioning })}
           />
           <ICPSection
-            icps={foundation.icps}
-            isLocked={foundation.status === "locked"}
-            onUpdate={(icps) => handleUpdate({ ...foundation, icps })}
+            icps={foundation.ricps || []}
+            isLocked={foundation.positioning.status === "locked"}
+            onUpdate={(ricps) => handleUpdate({ ...foundation, ricps })}
           />
           <MessagingCard
             data={foundation.messaging}

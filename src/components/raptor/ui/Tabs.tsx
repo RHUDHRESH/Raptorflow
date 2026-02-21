@@ -42,12 +42,12 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center border-b border-[#E3DED3]"
+      className="relative flex items-center border-b border-[var(--border-1)]"
     >
       {/* Animated indicator */}
       <div
         ref={indicatorRef}
-        className="absolute bottom-0 h-[2px] bg-[#2A2529]"
+        className="absolute bottom-0 h-[2px] bg-[var(--rf-charcoal)]"
         style={{ width: 0 }}
       />
 
@@ -65,7 +65,7 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
               relative flex items-center gap-2 px-4 py-3 text-[14px] font-medium
               font-['DM_Sans',system-ui,sans-serif]
               transition-colors duration-200
-              ${isActive ? "text-[#2A2529]" : "text-[#847C82] hover:text-[#5C565B] hover:bg-[#F3F0E7]"}
+              ${isActive ? "text-[var(--ink-1)]" : "text-[var(--ink-3)] hover:text-[var(--ink-2)] hover:bg-[var(--state-hover)]"}
             `}
           >
             <span>{tab.label}</span>
@@ -74,7 +74,7 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
                 className={`
                   inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
                   text-[10px] font-semibold rounded-[6px]
-                  ${isActive ? "bg-[#2A2529] text-[#F3F0E7]" : "bg-[#E3DED3] text-[#5C565B]"}
+                  ${isActive ? "bg-[var(--rf-charcoal)] text-[var(--rf-ivory)]" : "bg-[var(--border-1)] text-[var(--ink-2)]"}
                 `}
               >
                 {tab.badge}

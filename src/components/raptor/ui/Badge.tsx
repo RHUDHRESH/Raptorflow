@@ -24,19 +24,19 @@ export function Badge({
   };
 
   const variantStyles = {
-    default: "bg-[#EFEDE6] text-[#5C565B]",
-    success: "bg-[#E8F0E9] text-[#3D5A42]",
-    warning: "bg-[#F5F0E6] text-[#8B6B3D]",
-    error: "bg-[#F5E6E6] text-[#8B3D3D]",
-    info: "bg-[#E6F0F5] text-[#3D5A6B]",
+    default: "bg-[var(--state-selected)] text-[var(--ink-2)]",
+    success: "bg-[var(--status-success-bg)] text-[var(--status-success)]",
+    warning: "bg-[var(--status-warning-bg)] text-[var(--status-warning)]",
+    error: "bg-[var(--status-error-bg)] text-[var(--status-error)]",
+    info: "bg-[var(--status-info-bg)] text-[var(--status-info)]",
   };
 
   const dotColors = {
-    default: "bg-[#5C565B]",
-    success: "bg-[#3D5A42]",
-    warning: "bg-[#8B6B3D]",
-    error: "bg-[#8B3D3D]",
-    info: "bg-[#3D5A6B]",
+    default: "bg-[var(--ink-2)]",
+    success: "bg-[var(--status-success)]",
+    warning: "bg-[var(--status-warning)]",
+    error: "bg-[var(--status-error)]",
+    info: "bg-[var(--status-info)]",
   };
 
   return (

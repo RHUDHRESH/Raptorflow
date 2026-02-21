@@ -40,20 +40,20 @@ export function Progress({
   return (
     <div className={`w-full ${className || ""}`}>
       <div
-        className={`w-full bg-[#EFEDE6] rounded-full overflow-hidden ${heightStyles[size]}`}
+        className={`w-full bg-[var(--bg-canvas)] rounded-full overflow-hidden ${heightStyles[size]}`}
       >
         <div
           ref={fillRef}
-          className="h-full bg-[#2A2529] rounded-full"
+          className="h-full bg-[var(--rf-charcoal)] rounded-full"
           style={{ width: 0 }}
         />
       </div>
       {showLabel && (
         <div className="mt-1.5 flex justify-between items-center">
-          <span className="text-[12px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">
+          <span className="text-[12px] text-[var(--ink-3)] font-['DM_Sans',system-ui,sans-serif]">
             {Math.round(percentage)}%
           </span>
-          <span className="text-[12px] text-[#847C82] font-['DM_Sans',system-ui,sans-serif]">
+          <span className="text-[12px] text-[var(--ink-3)] font-['DM_Sans',system-ui,sans-serif]">
             {value} / {max}
           </span>
         </div>

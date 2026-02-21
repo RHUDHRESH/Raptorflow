@@ -80,7 +80,7 @@ export function Layout({
     <div
       className="flex h-screen w-screen overflow-hidden"
       style={{
-        backgroundColor: "var(--bg-canvas, #EFEDE6)",
+        backgroundColor: "var(--bg-canvas)",
       }}
     >
       {/* Sidebar - Fixed Left Rail */}
@@ -102,7 +102,7 @@ export function Layout({
             ref={mainRef}
             className="flex-1 overflow-y-auto overflow-x-hidden"
             style={{
-              backgroundColor: "var(--bg-canvas, #EFEDE6)",
+              backgroundColor: "var(--bg-canvas)",
             }}
           >
             <div ref={contentRef} className="h-full">
@@ -117,8 +117,8 @@ export function Layout({
                 className="flex-shrink-0 h-full"
                 style={{
                   width: "var(--shell-drawer, 400px)",
-                  backgroundColor: "var(--bg-surface, #F7F5EF)",
-                  borderLeft: "1px solid var(--border-1, #E3DED3)",
+                  backgroundColor: "var(--bg-surface)",
+                  borderLeft: "1px solid var(--border-1)",
                 }}
               >
                 {drawerContent}

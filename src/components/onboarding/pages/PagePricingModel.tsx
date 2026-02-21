@@ -1,370 +1,124 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { gsap } from "gsap";
-import { CompassLogo } from "@/components/compass/CompassLogo";
+import { OnboardingLayout } from "../OnboardingLayout";
+import { DollarSign, Tag, CreditCard, Building2, Users, ArrowRight } from "lucide-react";
 
 interface PagePricingModelProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (val: string) => void;
+  currentPage: number;
+  totalPages: number;
   onNext: () => void;
   onBack?: () => void;
-  totalPages?: number;
-  currentPage?: number;
+  onSaveAndExit?: () => void;
 }
 
-const PRICING_MODELS = [
-  {
-    id: "per-seat",
-    label: "Per-seat SaaS",
-    description: "Pricing per user/seat",
-    details: "Traditional per-user monthly or annual subscription",
-  },
-  {
-    id: "usage-based",
-    label: "Usage-based",
-    description: "Pay for what you use",
-    details: "Metered billing based on consumption or API calls",
-  },
-  {
-    id: "tiered",
-    label: "Tiered plans",
-    description: "Good/Better/Best tiers",
-    details: "Multiple feature-based tiers for different customer segments",
-  },
-  {
-    id: "enterprise",
-    label: "Enterprise only",
-    description: "Custom contracts",
-    details: "High-touch sales with custom pricing and terms",
-  },
-  {
-    id: "freemium",
-    label: "Freemium",
-    description: "Free tier + paid upgrades",
-    details: "Free self-serve with premium feature unlocks",
-  },
+const MODELS = [
+  { label: "SaaS / Subscription", icon: CreditCard, desc: "Monthly or annual recurring" },
+  { label: "One-time Purchase", icon: Tag, desc: "Perpetual license or product" },
+  { label: "Enterprise / Custom", icon: Building2, desc: "Deal-based pricing" },
+  { label: "Usage-based", icon: DollarSign, desc: "Pay as you go" },
+  { label: "Freemium", icon: Users, desc: "Free tier with upgrades" },
 ];
 
 export function PagePricingModel({
   value,
   onChange,
+  currentPage,
+  totalPages,
   onNext,
   onBack,
-  totalPages = 21,
-  currentPage = 18,
 }: PagePricingModelProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isExiting, setIsExiting] = useState(false);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-
-  const isValid = value.length > 0;
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        defaults: { ease: "power3.out" },
-        delay: 0.1,
-      });
-
-      tl.fromTo(
-        ".grain",
-        { opacity: 0 },
-        { opacity: 0.03, duration: 2, ease: "none" }
+      gsap.fromTo(".pricing-card",
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: "power2.out" }
       );
-      tl.fromTo(
-        ".compass",
-        { y: -60, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1 },
-        "-=1.6"
-      );
-      tl.fromTo(
-        ".step",
-        { opacity: 0, x: 20 },
-        { opacity: 1, x: 0, duration: 0.8 },
-        "-=0.6"
-      );
-      tl.fromTo(
-        ".progress",
-        { scaleX: (currentPage - 1) / totalPages },
-        {
-          scaleX: currentPage / totalPages,
-          duration: 2,
-          ease: "power2.inOut",
-        },
-        "-=0.4"
-      );
-      tl.fromTo(
-        ".qnum",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.6 },
-        "-=1.6"
-      );
-      tl.fromTo(
-        ".hword",
-        { opacity: 0, y: 50 },
-        { opacity: 1, y: 0, duration: 1, stagger: 0.1 },
-        "-=1.2"
-      );
-
-      tl.fromTo(
-        ".pricing-card",
-        { opacity: 0, x: (i) => (i % 2 === 0 ? -60 : 60) },
-        { opacity: 1, x: 0, duration: 0.7, stagger: 0.08, ease: "power2.out" },
-        "-=0.6"
-      );
-
-      tl.fromTo(
-        ".nav",
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8 },
-        "-=0.4"
-      );
-
-      gsap.to(".compass", {
-        y: "-=6",
-        duration: 8,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    }, containerRef);
-
+    }, wrapperRef);
     return () => ctx.revert();
-  }, [currentPage, totalPages]);
+  }, []);
 
-  const selectPricing = (id: string) => {
-    onChange(id);
-    gsap.to(".btn", {
-      opacity: 1,
-      y: 0,
-      duration: 0.5,
-      ease: "power2.out",
-    });
-  };
-
-  const onHover = (id: string) => {
-    setHoveredId(id);
-    const card = document.querySelector(`[data-pricing="${id}"]`);
-    if (card && id !== value) {
-      gsap.to(card, { x: 8, duration: 0.3, ease: "power2.out" });
+  const handleSelect = useCallback((label: string) => {
+    onChange(label);
+    const card = document.querySelector(`[data-pricing="${label}"]`);
+    if (card) {
+      gsap.fromTo(card,
+        { scale: 0.95 },
+        { scale: 1.03, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out" }
+      );
     }
-  };
+    // Note: User must click Continue or press Enter to advance
+  }, [onChange]);
 
-  const onLeave = (id: string) => {
-    setHoveredId(null);
-    const card = document.querySelector(`[data-pricing="${id}"]`);
-    if (card && id !== value) {
-      gsap.to(card, { x: 0, duration: 0.3, ease: "power2.out" });
-    }
-  };
-
-  const submit = () => {
-    if (!isValid) return;
-    setIsExiting(true);
-    gsap.to(".page", {
-      opacity: 0,
-      x: -100,
-      duration: 0.5,
-      ease: "power3.in",
-      onComplete: onNext,
-    });
-  };
-
-  const pct = Math.round((currentPage / totalPages) * 100);
+  // Enter to skip
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && !value) {
+        gsap.to(wrapperRef.current, {
+          scale: 0.98,
+          duration: 0.1,
+          yoyo: true,
+          repeat: 1,
+          onComplete: () => onNext()
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [value, onNext]);
 
   return (
-    <div
-      ref={containerRef}
-      className="min-h-screen w-full bg-[var(--bg-canvas)] relative overflow-hidden"
+    <OnboardingLayout
+      currentStep={currentPage}
+      totalSteps={totalPages}
+      stepTitle="Pricing model (optional)"
+      stepDescription="How do customers pay for your product or service?"
+      onBack={onBack}
+      onNext={onNext}
+      canGoNext={true}
+      showBack={!!onBack}
     >
-      <div
-        className="grain absolute inset-0 pointer-events-none z-0 opacity-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          backgroundSize: "256px",
-        }}
-      />
-
-      <div className="page relative z-20 min-h-screen flex flex-col pb-32">
-        <header className="flex items-center justify-between px-12 md:px-24 py-10">
-          <div className="compass">
-            <CompassLogo
-              size={40}
-              variant="compact"
-              className="text-[var(--rf-charcoal)]"
-              animate
-            />
-          </div>
-          <div className="step flex items-center gap-4">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.3em] text-[var(--ink-3)]">
-              Step
-            </span>
-            <div className="flex items-baseline">
-              <span className="rf-mono text-xl font-semibold text-[var(--ink-1)]">
-                {String(currentPage).padStart(2, "0")}
-              </span>
-              <span className="text-[var(--ink-3)] mx-1.5">/</span>
-              <span className="rf-mono text-sm text-[var(--ink-3)]">
-                {String(totalPages).padStart(2, "0")}
-              </span>
-            </div>
-          </div>
-          <button className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--ink-3)] hover:text-[var(--ink-1)] transition-colors">
-            Save & Exit
-          </button>
-        </header>
-
-        <div className="px-12 md:px-24 mb-12">
-          <div className="max-w-lg mx-auto">
-            <div className="relative h-px bg-[var(--border-1)] overflow-hidden">
-              <div
-                className="progress absolute inset-y-0 left-0 bg-[var(--rf-charcoal)] origin-left"
-                style={{ transform: "scaleX(0)" }}
-              />
-            </div>
-            <div className="flex justify-between mt-3">
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-3)]">
-                Start
-              </span>
-              <span className="rf-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-1)] font-medium">
-                {pct}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <main className="flex-1 flex flex-col items-center px-12 md:px-24">
-          <div className="qnum mb-8">
-            <span className="rf-mono text-[10px] uppercase tracking-[0.5em] text-[var(--ink-3)]">
-              Question {String(currentPage).padStart(2, "0")}
-            </span>
-          </div>
-
-          <h1 className="text-center mb-12">
-            <span className="hword block text-[clamp(36px,7vw,64px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em]">
-              What&apos;s your pricing
-            </span>
-            <span className="hword block text-[clamp(36px,7vw,64px)] leading-[1] font-bold text-[var(--ink-1)] tracking-[-0.03em] mt-2">
-              model<span className="text-[var(--ink-3)]">?</span>
-            </span>
-          </h1>
-
-          <div className="w-full max-w-2xl space-y-3">
-            {PRICING_MODELS.map((model, index) => {
-              const isSelected = value === model.id;
-              return (
-                <button
-                  key={model.id}
-                  data-pricing={model.id}
-                  onClick={() => selectPricing(model.id)}
-                  onMouseEnter={() => onHover(model.id)}
-                  onMouseLeave={() => onLeave(model.id)}
-                  className={`pricing-card w-full relative p-6 rounded-[16px] text-left transition-all duration-300 border-2 ${
-                    isSelected
-                      ? "bg-[var(--rf-charcoal)] border-[var(--rf-charcoal)] text-[var(--rf-ivory)]"
-                      : "bg-[var(--bg-raised)] border-transparent hover:border-[var(--border-1)] text-[var(--ink-1)]"
-                  }`}
-                  style={{
-                    boxShadow: isSelected
-                      ? "0 20px 60px rgba(42, 37, 41, 0.15)"
-                      : "0 4px 20px rgba(42, 37, 41, 0.03)",
-                  }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                        isSelected
-                          ? "bg-[var(--rf-ivory)] text-[var(--rf-charcoal)]"
-                          : "bg-[var(--bg-canvas)] text-[var(--ink-2)]"
-                      }`}
-                    >
-                      {String(index + 1).padStart(2, "0")}
-                    </div>
-                    <div className="flex-1">
-                      <span className="block font-semibold text-base">
-                        {model.label}
-                      </span>
-                      <span
-                        className={`block text-sm ${
-                          isSelected
-                            ? "text-[var(--rf-ivory)]/70"
-                            : "text-[var(--ink-3)]"
-                        }`}
-                      >
-                        {model.description}
-                      </span>
-                    </div>
-                    {isSelected && (
-                      <svg
-                        className="w-6 h-6 text-green-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={3}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </main>
-
-        <footer className="nav fixed bottom-0 left-0 right-0 border-t border-[var(--border-1)] bg-[var(--bg-surface)] z-30">
-          <div className="max-w-2xl mx-auto px-12 md:px-24 py-6 flex items-center justify-between">
+      <div ref={wrapperRef} className="ob-animate-in ob-interactive grid grid-cols-1 gap-3">
+        {MODELS.map((model) => {
+          const Icon = model.icon;
+          const isSelected = value === model.label;
+          return (
             <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-sm font-medium text-[var(--ink-2)] hover:text-[var(--ink-1)] transition-colors"
+              key={model.label}
+              data-pricing={model.label}
+              onClick={() => handleSelect(model.label)}
+              className={`pricing-card flex items-center gap-4 p-4 rounded-[var(--radius-md)] border transition-all text-left ${isSelected
+                  ? "bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] border-[var(--rf-charcoal)]"
+                  : "bg-[var(--bg-surface)] border-[var(--border-1)] hover:border-[var(--border-2)]"
+                }`}
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Back
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isSelected ? "bg-white/10" : "bg-[var(--border-1)]"}`}>
+                <Icon size={20} className={isSelected ? "text-[var(--rf-ivory)]" : "text-[var(--ink-3)]"} />
+              </div>
+              <div className="flex-1">
+                <p className={`text-[15px] font-semibold ${isSelected ? "text-[var(--rf-ivory)]" : "text-[var(--ink-1)]"}`}>
+                  {model.label}
+                </p>
+                <p className={`text-[12px] mt-0.5 ${isSelected ? "text-white/50" : "text-[var(--ink-3)]"}`}>
+                  {model.desc}
+                </p>
+              </div>
+              <ArrowRight size={16} className={`transition-transform ${isSelected ? "translate-x-1 opacity-60" : "opacity-0"}`} />
             </button>
-            <button
-              onClick={submit}
-              disabled={!isValid}
-              className="btn flex items-center gap-3 px-8 py-4 bg-[var(--rf-charcoal)] text-[var(--rf-ivory)] rounded-[16px] font-semibold text-sm tracking-wide hover:bg-[#3a3338] transition-colors disabled:cursor-not-allowed"
-              style={{
-                opacity: isValid ? 1 : 0.2,
-                transform: isValid ? "translateY(0)" : "translateY(10px)",
-              }}
-            >
-              Continue
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
-            </button>
-          </div>
-        </footer>
+          );
+        })}
       </div>
-    </div>
+
+      {/* Skip hint */}
+      <div className="ob-animate-in mt-6 flex items-center gap-2 p-3 rounded-[var(--radius-md)] bg-[var(--bg-surface)] border border-dashed border-[var(--border-2)]">
+        <ArrowRight size={14} className="text-[var(--ink-3)]" />
+        <span className="text-[13px] text-[var(--ink-2)]">Press Enter to skip</span>
+      </div>
+    </OnboardingLayout>
   );
 }

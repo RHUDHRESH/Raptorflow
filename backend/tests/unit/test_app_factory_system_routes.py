@@ -45,9 +45,9 @@ def test_app_factory_system_routes_smoke(monkeypatch) -> None:
     import backend.services.registry as registry_mod
     from backend.app_factory import create_app
 
-    # NOTE: `backend.app` exports `lifespan` as a function, so `backend.app.lifespan`
+    # NOTE: `backend.app` exports `lifespan` as a function, so `backend.core.lifespan`
     # as an attribute points at that function, not the module. Import explicitly.
-    lifespan_mod = importlib.import_module("backend.app.lifespan")
+    lifespan_mod = importlib.import_module("backend.core.lifespan")
 
     monkeypatch.setattr(registry_mod.registry, "initialize_all", fake_initialize_all)
     monkeypatch.setattr(registry_mod.registry, "shutdown_all", fake_shutdown_all)

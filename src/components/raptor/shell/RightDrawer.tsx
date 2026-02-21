@@ -165,8 +165,8 @@ export function RightDrawer({
       className="relative flex flex-col flex-shrink-0 h-full"
       style={{
         width: isCollapsed ? 48 : width,
-        backgroundColor: "var(--bg-surface, #F7F5EF)",
-        borderLeft: "1px solid var(--border-1, #E3DED3)",
+        backgroundColor: "var(--bg-surface)",
+        borderLeft: "1px solid var(--border-1)",
       }}
     >
       {/* Resize Handle */}
@@ -183,14 +183,14 @@ export function RightDrawer({
         onClick={handleCollapse}
         className="absolute left-0 top-4 -translate-x-full flex items-center justify-center w-6 h-10 rounded-l-md border border-r-0 transition-colors hover:bg-surface"
         style={{
-          backgroundColor: "var(--bg-surface, #F7F5EF)",
-          borderColor: "var(--border-1, #E3DED3)",
+          backgroundColor: "var(--bg-surface)",
+          borderColor: "var(--border-1)",
         }}
       >
         <ChevronRight
           size={14}
           style={{
-            color: "var(--rf-muted-ink, #5C565B)",
+            color: "var(--ink-2)",
             transform: isCollapsed ? "rotate(0deg)" : "rotate(180deg)",
             transition: "transform 0.2s ease",
           }}
@@ -203,15 +203,14 @@ export function RightDrawer({
           onClick={onClose}
           className="absolute top-3 right-3 p-1 rounded-md transition-colors hover:bg-black/5"
         >
-          <X size={16} style={{ color: "var(--ink-3, #847C82)" }} />
+          <X size={16} className="text-[var(--ink-3)]" />
         </button>
       )}
 
       {/* Tabs */}
       <div
         ref={tabsRef}
-        className={`flex ${isCollapsed ? "flex-col items-center py-4" : "px-4 pt-3 pb-2 gap-1"} border-b`}
-        style={{ borderColor: "var(--border-1, #E3DED3)" }}
+        className={`flex ${isCollapsed ? "flex-col items-center py-4" : "px-4 pt-3 pb-2 gap-1"} border-b border-[var(--border-1)]`}
       >
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -221,22 +220,21 @@ export function RightDrawer({
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab.id)}
-              className={`flex items-center transition-all duration-200 ${
-                isCollapsed
+              className={`flex items-center transition-all duration-200 ${isCollapsed
                   ? "justify-center w-9 h-9 mb-2 rounded-lg"
                   : "px-3 py-2 rounded-md text-xs font-medium"
-              }`}
+                }`}
               style={{
                 backgroundColor: isActive
                   ? isCollapsed
-                    ? "var(--rf-fog, #EFEDE6)"
-                    : "var(--rf-charcoal, #2A2529)"
+                    ? "var(--bg-canvas)"
+                    : "var(--rf-charcoal)"
                   : "transparent",
                 color: isActive
                   ? isCollapsed
-                    ? "var(--rf-charcoal, #2A2529)"
-                    : "var(--rf-ivory, #F3F0E7)"
-                  : "var(--rf-muted-ink, #5C565B)",
+                    ? "var(--rf-charcoal)"
+                    : "var(--rf-ivory)"
+                  : "var(--ink-2)",
                 fontFamily: "'DM Sans', system-ui, sans-serif",
               }}
             >
@@ -275,26 +273,17 @@ function EvidenceContent() {
   return (
     <div className="space-y-3">
       <h3
-        className="text-sm font-medium mb-4"
-        style={{
-          color: "var(--ink-1, #2A2529)",
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-        }}
+        className="text-sm font-medium mb-4 text-[var(--ink-1)]"
       >
         Linked Sources
       </h3>
       {sources.map((source) => (
         <div
           key={source.id}
-          className="p-3 rounded-lg border cursor-pointer transition-colors hover:border-charcoal/30"
-          style={{
-            backgroundColor: "var(--rf-fog, #EFEDE6)",
-            borderColor: "var(--border-1, #E3DED3)",
-          }}
+          className="p-3 rounded-lg border cursor-pointer transition-colors hover:border-[var(--rf-charcoal)] border-[var(--border-1)] bg-[var(--bg-canvas)]"
         >
           <div
-            className="text-sm font-medium mb-1"
-            style={{ color: "var(--ink-1, #2A2529)" }}
+            className="text-sm font-medium mb-1 text-[var(--ink-1)]"
           >
             {source.title}
           </div>
@@ -318,12 +307,7 @@ function EvidenceContent() {
         </div>
       ))}
       <button
-        className="w-full py-2 text-xs font-medium rounded-md border border-dashed transition-colors hover:border-charcoal/30"
-        style={{
-          borderColor: "var(--border-2, #D2CCC0)",
-          color: "var(--rf-muted-ink, #5C565B)",
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-        }}
+        className="w-full py-2 text-xs font-medium rounded-md border border-dashed transition-colors hover:border-[var(--border-1)] text-[var(--ink-2)] border-[var(--border-2)] font-['DM_Sans',system-ui,sans-serif]"
       >
         + Add Source
       </button>
@@ -372,8 +356,8 @@ function AssumptionsContent() {
                   assumption.status === "validated"
                     ? "#3D5A42"
                     : assumption.status === "testing"
-                    ? "#8B6B3D"
-                    : "var(--rf-muted-ink, #5C565B)",
+                      ? "#8B6B3D"
+                      : "var(--rf-muted-ink, #5C565B)",
               }}
             >
               {assumption.status}

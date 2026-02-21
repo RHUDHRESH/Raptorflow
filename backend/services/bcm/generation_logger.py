@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from backend.infrastructure.database.supabase import get_supabase_client
+from backend.core.database.supabase import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

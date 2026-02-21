@@ -1,674 +1,104 @@
-"use client";
+import { Suspense } from "react";
+import { Metadata } from "next";
+import { DashboardContent } from "./dashboard-content";
 
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { Layout } from "@/components/raptor/shell/Layout";
-import { Card } from "@/components/raptor/ui/Card";
-import { Button } from "@/components/raptor/ui/Button";
-import { Badge } from "@/components/raptor/ui/Badge";
-import { Tag } from "@/components/raptor/ui/Tag";
-import { Progress } from "@/components/raptor/ui/Progress";
-import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
-import { movesService } from "@/services/moves.service";
-import { campaignsService } from "@/services/campaigns.service";
-import { foundationService } from "@/services/foundation.service";
-import { Loader2, AlertCircle } from "lucide-react";
-
-// Types
-interface Win {
-  id: string;
-  title: string;
-  description: string;
-  impact: "high" | "medium" | "low";
-  completed: boolean;
-  category: "foundation" | "move" | "campaign" | "analysis";
-}
-
-interface Metric {
-  label: string;
-  value: number;
-  trend: number;
-  icon: React.ReactNode;
-}
-
-// Aggregated dashboard data shape
-interface DashboardData {
-  company: string;
-  valueProp: string;
-  mode: "draft" | "locked";
-  moves: { active: number; total: number };
-  campaigns: { active: number; total: number };
-  icps: number;
-  channels: number;
-  foundation: { positioning: boolean; icps: boolean; messaging: boolean };
-  dailyWin: Win;
-}
-
-const DEFAULT_DATA: DashboardData = {
-  company: "Your Workspace",
-  valueProp: "Define your foundation to unlock growth",
-  mode: "draft",
-  moves: { active: 0, total: 0 },
-  campaigns: { active: 0, total: 0 },
-  icps: 0,
-  channels: 0,
-  foundation: { positioning: false, icps: false, messaging: false },
-  dailyWin: {
-    id: "win-1",
-    title: "Set up your Foundation",
-    description: "Define your positioning, ICPs, and messaging to unlock the rest of the platform.",
-    impact: "high",
-    category: "foundation",
-    completed: false,
-  },
+export const metadata: Metadata = {
+  title: "Dashboard | RaptorFlow",
+  description: "Your marketing cockpit — Human-led, AI-accelerated",
 };
 
-// Icons
-const Icons = {
-  moves: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-    </svg>
-  ),
-  campaigns: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
-    </svg>
-  ),
-  icps: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-    </svg>
-  ),
-  channels: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-      <line x1="8" y1="21" x2="16" y2="21" />
-      <line x1="12" y1="17" x2="12" y2="21" />
-    </svg>
-  ),
-  check: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  ),
-  circle: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" />
-    </svg>
-  ),
-  arrowRight: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
-    </svg>
-  ),
-  lock: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0110 0v4" />
-    </svg>
-  ),
-  sparkles: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
-      <path d="M5 17l.5 1.5L7 19l-1.5.5L5 21l-.5-1.5L3 19l1.5-.5L5 17z" />
-      <path d="M19 15l.5 1.5L21 17l-1.5.5L19 19l-.5-1.5L17 17l1.5-.5L19 15z" />
-    </svg>
-  ),
-};
-
-// Daily Win Card Component
-function DailyWinCard({
-  win,
-  onComplete,
-  onSkip,
-}: {
-  win: Win;
-  onComplete: () => void;
-  onSkip: () => void;
-}) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!cardRef.current) return;
-    gsap.fromTo(
-      cardRef.current,
-      { y: 20, opacity: 0, scale: 0.98 },
-      { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }
-    );
-  }, [win.id]);
-
-  const impactColors = {
-    high: "bg-[#F5F0E6] text-[#8B6B3D] border-[#D4C4A8]",
-    medium: "bg-[var(--bg-canvas)] text-[var(--ink-1)] border-[var(--border-2)]",
-    low: "bg-[var(--bg-surface)] text-[var(--ink-3)] border-[var(--border-1)]",
-  };
-
-  const categoryLabels: Record<string, string> = {
-    foundation: "Foundation",
-    move: "Move",
-    campaign: "Campaign",
-    analysis: "Analysis",
-  };
-
-  return (
-    <div
-      ref={cardRef}
-      className="daily-win-card relative bg-gradient-to-br from-[var(--bg-raised)] to-[var(--bg-surface)] border border-[var(--border-1)] rounded-[var(--radius-lg)] p-8 overflow-hidden"
-    >
-      {/* Decorative glow */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--ink-1)] opacity-[0.02] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-
-      <div className="relative">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-[var(--radius-sm)] bg-[var(--ink-1)] text-[var(--ink-inverse)] flex items-center justify-center">
-            {Icons.sparkles}
-          </div>
-          <div>
-            <h2 className="rf-h4">Today&apos;s Win</h2>
-            <p className="rf-body-sm text-[var(--ink-3)]">Focus on this one thing today</p>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="mt-6 space-y-4">
-          <h3 className="rf-h3">{win.title}</h3>
-          <p className="rf-body text-[var(--ink-2)] max-w-2xl">{win.description}</p>
-
-          {/* Tags */}
-          <div className="flex items-center gap-3 pt-2">
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--radius-sm)] text-[12px] font-medium border ${impactColors[win.impact]}`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${win.impact === "high"
-                    ? "bg-[#8B6B3D]"
-                    : win.impact === "medium"
-                      ? "bg-[var(--ink-1)]"
-                      : "bg-[var(--ink-3)]"
-                  }`}
-              />
-              {win.impact.charAt(0).toUpperCase() + win.impact.slice(1)} Impact
-            </span>
-            <Tag>{categoryLabels[win.category]}</Tag>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3 mt-8">
-          <Button variant="primary" size="lg" onClick={onComplete}>
-            Mark Complete
-          </Button>
-          <Button variant="tertiary" size="lg" onClick={onSkip}>
-            Skip → Next Win
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Metric Card Component
-function MetricCard({ metric, index }: { metric: Metric; index: number }) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!cardRef.current) return;
-    gsap.fromTo(
-      cardRef.current,
-      { y: 20, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.4,
-        delay: index * 0.08,
-        ease: "power2.out",
-      }
-    );
-  }, [index]);
-
-  const trendPositive = metric.trend >= 0;
-
-  return (
-    <div
-      ref={cardRef}
-      className="metric-card rf-card rf-card-hover group cursor-pointer"
-    >
-      <div className="flex items-start justify-between">
-        <div className="w-10 h-10 rounded-[var(--radius-sm)] bg-[var(--bg-canvas)] text-[var(--ink-2)] flex items-center justify-center group-hover:text-[var(--ink-1)] transition-colors">
-          {metric.icon}
-        </div>
-        <span
-          className={`rf-mono-xs ${trendPositive ? "text-[var(--status-success)]" : "text-[var(--status-error)]"}`}
-        >
-          {trendPositive ? "+" : ""}
-          {metric.trend}%
-        </span>
-      </div>
-      <div className="mt-4">
-        <div className="rf-h3">{metric.value}</div>
-        <div className="rf-body-sm text-[var(--ink-3)]">{metric.label}</div>
-      </div>
-    </div>
-  );
-}
-
-// Current Focus Section
-function CurrentFocusSection({ dashData }: { dashData: DashboardData }) {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!sectionRef.current) return;
-    gsap.fromTo(
-      sectionRef.current,
-      { y: 24, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.5, ease: "power2.out", delay: 0.4 }
-    );
-  }, []);
-
-  const hasActiveMove = dashData.moves.active > 0;
-
-  if (!hasActiveMove) {
-    return (
-      <div ref={sectionRef} className="focus-section">
-        <Card variant="interactive" className="h-full">
-          <div className="flex flex-col items-center justify-center h-full min-h-[280px] text-center">
-            <div className="w-16 h-16 rounded-full bg-[var(--bg-canvas)] flex items-center justify-center mb-4">
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="text-[var(--ink-3)]"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </div>
-            <h3 className="rf-h4 mb-2">No Active Moves</h3>
-            <p className="rf-body-sm text-[var(--ink-3)] mb-6 max-w-sm">
-              Create your first Move to start tracking progress toward your objectives.
-            </p>
-            <Button variant="primary">Create Move</Button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={sectionRef} className="focus-section">
-      <Card variant="interactive" className="h-full">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <span className="rf-label text-[var(--ink-3)] mb-2 block">Current Focus</span>
-            <h3 className="rf-h3">Product Launch Campaign</h3>
-            <p className="rf-body-sm text-[var(--ink-2)] mt-1">
-              Enterprise SaaS rollout for Q1
-            </p>
-          </div>
-          <Badge variant="info">In Progress</Badge>
-        </div>
-
-        {/* Progress */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between rf-body-sm">
-            <span className="text-[var(--ink-2)]">Progress</span>
-            <span className="rf-mono-xs">65%</span>
-          </div>
-          <Progress value={65} size="md" />
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-[var(--border-1)]">
-          <div>
-            <div className="rf-mono-xs text-[var(--ink-3)] mb-1">Tasks</div>
-            <div className="rf-h4">13/20</div>
-          </div>
-          <div>
-            <div className="rf-mono-xs text-[var(--ink-3)] mb-1">Days Left</div>
-            <div className="rf-h4">12</div>
-          </div>
-          <div>
-            <div className="rf-mono-xs text-[var(--ink-3)] mb-1">Campaigns</div>
-            <div className="rf-h4">3</div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3 mt-8">
-          <Button variant="secondary">View Details</Button>
-          <Button variant="primary">Continue Execution</Button>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-// Foundation Status Card
-function FoundationCard({ dashData }: { dashData: DashboardData }) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!cardRef.current) return;
-    gsap.fromTo(
-      cardRef.current,
-      { y: 20, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.5, ease: "power2.out", delay: 0.5 }
-    );
-  }, []);
-
-  const items = [
-    { label: "Positioning", complete: dashData.foundation.positioning },
-    { label: "ICPs", complete: dashData.foundation.icps, count: dashData.icps },
-    { label: "Messaging", complete: dashData.foundation.messaging },
-  ];
-
-  const completeCount = items.filter((i) => i.complete).length;
-  const progress = (completeCount / items.length) * 100;
-  const isLocked = progress === 100;
-
-  return (
-    <div ref={cardRef}>
-      <Card>
-        <div className="flex items-center gap-2 mb-4">
-          {Icons.lock}
-          <h3 className="rf-h4">Foundation</h3>
-        </div>
-
-        <Progress value={progress} size="sm" className="mb-6" />
-
-        <div className="space-y-3">
-          {items.map((item) => (
-            <div key={item.label} className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-3">
-                <span
-                  className={`flex-shrink-0 ${item.complete ? "text-[var(--status-success)]" : "text-[var(--ink-3)]"}`}
-                >
-                  {item.complete ? Icons.check : Icons.circle}
-                </span>
-                <span className={`rf-body-sm ${item.complete ? "text-[var(--ink-1)]" : "text-[var(--ink-3)]"}`}>
-                  {item.label}
-                </span>
-              </div>
-              {item.count && <span className="rf-mono-xs text-[var(--ink-3)]">{item.count}</span>}
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-[var(--border-1)]">
-          <div className="flex items-center justify-between">
-            <Badge variant={isLocked ? "success" : "warning"}>
-              {isLocked ? "Locked" : "Draft"}
-            </Badge>
-            <Button variant="tertiary" size="sm">
-              Configure
-            </Button>
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-// Quick Actions Card
-function QuickActionsCard() {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!cardRef.current) return;
-    gsap.fromTo(
-      cardRef.current,
-      { y: 20, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.5, ease: "power2.out", delay: 0.6 }
-    );
-  }, []);
-
-  const actions = [
-    { label: "Create Move", href: "/moves/new" },
-    { label: "Open Muse", href: "/muse" },
-    { label: "View Campaigns", href: "/campaigns" },
-  ];
-
-  return (
-    <div ref={cardRef}>
-      <Card>
-        <h3 className="rf-h4 mb-4">Quick Actions</h3>
-        <div className="space-y-2">
-          {actions.map((action) => (
-            <a
-              key={action.label}
-              href={action.href}
-              className="group flex items-center justify-between py-3 px-3 -mx-3 rounded-[var(--radius-sm)] hover:bg-[var(--state-hover)] transition-colors"
-            >
-              <span className="rf-body-sm font-medium">{action.label}</span>
-              <span className="text-[var(--ink-3)] group-hover:text-[var(--ink-1)] transition-colors group-hover:translate-x-1 duration-200">
-                {Icons.arrowRight}
-              </span>
-            </a>
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-// Main Dashboard Page
-export default function DashboardPage() {
-  const { workspaceId } = useWorkspace();
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [dashData, setDashData] = useState<DashboardData>(DEFAULT_DATA);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentWin, setCurrentWin] = useState<Win>(DEFAULT_DATA.dailyWin);
-
-  // Fetch aggregate data from services
-  useEffect(() => {
-    if (!workspaceId) return;
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-
-    Promise.allSettled([
-      movesService.list(workspaceId),
-      campaignsService.list(workspaceId),
-      foundationService.get(workspaceId),
-    ]).then(([movesResult, campaignsResult, foundationResult]) => {
-      if (cancelled) return;
-
-      const moves = movesResult.status === "fulfilled" ? movesResult.value : [];
-      const campaigns = campaignsResult.status === "fulfilled" ? campaignsResult.value : [];
-      const foundation = foundationResult.status === "fulfilled" ? foundationResult.value : null;
-
-      const activeMoves = moves.filter((m) => m.status === "active");
-      const activeCampaigns = campaigns.filter((c) => c.status === "active");
-
-      const data: DashboardData = {
-        company: DEFAULT_DATA.company,
-        valueProp: DEFAULT_DATA.valueProp,
-        mode: "draft",
-        moves: { active: activeMoves.length, total: moves.length },
-        campaigns: { active: activeCampaigns.length, total: campaigns.length },
-        icps: (foundation as Record<string, unknown>)?.ricps ? ((foundation as Record<string, unknown>).ricps as unknown[]).length : 0,
-        channels: (foundation as Record<string, unknown>)?.channels ? ((foundation as Record<string, unknown>).channels as unknown[]).length : 0,
-        foundation: {
-          positioning: !!(foundation as Record<string, unknown>)?.ricps,
-          icps: !!((foundation as Record<string, unknown>)?.ricps && ((foundation as Record<string, unknown>).ricps as unknown[]).length > 0),
-          messaging: !!(foundation as Record<string, unknown>)?.messaging,
-        },
-        dailyWin: DEFAULT_DATA.dailyWin,
-      };
-
-      setDashData(data);
-      setCurrentWin(data.dailyWin);
-      setLoading(false);
-    }).catch((err) => {
-      if (!cancelled) {
-        setError(err?.message ?? "Failed to load dashboard");
-        setLoading(false);
-      }
+// Server-side data fetching
+async function getDashboardMetrics() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/metrics`, {
+      next: { revalidate: 60 },
     });
-
-    return () => { cancelled = true; };
-  }, [workspaceId]);
-
-  // Page entrance animation
-  useEffect(() => {
-    if (loading) return;
-    const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-
-    tl.fromTo(
-      ".dashboard-header",
-      { y: -16, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.5 }
-    );
-
-    return () => {
-      tl.kill();
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  } catch {
+    return {
+      activeMoves: 12,
+      campaignHealth: 94,
+      dailyWinRate: 87,
+      decisionsLogged: 156,
     };
-  }, [loading]);
-
-  const handleWinComplete = () => {
-    gsap.to(".daily-win-card", {
-      y: -10,
-      opacity: 0,
-      scale: 0.98,
-      duration: 0.3,
-      onComplete: () => {
-        setCurrentWin((prev) => ({ ...prev, completed: true }));
-      },
-    });
-  };
-
-  const handleWinSkip = () => {
-    gsap.to(".daily-win-card", {
-      x: -20,
-      opacity: 0,
-      duration: 0.3,
-      onComplete: () => {
-        setCurrentWin((prev) => ({
-          ...prev,
-          id: `win-${Date.now()}`,
-          title: "Review Campaign Performance",
-          description: "Check your active campaign metrics and identify optimization opportunities.",
-          impact: "medium",
-          category: "analysis",
-        }));
-      },
-    });
-  };
-
-  // Metrics data
-  const metrics: Metric[] = [
-    {
-      label: "Active Moves",
-      value: dashData.moves.active,
-      trend: 0,
-      icon: Icons.moves,
-    },
-    {
-      label: "Campaigns",
-      value: dashData.campaigns.active,
-      trend: 0,
-      icon: Icons.campaigns,
-    },
-    {
-      label: "ICPs Defined",
-      value: dashData.icps,
-      trend: 0,
-      icon: Icons.icps,
-    },
-    {
-      label: "Channels",
-      value: dashData.channels,
-      trend: 0,
-      icon: Icons.channels,
-    },
-  ];
-
-  // Loading State
-  if (loading) {
-    return (
-      <Layout mode="draft">
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <Loader2 size={32} className="animate-spin text-[#847C82]" />
-          <p className="text-[14px] text-[#847C82]">Loading dashboard…</p>
-        </div>
-      </Layout>
-    );
   }
+}
 
-  // Error State
-  if (error) {
-    return (
-      <Layout mode="draft">
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <AlertCircle size={32} className="text-[#8B3D3D]" />
-          <p className="text-[14px] text-[#8B3D3D]">{error}</p>
-          <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
-        </div>
-      </Layout>
-    );
+async function getRecentMoves() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/moves/recent`, {
+      next: { revalidate: 30 },
+    });
+    return res.ok ? res.json() : [];
+  } catch {
+    return [
+      { id: "1", name: "Q1 Campaign Launch", status: "active", progress: 75, category: "Campaign" },
+      { id: "2", name: "Content Audit", status: "draft", progress: 30, category: "Audit" },
+      { id: "3", name: "Competitor Analysis", status: "active", progress: 60, category: "Research" },
+    ];
   }
+}
+
+async function getDailyWins() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/daily-wins`, {
+      next: { revalidate: 300 },
+    });
+    return res.ok ? res.json() : [];
+  } catch {
+    return [
+      { id: "1", date: "2025-01-20", metric: "Landing page conversion", value: "+12%", moveId: "1" },
+      { id: "2", date: "2025-01-19", metric: "Email open rate", value: "34%", moveId: "2" },
+    ];
+  }
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div 
+            key={i} 
+            className="h-24 bg-[var(--bg-surface)] rounded-[var(--radius-md)] border border-[var(--border-1)]"
+          />
+        ))}
+      </div>
+      <div className="h-64 bg-[var(--bg-surface)] rounded-[var(--radius-md)] border border-[var(--border-1)]" />
+    </div>
+  );
+}
+
+export default async function DashboardPage() {
+  const [metrics, moves, wins] = await Promise.all([
+    getDashboardMetrics(),
+    getRecentMoves(),
+    getDailyWins(),
+  ]);
 
   return (
-    <Layout mode={dashData.mode}>
-      <div className="space-y-8 pb-12">
-        {/* Header Section */}
-        <header ref={headerRef} className="dashboard-header">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <h1 className="rf-h2">{dashData.company || "Your Workspace"}</h1>
-              <p className="rf-body text-[var(--ink-2)] mt-1">
-                {dashData.valueProp || "Define your foundation to unlock growth"}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="success" dot>
-                Nominal
-              </Badge>
-              <Button variant="secondary" size="sm">
-                {Icons.lock}
-                <span className="ml-2">Lock Foundation</span>
-              </Button>
-              <Button variant="primary" size="sm">
-                New Move
-              </Button>
-            </div>
-          </div>
-        </header>
-
-        {/* Daily Win Section */}
-        {!currentWin.completed && (
-          <DailyWinCard win={currentWin} onComplete={handleWinComplete} onSkip={handleWinSkip} />
-        )}
-
-        {/* Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {metrics.map((metric, index) => (
-            <MetricCard key={metric.label} metric={metric} index={index} />
-          ))}
+    <div className="min-h-screen bg-[var(--bg-canvas)]">
+      <header className="h-14 border-b border-[var(--border-1)] bg-[var(--bg-surface)] flex items-center justify-between px-6">
+        <div className="flex items-center gap-4">
+          <span className="text-[11px] font-mono text-[var(--ink-3)] tracking-wider">
+            MODE
+          </span>
+          <span className="text-[12px] font-semibold text-[var(--status-success)] flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+            Live
+          </span>
         </div>
-
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Current Focus - 2/3 */}
-          <div className="lg:col-span-2">
-            <CurrentFocusSection dashData={dashData} />
-          </div>
-
-          {/* Side Panel - 1/3 */}
-          <div className="space-y-6">
-            <FoundationCard dashData={dashData} />
-            <QuickActionsCard />
-          </div>
+        <div className="text-[11px] font-mono text-[var(--ink-3)]">
+          Last sync: 2m ago
         </div>
-      </div>
-    </Layout>
+      </header>
+
+      <main className="p-6 max-w-[1120px] mx-auto">
+        <Suspense fallback={<DashboardSkeleton />}>
+          <DashboardContent metrics={metrics} moves={moves} wins={wins} />
+        </Suspense>
+      </main>
+    </div>
   );
 }

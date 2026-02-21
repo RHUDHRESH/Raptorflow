@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 import pytest
 
-from backend.infrastructure.cache import decorator as cache_decorator
+from backend.core.cache import decorator as cache_decorator
 from backend.services import cached_queries
 
 

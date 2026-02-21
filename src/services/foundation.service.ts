@@ -1,4 +1,5 @@
 import { apiRequest } from "./http";
+import type { RICP, CoreMessaging, Channel } from "@/types/foundation";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types used by the Foundation PAGE (positioning / icps / messaging)
@@ -38,13 +39,9 @@ export interface FoundationData {
     problem: string;
     solution: string;
   };
-  icps: ICP[];
-  messaging: LockableSection & {
-    oneLiner: string;
-    elevatorPitch: string;
-    keyMessages: string[];
-    proofPoints: ProofPoint[];
-  };
+  ricps: RICP[];
+  channels: Channel[];
+  messaging: CoreMessaging | null;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -89,22 +86,9 @@ function toFoundationData(raw: FoundationAPIResponse): FoundationData {
         ? new Date(ci.positioning_locked_at as string)
         : undefined,
     },
-    icps: Array.isArray(ci.icps) ? (ci.icps as ICP[]) : [],
-    messaging: {
-      status: (msg.status as LockStatus) ?? "draft",
-      version: (msg.version as number) ?? 1,
-      oneLiner: (msg.one_liner as string) ?? "",
-      elevatorPitch: (msg.elevator_pitch as string) ?? "",
-      keyMessages: Array.isArray(msg.key_messages)
-        ? (msg.key_messages as string[])
-        : [],
-      proofPoints: Array.isArray(msg.proof_points)
-        ? (msg.proof_points as ProofPoint[])
-        : [],
-      lockedAt: msg.locked_at
-        ? new Date(msg.locked_at as string)
-        : undefined,
-    },
+    ricps: Array.isArray(ci.icps) ? (ci.icps as RICP[]) : [],
+    channels: [],
+    messaging: Object.keys(msg).length > 0 ? (msg as unknown as CoreMessaging) : null,
   };
 }
 
@@ -118,18 +102,10 @@ function toBackendPayload(data: FoundationData): Record<string, unknown> {
       positioning_status: data.positioning.status,
       positioning_version: data.positioning.version,
       positioning_locked_at: data.positioning.lockedAt?.toISOString(),
-      icps: data.icps,
+      icps: data.ricps,
     },
     value_proposition: data.positioning.valueProp,
-    messaging: {
-      status: data.messaging.status,
-      version: data.messaging.version,
-      one_liner: data.messaging.oneLiner,
-      elevator_pitch: data.messaging.elevatorPitch,
-      key_messages: data.messaging.keyMessages,
-      proof_points: data.messaging.proofPoints,
-      locked_at: data.messaging.lockedAt?.toISOString(),
-    },
+    messaging: data.messaging || {},
     status: data.status,
   };
 }
@@ -150,15 +126,9 @@ export const EMPTY_FOUNDATION: FoundationData = {
     problem: "",
     solution: "",
   },
-  icps: [],
-  messaging: {
-    status: "draft",
-    version: 1,
-    oneLiner: "",
-    elevatorPitch: "",
-    keyMessages: [],
-    proofPoints: [],
-  },
+  ricps: [],
+  channels: [],
+  messaging: null,
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
