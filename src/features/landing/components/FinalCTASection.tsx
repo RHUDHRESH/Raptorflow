@@ -1,18 +1,7 @@
-/**
- * ENHANCED WITH:
- * - context7: GSAP master timeline for CTA entrance sequence
- * - frontend-animations: Button glow, floating orbs
- * - magicui: Particles-inspired background orbs
- * - performance-optimization: GPU-only transforms
- * - raptorflow-design-vibe: High-impact conversion moment
- */
-
 "use client";
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ArrowRight } from "lucide-react";
 import { useLandingStore } from "./LandingClient";
 
 export function FinalCTASection() {
@@ -23,115 +12,44 @@ export function FinalCTASection() {
     if (!sectionRef.current || isReducedMotion) return;
 
     const ctx = gsap.context(() => {
-      // Master timeline for dramatic entrance
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top 70%",
           toggleActions: "play none none none",
         },
+        defaults: { ease: "power4.out" },
       });
 
-      // Label
-      tl.from(".cta-label", {
-        y: 20,
+      tl.from(".cta-word", {
+        y: 100,
         opacity: 0,
-        duration: 0.5,
-        ease: "power2.out",
-      });
+        rotateX: 15,
+        duration: 0.9,
+        stagger: 0.1,
+      })
+        .from(".cta-fine", {
+          opacity: 0,
+          duration: 0.6,
+        }, "-=0.3")
+        .from(".cta-btn", {
+          scale: 0.85,
+          opacity: 0,
+          duration: 0.6,
+          ease: "back.out(1.5)",
+        }, "-=0.4")
+        .from(".cta-dots-bg", {
+          opacity: 0,
+          duration: 2,
+        }, 0);
 
-      // Title with word split
-      tl.from(".cta-title span", {
-        y: 60,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.08,
-        ease: "power3.out",
-      }, "-=0.3");
-
-      // Description
-      tl.from(".cta-description", {
-        y: 20,
-        opacity: 0,
-        filter: "blur(8px)",
-        duration: 0.6,
-        ease: "power2.out",
-        clearProps: "filter",
-      }, "-=0.5");
-
-      // Button with elastic bounce
-      tl.from(".cta-button", {
-        scale: 0.8,
-        opacity: 0,
-        duration: 0.6,
-        ease: "back.out(1.7)",
-      }, "-=0.3");
-
-      // Secondary CTA
-      tl.from(".cta-secondary", {
-        y: 10,
-        opacity: 0,
-        duration: 0.4,
-        ease: "power2.out",
-      }, "-=0.2");
-
-      // Floating orbs continuous animation
-      gsap.to(".orb-1", {
-        y: -30,
-        x: 20,
-        duration: 4,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-      });
-
-      gsap.to(".orb-2", {
-        y: 20,
-        x: -15,
-        duration: 5,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-        delay: 1,
-      });
-
-      gsap.to(".orb-3", {
-        y: -15,
-        x: -25,
-        duration: 3.5,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-        delay: 0.5,
-      });
-
-      // Button hover glow effect
-      const button = sectionRef.current?.querySelector(".cta-button");
-      if (button) {
-        button.addEventListener("mouseenter", () => {
-          gsap.to(button, {
-            scale: 1.05,
-            duration: 0.25,
-            ease: "power2.out",
-          });
-          gsap.to(".button-glow", {
-            opacity: 0.6,
-            scale: 1.2,
-            duration: 0.3,
-          });
+      const btn = sectionRef.current?.querySelector(".cta-btn");
+      if (btn) {
+        btn.addEventListener("mouseenter", () => {
+          gsap.to(btn, { scale: 1.04, duration: 0.25, ease: "power2.out" });
         });
-
-        button.addEventListener("mouseleave", () => {
-          gsap.to(button, {
-            scale: 1,
-            duration: 0.25,
-            ease: "power2.out",
-          });
-          gsap.to(".button-glow", {
-            opacity: 0,
-            scale: 1,
-            duration: 0.3,
-          });
+        btn.addEventListener("mouseleave", () => {
+          gsap.to(btn, { scale: 1, duration: 0.25, ease: "power2.out" });
         });
       }
     }, sectionRef);
@@ -143,56 +61,38 @@ export function FinalCTASection() {
     <section
       id="final-cta"
       ref={sectionRef}
-      className="relative py-32 px-6 bg-[var(--rf-charcoal)] overflow-hidden"
+      className="relative min-h-[80vh] flex items-center justify-center px-6 py-32 bg-[var(--rf-charcoal)] overflow-hidden"
     >
-      {/* Background orbs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="orb-1 absolute top-20 left-[10%] w-[400px] h-[400px] rounded-full bg-white/[0.03] blur-[100px] will-change-transform" />
-        <div className="orb-2 absolute bottom-20 right-[10%] w-[350px] h-[350px] rounded-full bg-white/[0.02] blur-[80px] will-change-transform" />
-        <div className="orb-3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-white/[0.01] blur-[120px] will-change-transform" />
-      </div>
+      <div
+        className="cta-dots-bg absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(243,240,231,0.06) 1px, transparent 0)`,
+          backgroundSize: "44px 44px",
+        }}
+      />
 
-      <div className="max-w-[var(--shell-max-w)] mx-auto relative z-10">
-        <div className="text-center max-w-3xl mx-auto">
-          {/* Label */}
-          <span className="cta-label text-white/40 text-[12px] font-mono tracking-[0.2em] mb-6 block">
-            READY TO TAKE CONTROL?
-          </span>
-
-          {/* Title */}
-          <h2 className="cta-title text-[clamp(36px,7vw,72px)] font-bold text-[var(--rf-ivory)] leading-[0.95] tracking-[-0.03em] mb-8">
-            {"Stop juggling tools.".split(" ").map((word, i) => (
-              <span key={i} className="inline-block mr-[0.25em]">{word}</span>
-            ))}
+      <div className="relative z-10 text-center max-w-4xl mx-auto">
+        <div className="overflow-hidden mb-8" style={{ perspective: "800px" }}>
+          <h2
+            className="font-bold text-[var(--rf-ivory)] leading-[0.9] tracking-[-0.04em]"
+            style={{ fontSize: "clamp(60px, 11vw, 130px)" }}
+          >
+            <span className="cta-word inline-block will-change-transform">Take the</span>
             <br />
-            {"Start winning markets.".split(" ").map((word, i) => (
-              <span key={i} className="inline-block mr-[0.25em]">{word}</span>
-            ))}
+            <span className="cta-word inline-block will-change-transform">cockpit.</span>
           </h2>
-
-          {/* Description */}
-          <p className="cta-description text-[18px] text-white/60 leading-relaxed mb-10 max-w-xl mx-auto">
-            Join operators who have replaced their entire marketing stack with one system designed for precision and speed.
-          </p>
-
-          {/* CTA Button with glow */}
-          <div className="relative inline-block mb-6">
-            <div className="button-glow absolute inset-0 bg-[var(--rf-ivory)]/20 rounded-[var(--radius-sm)] blur-xl opacity-0 pointer-events-none" />
-            
-            <a
-              href="/onboarding"
-              className="cta-button relative inline-flex items-center gap-3 px-10 py-5 bg-[var(--rf-ivory)] text-[var(--rf-charcoal)] rounded-[var(--radius-sm)] text-[17px] font-semibold will-change-transform"
-            >
-              Start Building for Free
-              <ArrowRight size={20} />
-            </a>
-          </div>
-
-          {/* Secondary CTA */}
-          <p className="cta-secondary text-[14px] text-white/40">
-            No credit card required. 14-day free trial.
-          </p>
         </div>
+
+        <p className="cta-fine rf-mono-xs text-white/35 mb-12 tracking-[0.05em]">
+          14-day free trial. No card required. Cancel any time.
+        </p>
+
+        <a
+          href="/onboarding"
+          className="cta-btn inline-flex items-center justify-center px-12 py-5 bg-[var(--rf-ivory)] text-[var(--rf-charcoal)] rounded-[var(--radius-sm)] text-[18px] font-bold will-change-transform"
+        >
+          Enter RaptorFlow
+        </a>
       </div>
     </section>
   );

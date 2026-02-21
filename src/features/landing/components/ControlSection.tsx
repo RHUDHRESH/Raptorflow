@@ -1,132 +1,124 @@
-/**
- * ENHANCED WITH:
- * - context7: GSAP flow/directional animations
- * - frontend-animations: Path drawing, step connector animations
- * - performance-optimization: SVG path animations with CSS
- */
-
 "use client";
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ArrowRight, CheckCircle2, GitBranch, Lightbulb, Rocket } from "lucide-react";
 import { useLandingStore } from "./LandingClient";
 
 const STEPS = [
   {
-    icon: Lightbulb,
     number: "01",
     title: "Define your world",
-    description: "ICPs, positioning, and strategic context captured once and shared everywhere.",
+    description:
+      "Build your Brand Context Map — ICPs, positioning, voice, and strategic context. Captured once, shared everywhere forever.",
+    side: "left",
   },
   {
-    icon: GitBranch,
     number: "02",
-    title: "Choose your path",
-    description: "From quick moves to 90-day sieges — select what matches your objective.",
+    title: "Choose your move",
+    description:
+      "From quick tactical wins to 90-day campaign sieges. Select the scope that matches your objective and current quarter.",
+    side: "right",
   },
   {
-    icon: CheckCircle2,
     number: "03",
     title: "Review the work",
-    description: "AI-generated plans and assets arrive complete. You approve or refine.",
+    description:
+      "AI-generated plans, content, and assets arrive complete. You approve, refine, or regenerate — you stay in command.",
+    side: "left",
   },
   {
-    icon: Rocket,
     number: "04",
     title: "Execute with precision",
-    description: "Your move goes live across channels. Tracked, optimized, and measured.",
+    description:
+      "Your move goes live across channels. Tracked, measured, and fed back into your BCM for the next operation.",
+    side: "right",
   },
 ];
 
 export function ControlSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const pathRef = useRef<SVGPathElement>(null);
+  const svgLineRef = useRef<SVGLineElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
   const { isReducedMotion } = useLandingStore();
 
   useEffect(() => {
-    if (!sectionRef.current || isReducedMotion) return;
+    if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Header animation
-      gsap.from(".control-header", {
-        scrollTrigger: {
-          trigger: ".control-header",
-          start: "top 85%",
-          toggleActions: "play none none none",
-        },
-        y: 40,
-        opacity: 0,
-        duration: 0.8,
-        ease: "power3.out",
-      });
-
-      // Steps stagger with connector line animation
-      const steps = sectionRef.current?.querySelectorAll(".control-step");
-      steps?.forEach((step, index) => {
-        gsap.from(step, {
+      if (!isReducedMotion) {
+        gsap.from(".control-header > *", {
           scrollTrigger: {
-            trigger: step,
+            trigger: ".control-header",
             start: "top 85%",
             toggleActions: "play none none none",
           },
           y: 40,
           opacity: 0,
           duration: 0.7,
-          delay: index * 0.15,
+          stagger: 0.1,
           ease: "power3.out",
         });
-      });
 
-      // SVG path drawing animation
-      if (pathRef.current) {
-        const pathLength = pathRef.current.getTotalLength();
-        gsap.set(pathRef.current, {
-          strokeDasharray: pathLength,
-          strokeDashoffset: pathLength,
+        const steps = sectionRef.current?.querySelectorAll(".timeline-step");
+        steps?.forEach((step, i) => {
+          const side = i % 2 === 0 ? -50 : 50;
+          gsap.from(step, {
+            scrollTrigger: {
+              trigger: step,
+              start: "top 82%",
+              toggleActions: "play none none none",
+            },
+            x: side,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power3.out",
+          });
         });
 
-        gsap.to(pathRef.current, {
-          scrollTrigger: {
-            trigger: ".steps-container",
-            start: "top 70%",
-            end: "bottom 50%",
-            scrub: 1,
-          },
-          strokeDashoffset: 0,
-          ease: "none",
+        const circles = sectionRef.current?.querySelectorAll(".timeline-circle");
+        circles?.forEach((circle) => {
+          gsap.from(circle, {
+            scrollTrigger: {
+              trigger: circle,
+              start: "top 80%",
+              toggleActions: "play none none none",
+            },
+            scale: 0,
+            duration: 0.5,
+            ease: "back.out(2)",
+          });
         });
+
+        if (svgLineRef.current && timelineRef.current) {
+          const lineEl = svgLineRef.current;
+          const totalH = timelineRef.current.getBoundingClientRect().height;
+          const len = totalH;
+          gsap.set(lineEl, { strokeDasharray: len, strokeDashoffset: len });
+          gsap.to(lineEl, {
+            strokeDashoffset: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: timelineRef.current,
+              start: "top 70%",
+              end: "bottom 60%",
+              scrub: 1,
+            },
+          });
+        }
       }
-
-      // Connector dots animation
-      gsap.from(".connector-dot", {
-        scrollTrigger: {
-          trigger: ".steps-container",
-          start: "top 75%",
-          toggleActions: "play none none none",
-        },
-        scale: 0,
-        opacity: 0,
-        duration: 0.4,
-        stagger: 0.2,
-        ease: "back.out(2)",
-      });
-
     }, sectionRef);
 
     return () => ctx.revert();
   }, [isReducedMotion]);
 
   return (
-    <section ref={sectionRef} className="py-32 px-6 bg-[var(--bg-surface)]">
+    <section id="control" ref={sectionRef} className="py-32 px-6 bg-[var(--bg-canvas)]">
       <div className="max-w-[var(--shell-max-w)] mx-auto">
-        {/* Header */}
-        <div className="control-header text-center mb-20">
-          <span className="rf-label text-[var(--rf-charcoal)]/40 tracking-[0.15em] mb-4 block">
+        <div className="control-header text-center mb-24">
+          <span className="rf-label text-[var(--rf-charcoal)]/40 tracking-[0.15em] mb-5 block">
             HOW IT WORKS
           </span>
-          <h2 className="text-[clamp(32px,5.5vw,52px)] font-bold text-[var(--rf-charcoal)] leading-tight tracking-[-0.02em]">
+          <h2 className="text-[clamp(32px,5.5vw,52px)] font-bold text-[var(--rf-charcoal)] leading-tight tracking-[-0.03em]">
             Control the chaos.
           </h2>
           <p className="mt-6 text-[17px] text-[var(--ink-2)] max-w-lg mx-auto leading-relaxed">
@@ -134,74 +126,72 @@ export function ControlSection() {
           </p>
         </div>
 
-        {/* Steps with SVG connector */}
-        <div className="steps-container relative max-w-5xl mx-auto">
-          {/* SVG Connector line (desktop only) */}
-          <svg
-            className="absolute top-24 left-0 w-full h-2 hidden lg:block pointer-events-none"
-            preserveAspectRatio="none"
-          >
-            <path
-              ref={pathRef}
-              d="M 100 4 L 400 4 L 700 4 L 1000 4"
-              stroke="var(--rf-charcoal)"
-              strokeWidth="2"
-              strokeOpacity="0.1"
-              fill="none"
-              strokeLinecap="round"
-            />
-          </svg>
+        <div ref={timelineRef} className="relative max-w-3xl mx-auto">
+          <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 hidden lg:block" style={{ width: 2 }}>
+            <svg
+              className="w-full h-full"
+              preserveAspectRatio="none"
+              style={{ overflow: "visible" }}
+            >
+              <line
+                x1="1"
+                y1="0"
+                x2="1"
+                y2="100%"
+                stroke="var(--border-2)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <line
+                ref={svgLineRef}
+                x1="1"
+                y1="0"
+                x2="1"
+                y2="100%"
+                stroke="var(--rf-charcoal)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
 
-          {/* Steps grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {STEPS.map((step, index) => {
-              const StepIcon = step.icon;
-              return (
-                <div
-                  key={step.number}
-                  className="control-step relative text-center group"
-                >
-                  {/* Number badge with icon */}
-                  <div className="relative inline-flex items-center justify-center mb-6">
-                    <div className="w-16 h-16 rounded-full bg-[var(--rf-charcoal)] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      <StepIcon size={24} className="text-white" />
+          <div className="space-y-20 lg:space-y-24">
+            {STEPS.map((step, i) => (
+              <div
+                key={step.number}
+                className={`timeline-step relative grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center will-change-transform`}
+              >
+                <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-10 hidden lg:flex">
+                  <div className="timeline-circle w-10 h-10 rounded-full bg-[var(--bg-canvas)] border-2 border-[var(--border-2)] flex items-center justify-center will-change-transform">
+                    <span className="text-[10px] font-bold font-mono text-[var(--rf-charcoal)]">{step.number}</span>
+                  </div>
+                </div>
+
+                <div className={step.side === "right" ? "lg:order-2" : ""}>
+                  <div className="lg:hidden flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-[var(--rf-charcoal)] flex items-center justify-center">
+                      <span className="text-[11px] font-bold font-mono text-[var(--rf-ivory)]">{step.number}</span>
                     </div>
-                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[var(--rf-accent)] text-white text-[10px] font-mono flex items-center justify-center">
-                      {step.number}
-                    </span>
-                    
-                    {/* Connector dot (desktop) */}
-                    {index < STEPS.length - 1 && (
-                      <div className="connector-dot absolute left-full top-1/2 -translate-y-1/2 ml-8 hidden lg:block">
-                        <div className="w-2 h-2 rounded-full bg-[var(--rf-charcoal)]/30" />
-                      </div>
-                    )}
+                    <div className="h-px flex-1 bg-[var(--border-1)]" />
                   </div>
 
-                  <h3 className="text-[18px] font-semibold text-[var(--rf-charcoal)] mb-3">
-                    {step.title}
-                  </h3>
-                  <p className="text-[14px] text-[var(--ink-2)] leading-relaxed">
-                    {step.description}
-                  </p>
+                  <div className={`relative ${step.side === "left" ? "lg:text-right" : "lg:text-left"}`}>
+                    <span className="text-[10px] font-semibold tracking-[0.1em] text-[var(--ink-3)] uppercase block mb-2">
+                      Step {step.number}
+                    </span>
+                    <h3 className="text-[24px] font-bold text-[var(--rf-charcoal)] mb-4 leading-tight tracking-[-0.01em]">
+                      {step.title}
+                    </h3>
+                    <p className="text-[16px] text-[var(--ink-2)] leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* CTA */}
-        <div className="mt-20 text-center">
-          <a
-            href="#final-cta"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--rf-charcoal)] text-white rounded-full text-[15px] font-medium hover:scale-105 transition-transform duration-300 group"
-          >
-            Start Building
-            <ArrowRight
-              size={18}
-              className="group-hover:translate-x-1 transition-transform duration-200"
-            />
-          </a>
+                <div className={`hidden lg:block ${step.side === "right" ? "lg:order-1" : ""}`} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
