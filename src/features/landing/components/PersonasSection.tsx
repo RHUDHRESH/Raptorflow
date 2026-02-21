@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Rocket, Users, Building2 } from "lucide-react";
 import { useLandingStore } from "./LandingClient";
 

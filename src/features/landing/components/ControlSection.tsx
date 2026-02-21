@@ -156,10 +156,10 @@ export function ControlSection() {
           </div>
 
           <div className="space-y-20 lg:space-y-24">
-            {STEPS.map((step, i) => (
+            {STEPS.map((step) => (
               <div
                 key={step.number}
-                className={`timeline-step relative grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center will-change-transform`}
+                className="timeline-step relative grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center will-change-transform"
               >
                 <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-10 hidden lg:flex">
                   <div className="timeline-circle w-10 h-10 rounded-full bg-[var(--bg-canvas)] border-2 border-[var(--border-2)] flex items-center justify-center will-change-transform">
