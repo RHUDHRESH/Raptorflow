@@ -1,8 +1,0 @@
-INFO:     Will watch for changes in these directories: ['C:\\Users\\hp\\OneDrive\\Desktop\\Raptorflow']
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [68160] using WatchFiles
-WARNING:root:Failed to initialize auth service: AUTH_MODE environment variable is required. Set AUTH_MODE=demo, supabase, or disabled
-WARNING:backend.services:Failed to import auth_service: AUTH_MODE environment variable is required. Set AUTH_MODE=demo, supabase, or disabled
-INFO:     Started server process [41116]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.

@@ -1,7 +1,0 @@
-node_modules
-scripts
-backend
-supabase
-tests
-**/*.js
-legacy
