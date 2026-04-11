@@ -42,7 +42,13 @@ Organizations can launch data-driven marketing campaigns faster by leveraging AI
 11. Agent essences persist across sessions
 12. PRL decay policies apply correctly
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+**Plan list:**
+
+- [ ] 01-01-PLAN.md — Auth & Multi-Tenant Foundation (Clerk, JWT, RLS, webhooks)
+- [ ] 01-02-PLAN.md — Foundation Data Management (21-screen onboarding, snapshots, scan)
+- [ ] 01-03-PLAN.md — PRL Core (Ripples, edges, agent essences, decay)
 
 **UI hint:** yes
 
@@ -158,7 +164,7 @@ Organizations can launch data-driven marketing campaigns faster by leveraging AI
 
 | Phase                | Plans Complete | Status      | Completed |
 | -------------------- | -------------- | ----------- | --------- |
-| 1. Auth & Foundation | 0/15           | Not started | -         |
+| 1. Auth & Foundation | 3/3            | Planned     | -         |
 | 2. Campaign Core     | 0/10           | Not started | -         |
 | 3. Intelligence      | 0/5            | Not started | -         |
 | 4. AI Communication  | 0/9            | Not started | -         |

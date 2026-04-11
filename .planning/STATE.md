@@ -28,7 +28,7 @@
 
 | Phase | Name              | Status      | Requirements |
 | ----- | ----------------- | ----------- | ------------ |
-| 1     | Auth & Foundation | Not started | 15           |
+| 1     | Auth & Foundation | Planned     | 15           |
 | 2     | Campaign Core     | Not started | 10           |
 | 3     | Intelligence      | Not started | 5            |
 | 4     | AI Communication  | Not started | 9            |
