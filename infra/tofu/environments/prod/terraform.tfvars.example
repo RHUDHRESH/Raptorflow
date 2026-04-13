@@ -1,0 +1,10 @@
+aws_region         = "ap-south-1"
+name               = "raptorflow-prod"
+allowed_cidr       = "0.0.0.0/0"
+github_oidc_thumbprints = ["REPLACE_WITH_REAL_GITHUB_OIDC_THUMBPRINT"]
+certificate_arn    = "arn:aws:acm:ap-south-1:123456789012:certificate/prod"
+image_uri          = "123456789012.dkr.ecr.ap-south-1.amazonaws.com/raptorflow-api:prod"
+qdrant_image_uri   = "qdrant/qdrant:latest"
+dragonfly_ami_id   = "ami-REPLACE_WITH_HARDENED_DRAGONFLY_AMI"
+execution_role_arn = "arn:aws:iam::123456789012:role/raptorflow-prod-execution"
+task_role_arn      = "arn:aws:iam::123456789012:role/raptorflow-prod-task"

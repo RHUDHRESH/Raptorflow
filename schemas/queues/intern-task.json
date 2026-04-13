@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/queues/intern-task.json",
+  "title": "InternTaskEnvelope",
+  "type": "object",
+  "required": [
+    "job_type",
+    "org_id",
+    "task_id",
+    "parent_session_id",
+    "parent_agent_id",
+    "intern_avatar_key",
+    "task_type",
+    "urgency",
+    "query",
+    "specific_requirements",
+    "output_format",
+    "enqueued_at"
+  ],
+  "properties": {
+    "job_type": {
+      "const": "intern.dispatch"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "parent_session_id": {
+      "type": "string"
+    },
+    "parent_agent_id": {
+      "type": "string"
+    },
+    "intern_avatar_key": {
+      "type": "string"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "web_search",
+        "browser",
+        "competitive_analysis",
+        "performance_analysis",
+        "content_research",
+        "foundation_update",
+        "replanning_support"
+      ]
+    },
+    "urgency": {
+      "type": "string",
+      "enum": ["blocking", "background"]
+    },
+    "query": {
+      "type": "string"
+    },
+    "specific_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "output_format": {
+      "type": "string"
+    },
+    "enqueued_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

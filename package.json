@@ -1,0 +1,38 @@
+{
+  "name": "raptorflow",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": "10.33.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "sharp"
+    ]
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "setup:hooks": "git config core.hooksPath .githooks",
+    "smoke": "node scripts/smoke.mjs",
+    "scaffold:check": "node scripts/check-foundation-screens.mjs && node scripts/check-office-events.mjs && node scripts/check-job-registry.mjs",
+    "contracts:sync": "node scripts/sync-contracts.mjs",
+    "contracts:check": "node scripts/check-contracts.mjs",
+    "docs:check": "node scripts/check-docs.mjs",
+    "lint-staged": "pnpm lint && pnpm docs:check && pnpm scaffold:check"
+  },
+  "devDependencies": {
+    "@types/node": "24.0.0",
+    "prettier": "3.5.0",
+    "turbo": "2.5.0",
+    "typescript": "6.0.2"
+  }
+}

@@ -1,0 +1,59 @@
+# =============================================================================
+# RaptorFlow .gitignore
+# Production-scale: this repository is cloneable and runnable by any developer.
+# Only machine-generated and machine-specific files belong here.
+# =============================================================================
+
+# Node / web
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+dist/
+coverage/
+
+# Rust
+target/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+# Frontend env (never commit secrets or local overrides)
+apps/web/.env.local
+apps/web/.env.production.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Runtime
+tmp/
+.cache/
+artifacts/
+logs/
+
+# Terraform / OpenTofu
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+
+# =============================================================================
+# User-specific AI tooling — these directories are NOT shared across machines.
+# Each developer installs and configures their own AI coding tools.
+# =============================================================================
+.kilo/
+.zencoder/
+.zenflow/
+.planning/
+AGENTS.md
+TODO.md
+done/
+echo/
+-p/
+kilo.jsonc

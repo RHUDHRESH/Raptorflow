@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/domain/nudge.json",
+  "title": "Nudge",
+  "type": "object",
+  "required": [
+    "orgId",
+    "nudgeId",
+    "userId",
+    "nudgeType",
+    "priority",
+    "title",
+    "body",
+    "sourceType",
+    "sourceId",
+    "createdAt",
+    "suppressed"
+  ],
+  "properties": {
+    "orgId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "nudgeId": {
+      "type": "string"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "nudgeType": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "actionType": {
+      "type": "string"
+    },
+    "actionData": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "sourceType": {
+      "type": "string"
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deliveredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "viewedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actedOnAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "dismissedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "suppressed": {
+      "type": "boolean"
+    }
+  }
+}

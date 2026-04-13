@@ -1,0 +1,16 @@
+[package]
+name = "raptorflow-aws"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aws-config.workspace = true
+aws-sdk-s3.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+chrono.workspace = true
+raptorflow-config = { path = "../config" }

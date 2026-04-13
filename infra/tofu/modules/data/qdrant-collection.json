@@ -1,0 +1,18 @@
+{
+  "collection_name": "ripples",
+  "vectors": {
+    "size": 64,
+    "distance": "Cosine"
+  },
+  "hnsw_config": {
+    "m": 16,
+    "ef_construct": 128,
+    "full_scan_threshold": 10000
+  },
+  "quantization_config": {
+    "scalar": {
+      "type": "int8",
+      "always_ram": true
+    }
+  }
+}

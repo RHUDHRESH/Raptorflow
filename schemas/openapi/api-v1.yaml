@@ -1,0 +1,174 @@
+openapi: 3.1.0
+info:
+  title: RaptorFlow API
+  version: 0.1.0
+servers:
+  - url: https://api.raptorflow.example.com
+paths:
+  /api/v1/foundation:
+    get:
+      summary: Fetch current foundation snapshot
+      responses:
+        "200":
+          description: Foundation snapshot
+    patch:
+      summary: Update the live foundation snapshot
+      responses:
+        "202":
+          description: Foundation patch accepted
+  /api/v1/foundation/scan/quick:
+    post:
+      summary: Start a quick foundation scan
+      responses:
+        "202":
+          description: Quick scan accepted
+  /api/v1/foundation/scan/deep:
+    post:
+      summary: Start a deep foundation scan
+      responses:
+        "202":
+          description: Deep scan accepted
+  /api/v1/foundation/scans/{scanId}:
+    get:
+      summary: Fetch foundation scan status
+      responses:
+        "200":
+          description: Foundation scan status
+  /api/v1/foundation/versions:
+    get:
+      summary: List foundation versions
+      responses:
+        "200":
+          description: Foundation versions
+  /api/v1/foundation/versions/{versionId}:
+    get:
+      summary: Fetch a foundation version
+      responses:
+        "200":
+          description: Foundation version
+  /api/v1/foundation/versions/{versionId}/sections/{section}:
+    patch:
+      summary: Patch a section within a specific foundation version
+      responses:
+        "202":
+          description: Foundation version section patch accepted
+  /api/v1/campaigns:
+    get:
+      summary: List campaigns for the active org
+      responses:
+        "200":
+          description: Campaign collection
+  /api/v1/council:
+    post:
+      summary: Start a council session
+      responses:
+        "202":
+          description: Session accepted
+  /api/v1/muse:
+    post:
+      summary: Submit a Muse prompt
+      responses:
+        "202":
+          description: Prompt accepted
+  /api/v1/intel:
+    get:
+      summary: List intelligence artifacts
+      responses:
+        "200":
+          description: Intelligence artifacts
+  /api/v1/daily-wins:
+    get:
+      summary: Fetch the current Daily Wins briefing
+      responses:
+        "200":
+          description: Briefing
+  /api/v1/nudges:
+    get:
+      summary: List nudges
+      responses:
+        "200":
+          description: Nudge collection
+  /api/v1/billing:
+    get:
+      summary: Fetch subscription state
+      responses:
+        "200":
+          description: Billing state
+  /api/v1/office:
+    get:
+      summary: Fetch office presentation metadata
+      responses:
+        "200":
+          description: Office state
+  /api/v1/uploads:
+    post:
+      summary: Create upload intent
+      responses:
+        "201":
+          description: Upload intent
+  /api/v1/webhooks/clerk:
+    post:
+      summary: Receive Clerk webhook
+      responses:
+        "202":
+          description: Webhook accepted
+  /api/v1/webhooks/razorpay:
+    post:
+      summary: Receive Razorpay webhook
+      responses:
+        "202":
+          description: Webhook accepted
+  /api/v1/internal/jobs:
+    post:
+      summary: Trigger a privileged internal job
+      responses:
+        "202":
+          description: Job accepted
+  /api/v1/internal/jobs/surfaces:
+    get:
+      summary: List harness surfaces
+      responses:
+        "200":
+          description: Harness surfaces
+  /api/v1/internal/jobs/research:
+    post:
+      summary: Accept a research request
+      responses:
+        "202":
+          description: Research request accepted
+  /api/v1/internal/jobs/tool-gateway:
+    post:
+      summary: Accept a tool gateway request
+      responses:
+        "202":
+          description: Tool gateway request accepted
+  /api/v1/internal/jobs/intern-dispatch:
+    post:
+      summary: Dispatch an intern task
+      responses:
+        "202":
+          description: Intern task accepted
+  /api/v1/internal/jobs/stream-coordinator:
+    post:
+      summary: Coordinate a stream precheck or generation plan
+      responses:
+        "202":
+          description: Stream coordination accepted
+  /api/v1/internal/jobs/event-harvester:
+    post:
+      summary: Record an event for harvesting
+      responses:
+        "202":
+          description: Event accepted
+  /health/live:
+    get:
+      summary: Liveness probe
+      responses:
+        "200":
+          description: Service is live
+  /health/ready:
+    get:
+      summary: Readiness probe
+      responses:
+        "200":
+          description: Service is ready

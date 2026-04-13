@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/domain/daily-wins-brief.json",
+  "title": "DailyWinsBrief",
+  "type": "object",
+  "required": [
+    "orgId",
+    "briefingId",
+    "generatedAt",
+    "leadSummary",
+    "fullBriefing",
+    "recommendedAction",
+    "recommendedActionType"
+  ],
+  "properties": {
+    "orgId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "briefingId": {
+      "type": "string"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "leadSummary": {
+      "type": "string"
+    },
+    "fullBriefing": {
+      "type": "string"
+    },
+    "recommendedAction": {
+      "type": "string"
+    },
+    "recommendedActionType": {
+      "type": "string"
+    },
+    "recommendedActionData": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "viewedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actedOnAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actionOutcome": {
+      "type": "string"
+    }
+  }
+}

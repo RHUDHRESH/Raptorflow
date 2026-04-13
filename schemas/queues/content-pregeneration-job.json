@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/queues/content-pregeneration-job.json",
+  "title": "ContentPregenerationQueueMessage",
+  "type": "object",
+  "required": ["job_type", "org_id", "campaign_id", "scheduled_for"],
+  "properties": {
+    "job_type": {
+      "const": "content.pregenerate"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "scheduled_for": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

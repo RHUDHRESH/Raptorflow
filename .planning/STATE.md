@@ -1,79 +1,73 @@
-# State: RaptorFlow
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: planning
+stopped_at: Phase 01 UI-SPEC approved
+last_updated: "2026-04-12T06:56:06.385Z"
+last_activity: 2026-04-12 — Workspace initialized, starting UI phase
+progress:
+  percent: 0
+---
 
-**Project:** RaptorFlow - Marketing Intelligence & Campaign Orchestration
-**Current Phase:** Planning (pre-Phase 1)
-**Core Value:** Organizations can launch data-driven marketing campaigns faster by leveraging AI agent councils that debate and synthesize strategy, with real-time visualization through an interactive office canvas where AI avatars represent different strategic perspectives.
+# Project State
+
+## Project Reference
+
+See: .planning/PROJECT.md (updated 2026-04-12)
+
+**Core value:** Living marketing OS — human-led, AI-accelerated operational platform for campaign execution
+**Current focus:** Phase 1 — Frontend Foundation
 
 ## Current Position
 
-**Phase:** Planning
-**Focus:** Roadmap creation complete, ready for Phase 1 planning
+Phase: 1 of 1 (Frontend Foundation)
+Plan: 0 of 0 in current phase
+Status: Ready to plan
+Last activity: 2026-04-12 — Workspace initialized, starting UI phase
 
-**Roadmap Progress:**
-
-- Total phases: 6
-- Current phase: None (planning mode)
-- Next action: Plan Phase 1 via `/gsd-plan-phase 1`
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-| Metric              | Value |
-| ------------------- | ----- |
-| Total Phases        | 6     |
-| Total Requirements  | 36    |
-| Requirements Mapped | 36/36 |
-| Phases Complete     | 0/6   |
+**Velocity:**
 
-## Phase Status
+- Total plans completed: 0
+- Average duration: —
+- Total execution time: 0 hours
 
-| Phase | Name              | Status      | Requirements |
-| ----- | ----------------- | ----------- | ------------ |
-| 1     | Auth & Foundation | Planned     | 15           |
-| 2     | Campaign Core     | Not started | 10           |
-| 3     | Intelligence      | Not started | 5            |
-| 4     | AI Communication  | Not started | 9            |
-| 5     | Real-Time Office  | Not started | 5            |
-| 6     | Billing           | Not started | 4            |
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 1 | 0 | 0h | — |
+
+**Recent Trend:**
+
+- Last 5 plans: none yet
+- Trend: Stable
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
-### Key Decisions
+### Decisions
 
-| Decision                          | Rationale                                               | Phase   |
-| --------------------------------- | ------------------------------------------------------- | ------- |
-| PRL treated as Phase 1 dependency | Core memory infrastructure needed by council/office     | Phase 1 |
-| Content pipeline in Phase 2       | Depends on foundation data and campaign structure       | Phase 2 |
-| Billing isolated to Phase 6       | Can parallelize with other phases, depends only on auth | Phase 6 |
+- Phase 1: Design system locked as Charcoal/Ivory monochrome palette — no gold, no gradients
+- Phase 1: Typography locked as DM Sans (UI/headings) + JetBrains Mono (technical refs)
+- Phase 1: Layout shell: 280px rail, 56px topbar, 400px resizable drawer, 1120px max content
+- Phase 1: Motion: GSAP-first, functional only, no decorative animation
 
-### Research Flags
+### Pending Todos
 
-| Phase   | Flag                                     | Notes                                                  |
-| ------- | ---------------------------------------- | ------------------------------------------------------ |
-| Phase 3 | Legal boundaries for competitor scraping | Jurisdiction-dependent, evolving                       |
-| Phase 5 | PixiJS implementation                    | Limited references, real-time patterns well-documented |
+None yet.
 
-### Dependencies Discovered
+### Blockers/Concerns
 
-```
-AUTH + PRL (Phase 1)
-    ↓
-FOUND (Phase 1)
-    ↓
-CAMP + CONTENT (Phase 2)
-    ↓
-COUNC + MUSE (Phase 4)
-    ↓
-OFFICE (Phase 5)
-
-INTEL (Phase 3) - depends on FOUND
-BILL (Phase 6) - depends on AUTH only
-```
+None yet.
 
 ## Session Continuity
 
-**Created:** 2026-04-11
-**Next action:** `/gsd-plan-phase 1` to plan Auth & Foundation phase
-
----
-
-_State updated: 2026-04-11_
+Last session: 2026-04-12T06:56:06.349Z
+Stopped at: Phase 01 UI-SPEC approved
+Resume file: .planning/phase-01-frontend/01-UI-SPEC.md

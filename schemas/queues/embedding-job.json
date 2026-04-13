@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/queues/embedding-job.json",
+  "title": "EmbeddingQueueMessage",
+  "type": "object",
+  "required": ["job_type", "org_id", "ripple_id", "enqueued_at"],
+  "properties": {
+    "job_type": {
+      "const": "embedding.generate"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "ripple_id": {
+      "type": "string"
+    },
+    "enqueued_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

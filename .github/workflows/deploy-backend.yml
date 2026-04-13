@@ -1,0 +1,38 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-south-1
+      ECR_REPOSITORY: raptorflow-api
+      ECS_CLUSTER: raptorflow-prod
+      ECS_SERVICE: raptorflow-api
+      ECS_MIGRATION_TASK: raptorflow-migrate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.0
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+      - run: cargo build --release -p raptorflow-api
+      - run: docker build -f infra/docker/api/Dockerfile -t "$ECR_REPOSITORY:${GITHUB_SHA}" .
+      - run: docker tag "$ECR_REPOSITORY:${GITHUB_SHA}" "${{ secrets.ECR_REGISTRY }}/$ECR_REPOSITORY:${GITHUB_SHA}"
+      - run: docker push "${{ secrets.ECR_REGISTRY }}/$ECR_REPOSITORY:${GITHUB_SHA}"
+      - name: Run migrations
+        run: aws ecs run-task --cluster "$ECS_CLUSTER" --task-definition "$ECS_MIGRATION_TASK"
+      - name: Trigger rolling update
+        run: aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" --force-new-deployment

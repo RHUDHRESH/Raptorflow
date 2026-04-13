@@ -1,0 +1,15 @@
+{
+  "surface": "office",
+  "purpose": "Placeholder asset map for the PixiJS office canvas",
+  "groups": {
+    "backgrounds": "Office floor, rooms, and environmental art placeholders",
+    "characters": "Spritesheet and avatar placeholders for Council and interns",
+    "snark": "Speech bubble, reaction, and office chat placeholders",
+    "floor-plan": "Room map and layout placeholders for the office viewport",
+    "debug": "Diagnostic overlays and transport visualization placeholders"
+  },
+  "notes": [
+    "This file exists so the public asset tree is tracked before real art lands.",
+    "The actual PixiJS runtime will load concrete spritesheets and atlases later."
+  ]
+}

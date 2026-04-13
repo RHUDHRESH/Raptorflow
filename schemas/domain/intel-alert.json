@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/domain/intel-alert.json",
+  "title": "IntelAlert",
+  "type": "object",
+  "required": [
+    "orgId",
+    "alertId",
+    "sourceType",
+    "sourceId",
+    "alertType",
+    "significance",
+    "title",
+    "summary",
+    "capturedAt"
+  ],
+  "properties": {
+    "orgId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "alertId": {
+      "type": "string"
+    },
+    "campaignId": {
+      "type": "string"
+    },
+    "sourceType": {
+      "type": "string"
+    },
+    "sourceId": {
+      "type": "string"
+    },
+    "alertType": {
+      "type": "string"
+    },
+    "significance": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deliveredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolvedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

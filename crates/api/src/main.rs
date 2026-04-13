@@ -1,0 +1,63 @@
+//! RaptorFlow API server entry point.
+//!
+//! This binary initialises the Axum HTTP server with all route modules wired in
+//! via `raptorflow_http::create_router`. It bootstraps:
+//!
+//! - `Settings` from environment variables (via `raptorflow_config`)
+//! - PostgreSQL connection pool (via `raptorflow_db`)
+//! - Redis cache service (via `raptorflow_cache`) for replay protection
+//! - Clerk JWT validation middleware (domain read from settings)
+//! - The main router built in the `http` crate
+//!
+//! The server binds to `0.0.0.0:8080` in all environments. Configure the port
+//! via the `APP_PORT` environment variable if needed.
+
+use raptorflow_config::Settings;
+use raptorflow_db::PgPool;
+use raptorflow_http::create_router;
+use raptorflow_http::middleware::AppState;
+use std::sync::Arc;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    tracing::info!("Starting RaptorFlow API server");
+
+    dotenvy::dotenv().ok();
+
+    let settings = Arc::new(Settings::from_env()?);
+
+    let db_pool = if settings.database_url.starts_with("postgres") {
+        let pool = PgPool::connect(&settings.database_url).await?;
+        Some(Arc::new(pool))
+    } else {
+        tracing::warn!("Database URL not configured, running without database");
+        None
+    };
+
+    // # FIXED: initialize cache service for Clerk webhook replay protection and other caching
+    let cache_service = match raptorflow_cache::CacheService::from_settings(&settings).await {
+        Ok(cache) => {
+            tracing::info!("Cache service initialized successfully");
+            Some(Arc::new(cache))
+        }
+        Err(e) => {
+            tracing::warn!(error = %e, "Failed to initialize cache service, running without caching");
+            None
+        }
+    };
+
+    let clerk_domain = settings.clerk_issuer.clone();
+    let state = AppState::new(db_pool, clerk_domain, settings, cache_service);
+
+    let app = create_router(state);
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
+        .await
+        .expect("Failed to bind to port 8080");
+
+    tracing::info!("API server listening on 0.0.0.0:8080");
+
+    axum::serve(listener, app).await?;
+
+    Ok(())
+}

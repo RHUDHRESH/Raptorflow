@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/queues/research-request.json",
+  "title": "ResearchRequestEnvelope",
+  "type": "object",
+  "required": [
+    "job_type",
+    "org_id",
+    "request_id",
+    "parent_agent_id",
+    "request_kind",
+    "urgency",
+    "query",
+    "required_sources",
+    "output_format",
+    "enqueued_at"
+  ],
+  "properties": {
+    "job_type": {
+      "const": "research.request"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "parent_session_id": {
+      "type": "string"
+    },
+    "parent_agent_id": {
+      "type": "string"
+    },
+    "request_kind": {
+      "type": "string",
+      "enum": [
+        "web_search",
+        "browser",
+        "competitive_analysis",
+        "performance_analysis",
+        "content_research"
+      ]
+    },
+    "urgency": {
+      "type": "string",
+      "enum": ["blocking", "background"]
+    },
+    "query": {
+      "type": "string"
+    },
+    "required_sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "output_format": {
+      "type": "string"
+    },
+    "enqueued_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

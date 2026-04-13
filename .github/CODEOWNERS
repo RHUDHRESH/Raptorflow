@@ -1,0 +1,7 @@
+* @raptorflow/platform
+
+/apps/web/ @raptorflow/frontend
+/crates/ @raptorflow/backend
+/infra/ @raptorflow/platform
+/database/ @raptorflow/data
+/docs/ @raptorflow/platform

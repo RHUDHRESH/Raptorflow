@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/ws/council-events.json",
+  "title": "CouncilStreamEvent",
+  "type": "object",
+  "required": ["type", "session_id", "org_id", "timestamp"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "council.started",
+        "council.position",
+        "council.synthesis",
+        "council.reconnect"
+      ]
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
