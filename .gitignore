@@ -35,6 +35,7 @@ tmp/
 .cache/
 artifacts/
 logs/
+*.log
 
 # Terraform / OpenTofu
 .terraform/
