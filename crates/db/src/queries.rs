@@ -1,10 +1,12 @@
 use sqlx::{PgPool, Row};
-use crate::models::{Organization, OrgUser, FoundationSnapshot, Ripple, RippleEdge, AgentEssence, Subscription};
+use crate::models::{Organization, OrgUser, FoundationSnapshot, Ripple, RippleEdge, AgentEssence, Subscription, FoundationSection, FoundationScan};
 
 pub async fn get_organizations(pool: &PgPool) -> Result<Vec<Organization>, sqlx::Error> {
     let rows = sqlx::query(
         r#"
-        SELECT org_id, name, subscription_status, foundation_version, created_at, updated_at
+        SELECT org_id, name, subscription_status, foundation_version,
+               foundation_complete, foundation_json, foundation_completed_at,
+               created_at, updated_at
         FROM organizations
         WHERE org_id = app.current_org_id()
         "#,
@@ -18,6 +20,9 @@ pub async fn get_organizations(pool: &PgPool) -> Result<Vec<Organization>, sqlx:
             name: row.get("name"),
             subscription_status: row.get("subscription_status"),
             foundation_version: row.get("foundation_version"),
+            foundation_complete: row.get("foundation_complete"),
+            foundation_json: row.get("foundation_json"),
+            foundation_completed_at: row.get("foundation_completed_at"),
             created_at: row.get("created_at"),
             updated_at: row.get("updated_at"),
         })
@@ -149,7 +154,7 @@ pub async fn get_ripples(pool: &PgPool) -> Result<Vec<Ripple>, sqlx::Error> {
         r#"
         SELECT ripple_id, org_id, agent_id, campaign_id, scope, hierarchy_level, memory_class,
                source, trigger_text, raw_text, summary_text, salience, confidence,
-               importance_band, state, created_at
+               importance_band, prediction_json, created_at
         FROM ripples
         WHERE org_id = app.current_org_id()
         ORDER BY created_at DESC
@@ -177,14 +182,7 @@ pub async fn get_ripples(pool: &PgPool) -> Result<Vec<Ripple>, sqlx::Error> {
             salience: row.get("salience"),
             confidence: row.get("confidence"),
             importance_band: row.get("importance_band"),
-            prediction_json: None,
-            actual_json: None,
-            prediction_error: None,
-            precision_weight: 1.0,
-            retention_band: "hot".to_string(),
-            activation_count: 0,
-            last_activated_at: None,
-            state: row.get("state"),
+            prediction_json: row.get("prediction_json"),
             created_at: row.get("created_at"),
         })
     }).collect()
@@ -345,19 +343,17 @@ pub async fn create_subscription(
     pool: &PgPool,
     subscription_id: uuid::Uuid,
     org_id: uuid::Uuid,
-    plan_id: &str,
-    plan_name: &str,
+    status: &str,
 ) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
-        INSERT INTO subscriptions (subscription_id, org_id, plan_id, plan_name, status)
-        VALUES ($1, $2, $3, $4, 'active')
+        INSERT INTO subscriptions (subscription_id, org_id, status)
+        VALUES ($1, $2, $3)
         "#,
     )
     .bind(subscription_id)
     .bind(org_id)
-    .bind(plan_id)
-    .bind(plan_name)
+    .bind(status)
     .execute(pool)
     .await?;
     Ok(())
@@ -365,18 +361,18 @@ pub async fn create_subscription(
 
 pub async fn update_subscription_status(
     pool: &PgPool,
-    razorpay_subscription_id: &str,
+    subscription_id: &str,
     status: &str,
 ) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE subscriptions
         SET status = $1, updated_at = NOW()
-        WHERE razorpay_subscription_id = $2
+        WHERE subscription_id::text = $2
         "#,
     )
     .bind(status)
-    .bind(razorpay_subscription_id)
+    .bind(subscription_id)
     .execute(pool)
     .await?;
     Ok(())
@@ -385,19 +381,18 @@ pub async fn update_subscription_status(
 pub async fn get_subscription_by_razorpay_id(
     pool: &PgPool,
     org_id: uuid::Uuid,
-    razorpay_subscription_id: &str,
+    subscription_id_str: &str,
 ) -> Result<Option<Subscription>, sqlx::Error> {
     let row = sqlx::query_as::<_, Subscription>(
         r#"
-        SELECT subscription_id, org_id, razorpay_subscription_id, plan_id, plan_name,
-               status, current_period_start, current_period_end, cancel_at_period_end,
-               created_at, updated_at
+        SELECT subscription_id, org_id, provider, status, plan_amount_inr,
+               grace_period_ends_at, created_at, updated_at
         FROM subscriptions
-        WHERE org_id = $1 AND razorpay_subscription_id = $2
+        WHERE org_id = $1 AND subscription_id::text = $2
         "#,
     )
     .bind(org_id)
-    .bind(razorpay_subscription_id)
+    .bind(subscription_id_str)
     .fetch_optional(pool)
     .await?;
 
@@ -432,6 +427,174 @@ pub async fn create_payment_event(
     .bind(amount)
     .bind(currency)
     .bind(status)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn upsert_foundation_section(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    section_key: &str,
+    value: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO foundation_sections (org_id, section_key, value, updated_at)
+        VALUES ($1, $2, $3, now())
+        ON CONFLICT (org_id, section_key)
+        DO UPDATE SET value = $3, updated_at = now()
+        "#,
+    )
+    .bind(org_id)
+    .bind(section_key)
+    .bind(value)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn get_foundation_sections(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<FoundationSection>, sqlx::Error> {
+    let rows = sqlx::query(
+        r#"
+        SELECT org_id, section_key, value, updated_at
+        FROM foundation_sections
+        WHERE org_id = $1
+        ORDER BY updated_at DESC
+        "#,
+    )
+    .bind(org_id)
+    .fetch_all(pool)
+    .await?;
+
+    rows.iter().map(|row| {
+        Ok(FoundationSection {
+            org_id: row.get("org_id"),
+            section_key: row.get("section_key"),
+            value: row.get("value"),
+            updated_at: row.get("updated_at"),
+        })
+    }).collect()
+}
+
+pub async fn create_foundation_scan(
+    pool: &PgPool,
+    scan_id: &str,
+    org_id: uuid::Uuid,
+    url: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO foundation_scans (scan_id, org_id, url, status, started_at)
+        VALUES ($1, $2, $3, 'running', now())
+        "#,
+    )
+    .bind(scan_id)
+    .bind(org_id)
+    .bind(url)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn get_foundation_scan(
+    pool: &PgPool,
+    scan_id: &str,
+) -> Result<Option<FoundationScan>, sqlx::Error> {
+    let row = sqlx::query_as::<_, FoundationScan>(
+        r#"
+        SELECT scan_id, org_id, url, status, quick_scan_data, deep_scan_data, started_at, completed_at
+        FROM foundation_scans
+        WHERE scan_id = $1
+        "#,
+    )
+    .bind(scan_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+pub async fn get_latest_foundation_scan(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Option<FoundationScan>, sqlx::Error> {
+    let row = sqlx::query_as::<_, FoundationScan>(
+        r#"
+        SELECT scan_id, org_id, url, status, quick_scan_data, deep_scan_data, started_at, completed_at
+        FROM foundation_scans
+        WHERE org_id = $1
+        ORDER BY started_at DESC
+        LIMIT 1
+        "#,
+    )
+    .bind(org_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+pub async fn update_foundation_scan(
+    pool: &PgPool,
+    scan_id: &str,
+    status: &str,
+    quick_scan_data: Option<&serde_json::Value>,
+    deep_scan_data: Option<&serde_json::Value>,
+) -> Result<(), sqlx::Error> {
+    if status == "complete" || status == "failed" {
+        sqlx::query(
+            r#"
+            UPDATE foundation_scans
+            SET status = $1, quick_scan_data = COALESCE($2, quick_scan_data),
+                deep_scan_data = COALESCE($3, deep_scan_data), completed_at = now()
+            WHERE scan_id = $4
+            "#,
+        )
+        .bind(status)
+        .bind(quick_scan_data)
+        .bind(deep_scan_data)
+        .bind(scan_id)
+        .execute(pool)
+        .await?;
+    } else {
+        sqlx::query(
+            r#"
+            UPDATE foundation_scans
+            SET status = $1, quick_scan_data = COALESCE($2, quick_scan_data),
+                deep_scan_data = COALESCE($3, deep_scan_data)
+            WHERE scan_id = $4
+            "#,
+        )
+        .bind(status)
+        .bind(quick_scan_data)
+        .bind(deep_scan_data)
+        .bind(scan_id)
+        .execute(pool)
+        .await?;
+    }
+    Ok(())
+}
+
+pub async fn complete_foundation(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    foundation_json: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE organizations
+        SET foundation_complete = true,
+            foundation_json = $2,
+            foundation_completed_at = now(),
+            foundation_version = foundation_version + 1,
+            updated_at = now()
+        WHERE org_id = $1
+        "#,
+    )
+    .bind(org_id)
+    .bind(foundation_json)
     .execute(pool)
     .await?;
     Ok(())

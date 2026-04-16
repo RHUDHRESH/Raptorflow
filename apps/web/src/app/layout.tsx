@@ -1,29 +1,28 @@
 import type * as React from "react";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
+import { DM_Sans, Fraunces, JetBrains_Mono } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
 import "./globals.css";
 
-const bodyFont = IBM_Plex_Sans({
+const bodyFont = DM_Sans({
   subsets: ["latin"],
   variable: "--font-body",
 });
 
-const displayFont = Space_Grotesk({
+const displayFont = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
 });
-const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-if (!clerkPublishableKey) {
-  throw new Error(
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not set. Copy apps/web/.env.example to apps/web/.env.local and fill in your Clerk publishable key.",
-  );
-}
+
+const monoFont = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
-  title: "RaptorFlow",
-  description: "Production scaffold for the living marketing office.",
+  title: "RaptorFlow | Your Marketing Office",
+  description: "Stop managing a tool. Start managing a team. 21 AI Strategists.",
 };
 
 export default function RootLayout({
@@ -32,9 +31,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>): React.ReactElement {
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
-      <html lang="en">
-        <body className={`${bodyFont.variable} ${displayFont.variable}`}>
+    <ClerkProvider>
+      <html
+        lang="en"
+        className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable}`}
+      >
+        <body className="font-body text-[var(--foreground)] bg-[var(--background)] antialiased min-h-screen">
           <AppProviders>{children}</AppProviders>
         </body>
       </html>

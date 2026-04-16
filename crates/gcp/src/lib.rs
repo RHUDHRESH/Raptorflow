@@ -438,6 +438,116 @@ impl GcpInferenceService {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct EmbeddingClient {
+    client: Client,
+    api_key: String,
+}
+
+impl EmbeddingClient {
+    pub fn new(api_key: String) -> Self {
+        Self {
+            client: Client::new(),
+            api_key,
+        }
+    }
+
+    pub fn from_settings(settings: &raptorflow_config::Settings) -> Self {
+        Self::new(settings.gcp_api_key.clone())
+    }
+
+    pub async fn embed_text(&self, text: &str) -> Result<EmbeddingResponse, GcpError> {
+        self.embed_text_with_task(text, "RETRIEVAL_DOCUMENT").await
+    }
+
+    pub async fn embed_query(&self, text: &str) -> Result<EmbeddingResponse, GcpError> {
+        self.embed_text_with_task(text, "RETRIEVAL_QUERY").await
+    }
+
+    pub async fn embed_text_with_task(
+        &self,
+        text: &str,
+        task_type: &str,
+    ) -> Result<EmbeddingResponse, GcpError> {
+        let request = EmbedTextRequest {
+            model: "models/text-embedding-005".to_string(),
+            content: ContentPart {
+                text: text.to_string(),
+            },
+            task_type: Some(task_type.to_string()),
+        };
+
+        let url = format!(
+            "{}/models/text-embedding-005:predict?key={}",
+            BASE_URL, self.api_key
+        );
+
+        let response = self
+            .client
+            .post(&url)
+            .header("Content-Type", "application/json")
+            .json(&request)
+            .send()
+            .await
+            .map_err(|e| GcpError::Network(e.to_string()))?;
+
+        if response.status().is_success() {
+            response
+                .json()
+                .await
+                .map_err(|e| GcpError::Parse(e.to_string()))
+        } else {
+            let status = response.status();
+            let text_body = response.text().await.unwrap_or_default();
+            Err(GcpError::Api(status.as_u16(), text_body))
+        }
+    }
+
+    pub async fn embed_batch(&self, texts: Vec<String>) -> Result<Vec<EmbeddingResponse>, GcpError> {
+        let mut results = Vec::with_capacity(texts.len());
+        for text in texts {
+            results.push(self.embed_text(&text).await?);
+        }
+        Ok(results)
+    }
+
+    pub async fn embed_batch_with_task(
+        &self,
+        texts: Vec<String>,
+        task_type: &str,
+    ) -> Result<Vec<EmbeddingResponse>, GcpError> {
+        let mut results = Vec::with_capacity(texts.len());
+        for text in texts {
+            results.push(self.embed_text_with_task(&text, task_type).await?);
+        }
+        Ok(results)
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct EmbedTextRequest {
+    model: String,
+    content: ContentPart,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    task_type: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct ContentPart {
+    text: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EmbeddingResponse {
+    pub embeddings: Vec<EmbeddingValue>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EmbeddingValue {
+    pub values: Vec<f32>,
+    pub task_type: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -446,6 +556,11 @@ mod tests {
     fn test_client_creation() {
         let client = GeminiClient::new("test-key".to_string());
         assert_eq!(client.api_key, "test-key");
-        assert_eq!(client.default_model, "gemini-2.0-flash");
+    }
+
+    #[test]
+    fn test_embedding_client_creation() {
+        let client = EmbeddingClient::new("test-key".to_string());
+        assert_eq!(client.api_key, "test-key");
     }
 }

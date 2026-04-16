@@ -17,6 +17,7 @@ chrono.workspace = true
 bytes.workspace = true
 sqlx.workspace = true
 reqwest.workspace = true
+scraper.workspace = true
 async-trait.workspace = true
 raptorflow-aws = { path = "../aws" }
 raptorflow-auth = { path = "../auth" }
@@ -24,7 +25,10 @@ raptorflow-billing = { path = "../billing" }
 raptorflow-cache = { path = "../cache" }
 raptorflow-db = { path = "../db" }
 raptorflow-config = { path = "../config" }
+raptorflow-foundation = { path = "../foundation" }
 raptorflow-prl = { path = "../prl" }
+raptorflow-intel = { path = "../intel" }
+raptorflow-jobs = { path = "../jobs" }
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true

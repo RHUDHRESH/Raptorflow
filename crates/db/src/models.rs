@@ -8,8 +8,31 @@ pub struct Organization {
     pub name: String,
     pub subscription_status: String,
     pub foundation_version: i32,
+    pub foundation_complete: bool,
+    pub foundation_json: Option<serde_json::Value>,
+    pub foundation_completed_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct FoundationSection {
+    pub org_id: uuid::Uuid,
+    pub section_key: String,
+    pub value: serde_json::Value,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct FoundationScan {
+    pub scan_id: String,
+    pub org_id: uuid::Uuid,
+    pub url: String,
+    pub status: String,
+    pub quick_scan_data: Option<serde_json::Value>,
+    pub deep_scan_data: Option<serde_json::Value>,
+    pub started_at: DateTime<Utc>,
+    pub completed_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -61,7 +84,7 @@ pub struct Ripple {
     pub ripple_id: String,
     pub org_id: uuid::Uuid,
     pub agent_id: uuid::Uuid,
-    pub campaign_id: Option<uuid::Uuid>,
+    pub campaign_id: Option<String>,
     pub scope: String,
     pub hierarchy_level: i32,
     pub memory_class: String,
@@ -76,13 +99,6 @@ pub struct Ripple {
     pub confidence: f64,
     pub importance_band: String,
     pub prediction_json: Option<serde_json::Value>,
-    pub actual_json: Option<serde_json::Value>,
-    pub prediction_error: Option<f64>,
-    pub precision_weight: f64,
-    pub retention_band: String,
-    pub activation_count: i32,
-    pub last_activated_at: Option<DateTime<Utc>>,
-    pub state: String,
     pub created_at: DateTime<Utc>,
 }
 
@@ -126,13 +142,10 @@ pub struct AgentEssence {
 pub struct Subscription {
     pub subscription_id: uuid::Uuid,
     pub org_id: uuid::Uuid,
-    pub razorpay_subscription_id: Option<String>,
-    pub plan_id: String,
-    pub plan_name: String,
+    pub provider: String,
     pub status: String,
-    pub current_period_start: Option<DateTime<Utc>>,
-    pub current_period_end: Option<DateTime<Utc>>,
-    pub cancel_at_period_end: bool,
+    pub plan_amount_inr: i32,
+    pub grace_period_ends_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

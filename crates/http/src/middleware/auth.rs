@@ -33,6 +33,11 @@ pub async fn auth_middleware(
         .cloned()
         .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
 
+    // Use dev bypass if enabled (for local development only)
+    if state.settings.allow_insecure_dev_auth {
+        return crate::middleware::dev_bypass::dev_auth_middleware(request, next).await;
+    }
+
     let auth_header = request
         .headers()
         .get(AUTHORIZATION)
@@ -52,9 +57,11 @@ pub async fn auth_middleware(
         .map_err(|_| StatusCode::FORBIDDEN)?;
 
     let auth_context = AuthContext::new(claims, tenant);
+    let tenant_context = auth_context.tenant.clone();
 
     let mut request = request;
     request.extensions_mut().insert(auth_context);
+    request.extensions_mut().insert(tenant_context);
 
     Ok(next.run(request).await)
 }

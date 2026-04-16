@@ -5,107 +5,20 @@ info:
 servers:
   - url: https://api.raptorflow.example.com
 paths:
-  /api/v1/foundation:
+  /health/live:
     get:
-      summary: Fetch current foundation snapshot
+      summary: Liveness probe
       responses:
         "200":
-          description: Foundation snapshot
-    patch:
-      summary: Update the live foundation snapshot
-      responses:
-        "202":
-          description: Foundation patch accepted
-  /api/v1/foundation/scan/quick:
-    post:
-      summary: Start a quick foundation scan
-      responses:
-        "202":
-          description: Quick scan accepted
-  /api/v1/foundation/scan/deep:
-    post:
-      summary: Start a deep foundation scan
-      responses:
-        "202":
-          description: Deep scan accepted
-  /api/v1/foundation/scans/{scanId}:
+          description: Service is live
+  /health/ready:
     get:
-      summary: Fetch foundation scan status
+      summary: Readiness probe
       responses:
         "200":
-          description: Foundation scan status
-  /api/v1/foundation/versions:
-    get:
-      summary: List foundation versions
-      responses:
-        "200":
-          description: Foundation versions
-  /api/v1/foundation/versions/{versionId}:
-    get:
-      summary: Fetch a foundation version
-      responses:
-        "200":
-          description: Foundation version
-  /api/v1/foundation/versions/{versionId}/sections/{section}:
-    patch:
-      summary: Patch a section within a specific foundation version
-      responses:
-        "202":
-          description: Foundation version section patch accepted
-  /api/v1/campaigns:
-    get:
-      summary: List campaigns for the active org
-      responses:
-        "200":
-          description: Campaign collection
-  /api/v1/council:
-    post:
-      summary: Start a council session
-      responses:
-        "202":
-          description: Session accepted
-  /api/v1/muse:
-    post:
-      summary: Submit a Muse prompt
-      responses:
-        "202":
-          description: Prompt accepted
-  /api/v1/intel:
-    get:
-      summary: List intelligence artifacts
-      responses:
-        "200":
-          description: Intelligence artifacts
-  /api/v1/daily-wins:
-    get:
-      summary: Fetch the current Daily Wins briefing
-      responses:
-        "200":
-          description: Briefing
-  /api/v1/nudges:
-    get:
-      summary: List nudges
-      responses:
-        "200":
-          description: Nudge collection
-  /api/v1/billing:
-    get:
-      summary: Fetch subscription state
-      responses:
-        "200":
-          description: Billing state
-  /api/v1/office:
-    get:
-      summary: Fetch office presentation metadata
-      responses:
-        "200":
-          description: Office state
-  /api/v1/uploads:
-    post:
-      summary: Create upload intent
-      responses:
-        "201":
-          description: Upload intent
+          description: Dependencies healthy
+        "503":
+          description: Dependency failure
   /api/v1/webhooks/clerk:
     post:
       summary: Receive Clerk webhook
@@ -118,57 +31,237 @@ paths:
       responses:
         "202":
           description: Webhook accepted
-  /api/v1/internal/jobs:
-    post:
-      summary: Trigger a privileged internal job
-      responses:
-        "202":
-          description: Job accepted
-  /api/v1/internal/jobs/surfaces:
+  /api/v1/billing:
     get:
-      summary: List harness surfaces
+      summary: Fetch billing status
       responses:
         "200":
-          description: Harness surfaces
-  /api/v1/internal/jobs/research:
+          description: Billing state
+  /api/v1/billing/orders:
     post:
-      summary: Accept a research request
+      summary: Create order
       responses:
         "202":
-          description: Research request accepted
-  /api/v1/internal/jobs/tool-gateway:
-    post:
-      summary: Accept a tool gateway request
-      responses:
-        "202":
-          description: Tool gateway request accepted
-  /api/v1/internal/jobs/intern-dispatch:
-    post:
-      summary: Dispatch an intern task
-      responses:
-        "202":
-          description: Intern task accepted
-  /api/v1/internal/jobs/stream-coordinator:
-    post:
-      summary: Coordinate a stream precheck or generation plan
-      responses:
-        "202":
-          description: Stream coordination accepted
-  /api/v1/internal/jobs/event-harvester:
-    post:
-      summary: Record an event for harvesting
-      responses:
-        "202":
-          description: Event accepted
-  /health/live:
+          description: Order accepted
+  /api/v1/billing/subscriptions/{id}:
     get:
-      summary: Liveness probe
+      summary: Get subscription
       responses:
         "200":
-          description: Service is live
-  /health/ready:
-    get:
-      summary: Readiness probe
+          description: Subscription
+  /api/v1/billing/subscriptions/{id}/cancel:
+    post:
+      summary: Cancel subscription
+      responses:
+        "202":
+          description: Cancellation accepted
+  /api/v1/uploads:
+    post:
+      summary: Generate upload URL
       responses:
         "200":
-          description: Service is ready
+          description: Upload URL
+  /api/v1/uploads/download:
+    get:
+      summary: Generate download URL
+      responses:
+        "200":
+          description: Download URL
+  /api/v1/uploads/{key}:
+    delete:
+      summary: Delete upload
+      responses:
+        "204":
+          description: Deleted
+  /api/v1/screenshots:
+    post:
+      summary: Generate screenshot upload URL
+      responses:
+        "200":
+          description: Upload URL
+  /api/v1/exports:
+    post:
+      summary: Generate export URL
+      responses:
+        "200":
+          description: Export URL
+  /api/v1/exports/download:
+    get:
+      summary: Generate export download URL
+      responses:
+        "200":
+          description: Download URL
+  /api/v1/foundation:
+    get:
+      summary: Get current foundation snapshot
+      responses:
+        "200":
+          description: Snapshot found
+        "404":
+          description: Foundation not found
+    post:
+      summary: Create foundation snapshot
+      responses:
+        "200":
+          description: Snapshot created
+  /api/v1/foundation/scan/start:
+    post:
+      summary: Start foundation scan
+      responses:
+        "200":
+          description: Scan started
+  /api/v1/foundation/scan/status:
+    get:
+      summary: Get latest foundation scan status
+      responses:
+        "200":
+          description: Scan status
+  /api/v1/foundation/section/{section}:
+    patch:
+      summary: Update foundation section
+      responses:
+        "200":
+          description: Section updated
+  /api/v1/foundation/snapshot:
+    get:
+      summary: Get full foundation section snapshot
+      responses:
+        "200":
+          description: Snapshot data
+  /api/v1/foundation/complete:
+    post:
+      summary: Complete foundation flow
+      responses:
+        "200":
+          description: Foundation completed
+  /api/v1/foundation/snapshots:
+    get:
+      summary: List foundation snapshots
+      responses:
+        "200":
+          description: Snapshot list
+    post:
+      summary: Create foundation snapshot from current state
+      responses:
+        "200":
+          description: Snapshot created
+  /api/v1/foundation/snapshots/{id}:
+    get:
+      summary: Get foundation snapshot by id
+      responses:
+        "200":
+          description: Snapshot found
+        "404":
+          description: Snapshot not found
+  /api/v1/foundation/snapshots/{id}/restore:
+    post:
+      summary: Restore foundation snapshot
+      responses:
+        "200":
+          description: Snapshot restored
+  /api/v1/prl/ripples:
+    get:
+      summary: List ripples
+      responses:
+        "200":
+          description: Ripple list
+    post:
+      summary: Create ripple
+      responses:
+        "201":
+          description: Ripple created
+  /api/v1/prl/ripples/{id}:
+    get:
+      summary: Get ripple
+      responses:
+        "200":
+          description: Ripple
+        "404":
+          description: Ripple not found
+    put:
+      summary: Update ripple
+      responses:
+        "200":
+          description: Ripple updated
+    delete:
+      summary: Delete ripple
+      responses:
+        "204":
+          description: Ripple deleted
+  /api/v1/prl/ripples/{id}/edges:
+    get:
+      summary: List ripple edges
+      responses:
+        "200":
+          description: Edge list
+    post:
+      summary: Create ripple edge
+      responses:
+        "201":
+          description: Edge created
+  /api/v1/prl/ripples/edges/{edge_id}:
+    delete:
+      summary: Delete ripple edge
+      responses:
+        "204":
+          description: Edge deleted
+  /api/v1/prl/essences:
+    get:
+      summary: List essences
+      responses:
+        "200":
+          description: Essence list
+    post:
+      summary: Create essence
+      responses:
+        "201":
+          description: Essence created
+  /api/v1/prl/essences/{id}:
+    get:
+      summary: Get essence
+      responses:
+        "200":
+          description: Essence
+        "404":
+          description: Essence not found
+    put:
+      summary: Update essence
+      responses:
+        "200":
+          description: Essence updated
+  /api/v1/prl/decay:
+    post:
+      summary: Run decay
+      responses:
+        "200":
+          description: Decay applied
+  /api/v1/intel:
+    get:
+      summary: Get intel overview
+      responses:
+        "200":
+          description: Intel overview
+  /api/v1/intel/runs:
+    get:
+      summary: List research runs
+      responses:
+        "200":
+          description: Research run list
+  /api/v1/intel/documents:
+    get:
+      summary: List research documents
+      responses:
+        "200":
+          description: Research documents
+  /api/v1/jobs/research:
+    post:
+      summary: Execute research request
+      responses:
+        "200":
+          description: Grounded result
+  /api/v1/jobs/tool-gateway:
+    post:
+      summary: Execute tool request through grounded research pipeline
+      responses:
+        "200":
+          description: Tool execution result

@@ -18,12 +18,31 @@ pub struct CreateOrderRequest {
     pub currency: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PlanTier {
+    Ascend,
+    Glide,
+    Soar,
+    Enterprise,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlanDetails {
+    pub tier: PlanTier,
+    pub name: String,
+    pub price_inr_monthly: i64,
+    pub description: String,
+    pub features: Vec<String>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct BillingStatusResponse {
     pub provider: String,
-    pub monthly_price_inr: i64,
+    pub currency: String,
     pub grace_period_days: i32,
     pub subscription_status: Option<String>,
+    pub current_plan: Option<PlanDetails>,
+    pub available_plans: Vec<PlanDetails>,
     pub org_id: String,
 }
 
@@ -51,11 +70,64 @@ pub async fn billing_status(
         None
     };
 
+    let available_plans = vec![
+        PlanDetails {
+            tier: PlanTier::Ascend,
+            name: "Ascend".to_string(),
+            price_inr_monthly: 5000,
+            description: "Perfect for small businesses starting with AI marketing".to_string(),
+            features: vec![
+                "21 AI Agents with persistent memory".to_string(),
+                "Campaign management".to_string(),
+                "Basic intel monitoring".to_string(),
+                "Daily wins briefings".to_string(),
+            ],
+        },
+        PlanDetails {
+            tier: PlanTier::Glide,
+            name: "Glide".to_string(),
+            price_inr_monthly: 7000,
+            description: "For growing businesses needing advanced AI insights".to_string(),
+            features: vec![
+                "Everything in Ascend".to_string(),
+                "Advanced council debates".to_string(),
+                "Competitive intel scraping".to_string(),
+                "Priority support".to_string(),
+            ],
+        },
+        PlanDetails {
+            tier: PlanTier::Soar,
+            name: "Soar".to_string(),
+            price_inr_monthly: 10000,
+            description: "Enterprise-grade AI marketing for scaleups".to_string(),
+            features: vec![
+                "Everything in Glide".to_string(),
+                "Full council synthesis".to_string(),
+                "Real-time competitor tracking".to_string(),
+                "Dedicated account manager".to_string(),
+            ],
+        },
+        PlanDetails {
+            tier: PlanTier::Enterprise,
+            name: "Enterprise".to_string(),
+            price_inr_monthly: 0,
+            description: "Custom solution for large organizations".to_string(),
+            features: vec![
+                "Everything in Soar".to_string(),
+                "Custom integrations".to_string(),
+                "SLA guarantees".to_string(),
+                "Talk to our sales team".to_string(),
+            ],
+        },
+    ];
+
     Ok(Json(BillingStatusResponse {
         provider: "razorpay".to_string(),
-        monthly_price_inr: 5000,
+        currency: "INR".to_string(),
         grace_period_days: 2,
         subscription_status,
+        current_plan: None,
+        available_plans,
         org_id: auth.tenant.org_id.to_string(),
     }))
 }

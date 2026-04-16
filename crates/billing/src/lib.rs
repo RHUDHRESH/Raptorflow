@@ -183,8 +183,35 @@ async fn billing_state() -> Json<Value> {
     Json(json!({
         "status": "stub",
         "provider": "razorpay",
-        "monthly_price_inr": 5000,
+        "currency": "INR",
+        "plans": [
+            {
+                "tier": "ascend",
+                "name": "Ascend",
+                "price_inr_monthly": 5000,
+                "description": "Perfect for small businesses starting with AI marketing"
+            },
+            {
+                "tier": "glide",
+                "name": "Glide",
+                "price_inr_monthly": 7000,
+                "description": "For growing businesses needing advanced AI insights"
+            },
+            {
+                "tier": "soar",
+                "name": "Soar",
+                "price_inr_monthly": 10000,
+                "description": "Enterprise-grade AI marketing for scaleups"
+            },
+            {
+                "tier": "enterprise",
+                "name": "Enterprise",
+                "price_inr_monthly": "talk_to_us",
+                "description": "Custom solution for large organizations"
+            }
+        ],
         "grace_period_days": 2,
+        "note": "All prices in INR (Indian Rupees)"
     }))
 }
 

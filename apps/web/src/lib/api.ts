@@ -513,11 +513,34 @@ export interface ExportUrlResponse {
   expiresAt: string;
 }
 
+export type PlanTier = "ascend" | "glide" | "soar" | "enterprise";
+
+export interface PlanDetails {
+  tier: PlanTier;
+  name: string;
+  price_inr_monthly: number | "talk_to_us";
+  description: string;
+  features: string[];
+}
+
+export type PlanTier = "ascend" | "glide" | "soar" | "enterprise";
+
+export interface PlanDetails {
+  tier: PlanTier;
+  name: string;
+  price_inr_monthly: number | "talk_to_us";
+  description: string;
+  features: string[];
+}
+
 export interface BillingStatus {
-  plan: "free" | "starter" | "pro" | "enterprise";
-  status: "active" | "past_due" | "canceled" | "trialing";
-  currentPeriodEnd: string;
-  invoiceCount: number;
+  provider: string;
+  currency: string;
+  grace_period_days: number;
+  subscription_status: string | null;
+  current_plan: PlanDetails | null;
+  available_plans: PlanDetails[];
+  org_id: string;
 }
 
 export interface CreateOrderRequest {

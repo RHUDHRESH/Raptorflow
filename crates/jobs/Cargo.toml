@@ -10,5 +10,16 @@ rust-version.workspace = true
 axum.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+chrono.workspace = true
 uuid.workspace = true
+tracing.workspace = true
+sqlx.workspace = true
 raptorflow-contracts = { path = "../contracts" }
+raptorflow-acquisition = { path = "../acquisition" }
+raptorflow-research = { path = "../research" }
+raptorflow-gcp = { path = "../gcp" }
+raptorflow-db = { path = "../db" }
+raptorflow-auth = { path = "../auth" }
+raptorflow-config = { path = "../config" }
+raptorflow-cache = { path = "../cache" }
+anyhow.workspace = true

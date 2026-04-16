@@ -11,13 +11,10 @@
 //! | `/api/v1/billing` | billing | Required |
 //! | `/api/v1/uploads` | uploads | Required |
 //! | `/api/v1/foundation` | foundation | Required |
-//! | `/api/v1/council` | council | Required |
-//! | `/api/v1/muse` | muse | Required |
 //! | `/api/v1/intel` | intel | Required |
-//! | `/api/v1/ripples` | prl | Required |
-//! | `/api/v1/essences` | prl | Required |
+//! | `/api/v1/prl/*` | prl | Required |
 //! | `/api/v1/prl/decay` | prl | Required |
-//! | `/api/v1/office` | office | Required |
+//! | `/api/v1/jobs/*` | jobs | Required |
 //! | `/api/v1/webhooks/clerk` | auth | Public |
 //! | `/api/v1/webhooks/razorpay` | billing | Public |
 //!

@@ -1,70 +1,69 @@
-import type * as React from "react";
-import type { Route } from "next";
-import Link from "next/link";
-import { RouteShell } from "@/components/layout/route-shell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
 
-const screens = [
-  { slug: "url", title: "URL" },
-  { slug: "identity-confirmation", title: "Identity Confirmation" },
-  { slug: "business-stage-and-team", title: "Business Stage and Team" },
-  { slug: "what-you-actually-sell", title: "What You Actually Sell" },
-  { slug: "the-problem-you-solve", title: "The Problem You Solve" },
-  { slug: "primary-icp", title: "Primary ICP" },
-  { slug: "secondary-icps", title: "Secondary ICPs" },
-  { slug: "competitive-landscape", title: "Competitive Landscape" },
-  { slug: "competitive-differentiation", title: "Competitive Differentiation" },
-  { slug: "positioning-statement", title: "Positioning Statement" },
-  { slug: "brand-personality", title: "Brand Personality" },
-  { slug: "voice-in-practice", title: "Voice in Practice" },
-  { slug: "content-territories", title: "Content Territories" },
-  { slug: "marketing-channels", title: "Marketing Channels" },
-  { slug: "goals-and-kpis", title: "Goals and KPIs" },
-  { slug: "keywords-and-seo", title: "Keywords and SEO" },
-  { slug: "existing-assets", title: "Existing Assets" },
-  { slug: "current-frustrations", title: "Current Frustrations" },
-  { slug: "existing-tools", title: "Existing Tools" },
-  { slug: "reference-brands", title: "Reference Brands" },
-  { slug: "campaign-strategist", title: "Campaign Strategist" }
-];
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { Loader2 } from "lucide-react";
+import { useFoundationStore } from "@/state/foundation-store";
 
-export default function FoundationPage(): React.ReactElement {
-  return (
-    <RouteShell
-      eyebrow="Foundation"
-      title="Twenty-one screen scaffold"
-      description="The Foundation is now broken into explicit route surfaces so each screen can be implemented independently."
-      tags={["scan", "versioned", "prompt-injection"]}
-      rail={
-        <Card>
-          <CardHeader>
-            <CardTitle>Foundation flows</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>Quick scan, deep scan, and version history all get their own future hooks.</p>
-            <Link href={"/foundation/url" as Route} className="block text-[var(--foreground)]">
-              Start at URL
-            </Link>
-          </CardContent>
-        </Card>
+/**
+ * Foundation Index Page
+ * Acts as a router to direct the user to the correct step or management page.
+ */
+export default function FoundationIndex() {
+  const router = useRouter();
+  const { getToken } = useAuth();
+  const { setStep, setStatus } = useFoundationStore();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function checkFoundationStatus() {
+      try {
+        const token = await getToken();
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/snapshot`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+          // Fallback to starting point if API fails or user is new
+          router.replace("/foundation/1");
+          return;
+        }
+
+        const data = await response.json();
+        const { status, current_step } = data;
+
+        // Update local store
+        setStep(current_step || 1);
+        setStatus(status || "incomplete");
+
+        if (status === "complete") {
+          // User finished onboarding, go to Management page
+          router.replace("/app/foundation");
+        } else {
+          // User is mid-flow or starting
+          const nextStep = current_step || 1;
+          router.replace(`/foundation/${nextStep}`);
+        }
+      } catch (err) {
+        console.error("[FoundationIndex] Error fetching snapshot:", err);
+        router.replace("/foundation/1");
+      } finally {
+        setLoading(false);
       }
-    >
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {screens.map((screen, index) => (
-          <Link key={screen.slug} href={`/foundation/${screen.slug}` as Route}>
-            <Card className="h-full transition-transform hover:-translate-y-0.5">
-              <CardHeader>
-                <CardTitle>
-                  Screen {index + 1}: {screen.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-[var(--muted-foreground)]">
-                Reserved route content, form contract, websocket hooks, and autosave behavior.
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+    }
+
+    checkFoundationStatus();
+  }, [getToken, router, setStep, setStatus]);
+
+  return (
+    <div className="flex h-screen w-screen items-center justify-center bg-[#1a1a1a]">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="w-8 h-8 text-[#f59e0b] animate-spin" />
+        <p className="text-zinc-500 text-sm font-medium tracking-widest uppercase">
+          Mapping your foundation...
+        </p>
       </div>
-    </RouteShell>
+    </div>
   );
 }

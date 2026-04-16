@@ -1,84 +1,165 @@
 "use client";
 
-import type * as React from "react";
-import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import React from "react";
+import { MagicWandIcon, ViewGridIcon, ActivityLogIcon, PersonIcon } from "@radix-ui/react-icons";
 import { OfficeCanvas } from "@/components/office/office-canvas";
-import { OfficeHud } from "@/components/office/office-hud";
+import { OfficeNudgePanel } from "@/components/office/office-nudge-panel";
+import { useOfficeStore } from "@/state/office-store";
+import { useFoundationStore } from "@/state/foundation-store";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { useOfficeSocket, type OfficeSocketStatus } from "@/lib/socket";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/cn";
 
-export function OfficeShell(): React.ReactElement {
-  const { user } = useUser();
-  const orgId = user?.publicMetadata?.orgId as string | undefined;
-  const [wsStatus, setWsStatus] = useState<OfficeSocketStatus>("disconnected");
-
-  const { socket, addStatusListener, disconnect } = useOfficeSocket(orgId ?? "");
-
-  useEffect(() => {
-    if (!orgId) return;
-
-    socket.connect();
-    const unsubscribe = addStatusListener(setWsStatus);
-
-    return () => {
-      unsubscribe();
-      disconnect();
-    };
-  }, [orgId, socket, addStatusListener, disconnect]);
+/**
+ * RaptorFlow Office Shell
+ * 
+ * The main container for the Office environment. Managed Layer 2 (HUD)
+ * and hosts the Layer 1 (Canvas).
+ */
+export function OfficeShell() {
+  const { zoom, focusedZone, agentStatuses, eventLog, snarkFeed } = useOfficeStore();
+  const { sectionData } = useFoundationStore();
+  
+  const bizName = sectionData.scan_results?.businessName || "RaptorFlow HQ";
+  const activeAgentCount = Object.keys(agentStatuses).length;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.45fr)]">
-      <div className="space-y-4">
-        <div className="space-y-2">
+    <div className="flex flex-col gap-6 p-6 h-full max-w-7xl mx-auto">
+      <OfficeNudgePanel />
+
+      {/* Header HUD */}
+      <header className="flex items-end justify-between border-b border-zinc-800 pb-6">
+        <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
-              The Office
-            </p>
-            <div className="flex items-center gap-2">
-              <div
-                className={`h-2 w-2 rounded-full ${
-                  wsStatus === "connected"
-                    ? "bg-green-500"
-                    : wsStatus === "connecting"
-                      ? "bg-amber-500 animate-pulse"
-                      : "bg-red-400"
-                }`}
-              />
-              <span className="text-xs text-[var(--muted-foreground)] capitalize">{wsStatus}</span>
+            <div className="bg-amber-500 p-1">
+              <MagicWandIcon className="h-4 w-4 text-black" />
             </div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-amber-500">
+              Live Operations Center
+            </p>
+            <Badge variant="outline" className="h-5 text-[9px] font-mono border-zinc-800 text-zinc-500">
+              UPLINK_STABLE
+            </Badge>
           </div>
-          <h1 className="font-[family-name:var(--font-display)] text-4xl">
-            Event-driven canvas and ops scaffold
-          </h1>
-          <div className="flex flex-wrap gap-2">
-            <Badge>Floor plan</Badge>
-            <Badge>Zoom and pan</Badge>
-            <Badge>Snark</Badge>
-            <Badge>Roster</Badge>
-            <Badge>Debug surfaces</Badge>
-            {orgId && <Badge variant="outline">org: {orgId.slice(0, 8)}…</Badge>}
+          <div className="space-y-0.5">
+            <h1 className="font-serif text-4xl text-white tracking-tight leading-none">
+              {bizName}
+            </h1>
+            <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-[0.2em]">
+              Strategic Command Post
+            </p>
           </div>
-          <p className="max-w-2xl text-sm text-[var(--muted-foreground)]">
-            The office canvas connects via WebSocket to receive real-time agent activity, speech
-            bubbles, zone state changes, and council events. Agents render as colored avatars on the
-            floor plan.
-          </p>
         </div>
 
-        {!orgId && (
-          <Card className="border-amber-300 bg-amber-50/50">
-            <CardContent className="p-4 text-sm text-amber-700">
-              Sign in with an organization to connect to the live office WebSocket.
-            </CardContent>
-          </Card>
-        )}
+        {/* Live Counters */}
+        <div className="flex items-center gap-10">
+          <div className="text-right">
+            <p className="font-serif text-2xl text-white leading-none mb-1">{activeAgentCount}</p>
+            <p className="font-mono text-[8px] text-amber-500 font-bold uppercase tracking-widest bg-amber-500/10 px-1.5 py-0.5 border border-amber-500/20">
+              Agents Active
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="font-serif text-2xl text-white leading-none mb-1">{eventLog.length}</p>
+            <p className="font-mono text-[8px] text-zinc-500 font-bold uppercase tracking-widest">
+              Events Processed
+            </p>
+          </div>
+        </div>
+      </header>
 
-        <OfficeCanvas />
-      </div>
+      {/* Main Operations Card */}
+      <Card className="flex-1 bg-background border-zinc-800 overflow-hidden relative flex flex-col">
+        {/* Subtle Obsidian Grid Overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        
+        <Tabs defaultValue="canvas" className="flex-1 flex flex-col">
+          <div className="px-4 border-b border-zinc-800 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-between">
+            <TabsList className="bg-transparent h-12 gap-6">
+              <TabsTrigger value="canvas" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-amber-500 rounded-none h-full px-0 font-mono text-[10px] uppercase tracking-widest text-zinc-500 data-[state=active]:text-white">
+                <ViewGridIcon className="w-3.5 h-3.5 mr-2" />
+                Floor Plan
+              </TabsTrigger>
+              <TabsTrigger value="events" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-amber-500 rounded-none h-full px-0 font-mono text-[10px] uppercase tracking-widest text-zinc-500 data-[state=active]:text-white">
+                <ActivityLogIcon className="w-3.5 h-3.5 mr-2" />
+                Event Trail
+              </TabsTrigger>
+              <TabsTrigger value="roster" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-amber-500 rounded-none h-full px-0 font-mono text-[10px] uppercase tracking-widest text-zinc-500 data-[state=active]:text-white">
+                <PersonIcon className="w-3.5 h-3.5 mr-2" />
+                Agent Roster
+              </TabsTrigger>
+            </TabsList>
+            
+            <Badge variant="secondary" className="font-mono text-[9px] opacity-40">
+              ZOOM: {Math.round(zoom * 100)}%
+            </Badge>
+          </div>
 
-      <OfficeHud />
+          <TabsContent value="canvas" className="flex-1 relative m-0">
+            <OfficeCanvas />
+            
+            {/* Context Footer */}
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+              <span className="bg-black/80 px-2 py-1 border border-zinc-800 text-[8px] font-mono text-zinc-500 uppercase tracking-widest backdrop-blur-sm">
+                ZONE://{focusedZone || 'GLOBAL_VIEW'}
+              </span>
+              <span className="text-[8px] font-mono text-zinc-700 uppercase tracking-widest font-bold">
+                GL_RENDER_STABLE
+              </span>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="events" className="flex-1 m-0">
+            <ScrollArea className="h-[500px]">
+              <div className="p-4 space-y-3">
+                {eventLog.map((event, i) => (
+                  <div key={i} className="flex items-center gap-4 border-b border-zinc-800/50 pb-2 last:border-0">
+                    <span className="text-[9px] font-mono text-zinc-600 uppercase grow-0 shrink-0 w-24">
+                      {new Date(event.timestamp).toLocaleTimeString()}
+                    </span>
+                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest w-32">
+                      {event.type}
+                    </span>
+                    <span className="text-xs text-zinc-400">
+                      Telemetry received from {event.agentKey || 'CORE'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="roster" className="flex-1 m-0">
+             <div className="p-6 grid grid-cols-4 gap-4">
+                {/* Roster components would go here, imported or nested */}
+                <div className="text-zinc-600 font-mono text-[10px] col-span-4 text-center py-20 uppercase tracking-widest">
+                  Initializing Roster Subsystem...
+                </div>
+             </div>
+          </TabsContent>
+        </Tabs>
+      </Card>
+
+      {/* Footer HUD elements */}
+      <footer className="grid grid-cols-3 gap-6 h-32">
+        <Card className="bg-background border-zinc-800 p-4 flex flex-col justify-between">
+           <span className="text-[9px] font-bold font-mono text-zinc-500 uppercase tracking-widest">Live Snark</span>
+           <div className="flex-1 mt-2 overflow-hidden">
+             {snarkFeed.slice(0, 3).map(line => (
+               <p key={line.id} className="text-[11px] text-zinc-400 line-clamp-1 italic">
+                 &lt;{line.agentKey}&gt; {line.text}
+               </p>
+             ))}
+           </div>
+        </Card>
+        <div className="col-span-2 bg-[#1a1a1a] border-2 border-dashed border-zinc-800/50 rounded-lg flex items-center justify-center">
+           <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-[0.3em]">
+             Campaign Matrix Visualization Pending
+           </span>
+        </div>
+      </footer>
     </div>
   );
 }

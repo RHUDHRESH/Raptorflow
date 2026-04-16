@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod dev_bypass;
 pub mod rate_limit;
 pub mod role_guard;
 pub mod tenant;

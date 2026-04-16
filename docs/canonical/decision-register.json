@@ -72,9 +72,32 @@
     "tenant_key": "org_id from JWT"
   },
   "payments": {
-    "provider": "PhonePe",
-    "price_inr_monthly": 5000,
-    "grace_period_days": 2
+    "provider": "Razorpay",
+    "currency": "INR",
+    "plans": {
+      "ascend": {
+        "name": "Ascend",
+        "price_inr_monthly": 5000,
+        "description": "Perfect for small businesses starting with AI marketing"
+      },
+      "glide": {
+        "name": "Glide",
+        "price_inr_monthly": 7000,
+        "description": "For growing businesses needing advanced AI insights"
+      },
+      "soar": {
+        "name": "Soar",
+        "price_inr_monthly": 10000,
+        "description": "Enterprise-grade AI marketing for scaleups"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price_inr_monthly": "talk_to_us",
+        "description": "Custom solution for large organizations"
+      }
+    },
+    "grace_period_days": 2,
+    "note": "All prices in INR (Indian Rupees) - no USD pricing"
   },
   "ops": {
     "monitoring": ["Sentry", "CloudWatch"],

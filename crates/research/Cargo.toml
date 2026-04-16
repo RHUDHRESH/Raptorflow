@@ -1,0 +1,28 @@
+[package]
+name = "raptorflow-research"
+description = "Research substrate, chunking, embedding, and retrieval for RaptorFlow intel"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+raptorflow-cache.workspace = true
+raptorflow-config.workspace = true
+raptorflow-db.workspace = true
+
+qdrant-client.workspace = true
+reqwest.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+sqlx.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+sha2.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
+tokio-test = "0.4"

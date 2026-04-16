@@ -1,156 +1,388 @@
 "use client";
 
 import * as React from "react";
-import type { Route } from "next";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useCouncilSession, useCouncilMessages } from "@/hooks/use-council";
-import { RouteShell } from "@/components/layout/route-shell";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/cn";
+import {
+  ArrowLeftIcon,
+  AvatarIcon,
+  ClockIcon,
+  ChevronDownIcon,
+} from "@radix-ui/react-icons";
+import { AGENTS } from "@/lib/agents";
+import { AgentPortrait } from "@/components/ui/agent-portrait";
+import { AgentPill } from "@/components/ui/agent-portrait";
 
-const STATUS_COLORS: Record<string, string> = {
-  queued: "bg-amber-100 text-amber-700 border-amber-200",
-  running: "bg-blue-100 text-blue-700 border-blue-200",
-  streaming: "bg-purple-100 text-purple-700 border-purple-200",
-  completed: "bg-green-100 text-green-700 border-green-200",
-  failed: "bg-red-100 text-red-700 border-red-200",
+/* ─── Mock transcript data ────────────────────────────────────── */
+const MOCK_ROUNDS = [
+  {
+    round: 1,
+    label: "Opening Positions",
+    messages: [
+      {
+        agentKey: "strategist",
+        type: "synthesis",
+        content: "We have a positioning gap. Diya Organics is messaging on ingredients, but the ICP responds to outcomes. The question is whether we lead with clinical proof or emotional resonance.",
+      },
+      {
+        agentKey: "ogilvy",
+        type: "position",
+        content: "Research always precedes creativity. We need to know what the customer already believes about organic skincare before we choose a creative angle. Run a survey first.",
+      },
+      {
+        agentKey: "vaynerchuk",
+        type: "challenge",
+        content: "We don't have time for surveys. Instagram is moving. The answer is in the comments on our top 3 posts — I can read the sentiment in 20 minutes.",
+      },
+      {
+        agentKey: "godin",
+        type: "position",
+        content: "Both of you are right and missing the point. The ICP doesn't want skincare — they want to feel like the kind of person who uses conscious skincare. Lead with identity.",
+      },
+    ],
+  },
+  {
+    round: 2,
+    label: "Evidence Exchange",
+    messages: [
+      {
+        agentKey: "patel",
+        type: "position",
+        content: "Data check: branded search for 'organic skincare India' is up 22% MoM. The demand exists. The question is which message captures it. Godin's identity angle tests better in A/B on awareness campaigns.",
+      },
+      {
+        agentKey: "ogilvy",
+        type: "updated",
+        content: "Updating my position. If Patel's data shows identity resonates, we build the headline around aspiration, then validate with the ingredient proof as the hero detail in copy.",
+      },
+      {
+        agentKey: "cialdini",
+        type: "position",
+        content: "Social proof is the missing lever. The ICP needs to see people like them using this product. Testimonials, ideally video, with specific before/after outcomes. Not celebrity — peer.",
+      },
+    ],
+  },
+  {
+    round: 3,
+    label: "Strategist Synthesis",
+    messages: [
+      {
+        agentKey: "strategist",
+        type: "synthesis",
+        content: "Synthesis: Lead with identity (Godin/Ogilvy updated), anchor with peer social proof (Cialdini), and use Patel's search data to validate timing. Move 3 creative brief: 'Conscious Skin. Confident Identity.' — brief Bernbach on execution. Council is adjourned.",
+      },
+    ],
+  },
+];
+
+const MOCK_META = {
+  sessionType:  "council_war_room",
+  status:       "completed",
+  duration:     "34m 12s",
+  agentCount:   8,
+  modelUsed:    "Gemini 1.5 Pro",
+  tokenCost:    "~18,400 tokens",
+  createdAt:    new Date(Date.now() - 86400000).toISOString(),
 };
 
-const AVATAR_COLORS: Record<string, string> = {
-  strategist: "bg-[var(--primary)] text-[var(--primary-foreground)]",
-  analyst: "bg-blue-500 text-white",
-  creative: "bg-pink-500 text-white",
-  executor: "bg-green-600 text-white",
-  advisor: "bg-amber-500 text-white",
+const MOCK_STANCES: Record<string, string> = {
+  strategist:   "synthesis",
+  ogilvy:       "updated",
+  vaynerchuk:   "challenged",
+  godin:        "agreed",
+  patel:        "agreed",
+  cialdini:     "agreed",
 };
 
-function getAvatarColor(avatarKey: string): string {
-  return AVATAR_COLORS[avatarKey.toLowerCase()] ?? "bg-[var(--muted)] text-[var(--muted-foreground)]";
-}
+/* ─── Message Card ────────────────────────────────────────────── */
+function MessageCard({
+  agentKey,
+  type,
+  content,
+}: {
+  agentKey: string;
+  type: string;
+  content: string;
+}): React.ReactElement {
+  const config = AGENTS.find((a) => a.key === agentKey);
+  const isSynthesis = type === "synthesis";
 
-function AvatarBadge({ avatarKey }: { avatarKey: string }) {
+  if (isSynthesis) {
+    return (
+      <div
+        className="w-full px-6 py-5"
+        style={{ background: "var(--foreground)", color: "var(--background)" }}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          {config && <AgentPortrait agent={config} size={32} />}
+          <div>
+            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", opacity: 0.5 }}>
+              Strategist Synthesis
+            </p>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, fontWeight: 600, color: "var(--primary-foreground)", marginTop: 2 }}>
+              {config?.displayName ?? agentKey}
+            </p>
+          </div>
+        </div>
+        <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.5, fontStyle: "italic" }}>
+          &ldquo;{content}&rdquo;
+        </p>
+      </div>
+    );
+  }
+
+  const typeStyles: Record<string, { label: string; color: string }> = {
+    position:  { label: "Position",  color: "var(--agent-" + agentKey + ", var(--muted-foreground))" },
+    challenge: { label: "Challenge", color: "var(--signal-red)" },
+    updated:   { label: "Updated",   color: "var(--amber-war)" },
+  };
+  const ts = typeStyles[type] ?? typeStyles.position;
+
   return (
-    <span
-      className={cn(
-        "inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold",
-        getAvatarColor(avatarKey)
+    <div className="flex items-start gap-4">
+      {/* Color stripe */}
+      <div className="w-0.5 self-stretch shrink-0" style={{ background: config?.color ?? "var(--border)", minHeight: 60 }} />
+
+      {config && (
+        <AgentPortrait agent={config} size={32} className="shrink-0 mt-1" />
       )}
-    >
-      {avatarKey.charAt(0).toUpperCase()}
-    </span>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-2">
+          <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>
+            {config?.displayName ?? agentKey}
+          </span>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 8,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color: ts.color,
+              border: `1px solid ${ts.color}`,
+              padding: "1px 5px",
+            }}
+          >
+            {ts.label}
+          </span>
+        </div>
+        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, lineHeight: 1.6, color: "var(--foreground)", margin: 0 }}>
+          {content}
+        </p>
+      </div>
+    </div>
   );
 }
 
-export default function CouncilSessionPage({
-  params,
-}: {
-  params: Promise<{ sessionId: string }>;
-}): React.ReactElement {
-  const resolvedParams = React.use(params);
-  const { sessionId } = resolvedParams;
+/* ─── Session Detail Page ──────────────────────────────────────── */
+export default function CouncilSessionPage(): React.ReactElement {
+  const params = useParams();
+  const sessionId = params.sessionId as string;
 
-  const { data: session, isLoading: sessionLoading, error: sessionError } = useCouncilSession(sessionId);
-  const { data: messages, isLoading: messagesLoading, error: messagesError } = useCouncilMessages(sessionId);
-
-  const isLoading = sessionLoading || messagesLoading;
-  const hasError = sessionError || messagesError;
-
-  const sessionRoute = "/council" as Route;
+  const meta = MOCK_META;
 
   return (
-    <RouteShell
-      eyebrow="Council"
-      title={session ? `${session.sessionType.replace("_", " ")} session` : "Session detail"}
-      description={
-        session
-          ? `Council deliberation for campaign ${session.campaignId}`
-          : `Session ${sessionId}`
-      }
-      tags={["council", "session", "deliberation"]}
-      backHref={sessionRoute}
-      backLabel="Back to Council"
-    >
-      {isLoading && (
-        <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex gap-3">
-              <div className="h-7 w-7 flex-shrink-0 animate-pulse rounded-full bg-[var(--muted)]" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 w-32 animate-pulse rounded bg-[var(--muted)]" />
-                <div className="h-3 w-full animate-pulse rounded bg-[var(--muted)]" />
+    <div className="flex flex-col gap-0 py-2">
+      {/* ── Back nav ──────────────────────────────────── */}
+      <Link
+        href="/council"
+        className="flex items-center gap-2 mb-8 hover:underline w-fit"
+        style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 9,
+          textTransform: "uppercase",
+          letterSpacing: "0.16em",
+          color: "var(--muted-foreground)",
+        }}
+      >
+        <ArrowLeftIcon className="h-3 w-3" />
+        Council Archive
+      </Link>
+
+      {/* ── Split layout ──────────────────────────────── */}
+      <div className="grid xl:grid-cols-[1fr_320px] gap-8 items-start">
+
+        {/* ── LEFT: Transcript ──────────────────────── */}
+        <div className="border-2 border-[var(--foreground)]" style={{ background: "var(--card)" }}>
+
+          {/* Session header */}
+          <div className="border-b-2 border-[var(--foreground)] p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <p style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.18em",
+                  color: "var(--muted-foreground)",
+                  marginBottom: 8,
+                }}>
+                  {meta.sessionType.replace(/_/g, " ")}
+                </p>
+                <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, margin: 0, lineHeight: 1.1 }}>
+                  Diya Organics Q2
+                </h1>
+              </div>
+              <div
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  background: "var(--leaf-confirm-dim)",
+                  color: "var(--leaf-confirm)",
+                  border: "1px solid var(--leaf-confirm)",
+                  padding: "4px 10px",
+                }}
+              >
+                {meta.status}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
 
-      {hasError && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4 text-sm text-red-700">
-            {sessionError ? `Session error: ${sessionError.message}` : ""}
-            {messagesError ? `Messages error: ${messagesError.message}` : ""}
-          </CardContent>
-        </Card>
-      )}
-
-      {session && (
-        <div className="mb-6 flex items-center gap-3">
-          <Badge
-            variant="outline"
-            className={STATUS_COLORS[session.status] ?? ""}
-          >
-            {session.status}
-          </Badge>
-          <span className="text-sm text-[var(--muted-foreground)]">
-            Campaign: <span className="font-medium text-[var(--foreground)]">{session.campaignId}</span>
-          </span>
-          <span className="text-sm text-[var(--muted-foreground)]">
-            {new Date(session.createdAt).toLocaleString()}
-          </span>
-        </div>
-      )}
-
-      {messages && messages.length === 0 && !isLoading && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="text-3xl">🏛️</p>
-            <p className="mt-4 font-medium">No messages yet</p>
-            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-              {session?.status === "running" || session?.status === "streaming"
-                ? "The council is deliberating..."
-                : "Messages will appear here once the session starts."}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {messages && messages.length > 0 && (
-        <div className="space-y-4">
-          {messages.map((msg, idx) => (
-            <Card key={msg.messageId}>
-              <CardContent className="p-4">
-                <div className="flex gap-3">
-                  <AvatarBadge avatarKey={msg.avatarKey} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-semibold capitalize">{msg.avatarKey}</span>
-                      <span className="text-xs text-[var(--muted-foreground)]">
-                        Round {msg.roundNumber}
-                      </span>
-                      <span className="text-xs text-[var(--muted-foreground)]">
-                        {new Date(msg.createdAt).toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                  </div>
+          {/* Rounds */}
+          <div className="divide-y divide-[var(--border)]">
+            {MOCK_ROUNDS.map((round) => (
+              <div key={round.round}>
+                {/* Round divider */}
+                <div
+                  className="flex items-center gap-3 px-6 py-3"
+                  style={{ background: "var(--muted)" }}
+                >
+                  <div className="h-px flex-1" style={{ background: "var(--border)" }} />
+                  <span style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 9,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.2em",
+                    color: "var(--muted-foreground)",
+                    whiteSpace: "nowrap",
+                  }}>
+                    — ROUND {round.round}: {round.label} —
+                  </span>
+                  <div className="h-px flex-1" style={{ background: "var(--border)" }} />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+
+                {/* Messages in round */}
+                <div className="divide-y divide-[var(--border)]">
+                  {round.messages.map((msg, i) => (
+                    <div key={i} className={msg.type === "synthesis" ? "" : "p-6"}>
+                      <MessageCard {...msg} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      )}
-    </RouteShell>
+
+        {/* ── RIGHT: Intelligence Panel ──────────────── */}
+        <div className="space-y-4 xl:sticky xl:top-6">
+
+          {/* Session metadata card */}
+          <div
+            className="border border-[var(--border)] divide-y divide-[var(--border)]"
+            style={{ background: "var(--card)" }}
+          >
+            <div className="px-4 py-3">
+              <p style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.16em",
+                color: "var(--muted-foreground)",
+              }}>
+                Session Intelligence
+              </p>
+            </div>
+            {[
+              { label: "Type",       value: meta.sessionType.replace(/_/g, " ") },
+              { label: "Duration",   value: meta.duration },
+              { label: "Agents",     value: `${meta.agentCount} participating` },
+              { label: "Model",      value: meta.modelUsed },
+              { label: "Tokens",     value: meta.tokenCost },
+              { label: "Date",       value: new Date(meta.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) },
+            ].map((row) => (
+              <div key={row.label} className="flex justify-between items-center px-4 py-2.5">
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted-foreground)" }}>
+                  {row.label}
+                </span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>
+                  {row.value}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Agent stances card */}
+          <div
+            className="border border-[var(--border)]"
+            style={{ background: "var(--card)" }}
+          >
+            <div className="px-4 py-3 border-b border-[var(--border)]">
+              <p style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.16em",
+                color: "var(--muted-foreground)",
+              }}>
+                Agent Stances
+              </p>
+            </div>
+            <div className="divide-y divide-[var(--border)]">
+              {Object.entries(MOCK_STANCES).map(([key, stance]) => {
+                const config = AGENTS.find((a) => a.key === key);
+                if (!config) return null;
+                return (
+                  <div key={key} className="flex items-center justify-between px-4 py-2.5">
+                    <AgentPill agent={config} size={18} />
+                    <span
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 8,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                        color:
+                          stance === "agreed"    ? "var(--leaf-confirm)" :
+                          stance === "challenged" ? "var(--signal-red)" :
+                          stance === "updated"   ? "var(--amber-war)" :
+                          stance === "synthesis" ? "var(--foreground)" :
+                          "var(--muted-foreground)",
+                      }}
+                    >
+                      {stance}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CTA */}
+          <Link
+            href="/muse"
+            className="flex items-center justify-center gap-2 py-3 border border-[var(--border)] hover:border-[var(--foreground)] hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all w-full"
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 9,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.14em",
+              color: "var(--foreground)",
+            }}
+          >
+            Ask Muse about this session
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -232,6 +232,15 @@ impl CacheService {
         
         Ok(deleted)
     }
+
+    pub async fn ping(&self) -> Result<bool, CacheError> {
+        let mut conn = (*self.conn).clone();
+        let result: String = redis::cmd("PING")
+            .query_async(&mut conn)
+            .await
+            .map_err(|e| CacheError::Connection(e.to_string()))?;
+        Ok(result == "PONG")
+    }
 }
 
 #[derive(Debug, thiserror::Error)]

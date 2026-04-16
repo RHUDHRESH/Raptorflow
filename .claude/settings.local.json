@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__octocode-mcp__localViewStructure",
+      "mcp__octocode-mcp__localGetFileContent",
+      "mcp__octocode-mcp__localFindFiles",
+      "mcp__octocode-mcp__localSearchCode"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "octocode-mcp",
+    "shadcn",
+    "magic-ui",
+    "mui",
+    "vercel",
+    "supabase",
+    "figma",
+    "cloud-run"
+  ]
+}

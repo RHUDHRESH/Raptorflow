@@ -1,8 +1,13 @@
 pub mod auth;
 pub mod billing;
+pub mod campaigns;
 pub mod council;
 pub mod foundation;
 pub mod health;
+pub mod intel;
+pub mod jobs;
 pub mod muse;
+pub mod nudges;
+pub mod office;
 pub mod prl;
 pub mod uploads;

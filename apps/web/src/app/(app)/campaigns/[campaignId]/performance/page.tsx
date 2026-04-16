@@ -3,17 +3,16 @@
 import * as React from "react";
 import type { Route } from "next";
 import { useState } from "react";
-import { RouteShell } from "@/components/layout/route-shell";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { ArrowLeftIcon, DownloadIcon, TriangleUpIcon, TriangleDownIcon } from "@radix-ui/react-icons";
 
 const DATE_RANGES = [
-  { id: "7d", label: "Last 7 days" },
-  { id: "30d", label: "Last 30 days" },
-  { id: "90d", label: "Last 90 days" },
+  { id: "7d",  label: "7D"  },
+  { id: "30d", label: "30D" },
+  { id: "90d", label: "90D" },
 ] as const;
 
+/* ─── Data generation ───────────────────────────────────────────── */
 interface MetricSeries {
   date: string;
   impressions: number;
@@ -24,251 +23,315 @@ interface MetricSeries {
 
 const generateSeries = (days: number): MetricSeries[] => {
   const series: MetricSeries[] = [];
-  let baseImpressions = 12000;
-  let baseClicks = 800;
-  let baseConversions = 45;
-  let baseSpend = 320;
-
+  let imp = 12000, clk = 800, conv = 45, spend = 320;
   for (let i = days - 1; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const noise = () => 0.85 + Math.random() * 0.3;
-    baseImpressions = Math.max(1000, baseImpressions * noise());
-    baseClicks = Math.max(50, baseClicks * noise());
-    baseConversions = Math.max(5, baseConversions * noise());
-    baseSpend = Math.max(50, baseSpend * noise());
-
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const n = () => 0.85 + Math.random() * 0.3;
+    imp = Math.max(1000, imp * n()); clk = Math.max(50, clk * n());
+    conv = Math.max(5, conv * n()); spend = Math.max(50, spend * n());
     series.push({
-      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      impressions: Math.round(baseImpressions),
-      clicks: Math.round(baseClicks),
-      conversions: Math.round(baseConversions),
-      spend: Math.round(baseSpend * 100) / 100,
+      date: d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+      impressions: Math.round(imp), clicks: Math.round(clk),
+      conversions: Math.round(conv), spend: Math.round(spend * 100) / 100,
     });
   }
   return series;
 };
 
-function MetricCard({ label, value, delta, unit }: { label: string; value: string | number; delta?: number; unit?: string }) {
-  const isPositive = delta && delta > 0;
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">{label}</p>
-          <p className="text-3xl font-bold">
-            {typeof value === "number" ? value.toLocaleString() : value}
-            {unit && <span className="ml-1 text-sm font-normal text-[var(--muted-foreground)]">{unit}</span>}
-          </p>
-          {delta !== undefined && (
-            <p className={`text-xs font-medium ${isPositive ? "text-green-600" : "text-red-600"}`}>
-              {isPositive ? "+" : ""}{delta.toFixed(1)}% vs prev period
-            </p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+/* ─── KPI Card ──────────────────────────────────────────────────── */
+function KpiCard({
+  label, value, unit, delta,
+}: {
+  label: string; value: string | number; unit?: string; delta?: number;
+}): React.ReactElement {
+  const isPos = delta !== undefined && delta > 0;
+  const Icon  = isPos ? TriangleUpIcon : TriangleDownIcon;
 
-function SimpleBarChart({ data, height = 200 }: { data: { label: string; value: number; color?: string }[]; height?: number }) {
-  const max = Math.max(...data.map((d) => d.value));
   return (
-    <div className="flex items-end gap-2" style={{ height }}>
-      {data.map((d, i) => (
-        <div key={i} className="flex flex-1 flex-col items-center gap-1">
-          <div
-            className="w-full rounded-t-sm transition-all hover:opacity-80"
-            style={{
-              height: `${(d.value / max) * (height - 24)}px`,
-              backgroundColor: d.color ?? "var(--primary)",
-            }}
-          />
-          <span className="text-xs text-[var(--muted-foreground)]">{d.label}</span>
+    <div
+      className="border border-[var(--border)] p-5"
+      style={{ background: "var(--card)" }}
+    >
+      <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--muted-foreground)", marginBottom: 8 }}>
+        {label}
+      </p>
+      <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, lineHeight: 1, color: "var(--foreground)", margin: 0 }}>
+        {typeof value === "number" ? value.toLocaleString("en-IN") : value}
+        {unit && <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "var(--muted-foreground)", marginLeft: 4 }}>{unit}</span>}
+      </p>
+      {delta !== undefined && (
+        <div className="flex items-center gap-1 mt-2">
+          <Icon className="h-2.5 w-2.5" style={{ color: isPos ? "var(--leaf-confirm)" : "var(--signal-red)" }} />
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, fontWeight: 700, color: isPos ? "var(--leaf-confirm)" : "var(--signal-red)" }}>
+            {isPos ? "+" : ""}{delta.toFixed(1)}% vs prev
+          </span>
         </div>
-      ))}
+      )}
     </div>
   );
 }
 
-function SimpleLineChart({ data, height = 160 }: { data: { label: string; value: number; value2?: number }[]; height?: number }) {
-  const max = Math.max(...data.flatMap((d) => [d.value, d.value2 ?? d.value]));
-  const min = Math.min(...data.flatMap((d) => [d.value, d.value2 ?? d.value]));
-  const range = max - min || 1;
-
-  const toY = (v: number) => height - 16 - ((v - min) / range) * (height - 24);
-
-  const path = data.map((d, i) => {
-    const x = (i / (data.length - 1)) * 100;
-    const y = toY(d.value);
-    return `${i === 0 ? "M" : "L"} ${x}% ${y}px`;
-  }).join(" ");
-
-  const areaPath = path + ` L 100% ${height}px L 0% ${height}px Z`;
+/* ─── SVG Bar Chart ─────────────────────────────────────────────── */
+function BarChart({
+  data,
+  color = "var(--foreground)",
+  height = 120,
+}: {
+  data: { label: string; value: number }[];
+  color?: string;
+  height?: number;
+}): React.ReactElement {
+  const max = Math.max(...data.map((d) => d.value)) || 1;
+  const show = data.filter((_, i) => i % Math.ceil(data.length / 7) === 0);
 
   return (
-    <div className="relative overflow-hidden" style={{ height }}>
-      <svg className="w-full" style={{ height }} preserveAspectRatio="none" viewBox={`0 0 100 ${height}`}>
-        <defs>
-          <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path d={areaPath} fill="url(#lineGrad)" />
-        <path d={path} fill="none" stroke="var(--primary)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+    <div>
+      <svg
+        width="100%"
+        style={{ height, display: "block" }}
+        viewBox={`0 0 ${data.length * 16} ${height}`}
+        preserveAspectRatio="none"
+      >
+        {data.map((d, i) => {
+          const barH = Math.max(2, (d.value / max) * (height - 8));
+          return (
+            <rect
+              key={i}
+              x={i * 16 + 2}
+              y={height - barH}
+              width={12}
+              height={barH}
+              fill={color}
+              opacity={0.8}
+            >
+              <title>{d.label}: {d.value.toLocaleString("en-IN")}</title>
+            </rect>
+          );
+        })}
       </svg>
-      <div className="absolute inset-x-0 bottom-0 flex justify-between px-1">
-        {data.filter((_, i) => i % Math.ceil(data.length / 6) === 0).map((d, i) => (
-          <span key={i} className="text-xs text-[var(--muted-foreground)]">{d.label}</span>
+      <div className="flex justify-between mt-1">
+        {show.map((d, i) => (
+          <span key={i} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, color: "var(--muted-foreground)" }}>
+            {d.label}
+          </span>
         ))}
       </div>
     </div>
   );
 }
 
+/* ─── SVG Line Sparkline ────────────────────────────────────────── */
+function SparkLine({
+  data,
+  color = "var(--amber-war)",
+  height = 80,
+}: {
+  data: number[];
+  color?: string;
+  height?: number;
+}): React.ReactElement {
+  if (data.length < 2) return <div style={{ height }} />;
+  const max = Math.max(...data) || 1;
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const W = 300;
+  const pts = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * W;
+    const y = height - 4 - ((v - min) / range) * (height - 8);
+    return `${x},${y}`;
+  }).join(" ");
+  const area = `0,${height} ` + pts + ` ${W},${height}`;
+
+  return (
+    <svg width="100%" viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" style={{ height, display: "block" }}>
+      <defs>
+        <linearGradient id={`sg-${color.replace(/[^a-z]/g, "")}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.15" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon points={area} fill={`url(#sg-${color.replace(/[^a-z]/g, "")})`} />
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+/* ─── Channel Row ────────────────────────────────────────────────── */
+function ChannelRow({
+  channel, pct, spend, clicks,
+}: {
+  channel: string; pct: number; spend: number; clicks: number;
+}): React.ReactElement {
+  return (
+    <div className="flex items-center gap-5 py-3 border-b border-[var(--border)] last:border-0">
+      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 500, color: "var(--foreground)", width: 130, flexShrink: 0 }}>
+        {channel}
+      </span>
+      <div className="flex-1" style={{ height: 4, background: "var(--muted)" }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: "var(--amber-war)", transition: "width 0.6s" }} />
+      </div>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--muted-foreground)", width: 70, textAlign: "right" }}>
+        ₹{spend.toLocaleString("en-IN")}
+      </span>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--muted-foreground)", width: 60, textAlign: "right" }}>
+        {clicks.toLocaleString("en-IN")} clk
+      </span>
+    </div>
+  );
+}
+
+/* ─── Main Performance Page ─────────────────────────────────────── */
 export default function CampaignPerformancePage({
-  params
+  params,
 }: {
   params: Promise<{ campaignId: string }>;
 }): React.ReactElement {
-  const resolvedParams = React.use(params);
-  const { campaignId } = resolvedParams;
-
+  const { campaignId } = React.use(params);
   const [range, setRange] = useState<typeof DATE_RANGES[number]>(DATE_RANGES[1]);
 
-  const days = range.id === "7d" ? 7 : range.id === "30d" ? 30 : 90;
+  const days   = range.id === "7d" ? 7 : range.id === "30d" ? 30 : 90;
   const series = generateSeries(days);
 
-  const totalImpressions = series.reduce((s, d) => s + d.impressions, 0);
-  const totalClicks = series.reduce((s, d) => s + d.clicks, 0);
-  const totalConversions = series.reduce((s, d) => s + d.conversions, 0);
-  const totalSpend = series.reduce((s, d) => s + d.spend, 0);
-  const avgCtr = (totalClicks / totalImpressions) * 100;
-  const avgConvRate = (totalConversions / totalClicks) * 100;
-  const cpc = totalSpend / totalClicks;
-  const cpa = totalSpend / totalConversions;
+  const totImp  = series.reduce((s, d) => s + d.impressions, 0);
+  const totClk  = series.reduce((s, d) => s + d.clicks, 0);
+  const totConv = series.reduce((s, d) => s + d.conversions, 0);
+  const totSpend= series.reduce((s, d) => s + d.spend, 0);
+  const ctr     = (totClk / totImp) * 100;
+  const cnvRate = (totConv / totClk) * 100;
+  const cpc     = totSpend / totClk;
+  const cpa     = totSpend / totConv;
 
-  const impressionBarData = series.slice(-14).map((d) => ({ label: d.date, value: d.impressions }));
-  const conversionBarData = series.slice(-14).map((d) => ({ label: d.date, value: d.conversions }));
-  const trendData = series.slice(-14).map((d) => ({ label: d.date, value: d.clicks, value2: d.conversions * 10 }));
-
-  const campaignRoute = `/campaigns/${campaignId}` as Route;
+  const CHANNELS = [
+    { channel: "Instagram Reels", pct: 45, spend: Math.round(totSpend * 0.45), clicks: Math.round(totClk * 0.42) },
+    { channel: "Search / SEO",    pct: 28, spend: Math.round(totSpend * 0.20), clicks: Math.round(totClk * 0.30) },
+    { channel: "Email Nurture",   pct: 16, spend: Math.round(totSpend * 0.15), clicks: Math.round(totClk * 0.18) },
+    { channel: "Paid Search",     pct: 11, spend: Math.round(totSpend * 0.20), clicks: Math.round(totClk * 0.10) },
+  ];
 
   return (
-    <RouteShell
-      eyebrow="Performance"
-      title="Campaign Analytics"
-      description={`Performance metrics for campaign ${campaignId} across the selected period.`}
-      tags={["analytics", "metrics", "campaign"]}
-      backHref={campaignRoute}
-      backLabel="Back to Campaign"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex gap-2">
-          {DATE_RANGES.map((r) => (
-            <Button
-              key={r.id}
-              size="sm"
-              variant={range.id === r.id ? "default" : "secondary"}
-              onClick={() => setRange(r)}
-            >
-              {r.label}
-            </Button>
-          ))}
+    <div className="flex flex-col gap-8 py-2">
+
+      {/* ── Back ─────────────────────────────────────────── */}
+      <Link
+        href={`/campaigns/${campaignId}` as Route}
+        className="flex w-fit items-center gap-2 hover:underline"
+        style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--muted-foreground)" }}
+      >
+        <ArrowLeftIcon className="h-3 w-3" />
+        Campaign Hub
+      </Link>
+
+      {/* ── Header ───────────────────────────────────────── */}
+      <header className="flex items-end justify-between border-b-2 border-[var(--foreground)] pb-6">
+        <div>
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)", marginBottom: 8 }}>
+            Performance Analytics
+          </p>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, lineHeight: 1, margin: 0 }}>
+            Campaign Metrics
+          </h1>
         </div>
-        <Button size="sm" variant="secondary">
-          Export CSV
-        </Button>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Impressions" value={totalImpressions} delta={12.4} />
-        <MetricCard label="Clicks" value={totalClicks} delta={8.1} />
-        <MetricCard label="Conversions" value={totalConversions} delta={-2.3} />
-        <MetricCard label="Spend" value={`$${totalSpend.toFixed(2)}`} delta={5.7} />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="CTR" value={`${avgCtr.toFixed(2)}%`} delta={0.3} />
-        <MetricCard label="Conv. Rate" value={`${avgConvRate.toFixed(2)}%`} delta={-0.8} />
-        <MetricCard label="CPC" value={`$${cpc.toFixed(2)}`} delta={-4.2} />
-        <MetricCard label="CPA" value={`$${cpa.toFixed(2)}`} delta={3.1} />
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Impressions — Last 14 days</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SimpleBarChart data={impressionBarData} height={160} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Conversions — Last 14 days</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SimpleBarChart data={conversionBarData} height={160} />
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Clicks vs Conversions (×10) — Last 14 days</CardTitle>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2 text-xs">
-                <div className="h-2 w-4 rounded-sm bg-[var(--primary)]" />
-                Clicks
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <div className="h-2 w-4 rounded-sm bg-[var(--accent)]" />
-                Conversions × 10
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <SimpleLineChart data={trendData} height={180} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Channel Breakdown</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[
-              { channel: "LinkedIn", impressions: Math.round(totalImpressions * 0.45), clicks: Math.round(totalClicks * 0.42), conversions: Math.round(totalConversions * 0.38), spend: totalSpend * 0.50 },
-              { channel: "Content / SEO", impressions: Math.round(totalImpressions * 0.25), clicks: Math.round(totalClicks * 0.30), conversions: Math.round(totalConversions * 0.35), spend: totalSpend * 0.20 },
-              { channel: "Email", impressions: Math.round(totalImpressions * 0.15), clicks: Math.round(totalClicks * 0.18), conversions: Math.round(totalConversions * 0.20), spend: totalSpend * 0.15 },
-              { channel: "Paid Search", impressions: Math.round(totalImpressions * 0.15), clicks: Math.round(totalClicks * 0.10), conversions: Math.round(totalConversions * 0.07), spend: totalSpend * 0.15 },
-            ].map((ch) => (
-              <div key={ch.channel} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{ch.channel}</span>
-                  <span className="text-[var(--muted-foreground)]">${ch.spend.toFixed(2)} spend</span>
-                </div>
-                <div className="flex h-2 overflow-hidden rounded-full bg-[var(--muted)]">
-                  <div className="bg-[var(--primary)]" style={{ width: `${(ch.impressions / totalImpressions) * 100}%` }} />
-                  <div className="bg-[var(--accent)]" style={{ width: `${(ch.clicks / totalClicks) * 100}%` }} />
-                  <div className="bg-green-500" style={{ width: `${(ch.conversions / totalConversions) * 100}%` }} />
-                </div>
-                <div className="flex justify-between text-xs text-[var(--muted-foreground)]">
-                  <span>{(ch.impressions / totalImpressions * 100).toFixed(0)}% impressions</span>
-                  <span>{(ch.clicks / totalClicks * 100).toFixed(0)}% clicks</span>
-                  <span>{(ch.conversions / totalConversions * 100).toFixed(0)}% conversions</span>
-                </div>
-              </div>
+        <div className="flex items-center gap-3">
+          {/* Range picker */}
+          <div className="flex gap-0">
+            {DATE_RANGES.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRange(r)}
+                className="px-4 py-2 border border-[var(--border)] transition-all"
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em",
+                  background: range.id === r.id ? "var(--foreground)" : "transparent",
+                  color: range.id === r.id ? "var(--background)" : "var(--muted-foreground)",
+                  borderLeft: r.id === "7d" ? "1px solid var(--border)" : "none",
+                }}
+              >
+                {r.label}
+              </button>
             ))}
           </div>
-        </CardContent>
-      </Card>
-    </RouteShell>
+          <button
+            className="flex h-10 items-center gap-2 px-4 border border-[var(--border)] hover:border-[var(--foreground)] transition-all"
+            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--muted-foreground)" }}
+          >
+            <DownloadIcon className="h-3 w-3" />
+            Export
+          </button>
+        </div>
+      </header>
+
+      {/* ── Primary KPIs ─────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-[var(--border)] divide-x divide-[var(--border)]">
+        <KpiCard label="Impressions"  value={totImp}                  delta={12.4} />
+        <KpiCard label="Clicks"       value={totClk}                  delta={8.1} />
+        <KpiCard label="Conversions"  value={totConv}                 delta={-2.3} />
+        <KpiCard label="Spend"        value={`₹${Math.round(totSpend).toLocaleString("en-IN")}`} delta={5.7} />
+      </div>
+
+      {/* ── Efficiency KPIs ──────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-[var(--border)] border-t-0 divide-x divide-[var(--border)]">
+        <KpiCard label="CTR"          value={`${ctr.toFixed(2)}%`}           delta={0.3} />
+        <KpiCard label="Conv. Rate"   value={`${cnvRate.toFixed(2)}%`}       delta={-0.8} />
+        <KpiCard label="CPC"          value={`₹${cpc.toFixed(2)}`}           delta={-4.2} />
+        <KpiCard label="CPA"          value={`₹${cpa.toFixed(2)}`}           delta={3.1} />
+      </div>
+
+      {/* ── Charts ──────────────────────────────────────── */}
+      <div className="grid xl:grid-cols-2 gap-5">
+
+        {/* Impressions bar */}
+        <div className="border border-[var(--border)] p-5" style={{ background: "var(--card)" }}>
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--muted-foreground)", marginBottom: 16 }}>
+            Impressions — {range.label}
+          </p>
+          <BarChart data={series.slice(-14).map((d) => ({ label: d.date, value: d.impressions }))} color="var(--foreground)" />
+        </div>
+
+        {/* Conversions bar */}
+        <div className="border border-[var(--border)] p-5" style={{ background: "var(--card)" }}>
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--muted-foreground)", marginBottom: 16 }}>
+            Conversions — {range.label}
+          </p>
+          <BarChart data={series.slice(-14).map((d) => ({ label: d.date, value: d.conversions }))} color="var(--leaf-confirm)" />
+        </div>
+      </div>
+
+      {/* Clicks sparkline */}
+      <div className="border border-[var(--border)] p-5" style={{ background: "var(--card)" }}>
+        <div className="flex items-center justify-between mb-4">
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--muted-foreground)" }}>
+            Click Trend — {range.label}
+          </p>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <div className="h-0.5 w-6" style={{ background: "var(--amber-war)" }} />
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)" }}>Clicks</span>
+            </div>
+          </div>
+        </div>
+        <SparkLine data={series.map((d) => d.clicks)} color="var(--amber-war)" height={100} />
+      </div>
+
+      {/* Channel breakdown */}
+      <div className="border border-[var(--border)]" style={{ background: "var(--card)" }}>
+        <div className="px-5 py-4 border-b border-[var(--border)]">
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--muted-foreground)" }}>
+            Channel Breakdown
+          </p>
+        </div>
+        <div className="px-5">
+          {CHANNELS.map((ch) => (
+            <ChannelRow key={ch.channel} {...ch} />
+          ))}
+        </div>
+      </div>
+
+    </div>
   );
 }
