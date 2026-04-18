@@ -1,5 +1,5 @@
 use crate::error::AuthError;
-use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -77,9 +77,7 @@ impl JwtValidator {
             }
         }
 
-        keys.get(kid)
-            .cloned()
-            .ok_or(AuthError::InvalidToken)
+        keys.get(kid).cloned().ok_or(AuthError::InvalidToken)
     }
 }
 

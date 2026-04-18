@@ -4,6 +4,8 @@ import { SignIn } from "@clerk/nextjs";
 export default function SignInPage(): React.ReactElement {
   return (
     <SignIn 
+      forceRedirectUrl="/app"
+      fallbackRedirectUrl="/app"
       appearance={{
         elements: {
           rootBox: "w-full",

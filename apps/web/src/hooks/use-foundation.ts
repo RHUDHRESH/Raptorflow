@@ -30,7 +30,7 @@ export function useUpdateFoundationSection() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ section, value }: { section: string; value: unknown }) =>
-      foundationApi.updateSection(section, { value }),
+      foundationApi.updateSection(section, value),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["foundation"] });
     },
@@ -61,17 +61,17 @@ export function useRestoreFoundationSnapshot() {
 export function useTriggerFoundationScan() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (mode: "quick" | "deep") => foundationApi.triggerScan(mode),
+    mutationFn: (url: string) => foundationApi.triggerScan(url),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["foundation"] });
     },
   });
 }
 
-export function useFoundationScanStatus(jobId: string) {
+export function useFoundationScanStatus(jobId?: string) {
   return useQuery({
-    queryKey: ["foundation", "scan", jobId],
-    queryFn: () => foundationApi.getScanStatus(jobId),
+    queryKey: ["foundation", "scan", jobId || "latest"],
+    queryFn: () => foundationApi.getScanStatus(),
     enabled: !!jobId,
     refetchInterval: (query) => {
       const status = query.state.data?.status;

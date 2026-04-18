@@ -300,7 +300,7 @@ export default function FoundationStep21() {
                   ].map(link => (
                     <button 
                       key={link.label}
-                      onClick={() => router.push(`${link.to}?returnTo=21`)}
+                      onClick={() => router.push(`${link.to}?returnTo=21` as never)}
                       className="text-[10px] uppercase tracking-widest text-zinc-500 hover:text-[#f59e0b] transition-colors font-bold"
                     >
                       {link.label}

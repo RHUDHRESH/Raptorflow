@@ -78,9 +78,12 @@ impl SqsClient {
             .map_err(|e| SqsError::Network(e.to_string()))?;
 
         if response.status().is_success() {
-            let body = response.text().await.map_err(|e| SqsError::Parse(e.to_string()))?;
-            let parsed: SendMessageResult = serde_xml_rs::de::from_str(&body)
+            let body = response
+                .text()
+                .await
                 .map_err(|e| SqsError::Parse(e.to_string()))?;
+            let parsed: SendMessageResult =
+                serde_xml_rs::de::from_str(&body).map_err(|e| SqsError::Parse(e.to_string()))?;
             Ok(SendMessageResponse {
                 message_id: parsed.message_id,
                 md5_of_message_body: parsed.md5_of_message_body,
@@ -131,9 +134,12 @@ impl SqsClient {
             .map_err(|e| SqsError::Network(e.to_string()))?;
 
         if response.status().is_success() {
-            let body = response.text().await.map_err(|e| SqsError::Parse(e.to_string()))?;
-            let parsed: ReceiveMessageResult = serde_xml_rs::de::from_str(&body)
+            let body = response
+                .text()
+                .await
                 .map_err(|e| SqsError::Parse(e.to_string()))?;
+            let parsed: ReceiveMessageResult =
+                serde_xml_rs::de::from_str(&body).map_err(|e| SqsError::Parse(e.to_string()))?;
             Ok(parsed.messages.unwrap_or_default())
         } else {
             Err(SqsError::Api(response.status().as_u16()))
@@ -266,29 +272,54 @@ impl SqsJobQueue {
         Ok(response.message_id)
     }
 
-    pub async fn dequeue_jobs(
-        &self,
-        queue_url: &str,
-    ) -> Result<Vec<JobMessage>, SqsError> {
-        let messages = self.client.receive_messages(queue_url, Some(10), Some(20)).await?;
+    pub async fn dequeue_jobs(&self, queue_url: &str) -> Result<Vec<JobMessage>, SqsError> {
+        let messages = self
+            .client
+            .receive_messages(queue_url, Some(10), Some(20))
+            .await?;
 
         let mut jobs = Vec::new();
         for msg in messages {
             if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&msg.body) {
-                let job_type = parsed.get("job_type")
+                let job_type = parsed
+                    .get("job_type")
                     .and_then(|v| v.as_str())
                     .unwrap_or("unknown");
-                
+
                 let payload = match job_type {
                     "embedding" => JobPayload::Embedding(EmbeddingJob {
-                        org_id: parsed.get("org_id").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                        ripple_id: parsed.get("ripple_id").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                        text: parsed.get("text").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                        org_id: parsed
+                            .get("org_id")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        ripple_id: parsed
+                            .get("ripple_id")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        text: parsed
+                            .get("text")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
                     }),
                     "content_generation" => JobPayload::ContentGeneration(ContentGenerationJob {
-                        org_id: parsed.get("org_id").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                        task_id: parsed.get("task_id").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                        prompt: parsed.get("prompt").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                        org_id: parsed
+                            .get("org_id")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        task_id: parsed
+                            .get("task_id")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        prompt: parsed
+                            .get("prompt")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
                     }),
                     _ => continue,
                 };
@@ -304,7 +335,11 @@ impl SqsJobQueue {
         Ok(jobs)
     }
 
-    pub async fn acknowledge_job(&self, queue_url: &str, receipt_handle: &str) -> Result<(), SqsError> {
+    pub async fn acknowledge_job(
+        &self,
+        queue_url: &str,
+        receipt_handle: &str,
+    ) -> Result<(), SqsError> {
         self.client.delete_message(queue_url, receipt_handle).await
     }
 }

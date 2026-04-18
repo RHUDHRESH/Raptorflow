@@ -1,8 +1,13 @@
-import { publicEnv } from "./env";
+import { getAuthToken, getWsBaseUrl } from "./api";
 import { useOfficeStore } from "@/state/office-store";
-import type { OfficeEventMessage } from "@raptorflow/contracts";
-
 export type OfficeSocketStatus = "connecting" | "connected" | "disconnected" | "error";
+
+type OfficeEventMessage = {
+  event_type: string;
+  org_id: string;
+  payload: Record<string, unknown>;
+  timestamp: string;
+};
 
 type StatusListener = (status: OfficeSocketStatus) => void;
 
@@ -24,11 +29,11 @@ export class OfficeSocket {
     return this._orgId;
   }
 
-  connect(): void {
+  async connect(): Promise<void> {
     if (this.ws?.readyState === WebSocket.OPEN) return;
     if (this.ws?.readyState === WebSocket.CONNECTING) return;
     this.shouldReconnect = true;
-    this.doConnect();
+    await this.doConnect();
   }
 
   disconnect(): void {
@@ -44,15 +49,6 @@ export class OfficeSocket {
     this.setStatus("disconnected");
   }
 
-  send(event: Omit<OfficeEventMessage, "orgId">): void {
-    if (this.ws?.readyState !== WebSocket.OPEN) return;
-    const message: OfficeEventMessage = {
-      ...event,
-      orgId: this._orgId,
-    } as OfficeEventMessage;
-    this.ws.send(JSON.stringify(message));
-  }
-
   getStatus(): OfficeSocketStatus {
     return this.status;
   }
@@ -62,17 +58,18 @@ export class OfficeSocket {
     return () => this.statusListeners.delete(listener);
   }
 
-  private doConnect(): void {
+  private async doConnect(): Promise<void> {
     this.setStatus("connecting");
+    useOfficeStore.getState().setConnectionStatus("connecting");
 
-    let url: string;
-    if (publicEnv.offlineMode) {
-      const wsBase = `ws://localhost:3001`;
-      url = `${wsBase}/ws/office?org_id=${encodeURIComponent(this._orgId)}`;
-    } else {
-      const apiHost = publicEnv.apiBaseUrl.replace(/^https?:\/\//, "");
-      url = `wss://${apiHost}/ws/office?org_id=${encodeURIComponent(this._orgId)}`;
+    const token = await getAuthToken();
+    if (!token) {
+      this.setStatus("error");
+      useOfficeStore.getState().setConnectionStatus("disconnected");
+      return;
     }
+
+    const url = `${getWsBaseUrl()}/api/v1/office/ws?token=${encodeURIComponent(token)}`;
 
     try {
       this.ws = new WebSocket(url);
@@ -83,6 +80,7 @@ export class OfficeSocket {
 
     this.ws.onopen = () => {
       this.setStatus("connected");
+      useOfficeStore.getState().setConnectionStatus("connected");
       this.reconnectDelay = 1000;
     };
 
@@ -97,14 +95,17 @@ export class OfficeSocket {
 
     this.ws.onerror = () => {
       this.setStatus("error");
+      useOfficeStore.getState().setConnectionStatus("disconnected");
     };
 
     this.ws.onclose = (evt) => {
       if (evt.code === 1000) {
         this.setStatus("disconnected");
+        useOfficeStore.getState().setConnectionStatus("disconnected");
         return;
       }
       this.setStatus("disconnected");
+      useOfficeStore.getState().setConnectionStatus("disconnected");
       if (this.shouldReconnect) {
         this.scheduleReconnect();
       }
@@ -116,7 +117,7 @@ export class OfficeSocket {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay);
-      this.doConnect();
+      void this.doConnect();
     }, this.reconnectDelay);
   }
 
@@ -127,12 +128,14 @@ export class OfficeSocket {
 
   private dispatchEvent(event: OfficeEventMessage): void {
     const store = useOfficeStore.getState();
-    store.pushEvent(event);
-
-    switch (event.eventType) {
+    const payload = event.payload ?? {};
+    const agentKey = (payload.agent_key || payload.agentKey) as any;
+    store.logEvent({ type: event.event_type, agentKey });
+    
+    switch (event.event_type) {
       case "morning_meeting_start":
         store.setMode("active");
-        store.focusZone("conference-room");
+        store.setFocusedZone("conference-room");
         break;
       case "conference_break":
         store.setMode("passive");
@@ -142,12 +145,12 @@ export class OfficeSocket {
         store.setMode("active");
         break;
       case "agent_walk_start":
-        if (event.payload.destination && typeof event.payload.destination === "string") {
-          store.focusZone(event.payload.destination);
+        if (payload.destination && typeof payload.destination === "string") {
+          store.setFocusedZone(payload.destination);
         }
         break;
       case "snark_refresh":
-        store.setSurface("snark");
+        store.toggleNudgePanel(true);
         break;
     }
   }
@@ -168,7 +171,6 @@ export function useOfficeSocket(orgId: string) {
     socket,
     connect: () => socket.connect(),
     disconnect: () => socket.disconnect(),
-    send: (event: Omit<OfficeEventMessage, "orgId">) => socket.send(event),
     getStatus: () => socket.getStatus(),
     addStatusListener: (listener: StatusListener) => socket.addStatusListener(listener),
   };

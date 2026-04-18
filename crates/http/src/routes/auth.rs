@@ -1,12 +1,12 @@
 use axum::{
+    Json, Router,
     body::Body,
     extract::Extension,
     http::{Request, StatusCode},
     routing::post,
-    Json, Router,
 };
+use raptorflow_auth::clerk::{ClerkMembershipData, ClerkOrgData, ClerkUserData};
 use raptorflow_auth::{ClerkClient, ClerkWebhookEvent};
-use raptorflow_auth::clerk::{ClerkUserData, ClerkMembershipData, ClerkOrgData};
 use raptorflow_db::queries;
 use serde::Serialize;
 use std::sync::Arc;
@@ -40,14 +40,10 @@ pub async fn clerk_webhook(
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?;
 
-    let clerk_webhook_secret = state
-        .settings
-        .clerk_webhook_secret
-        .clone()
-        .ok_or_else(|| {
-            tracing::error!("Missing Clerk webhook secret in settings");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
+    let clerk_webhook_secret = state.settings.clerk_webhook_secret.clone().ok_or_else(|| {
+        tracing::error!("Missing Clerk webhook secret in settings");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     let clerk_client = ClerkClient::new(clerk_webhook_secret);
 
@@ -56,12 +52,10 @@ pub async fn clerk_webhook(
         return Err(StatusCode::UNAUTHORIZED);
     }
 
-    let event: ClerkWebhookEvent = clerk_client
-        .parse_webhook_event(&body)
-        .map_err(|e| {
-            tracing::warn!(error = %e, "Failed to parse webhook event");
-            StatusCode::BAD_REQUEST
-        })?;
+    let event: ClerkWebhookEvent = clerk_client.parse_webhook_event(&body).map_err(|e| {
+        tracing::warn!(error = %e, "Failed to parse webhook event");
+        StatusCode::BAD_REQUEST
+    })?;
 
     // # FIXED: Clerk webhook replay protection - check event_id before processing
     if let Some(ref cache_service) = state.cache_service {
@@ -149,6 +143,7 @@ async fn upsert_user(pool: &sqlx::PgPool, event: &ClerkWebhookEvent) -> Result<(
 
     let first_name = data.first_name.as_deref().unwrap_or("Unknown");
     let last_name = data.last_name.as_deref();
+    let referral_code = extract_referral_code(data.unsafe_metadata.as_ref());
 
     tracing::info!(
         user_id = %user_id,
@@ -161,12 +156,14 @@ async fn upsert_user(pool: &sqlx::PgPool, event: &ClerkWebhookEvent) -> Result<(
     // Upsert into users table: INSERT ... ON CONFLICT DO UPDATE
     sqlx::query(
         r#"
-        INSERT INTO users (clerk_user_id, email, first_name, last_name, updated_at)
-        VALUES ($1, $2, $3, $4, NOW())
+        INSERT INTO users (clerk_user_id, email, first_name, last_name, referral_code, referral_applied_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
         ON CONFLICT (clerk_user_id) DO UPDATE SET
             email = EXCLUDED.email,
             first_name = EXCLUDED.first_name,
             last_name = EXCLUDED.last_name,
+            referral_code = COALESCE(EXCLUDED.referral_code, users.referral_code),
+            referral_applied_at = COALESCE(EXCLUDED.referral_applied_at, users.referral_applied_at),
             updated_at = EXCLUDED.updated_at
         "#,
     )
@@ -174,6 +171,8 @@ async fn upsert_user(pool: &sqlx::PgPool, event: &ClerkWebhookEvent) -> Result<(
     .bind(email)
     .bind(first_name)
     .bind(last_name)
+    .bind(referral_code.as_deref())
+    .bind(referral_code.as_ref().map(|_| chrono::Utc::now()))
     .execute(pool)
     .await
     .map_err(|e| format!("Failed to upsert user: {}", e))?;
@@ -222,6 +221,34 @@ async fn upsert_membership(pool: &sqlx::PgPool, event: &ClerkWebhookEvent) -> Re
         .await
         .map_err(|e| format!("Database error: {}", e))?;
 
+    if let Some(referral_code) = queries::get_user_referral_code(pool, user_id)
+        .await
+        .map_err(|e| format!("Database error: {}", e))?
+        .and_then(|code| normalize_referral_code(&code))
+    {
+        let should_apply = match queries::get_latest_subscription(pool, org_id)
+            .await
+            .map_err(|e| format!("Database error: {}", e))?
+        {
+            Some(subscription) => {
+                subscription.status != "active"
+                    || subscription.plan_amount_inr <= 0
+                    || subscription.provider == "referral"
+            }
+            None => true,
+        };
+
+        if should_apply {
+            let offer = referral_offer(referral_code).ok_or_else(|| {
+                format!("Referral code {} is not recognized", referral_code)
+            })?;
+
+            queries::upsert_referral_subscription(pool, org_id, offer.plan_tier, offer.code)
+                .await
+                .map_err(|e| format!("Database error: {}", e))?;
+        }
+    }
+
     Ok(())
 }
 
@@ -256,4 +283,50 @@ fn normalize_clerk_role(clerk_role: &str) -> &'static str {
     } else {
         "member"
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ReferralOffer {
+    code: &'static str,
+    plan_tier: &'static str,
+}
+
+fn normalize_referral_code(code: &str) -> Option<&'static str> {
+    match code.trim().to_uppercase().as_str() {
+        "LOKI" => Some("LOKI"),
+        "R2005" => Some("R2005"),
+        "DUNE" => Some("DUNE"),
+        _ => None,
+    }
+}
+
+fn referral_offer(code: &str) -> Option<ReferralOffer> {
+    match code.trim().to_uppercase().as_str() {
+        "LOKI" => Some(ReferralOffer {
+            code: "LOKI",
+            plan_tier: "ascend",
+        }),
+        "R2005" => Some(ReferralOffer {
+            code: "R2005",
+            plan_tier: "glide",
+        }),
+        "DUNE" => Some(ReferralOffer {
+            code: "DUNE",
+            plan_tier: "soar",
+        }),
+        _ => None,
+    }
+}
+
+fn extract_referral_code(metadata: Option<&serde_json::Value>) -> Option<String> {
+    let metadata = metadata?;
+    let candidate = metadata
+        .get("referralCode")
+        .or_else(|| metadata.get("referral_code"))
+        .or_else(|| metadata.get("referral"));
+
+    candidate
+        .and_then(|value| value.as_str())
+        .and_then(normalize_referral_code)
+        .map(|code| code.to_string())
 }

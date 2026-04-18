@@ -37,9 +37,14 @@ pub struct S3Service {
 }
 
 impl S3Service {
-    pub async fn new(bucket: String, region: String, access_key_id: String, secret_access_key: String) -> Self {
+    pub async fn new(
+        bucket: String,
+        region: String,
+        access_key_id: String,
+        secret_access_key: String,
+    ) -> Self {
         let credentials = Credentials::new(access_key_id, secret_access_key, None, None, "static");
-        
+
         let config = aws_config::ConfigLoader::default()
             .behavior_version(BehaviorVersion::latest())
             .region(aws_config::Region::new(region))
@@ -55,7 +60,7 @@ impl S3Service {
     pub async fn from_settings(settings: &raptorflow_config::Settings) -> Self {
         let bucket = settings.s3_bucket.clone();
         let region = settings.aws_region.clone();
-        
+
         let config = aws_config::ConfigLoader::default()
             .behavior_version(BehaviorVersion::latest())
             .region(aws_config::Region::new(region))
@@ -82,7 +87,9 @@ impl S3Service {
             .build()
             .map_err(|e| S3Error::Config(e.to_string()))?;
 
-        let builder = self.client.put_object()
+        let builder = self
+            .client
+            .put_object()
             .bucket(&self.bucket)
             .key(key)
             .content_type(content_type.unwrap_or("application/octet-stream"));
@@ -105,7 +112,9 @@ impl S3Service {
             .build()
             .map_err(|e| S3Error::Config(e.to_string()))?;
 
-        let presigned = self.client.get_object()
+        let presigned = self
+            .client
+            .get_object()
             .bucket(&self.bucket)
             .key(key)
             .presigned(presigning_config)
@@ -121,7 +130,9 @@ impl S3Service {
         body: Vec<u8>,
         content_type: &str,
     ) -> Result<PutObjectResponse, S3Error> {
-        let result = self.client.put_object()
+        let result = self
+            .client
+            .put_object()
             .bucket(&self.bucket)
             .key(key)
             .content_type(content_type)
@@ -137,21 +148,27 @@ impl S3Service {
     }
 
     pub async fn get_object(&self, key: &str) -> Result<Vec<u8>, S3Error> {
-        let result = self.client.get_object()
+        let result = self
+            .client
+            .get_object()
             .bucket(&self.bucket)
             .key(key)
             .send()
             .await
             .map_err(|e| S3Error::Api(e.to_string()))?;
 
-        let bytes = result.body.collect().await
+        let bytes = result
+            .body
+            .collect()
+            .await
             .map_err(|e| S3Error::Api(e.to_string()))?;
-        
+
         Ok(bytes.to_vec())
     }
 
     pub async fn delete_object(&self, key: &str) -> Result<(), S3Error> {
-        self.client.delete_object()
+        self.client
+            .delete_object()
             .bucket(&self.bucket)
             .key(key)
             .send()
@@ -162,7 +179,9 @@ impl S3Service {
     }
 
     pub async fn head_object(&self, key: &str) -> Result<ObjectMetadata, S3Error> {
-        let result = self.client.head_object()
+        let result = self
+            .client
+            .head_object()
             .bucket(&self.bucket)
             .key(key)
             .send()
@@ -228,7 +247,10 @@ impl UploadManager {
         content_type: &str,
     ) -> Result<UploadUrl, S3Error> {
         let key = S3Service::object_key("uploads", org_id, filename);
-        let url = self.s3.generate_presigned_put_url(&key, Some(content_type), 3600).await?;
+        let url = self
+            .s3
+            .generate_presigned_put_url(&key, Some(content_type), 3600)
+            .await?;
 
         Ok(UploadUrl {
             upload_url: url,
@@ -237,10 +259,7 @@ impl UploadManager {
         })
     }
 
-    pub async fn generate_download_url(
-        &self,
-        key: &str,
-    ) -> Result<String, S3Error> {
+    pub async fn generate_download_url(&self, key: &str) -> Result<String, S3Error> {
         self.s3.generate_presigned_get_url(key, 3600).await
     }
 
@@ -265,7 +284,10 @@ impl ScreenshotManager {
         filename: &str,
     ) -> Result<UploadUrl, S3Error> {
         let key = format!("screenshots/{}/{}/{}", org_id, campaign_id, filename);
-        let url = self.s3.generate_presigned_put_url(&key, Some("image/png"), 3600).await?;
+        let url = self
+            .s3
+            .generate_presigned_put_url(&key, Some("image/png"), 3600)
+            .await?;
 
         Ok(UploadUrl {
             upload_url: url,
@@ -291,13 +313,12 @@ impl ExportManager {
         filename: &str,
     ) -> Result<String, S3Error> {
         let key = format!("exports/{}/{}/{}", org_id, export_type, filename);
-        self.s3.generate_presigned_put_url(&key, Some("application/json"), 86400).await
+        self.s3
+            .generate_presigned_put_url(&key, Some("application/json"), 86400)
+            .await
     }
 
-    pub async fn generate_download_url(
-        &self,
-        key: &str,
-    ) -> Result<String, S3Error> {
+    pub async fn generate_download_url(&self, key: &str) -> Result<String, S3Error> {
         self.s3.generate_presigned_get_url(key, 86400).await
     }
 }

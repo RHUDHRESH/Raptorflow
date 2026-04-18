@@ -48,8 +48,8 @@ function RippleCard({ ripple, onRealize, onDelete }: {
   onRealize: () => void;
   onDelete: () => void;
 }): React.ReactElement {
-  const band = BAND_CONFIG[ripple.protectionBand] ?? BAND_CONFIG.normal;
-  const sourceAgent = ripple.source ? AGENTS.find((a) => a.key === ripple.source || a.displayName === ripple.source) : undefined;
+  const band = BAND_CONFIG[ripple.importanceBand] ?? BAND_CONFIG.normal;
+  const sourceAgent = ripple.sourceAgent ? AGENTS.find((a) => a.key === ripple.sourceAgent || a.displayName === ripple.sourceAgent) : undefined;
   const dateStr = new Date(ripple.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
   return (
@@ -64,22 +64,41 @@ function RippleCard({ ripple, onRealize, onDelete }: {
       <div className="flex-1 p-5">
         {/* Header row */}
         <div className="flex items-start justify-between mb-3 gap-3">
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 8,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.14em",
-              border: `1px solid ${band.color}`,
-              color: band.color,
-              padding: "2px 6px",
-              background: band.bg,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {band.label}
-          </span>
+          <div className="flex gap-2">
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 8,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.14em",
+                border: `1px solid ${band.color}`,
+                color: band.color,
+                padding: "2px 6px",
+                background: band.bg,
+                whiteSpace: "nowrap",
+              }}
+            >
+              LEVEL {ripple.hierarchyLevel || 1}
+            </span>
+            {ripple.memoryClass && (
+              <span
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 8,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.14em",
+                  border: `1px solid var(--border)`,
+                  color: "var(--muted-foreground)",
+                  padding: "2px 6px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {ripple.memoryClass}
+              </span>
+            )}
+          </div>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)", whiteSpace: "nowrap" }}>
             {dateStr}
           </span>
@@ -96,16 +115,16 @@ function RippleCard({ ripple, onRealize, onDelete }: {
             marginBottom: 8,
           }}
         >
-          {ripple.coreClaim}
+          {ripple.summaryText}
         </h3>
 
         {/* Reasoning */}
-        {ripple.keyReasoning && (
+        {ripple.rawText && (
           <p
             className="mb-4 line-clamp-2"
             style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, lineHeight: 1.6, color: "var(--muted-foreground)" }}
           >
-            {ripple.keyReasoning}
+            {ripple.rawText}
           </p>
         )}
 
@@ -115,16 +134,16 @@ function RippleCard({ ripple, onRealize, onDelete }: {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto pt-2 border-t border-[var(--border)]">
           {sourceAgent ? (
             <AgentPill agent={sourceAgent} size={16} />
-          ) : ripple.source ? (
+          ) : ripple.sourceAgent ? (
             <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)" }}>
-              {ripple.source}
+              {ripple.sourceAgent}
             </span>
           ) : (
             <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)" }}>
-              No source
+              System Generated
             </span>
           )}
           <div className="flex gap-1">
@@ -242,10 +261,16 @@ export default function RipplesPage(): React.ReactElement {
   const [showPanel, setShowPanel] = useState(false);
 
   const displayRipples = ripples ?? [];
-  const filtered = displayRipples.filter((r: any) => filter === "all" || r.protectionBand === filter);
+  const filtered = displayRipples.filter((r: any) => filter === "all" || r.importanceBand === filter);
 
   const handleCreate = (data: { coreClaim: string; keyReasoning: string }) => {
-    createRipple.mutate(data, { onSuccess: () => setShowPanel(false) });
+    createRipple.mutate({
+      summaryText: data.coreClaim,
+      rawText: data.keyReasoning,
+      confidence: 0.8,
+      importanceBand: "normal",
+      sourceAgent: "System"
+    }, { onSuccess: () => setShowPanel(false) });
   };
 
   return (

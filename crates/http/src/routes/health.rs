@@ -1,4 +1,4 @@
-use axum::{extract::Extension, http::StatusCode, response::IntoResponse, Json};
+use axum::{Json, extract::Extension, http::StatusCode, response::IntoResponse};
 use std::sync::Arc;
 
 use crate::middleware::AppState;
@@ -7,9 +7,7 @@ pub async fn liveness() -> StatusCode {
     StatusCode::OK
 }
 
-pub async fn readiness(
-    Extension(state): Extension<Arc<AppState>>,
-) -> impl IntoResponse {
+pub async fn readiness(Extension(state): Extension<Arc<AppState>>) -> impl IntoResponse {
     let mut checks = serde_json::json!({
         "status": "ready",
         "checks": {}
@@ -41,7 +39,7 @@ pub async fn readiness(
             Err(e) => {
                 checks["status"] = serde_json::json!("degraded");
                 checks["checks"]["cache"] = serde_json::json!({
-                    "status": "error", 
+                    "status": "error",
                     "message": e.to_string()
                 });
             }

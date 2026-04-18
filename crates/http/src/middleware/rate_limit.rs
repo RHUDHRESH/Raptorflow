@@ -3,15 +3,11 @@ use axum::{
     http::{Request, StatusCode},
     response::Response,
 };
-use std::{
-    collections::HashMap,
-    sync::Arc,
-    time::Instant,
-};
-use tokio::sync::RwLock;
-use tower::{Layer, Service};
 use std::future::Future;
 use std::pin::Pin;
+use std::{collections::HashMap, sync::Arc, time::Instant};
+use tokio::sync::RwLock;
+use tower::{Layer, Service};
 
 #[derive(Clone)]
 pub struct RateLimitConfig {
@@ -102,7 +98,7 @@ impl RateLimitState {
 
     pub async fn check_rate_limit(&self, key: &str) -> Result<(), RateLimitError> {
         let mut buckets = self.tokens.write().await;
-        
+
         let bucket = buckets
             .entry(key.to_string())
             .or_insert_with(|| TokenBucket::new(self.config.burst_size as f32));
@@ -163,7 +159,12 @@ fn ip_key_fn(request: &Request<Body>) -> String {
         .headers()
         .get("x-forwarded-for")
         .and_then(|v| v.to_str().ok())
-        .or_else(|| request.headers().get("x-real-ip").and_then(|v| v.to_str().ok()))
+        .or_else(|| {
+            request
+                .headers()
+                .get("x-real-ip")
+                .and_then(|v| v.to_str().ok())
+        })
         .map(|s| s.split(',').next().unwrap_or(s).trim().to_string())
         .unwrap_or_else(|| "unknown".to_string())
 }
@@ -202,14 +203,18 @@ where
     S::Future: Send + 'static,
 {
     type Response = Response<Body>;
-    type Future = Pin<Box<dyn Send + Future<Output = Result<Self::Response, std::convert::Infallible>>>>;
+    type Future =
+        Pin<Box<dyn Send + Future<Output = Result<Self::Response, std::convert::Infallible>>>>;
     type Error = std::convert::Infallible;
 
     fn poll_ready(
         &mut self,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx).map_ok(|_| ()).map_err(|_| unreachable!())
+        self.inner
+            .poll_ready(cx)
+            .map_ok(|_| ())
+            .map_err(|_| unreachable!())
     }
 
     fn call(&mut self, request: Request<Body>) -> Self::Future {
@@ -221,7 +226,10 @@ where
             if let Err(RateLimitError::TooManyRequests) = state.check_rate_limit(&key).await {
                 let response = Response::builder()
                     .status(StatusCode::TOO_MANY_REQUESTS)
-                    .header("X-RateLimit-Limit", state.config.requests_per_minute.to_string())
+                    .header(
+                        "X-RateLimit-Limit",
+                        state.config.requests_per_minute.to_string(),
+                    )
                     .header("Retry-After", "60")
                     .body(Body::from("Rate limit exceeded"));
                 return Ok(response.unwrap_or_else(|_| {

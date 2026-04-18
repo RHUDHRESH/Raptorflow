@@ -1,5 +1,5 @@
-pub mod strategist;
 pub mod council;
+pub mod strategist;
 pub mod support;
 
 use crate::template::AvatarTemplate;

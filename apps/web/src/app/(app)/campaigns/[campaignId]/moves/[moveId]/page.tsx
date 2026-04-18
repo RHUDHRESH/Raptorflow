@@ -1,180 +1,231 @@
 "use client";
 
-import type * as React from "react";
+import * as React from "react";
+import { use } from "react";
 import type { Route } from "next";
 import Link from "next/link";
-import { use } from "react";
-import { RouteShell } from "@/components/layout/route-shell";
+import { ArrowLeftIcon, DrawingPinIcon, MixerHorizontalIcon, ChatBubbleIcon, PlayIcon } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AGENTS } from "@/lib/agents";
+import { AgentPill } from "@/components/ui/agent-portrait";
 
 const MOVE_DATA: Record<string, {
-  title: string; description: string; status: string; budget: number;
-  timeline: string; channels: string[]; tasks: { id: string; title: string; status: string; assignee: string }[]
+  title: string; 
+  description: string; 
+  status: string; 
+  budget: number;
+  timeline: string; 
+  channels: string[]; 
+  leadAgent: string;
+  tasks: { id: string; title: string; status: string; assignee: string }[]
 }> = {
   awareness: {
-    title: "Launch LinkedIn campaign",
-    description: "Initial brand awareness push targeting decision-makers at SaaS companies with 50-500 employees.",
-    status: "active",
+    title: "Brand Awareness Push",
+    description: "Initial brand visibility on LinkedIn and Instagram. Ogilvy leads creative brief focusing on the 'Identity Gap' theory.",
+    status: "completed",
     budget: 4000,
     timeline: "Week 1-2",
-    channels: ["LinkedIn", "Google Ads"],
+    channels: ["LinkedIn", "Instagram"],
+    leadAgent: "ogilvy",
     tasks: [
-      { id: "t1", title: "Write 3 ad creatives", status: "done", assignee: "Ogilvy" },
-      { id: "t2", title: "Set up campaign in LinkedIn Ads", status: "done", assignee: "Patel" },
-      { id: "t3", title: "Define audience segments", status: "in_progress", assignee: "Strategist" },
-      { id: "t4", title: "Launch and monitor CTR", status: "pending", assignee: "Patel" },
+      { id: "t1", title: "Write 3 ad creatives", status: "done", assignee: "ogilvy" },
+      { id: "t2", title: "Segment ICP by job title", status: "done", assignee: "patel" },
+      { id: "t3", title: "Deploy initial budget", status: "done", assignee: "media" },
     ],
   },
   consideration: {
-    title: "Publish 3 blog posts on industry trends",
-    description: "Content-led nurture targeting mid-funnel prospects with thought leadership content.",
-    status: "planned",
-    budget: 1500,
+    title: "Content Nurture Sprint",
+    description: "3 blog posts + LinkedIn playbook targeting mid-funnel ICP. Godin leads narrative on 'remarkability'.",
+    status: "active",
+    budget: 8000,
     timeline: "Week 2-4",
-    channels: ["Blog", "LinkedIn", "Newsletter"],
+    channels: ["Blog", "LinkedIn"],
+    leadAgent: "godin",
     tasks: [
-      { id: "t1", title: "Research top 5 industry trends", status: "pending", assignee: "Sharp" },
-      { id: "t2", title: "Write post 1: AI in marketing ops", status: "pending", assignee: "Ogilvy" },
+      { id: "t4", title: "Draft 'AI Marketing Ops' essay", status: "in_progress", assignee: "ogilvy" },
+      { id: "t5", title: "Set up newsletter sequence", status: "pending", assignee: "wunderman" },
+      { id: "t6", title: "Define tribe parameters", status: "done", assignee: "godin" },
     ],
-  },
-  conversion: {
-    title: "Run webinar with target ICP",
-    description: "High-intent live event for bottom-of-funnel prospects with demo and Q&A.",
-    status: "planned",
-    budget: 2500,
-    timeline: "Week 4",
-    channels: ["Webinar", "Email", "LinkedIn"],
-    tasks: [],
-  },
-  retention: {
-    title: "Launch email nurture sequence",
-    description: "Onboarding and retention email flow for existing customers and warm leads.",
-    status: "planned",
-    budget: 1000,
-    timeline: "Week 5-8",
-    channels: ["Email"],
-    tasks: [],
-  },
-  launch: {
-    title: "Product launch announcement",
-    description: "Multi-channel launch blast for the new feature announcement.",
-    status: "planned",
-    budget: 3000,
-    timeline: "TBD",
-    channels: ["Email", "LinkedIn", "Twitter", "Blog"],
-    tasks: [],
   },
 };
 
-export default async function CampaignMoveDetailPage({
+export default function CampaignMoveDetailPage({
   params
 }: {
   params: Promise<{ campaignId: string; moveId: string }>;
-}): Promise<React.ReactElement> {
-  const { campaignId, moveId } = await params;
+}): React.ReactElement {
+  const { campaignId, moveId } = use(params);
   const move = MOVE_DATA[moveId] ?? MOVE_DATA.consideration;
+  const leadAgentConfig = AGENTS.find(a => a.key === move.leadAgent);
 
   return (
-    <RouteShell
-      eyebrow="Move detail"
-      title={move.title}
-      description={move.description}
-      tags={[moveId, "move"]}
-      backHref={`/campaigns/${campaignId}/moves` as Route}
-      backLabel="Back to Moves"
-    >
-      <div className="grid gap-4 xl:grid-cols-3">
-        <div className="space-y-4 xl:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Move overview</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Badge className={move.status === "active" ? "bg-green-100 text-green-700" : "bg-[var(--muted)]"}>
-                  {move.status}
-                </Badge>
-                <span className="text-lg font-bold">${move.budget.toLocaleString()}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-[var(--muted-foreground)]">Timeline</p>
-                  <p className="font-medium">{move.timeline}</p>
-                </div>
-                <div>
-                  <p className="text-[var(--muted-foreground)]">Channels</p>
-                  <div className="flex flex-wrap gap-1">
-                    {move.channels.map((ch) => (
-                      <Badge key={ch} variant="outline" className="text-xs">{ch}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+    <div className="flex flex-col gap-8 py-2">
+      {/* ── Back nav ──────────────────────────────────── */}
+      <Link
+        href={`/campaigns/${campaignId}/moves` as Route}
+        className="flex items-center gap-2 mb-2 hover:underline w-fit"
+        style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 9,
+          textTransform: "uppercase",
+          letterSpacing: "0.16em",
+          color: "var(--muted-foreground)",
+        }}
+      >
+        <ArrowLeftIcon className="h-3 w-3" />
+        Move Sequence
+      </Link>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Tasks ({move.tasks.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {move.tasks.length === 0 ? (
-                <p className="py-4 text-center text-sm text-[var(--muted-foreground)]">No tasks yet</p>
-              ) : (
-                <div className="space-y-2">
-                  {move.tasks.map((task) => (
-                    <div key={task.id} className="flex items-center justify-between rounded-lg border border-[var(--border)] px-3 py-2">
-                      <div className="flex items-center gap-3">
-                        <span className={`h-2 w-2 rounded-full ${
-                          task.status === "done" ? "bg-green-500" :
-                          task.status === "in_progress" ? "bg-blue-500" : "bg-[var(--muted)]"
-                        }`} />
-                        <span className="text-sm">{task.title}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-[var(--muted-foreground)]">{task.assignee}</span>
-                        <Link
-                          href={`/campaigns/${campaignId}/tasks/${task.id}` as Route}
-                          className="text-xs text-[var(--accent)] hover:underline"
-                        >
-                          View →
+      {/* ── Header ────────────────────────────────────────── */}
+      <header className="flex items-end justify-between border-b-2 border-[var(--foreground)] pb-6">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <DrawingPinIcon className="h-4 w-4" style={{ color: "var(--amber-war)" }} />
+            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>
+               Move Detail // {moveId.toUpperCase()}
+            </p>
+          </div>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, lineHeight: 1, margin: 0 }}>
+            {move.title}
+          </h1>
+        </div>
+
+        <div className="flex flex-col items-end gap-2 text-right">
+          <Badge className={
+            move.status === "active" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
+            move.status === "completed" ? "bg-green-500/10 text-green-500 border-green-500/20" :
+            "bg-zinc-800 text-zinc-500"
+          }>
+            {move.status}
+          </Badge>
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--foreground)" }}>
+             ₹{move.budget.toLocaleString("en-IN")} Allocation
+          </p>
+        </div>
+      </header>
+
+      {/* ── Main content ──────────────────────────────────── */}
+      <div className="grid xl:grid-cols-[1fr_360px] gap-8 items-start">
+        
+        <div className="space-y-8">
+          {/* Move Overview */}
+          <section className="border-2 border-[var(--foreground)] bg-[var(--card)] p-8">
+             <div className="flex items-start justify-between mb-8">
+                <div className="space-y-4 max-w-xl">
+                   <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>Strategic Narrative</h3>
+                   <p className="text-zinc-400 font-light italic leading-relaxed">
+                     &ldquo;{move.description}&rdquo;
+                   </p>
+                </div>
+                {leadAgentConfig && (
+                   <div className="text-right flex flex-col items-end gap-2">
+                      <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted-foreground)" }}>
+                        Lead Architect
+                      </p>
+                      <AgentPill agent={leadAgentConfig} size={24} />
+                   </div>
+                )}
+             </div>
+
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-zinc-800">
+                <div>
+                   <p className="font-mono text-[8px] text-zinc-600 uppercase tracking-widest mb-1">Timeline</p>
+                   <p className="text-sm font-medium">{move.timeline}</p>
+                </div>
+                <div>
+                   <p className="font-mono text-[8px] text-zinc-600 uppercase tracking-widest mb-1">Channels</p>
+                   <div className="flex gap-1 flex-wrap">
+                      {move.channels.map(c => <Badge key={c} variant="outline" className="text-[9px] uppercase">{c}</Badge>)}
+                   </div>
+                </div>
+                <div>
+                   <p className="font-mono text-[8px] text-zinc-600 uppercase tracking-widest mb-1">Tasks</p>
+                   <p className="text-sm font-medium">{move.tasks.filter(t => t.status === "done").length}/{move.tasks.length} Done</p>
+                </div>
+                <div>
+                   <p className="font-mono text-[8px] text-zinc-600 uppercase tracking-widest mb-1">Efficiency</p>
+                   <p className="text-sm font-medium text-green-500">92%</p>
+                </div>
+             </div>
+          </section>
+
+          {/* Task Ledger */}
+          <section className="border border-[var(--border)] bg-[var(--card)]">
+             <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
+                <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted-foreground)" }}>
+                   Operational Ledger
+                </p>
+                <div className="flex items-center gap-2">
+                   <Button variant="ghost" className="h-7 px-2 text-[9px] font-mono text-zinc-600 uppercase">View All</Button>
+                   <Button size="sm" className="h-7 px-3 bg-white text-black text-[9px] font-bold uppercase rounded-none">Create Task</Button>
+                </div>
+             </div>
+             <div className="divide-y divide-[var(--border)]">
+                {move.tasks.map(task => {
+                   const agent = AGENTS.find(a => a.key === task.assignee);
+                   return (
+                     <div key={task.id} className="p-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+                        <div className="flex items-center gap-4">
+                           <div className={`h-2 w-2 rounded-full ${
+                             task.status === "done" ? "bg-green-500" :
+                             task.status === "in_progress" ? "bg-amber-500 animate-pulse" : "bg-zinc-800"
+                           }`} />
+                           <div>
+                              <p className="text-sm text-white font-medium group-hover:text-amber-500 transition-colors uppercase tracking-tight">{task.title}</p>
+                              <div className="flex items-center gap-3 mt-1">
+                                 <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">{task.status.replace("_", " ")}</span>
+                                 <span className="text-zinc-800">|</span>
+                                 {agent && (
+                                   <div className="flex items-center gap-1.5 grayscale group-hover:grayscale-0 transition-all">
+                                      <AgentPill agent={agent} size={14} />
+                                      <span className="text-[9px] font-mono text-zinc-500 uppercase">{agent.displayName}</span>
+                                   </div>
+                                 )}
+                              </div>
+                           </div>
+                        </div>
+                        <Link href={`/campaigns/${campaignId}/tasks/${task.id}` as Route}>
+                          <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <ArrowLeftIcon className="rotate-180" />
+                          </Button>
                         </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                     </div>
+                   );
+                })}
+             </div>
+          </section>
         </div>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Move actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button className="w-full" size="sm" variant="secondary">Add task</Button>
-              <Button className="w-full" size="sm" variant="secondary">Edit move</Button>
-              <Button className="w-full" size="sm" variant="destructive">Remove move</Button>
-            </CardContent>
-          </Card>
+        {/* ── Sidebar ────────────────────────────────────────── */}
+        <aside className="space-y-6 sticky top-6">
+           <div className="border border-[var(--border)] bg-[var(--card)] divide-y divide-[var(--border)]">
+              <div className="px-5 py-4">
+                 <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--muted-foreground)" }}>Architectural Controls</p>
+              </div>
+              <button className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all group">
+                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Execute Move</span>
+                 <PlayIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all group">
+                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Re-plan Sequence</span>
+                 <MixerHorizontalIcon className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+              </button>
+              <button className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all group">
+                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Discuss with Lead</span>
+                 <ChatBubbleIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              </button>
+           </div>
 
-          <Card className="border-amber-200 bg-amber-50/50">
-            <CardHeader>
-              <CardTitle className="text-base">📝 What to implement next</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-amber-800">
-              <p><strong>Task drill-down:</strong> Each task should link to <code>/campaigns/[id]/tasks/[taskId]</code> with full task detail.</p>
-              <p><strong>Move editor:</strong> Full CRUD for moves — edit title, description, budget, timeline, channels.</p>
-              <p><strong>Task creation:</strong> Create tasks within a move and assign to council agents (Ogilvy, Patel, Sharp, etc.).</p>
-              <p><strong>Progress tracking:</strong> Visual progress bar showing tasks done vs total within this move.</p>
-            </CardContent>
-          </Card>
-        </div>
+           <div className="p-6 border border-zinc-800 bg-[#161616] space-y-4">
+              <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-500">Move Context</p>
+              <p className="text-xs text-zinc-400 font-light italic leading-relaxed">
+                 Moves are sequential blocks of tactical execution. This move was authorized by the Council of 21 after the Q2 Performance Review.
+              </p>
+           </div>
+        </aside>
+
       </div>
-    </RouteShell>
+    </div>
   );
 }

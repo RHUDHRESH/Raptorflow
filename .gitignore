@@ -58,3 +58,4 @@ done/
 echo/
 -p/
 kilo.jsonc
+.aider*

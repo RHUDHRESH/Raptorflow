@@ -1,13 +1,23 @@
-export const appRoutes = {
-  marketing: "/",
+export const ROUTES = {
   dashboard: "/app",
-  foundation: "/foundation",
-  campaigns: "/campaigns",
+  dailyWins: "/daily-wins",
   office: "/office",
   muse: "/muse",
+  campaigns: "/campaigns",
+  campaignNew: "/campaigns/new",
+  campaignDetail: (campaignId: string) => `/campaigns/${campaignId}`,
+  campaignTask: (campaignId: string, taskId: string) => `/campaigns/${campaignId}/tasks/${taskId}`,
+  content: "/content",
   council: "/council",
-  dailyWins: "/daily-wins",
+  intel: "/intel",
+  intelArtifact: (artifactId: string) => `/intel/${artifactId}`,
+  nudges: "/nudges",
+  foundation: "/foundation",
+  uploads: "/uploads",
   billing: "/billing",
   settings: "/settings",
-  internalDebug: "/internal/debug"
+  ripples: "/ripples",
+  debug: "/internal/debug",
 } as const;
+
+export type RouteKey = keyof typeof ROUTES;

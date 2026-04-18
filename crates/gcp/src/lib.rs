@@ -52,7 +52,9 @@ impl GeminiClient {
         let request = GenerateContentRequest {
             contents: vec![Content {
                 role: "user".to_string(),
-                parts: vec![Part { text: prompt.to_string() }],
+                parts: vec![Part {
+                    text: prompt.to_string(),
+                }],
             }],
             generation_config: Some(GenerationConfig {
                 temperature: Some(0.7),
@@ -105,7 +107,9 @@ impl GeminiClient {
         let request = GenerateContentRequest {
             contents: vec![Content {
                 role: "user".to_string(),
-                parts: vec![Part { text: prompt.to_string() }],
+                parts: vec![Part {
+                    text: prompt.to_string(),
+                }],
             }],
             generation_config: Some(GenerationConfig {
                 temperature: Some(0.7),
@@ -163,7 +167,9 @@ impl GeminiClient {
             }],
             system_instruction: system_instruction.map(|s| Content {
                 role: "user".to_string(),
-                parts: vec![Part { text: s.to_string() }],
+                parts: vec![Part {
+                    text: s.to_string(),
+                }],
             }),
             ttl: ttl_seconds.map(|s| format!("{}s", s)),
             expire_time: None,
@@ -246,15 +252,15 @@ struct GenerateContentRequest {
     cached_content: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Content {
     role: String,
-    parts: Vec<Part>,
+    pub parts: Vec<Part>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Part {
-    text: String,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Part {
+    pub text: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -272,7 +278,7 @@ pub struct GenerateContentResponse {
     pub model_version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Candidate {
     pub content: Option<Content>,
     pub finish_reason: Option<String>,
@@ -354,7 +360,12 @@ pub struct GcpInferenceService {
 }
 
 impl GcpInferenceService {
-    pub fn new(client: Arc<GeminiClient>, strategist_model: String, council_model: String, default_model: String) -> Self {
+    pub fn new(
+        client: Arc<GeminiClient>,
+        strategist_model: String,
+        council_model: String,
+        default_model: String,
+    ) -> Self {
         Self {
             client,
             strategist_model,
@@ -418,7 +429,12 @@ impl GcpInferenceService {
         cache_name: &str,
     ) -> Result<GenerateContentResponse, GcpError> {
         self.client
-            .generate_content_with_context(&self.default_model, prompt, foundation_json, Some(cache_name))
+            .generate_content_with_context(
+                &self.default_model,
+                prompt,
+                foundation_json,
+                Some(cache_name),
+            )
             .await
     }
 
@@ -427,9 +443,15 @@ impl GcpInferenceService {
         foundation_json: &str,
         ttl_seconds: i64,
     ) -> Result<CachedContent, GcpError> {
-        let system_instruction = Some("You are an expert marketing strategist analyzing a company's foundation data.");
+        let system_instruction =
+            Some("You are an expert marketing strategist analyzing a company's foundation data.");
         self.client
-            .create_cached_content(&self.default_model, foundation_json, system_instruction, Some(ttl_seconds))
+            .create_cached_content(
+                &self.default_model,
+                foundation_json,
+                system_instruction,
+                Some(ttl_seconds),
+            )
             .await
     }
 
@@ -503,7 +525,10 @@ impl EmbeddingClient {
         }
     }
 
-    pub async fn embed_batch(&self, texts: Vec<String>) -> Result<Vec<EmbeddingResponse>, GcpError> {
+    pub async fn embed_batch(
+        &self,
+        texts: Vec<String>,
+    ) -> Result<Vec<EmbeddingResponse>, GcpError> {
         let mut results = Vec::with_capacity(texts.len());
         for text in texts {
             results.push(self.embed_text(&text).await?);
@@ -546,6 +571,205 @@ pub struct EmbeddingResponse {
 pub struct EmbeddingValue {
     pub values: Vec<f32>,
     pub task_type: Option<String>,
+}
+
+#[derive(Clone)]
+pub enum EmbeddingClientEnum {
+    Gcp(EmbeddingClient),
+    Groq(GroqClient),
+}
+
+impl EmbeddingClientEnum {
+    pub fn from_settings(settings: &raptorflow_config::Settings) -> Self {
+        if settings.ai_provider == "groq" && !settings.groq_api_key.is_empty() {
+            Self::Groq(GroqClient::from_settings(settings))
+        } else {
+            Self::Gcp(EmbeddingClient::from_settings(settings))
+        }
+    }
+
+    pub async fn embed_text(&self, text: &str) -> Result<EmbeddingResponse, GcpError> {
+        match self {
+            Self::Gcp(client) => client.embed_text(text).await,
+            Self::Groq(client) => client.embed_text(text).await,
+        }
+    }
+
+    pub async fn embed_query(&self, text: &str) -> Result<EmbeddingResponse, GcpError> {
+        match self {
+            Self::Gcp(client) => client.embed_query(text).await,
+            Self::Groq(client) => client.embed_query(text).await,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct GroqClient {
+    client: Client,
+    api_key: String,
+    base_url: String,
+}
+
+impl GroqClient {
+    pub fn new(api_key: String, base_url: String) -> Self {
+        Self {
+            client: Client::new(),
+            api_key,
+            base_url,
+        }
+    }
+
+    pub fn from_settings(settings: &raptorflow_config::Settings) -> Self {
+        Self::new(
+            settings.groq_api_key.clone(),
+            settings.groq_api_url.clone(),
+        )
+    }
+
+    pub async fn embed_text(&self, text: &str) -> Result<EmbeddingResponse, GcpError> {
+        let request = GroqEmbeddingRequest {
+            model: "embedding-multilingual-e5-multilingual".to_string(),
+            input: text.to_string(),
+        };
+
+        let response = self
+            .client
+            .post(format!("{}/embeddings", self.base_url))
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Content-Type", "application/json")
+            .json(&request)
+            .send()
+            .await
+            .map_err(|e| GcpError::Network(e.to_string()))?;
+
+        if response.status().is_success() {
+            let groq_resp: GroqEmbeddingResponse = response
+                .json()
+                .await
+                .map_err(|e| GcpError::Parse(e.to_string()))?;
+            Ok(EmbeddingResponse {
+                embeddings: vec![EmbeddingValue {
+                    values: groq_resp.data[0].embedding.clone(),
+                    task_type: None,
+                }],
+            })
+        } else {
+            let status = response.status();
+            let text_body = response.text().await.unwrap_or_default();
+            tracing::error!(status = %status, body = %text_body, "Groq API error");
+            Err(GcpError::Api(status.as_u16(), text_body))
+        }
+    }
+
+    pub async fn embed_query(&self, text: &str) -> Result<EmbeddingResponse, GcpError> {
+        self.embed_text(text).await
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct GroqEmbeddingRequest {
+    model: String,
+    input: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct GroqEmbeddingResponse {
+    data: Vec<GroqEmbeddingData>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GroqEmbeddingData {
+    embedding: Vec<f32>,
+}
+
+#[derive(Debug, Clone)]
+pub struct GroqInferenceClient {
+    client: Client,
+    api_key: String,
+    base_url: String,
+    model: String,
+}
+
+impl GroqInferenceClient {
+    pub fn new(api_key: String, base_url: String, model: String) -> Self {
+        Self {
+            client: Client::new(),
+            api_key,
+            base_url,
+            model,
+        }
+    }
+
+    pub fn from_settings(settings: &raptorflow_config::Settings) -> Self {
+        Self::new(
+            settings.groq_api_key.clone(),
+            settings.groq_api_url.clone(),
+            "llama-3.3-70b-versatile".to_string(),
+        )
+    }
+
+    pub async fn generate_content(&self, prompt: &str) -> Result<GroqChatResponse, GcpError> {
+        let request = GroqChatRequest {
+            model: self.model.clone(),
+            messages: vec![GroqMessage {
+                role: "user".to_string(),
+                content: prompt.to_string(),
+            }],
+            temperature: Some(0.7),
+            max_tokens: Some(2048),
+        };
+
+        let response = self
+            .client
+            .post(format!("{}/chat/completions", self.base_url))
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Content-Type", "application/json")
+            .json(&request)
+            .send()
+            .await
+            .map_err(|e| GcpError::Network(e.to_string()))?;
+
+        if response.status().is_success() {
+            response
+                .json()
+                .await
+                .map_err(|e| GcpError::Parse(e.to_string()))
+        } else {
+            let status = response.status();
+            let text_body = response.text().await.unwrap_or_default();
+            tracing::error!(status = %status, body = %text_body, "Groq API error");
+            Err(GcpError::Api(status.as_u16(), text_body))
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct GroqChatRequest {
+    model: String,
+    messages: Vec<GroqMessage>,
+    temperature: Option<f32>,
+    max_tokens: Option<u32>,
+}
+
+#[derive(Debug, Serialize)]
+struct GroqMessage {
+    role: String,
+    content: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GroqChatResponse {
+    pub choices: Vec<GroqChoice>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GroqChoice {
+    pub message: GroqMessageResponse,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GroqMessageResponse {
+    pub content: String,
 }
 
 #[cfg(test)]

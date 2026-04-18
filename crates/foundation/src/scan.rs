@@ -52,7 +52,10 @@ impl ScanService {
         Ok(None)
     }
 
-    pub async fn process_quick_scan(_org_id: Uuid, _website: &str) -> Result<serde_json::Value, String> {
+    pub async fn process_quick_scan(
+        _org_id: Uuid,
+        _website: &str,
+    ) -> Result<serde_json::Value, String> {
         Ok(serde_json::json!({
             "title": serde_json::Value::Null,
             "description": serde_json::Value::Null,

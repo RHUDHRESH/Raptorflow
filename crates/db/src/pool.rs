@@ -1,5 +1,6 @@
-use sqlx::postgres::{PgPool as SqlxPgPool, PgPoolOptions};
+use sqlx::postgres::{PgPool as SqlxPgPool, PgPoolOptions, Postgres};
 use std::time::Duration;
+use uuid::Uuid;
 
 pub type PgPool = SqlxPgPool;
 
@@ -13,10 +14,35 @@ pub async fn create_pool(database_url: &str) -> Result<PgPool, sqlx::Error> {
         .await
 }
 
-pub async fn set_tenant_context(pool: &PgPool, org_id: uuid::Uuid) -> Result<(), sqlx::Error> {
-    sqlx::query("SET LOCAL app.current_org_id = $1")
-        .bind(org_id)
-        .execute(pool)
-        .await?;
-    Ok(())
+#[derive(Clone)]
+pub struct TenantDbPool {
+    inner: PgPool,
+}
+
+impl TenantDbPool {
+    pub fn new(pool: PgPool) -> Self {
+        Self { inner: pool }
+    }
+
+    pub async fn acquire_for_tenant(
+        &self,
+        org_id: Uuid,
+    ) -> Result<sqlx::pool::PoolConnection<Postgres>, sqlx::Error> {
+        let mut conn = self.inner.acquire().await?;
+        sqlx::query("SET LOCAL app.current_org_id = $1")
+            .bind(org_id)
+            .execute(&mut *conn)
+            .await?;
+        Ok(conn)
+    }
+
+    pub fn pool(&self) -> &PgPool {
+        &self.inner
+    }
+}
+
+impl std::fmt::Debug for TenantDbPool {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TenantDbPool").finish()
+    }
 }

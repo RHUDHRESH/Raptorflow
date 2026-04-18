@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@plugin "tailwindcss-animate";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -159,4 +157,21 @@
   ::selection {
     @apply bg-amber-500/30 text-white;
   }
+}
+
+/* ─── RaptorFlow Landing Utilities ──────────────────────────────────────────── */
+.landing-noise {
+  background-image: radial-gradient(rgba(255,255,255,0.028) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.landing-grid {
+  background-image:
+    linear-gradient(rgba(245, 158, 11, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 158, 11, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.landing-amber-glow {
+  box-shadow: 0 0 48px rgba(245, 158, 11, 0.18);
 }

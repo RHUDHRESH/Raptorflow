@@ -79,6 +79,10 @@ export const mockCampaigns: Campaign[] = [
     name: "Q2 Growth Push",
     status: "active",
     goal: "Generate 500 MQLs in Q2",
+    goal_type: "leads",
+    progress_pct: 65,
+    start_date: "2025-04-01T00:00:00Z",
+    end_date: "2025-06-30T00:00:00Z",
     timeline: "2025-04-01 to 2025-06-30",
     channels: ["LinkedIn", "Content", "Email"],
     createdAt: "2025-04-01T00:00:00Z",
@@ -87,9 +91,13 @@ export const mockCampaigns: Campaign[] = [
   {
     campaignId: "campaign-002",
     orgId: ORG_ID,
-    name: "Product Launch — RaptorFlow 2.0",
+    name: "Product Launch \u2014 RaptorFlow 2.0",
     status: "draft",
     goal: "Drive awareness for v2 launch",
+    goal_type: "awareness",
+    progress_pct: 0,
+    start_date: "2025-05-01T00:00:00Z",
+    end_date: "2025-06-30T00:00:00Z",
     timeline: "2025-05-01 to 2025-06-30",
     channels: ["Content", "Webinars"],
     createdAt: "2025-04-10T00:00:00Z",
@@ -101,6 +109,10 @@ export const mockCampaigns: Campaign[] = [
     name: "Enterprise Outreach",
     status: "paused",
     goal: "Book 20 enterprise demos",
+    goal_type: "conversion",
+    progress_pct: 30,
+    start_date: "2025-03-01T00:00:00Z",
+    end_date: "2025-05-31T00:00:00Z",
     timeline: "2025-03-01 to 2025-05-31",
     channels: ["LinkedIn", "Cold email"],
     createdAt: "2025-03-01T00:00:00Z",
@@ -148,24 +160,26 @@ export const mockRipples: Ripple[] = [
   {
     rippleId: "ripple-001",
     orgId: ORG_ID,
-    coreClaim:
+    summaryText:
       "LinkedIn thought leadership content drives 3x more engagement than product-focused content for B2B SaaS",
-    keyReasoning:
+    rawText:
       "Analysis of 50 campaigns shows ICP engages with strategic thinking before product features",
     prediction: "Shift to 70/30 strategic/product content ratio by Q3",
-    source: "campaign-001",
+    sourceAgent: "Strategist",
     confidence: 0.82,
-    protectionBand: "protected",
+    importanceBand: "critical",
+    hierarchyLevel: 2,
     createdAt: "2025-04-10T00:00:00Z",
   },
   {
     rippleId: "ripple-002",
     orgId: ORG_ID,
-    coreClaim: "Email sequences with personalized video thumbnails see 40% higher open rates",
-    keyReasoning: "A/B test across 10k send volume confirmed hypothesis",
-    source: "campaign-003",
+    summaryText: "Email sequences with personalized video thumbnails see 40% higher open rates",
+    rawText: "A/B test across 10k send volume confirmed hypothesis",
+    sourceAgent: "Performance",
     confidence: 0.75,
-    protectionBand: "important",
+    importanceBand: "strong",
+    hierarchyLevel: 1,
     createdAt: "2025-04-12T00:00:00Z",
   },
 ];
@@ -192,10 +206,41 @@ export const mockEssences: Essence[] = [
 ];
 
 export const mockBillingStatus: BillingStatus = {
+  subscription_status: "active",
   plan: "starter",
   status: "active",
   currentPeriodEnd: "2025-05-01T00:00:00Z",
   invoiceCount: 3,
+  current_plan: {
+    tier: "starter",
+    name: "Starter",
+    description: "Perfect for single practitioners and small teams.",
+    price_inr_monthly: 4999,
+    features: ["5 Campaigns", "10 Channels", "Standard Intelligence"],
+  },
+  available_plans: [
+    {
+      tier: "starter",
+      name: "Starter",
+      description: "Perfect for single practitioners and small teams.",
+      price_inr_monthly: 4999,
+      features: ["5 Campaigns", "10 Channels", "Standard Intelligence"],
+    },
+    {
+      tier: "pro",
+      name: "Pro",
+      description: "Everything in Starter, plus advanced strategy.",
+      price_inr_monthly: 14999,
+      features: ["Unlimited Campaigns", "24/7 Monitoring", "Council Access"],
+    },
+    {
+      tier: "enterprise",
+      name: "Enterprise",
+      description: "Custom solutions for large scale operations.",
+      price_inr_monthly: "talk_to_us",
+      features: ["Custom Integrations", "Dedicated Strategist", "Private LLM Nodes"],
+    },
+  ],
 };
 
 export const mockFoundationSnapshots: FoundationSnapshot[] = [
@@ -227,8 +272,8 @@ const MOCK_DATA: Record<string, unknown> = {
   "/api/v1/campaigns": mockCampaigns,
   "/api/v1/council/history": mockCouncilSessions,
   "/api/v1/muse/history": mockMuseConversations,
-  "/api/v1/ripples": mockRipples,
-  "/api/v1/essences": mockEssences,
+  "/api/v1/prl/ripples": mockRipples,
+  "/api/v1/prl/essences": mockEssences,
   "/api/v1/billing": mockBillingStatus,
   "/api/v1/foundation/snapshots": mockFoundationSnapshots,
 };
@@ -242,10 +287,10 @@ const OFFLINE_MUTATION_RESULTS: Record<string, Record<string, unknown>> = {
   "POST:/api/v1/campaigns": { campaignId: "campaign-new-001", status: "draft" },
   "POST:/api/v1/council": { sessionId: "session-new-001", status: "queued" },
   "POST:/api/v1/muse": { conversationId: "conv-new-001" },
-  "POST:/api/v1/ripples": { rippleId: "ripple-new-001" },
-  "POST:/api/v1/essences": { essenceId: "essence-new-001" },
+  "POST:/api/v1/prl/ripples": { rippleId: "ripple-new-001" },
+  "POST:/api/v1/prl/essences": { essenceId: "essence-new-001" },
   "POST:/api/v1/prl/decay": { processed: 0 },
-  "POST:/api/v1/foundation/scan": { scanId: "scan-new-001", status: "queued" },
+  "POST:/api/v1/foundation/scan/start": { scanId: "scan-new-001", status: "queued" },
   "POST:/api/v1/foundation/snapshots": { id: "snapshot-new-001", version: 99 },
   "POST:/api/v1/uploads": {
     uploadUrl: "https://mock-s3.local/upload",

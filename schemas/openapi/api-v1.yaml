@@ -265,3 +265,422 @@ paths:
       responses:
         "200":
           description: Tool execution result
+  /api/v1/nudges:
+    get:
+      summary: List nudges
+      responses:
+        "200":
+          description: Nudge list
+    post:
+      summary: Create nudge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, nudge_type, priority, title, body, source_type, source_id]
+              properties:
+                user_id:
+                  type: string
+                nudge_type:
+                  type: string
+                priority:
+                  type: string
+                title:
+                  type: string
+                body:
+                  type: string
+                action_type:
+                  type: string
+                action_data:
+                  type: object
+                source_type:
+                  type: string
+                source_id:
+                  type: string
+      responses:
+        "201":
+          description: Nudge created
+        "400":
+          description: Invalid request
+  /api/v1/nudges/{id}:
+    get:
+      summary: Get nudge by ID
+      responses:
+        "200":
+          description: Nudge found
+        "404":
+          description: Nudge not found
+  /api/v1/campaigns:
+    get:
+      summary: List campaigns
+      responses:
+        "200":
+          description: Campaign list
+    post:
+      summary: Create campaign
+      responses:
+        "201":
+          description: Campaign created
+  /api/v1/campaigns/{id}:
+    get:
+      summary: Get campaign with moves and tasks
+      responses:
+        "200":
+          description: Campaign detail
+        "404":
+          description: Campaign not found
+  /api/v1/campaigns/{id}/status:
+    patch:
+      summary: Update campaign status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [draft, active, paused, completed, archived]
+      responses:
+        "200":
+          description: Status updated
+        "400":
+          description: Invalid status
+        "404":
+          description: Campaign not found
+  /api/v1/campaigns/{id}/moves:
+    get:
+      summary: List campaign moves
+      responses:
+        "200":
+          description: Move list
+        "404":
+          description: Campaign not found
+    post:
+      summary: Create campaign move
+      responses:
+        "201":
+          description: Move created
+        "404":
+          description: Campaign not found
+  /api/v1/campaigns/{id}/moves/{move_id}/status:
+    patch:
+      summary: Update move status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [planned, in_progress, completed, skipped]
+      responses:
+        "200":
+          description: Status updated
+        "400":
+          description: Invalid status
+  /api/v1/campaigns/{id}/tasks:
+    get:
+      summary: List campaign tasks
+      responses:
+        "200":
+          description: Task list
+        "404":
+          description: Campaign not found
+    post:
+      summary: Create campaign task
+      responses:
+        "201":
+          description: Task created
+        "404":
+          description: Campaign not found
+  /api/v1/campaigns/{id}/tasks/{task_id}/status:
+    patch:
+      summary: Update task status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, in_progress, completed, cancelled]
+      responses:
+        "200":
+          description: Status updated
+        "400":
+          description: Invalid status
+  /api/v1/campaigns/{id}/brief:
+    get:
+      summary: Get campaign brief
+      responses:
+        "200":
+          description: Brief found or null
+        "404":
+          description: Campaign not found
+    post:
+      summary: Create campaign brief
+      responses:
+        "201":
+          description: Brief created
+        "404":
+          description: Campaign not found
+  /api/v1/campaigns/{id}/brief/status:
+    patch:
+      summary: Update brief status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [draft, submitted, approved, rejected]
+      responses:
+        "200":
+          description: Status updated
+        "400":
+          description: Invalid status
+        "404":
+          description: Brief not found
+  /api/v1/council:
+    post:
+      summary: Start council session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                campaign_id:
+                  type: string
+                agent_roster:
+                  type: array
+                  items:
+                    type: string
+                question:
+                  type: string
+                session_type:
+                  type: string
+      responses:
+        "201":
+          description: Session created
+        "400":
+          description: Invalid request
+    get:
+      summary: List council sessions
+      responses:
+        "200":
+          description: Session list
+  /api/v1/council/{session_id}:
+    get:
+      summary: Get council session with positions
+      responses:
+        "200":
+          description: Session detail
+        "404":
+          description: Session not found
+  /api/v1/council/{session_id}/messages:
+    get:
+      summary: Get agent positions for a session
+      responses:
+        "200":
+          description: Agent positions
+        "404":
+          description: Session not found
+  /api/v1/muse:
+    post:
+      summary: Submit prompt to Muse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                route:
+                  type: string
+                conversation_id:
+                  type: string
+      responses:
+        "200":
+          description: Prompt submitted
+        "400":
+          description: Prompt required
+    get:
+      summary: List Muse conversations
+      responses:
+        "200":
+          description: Conversation list
+  /api/v1/muse/{conversation_id}:
+    get:
+      summary: Get Muse conversation with messages
+      responses:
+        "200":
+          description: Conversation detail
+        "404":
+          description: Conversation not found
+  /api/v1/muse/{conversation_id}/messages:
+    get:
+      summary: Get messages for a Muse conversation
+      responses:
+        "200":
+          description: Message list
+        "404":
+          description: Conversation not found
+  /api/v1/nudges/{id}/viewed:
+    post:
+      summary: Mark nudge as viewed
+      responses:
+        "200":
+          description: Status updated
+        "404":
+          description: Nudge not found
+  /api/v1/nudges/{id}/dismissed:
+    post:
+      summary: Dismiss nudge
+      responses:
+        "200":
+          description: Status updated
+        "404":
+          description: Nudge not found
+  /api/v1/daily-wins:
+    get:
+      summary: List daily wins
+      responses:
+        "200":
+          description: Daily win list
+    post:
+      summary: Create daily win
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                [
+                  briefing_date,
+                  lead_summary,
+                  full_briefing,
+                  recommended_action,
+                  recommended_action_type,
+                ]
+              properties:
+                briefing_date:
+                  type: string
+                  format: date
+                lead_summary:
+                  type: string
+                full_briefing:
+                  type: string
+                recommended_action:
+                  type: string
+                recommended_action_type:
+                  type: string
+                recommended_action_data:
+                  type: object
+      responses:
+        "201":
+          description: Daily win created
+        "400":
+          description: Invalid request
+  /api/v1/daily-wins/today:
+    get:
+      summary: Get today's daily win
+      responses:
+        "200":
+          description: Today's daily win or null
+  /api/v1/daily-wins/{id}/viewed:
+    post:
+      summary: Mark daily win as viewed
+      responses:
+        "200":
+          description: Status updated
+        "404":
+          description: Daily win not found
+  /api/v1/daily-wins/{id}/acted:
+    post:
+      summary: Mark daily win as acted upon
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                outcome:
+                  type: string
+      responses:
+        "200":
+          description: Status updated
+        "404":
+          description: Daily win not found
+  /api/v1/campaigns/{id}/replan:
+    get:
+      summary: List replan sessions for a campaign
+      responses:
+        "200":
+          description: Replan session list
+        "404":
+          description: Campaign not found
+    post:
+      summary: Trigger a replan for a campaign
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [trigger_type]
+              properties:
+                trigger_type:
+                  type: string
+                  enum: [manual, automatic, milestone, performance]
+      responses:
+        "201":
+          description: Replan session created
+        "400":
+          description: Invalid trigger type
+        "404":
+          description: Campaign not found
+  /api/v1/content:
+    get:
+      summary: List generated content
+      responses:
+        "200":
+          description: Content list
+    post:
+      summary: Store generated content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content_type, body]
+              properties:
+                campaign_id:
+                  type: string
+                task_id:
+                  type: string
+                content_type:
+                  type: string
+                body:
+                  type: object
+      responses:
+        "201":
+          description: Content created
+        "400":
+          description: Invalid request
+  /api/v1/content/{id}:
+    get:
+      summary: Get content by ID
+      responses:
+        "200":
+          description: Content found
+        "404":
+          description: Content not found

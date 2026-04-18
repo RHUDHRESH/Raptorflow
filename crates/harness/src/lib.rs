@@ -50,8 +50,8 @@ use chrono::{DateTime, Utc};
 use futures::future;
 use raptorflow_cache::CacheService;
 use raptorflow_contracts::{ContextPack, MemoryEvent, SessionTokenUsage};
-use raptorflow_db::models::{AgentEssence, FoundationSnapshot};
 use raptorflow_db::PgPool;
+use raptorflow_db::models::{AgentEssence, FoundationSnapshot};
 use raptorflow_eel::AvatarRegistry;
 use raptorflow_gcp::GcpInferenceService;
 use serde::{Deserialize, Serialize};
@@ -145,12 +145,7 @@ impl SessionManager {
         let agent_futures: Vec<_> = agent_ids
             .iter()
             .map(|agent_id| {
-                Self::load_agent_state(
-                    db_pool.clone(),
-                    cache.clone(),
-                    org_id,
-                    *agent_id,
-                )
+                Self::load_agent_state(db_pool.clone(), cache.clone(), org_id, *agent_id)
             })
             .collect();
 
@@ -239,9 +234,7 @@ impl SessionManager {
         essences
             .into_iter()
             .find(|e| e.agent_id == agent_id && e.org_id == org_id)
-            .ok_or_else(|| {
-                anyhow::anyhow!("Agent essence not found for agent_id: {}", agent_id)
-            })
+            .ok_or_else(|| anyhow::anyhow!("Agent essence not found for agent_id: {}", agent_id))
     }
 
     async fn load_working_memory(
@@ -353,7 +346,10 @@ impl SessionContext {
     }
 
     pub fn is_complete(&self) -> bool {
-        matches!(self.session_state, SessionState::Complete | SessionState::Failed)
+        matches!(
+            self.session_state,
+            SessionState::Complete | SessionState::Failed
+        )
     }
 }
 
@@ -380,7 +376,11 @@ impl ContextAssember {
             .collect();
 
         let skill_atom_ids: Vec<String> = if let Some(skills) = essence.skill_atoms.as_array() {
-            skills.iter().filter_map(|s| s.get("id").and_then(|id| id.as_str())).map(String::from).collect()
+            skills
+                .iter()
+                .filter_map(|s| s.get("id").and_then(|id| id.as_str()))
+                .map(String::from)
+                .collect()
         } else {
             Vec::new()
         };
@@ -437,10 +437,12 @@ mod tests {
         let ego_baseline = vec![0.5, 0.5, 0.5];
         let ego_multipliers = vec![1.0, 1.0, 1.0];
 
-        let result = EgoDecay::compute_decay(&ego_state, &ego_baseline, &ego_multipliers, 0.0, 0.05);
+        let result =
+            EgoDecay::compute_decay(&ego_state, &ego_baseline, &ego_multipliers, 0.0, 0.05);
         assert_eq!(result, ego_state);
 
-        let result = EgoDecay::compute_decay(&ego_state, &ego_baseline, &ego_multipliers, 24.0, 0.05);
+        let result =
+            EgoDecay::compute_decay(&ego_state, &ego_baseline, &ego_multipliers, 24.0, 0.05);
         for (i, val) in result.iter().enumerate() {
             assert!(*val >= ego_baseline[i]);
             assert!(*val <= ego_state[i]);

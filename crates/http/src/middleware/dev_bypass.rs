@@ -49,9 +49,16 @@ pub struct DevClaims {
 
 impl From<DevClaims> for DevAuthContext {
     fn from(claims: DevClaims) -> Self {
-        let org_id = claims.org_id.unwrap_or_else(|| Uuid::parse_str("a1b2c3d4-e5f6-7890-abcd-ef1234567890").unwrap());
-        let user_id = claims.user_id.unwrap_or_else(|| Uuid::parse_str("01234567-89ab-cdef-0123-456789abcdef").unwrap());
-        let role = claims.org_role.clone().unwrap_or_else(|| "admin".to_string());
+        let org_id = claims
+            .org_id
+            .unwrap_or_else(|| Uuid::parse_str("a1b2c3d4-e5f6-7890-abcd-ef1234567890").unwrap());
+        let user_id = claims
+            .user_id
+            .unwrap_or_else(|| Uuid::parse_str("01234567-89ab-cdef-0123-456789abcdef").unwrap());
+        let role = claims
+            .org_role
+            .clone()
+            .unwrap_or_else(|| "admin".to_string());
 
         let tenant = TenantContext {
             org_id,
@@ -63,18 +70,11 @@ impl From<DevClaims> for DevAuthContext {
     }
 }
 
-
-
 pub async fn dev_auth_middleware(
+    state: Arc<AppState>,
     request: HttpRequest<Body>,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    let state = request
-        .extensions()
-        .get::<Arc<AppState>>()
-        .cloned()
-        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
-
     // Check if dev auth is enabled
     if !state.settings.allow_insecure_dev_auth {
         return Err(StatusCode::UNAUTHORIZED);

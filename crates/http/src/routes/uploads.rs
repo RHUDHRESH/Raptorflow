@@ -1,8 +1,8 @@
 use axum::{
+    Json,
     extract::{Extension, Path, Query},
     http::StatusCode,
     response::IntoResponse,
-    Json,
 };
 use raptorflow_aws::{ExportManager, S3Service, ScreenshotManager, UploadManager};
 use serde::{Deserialize, Serialize};
@@ -41,13 +41,20 @@ pub struct UploadError {
 
 impl IntoResponse for UploadError {
     fn into_response(self) -> axum::response::Response {
-        (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": self.error }))).into_response()
+        let status = if self.error == "unauthorized_delete" {
+            StatusCode::FORBIDDEN
+        } else {
+            StatusCode::INTERNAL_SERVER_ERROR
+        };
+        (status, Json(serde_json::json!({ "error": self.error }))).into_response()
     }
 }
 
 impl From<raptorflow_aws::S3Error> for UploadError {
     fn from(e: raptorflow_aws::S3Error) -> Self {
-        Self { error: e.to_string() }
+        Self {
+            error: e.to_string(),
+        }
     }
 }
 
@@ -90,7 +97,10 @@ pub async fn generate_download_url(
     let s3 = S3Service::from_settings(&state.settings).await;
     let upload_manager = UploadManager::new(s3);
 
-    let url = upload_manager.generate_download_url(&params.key).await.map_err(UploadError::from)?;
+    let url = upload_manager
+        .generate_download_url(&params.key)
+        .await
+        .map_err(UploadError::from)?;
 
     Ok(Json(DownloadUrlResponse {
         download_url: url,
@@ -99,14 +109,34 @@ pub async fn generate_download_url(
 }
 
 pub async fn delete_upload(
-    Extension(_auth): Extension<AuthContext>,
+    Extension(auth): Extension<AuthContext>,
     Extension(state): Extension<Arc<AppState>>,
     Path(key): Path<String>,
 ) -> Result<Json<DeleteResponse>, UploadError> {
+    let org_id = auth.tenant.org_id.to_string();
+
+    let expected_prefix = format!("{}/", org_id);
+    if !key.starts_with(&expected_prefix) &&
+       !key.starts_with(&format!("screenshots/{}/", org_id)) &&
+       !key.starts_with(&format!("exports/{}/", org_id))
+    {
+        tracing::warn!(
+            org_id = %org_id,
+            key = %key,
+            "Unauthorized delete attempt: key does not belong to org"
+        );
+        return Err(UploadError {
+            error: "unauthorized_delete".to_string(),
+        });
+    }
+
     let s3 = S3Service::from_settings(&state.settings).await;
     let upload_manager = UploadManager::new(s3);
 
-    upload_manager.delete_upload(&key).await.map_err(UploadError::from)?;
+    upload_manager
+        .delete_upload(&key)
+        .await
+        .map_err(UploadError::from)?;
 
     Ok(Json(DeleteResponse { deleted: true }))
 }
@@ -175,7 +205,10 @@ pub async fn generate_export_download_url(
     let s3 = S3Service::from_settings(&state.settings).await;
     let export_manager = ExportManager::new(s3);
 
-    let url = export_manager.generate_download_url(&params.key).await.map_err(UploadError::from)?;
+    let url = export_manager
+        .generate_download_url(&params.key)
+        .await
+        .map_err(UploadError::from)?;
 
     Ok(Json(DownloadUrlResponse {
         download_url: url,

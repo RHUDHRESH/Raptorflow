@@ -16,3 +16,4 @@ uuid.workspace = true
 tracing.workspace = true
 raptorflow-contracts = { path = "../contracts" }
 raptorflow-auth = { path = "../auth" }
+raptorflow-db = { path = "../db" }

@@ -1,9 +1,9 @@
 use axum::{
+    Json, Router,
     extract::Extension,
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
 };
 use raptorflow_acquisition::{
     BrowserFetcher, Chunker as AcquisitionChunker, ContentHasher as AcquisitionHasher, HtmlParser,
@@ -13,13 +13,13 @@ use raptorflow_auth::TenantContext;
 use raptorflow_cache::CacheService;
 use raptorflow_config::Settings;
 use raptorflow_contracts::{
-    EventHarvesterRecord, InternTask, ResearchRequest, ResearchRequestKind, StreamCoordinatorRequest,
-    ToolGatewayRequest,
+    EventHarvesterRecord, InternTask, ResearchRequest, ResearchRequestKind,
+    StreamCoordinatorRequest, ToolGatewayRequest,
 };
-use raptorflow_gcp::EmbeddingClient;
+use raptorflow_db::TenantDbPool;
+use raptorflow_gcp::EmbeddingClientEnum;
 use raptorflow_research::{Citation, GroundedResult, VectorIndex};
-use serde_json::{json, Value};
-use sqlx::PgPool;
+use serde_json::{Value, json};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -75,16 +75,13 @@ fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, Json<Value>) {
 }
 
 fn bad_request(message: &str) -> (StatusCode, Json<Value>) {
-    (
-        StatusCode::BAD_REQUEST,
-        Json(json!({ "error": message })),
-    )
+    (StatusCode::BAD_REQUEST, Json(json!({ "error": message })))
 }
 
 #[axum::debug_handler]
 pub async fn accept_research_request(
     Extension(auth): Extension<TenantContext>,
-    Extension(pool): Extension<Arc<PgPool>>,
+    Extension(tenant_pool): Extension<TenantDbPool>,
     Extension(settings): Extension<Arc<Settings>>,
     cache: Option<Extension<Arc<CacheService>>>,
     Json(request): Json<ResearchRequest>,
@@ -97,18 +94,18 @@ pub async fn accept_research_request(
     }
 
     let vector_index = VectorIndex::from_settings(settings.as_ref()).map_err(internal_error)?;
-    let embedding = EmbeddingClient::from_settings(settings.as_ref());
+    let embedding = EmbeddingClientEnum::from_settings(settings.as_ref());
     let cache = cache.map(|extension| extension.0);
 
-    let result = process_research_request(
-        &pool,
-        cache.as_deref(),
-        &vector_index,
-        &embedding,
-        request,
-    )
-    .await
-    .map_err(internal_error)?;
+    let mut conn: sqlx::pool::PoolConnection<sqlx::postgres::Postgres> = tenant_pool
+        .acquire_for_tenant(auth.org_id)
+        .await
+        .map_err(internal_error)?;
+
+    let result =
+        process_research_request(&mut conn, cache.as_deref(), &vector_index, &embedding, request)
+            .await
+            .map_err(internal_error)?;
 
     Ok(Json(json!({
         "status": "completed",
@@ -122,11 +119,11 @@ pub async fn accept_research_request(
     })))
 }
 
-async fn process_research_request(
-    pool: &PgPool,
+async fn process_research_request<'e>(
+    conn: &'e mut sqlx::pool::PoolConnection<sqlx::postgres::Postgres>,
     cache: Option<&CacheService>,
     vector_index: &VectorIndex,
-    embedding: &EmbeddingClient,
+    embedding: &EmbeddingClientEnum,
     request: ResearchRequest,
 ) -> anyhow::Result<GroundedResult> {
     vector_index.ensure_collection().await?;
@@ -160,7 +157,7 @@ async fn process_research_request(
     .bind(request_kind)
     .bind(&request.query)
     .bind(urls.len() as i32)
-    .execute(pool)
+    .execute(&mut **conn)
     .await?;
 
     let mut urls_fetched = 0i32;
@@ -170,9 +167,16 @@ async fn process_research_request(
     let fetcher = HttpFetcher::new();
 
     for url in &urls {
-        let cache_key = format!("research:doc:{}:{}", request.org_id, AcquisitionHasher::compute_hash(url));
+        let cache_key = format!(
+            "research:doc:{}:{}",
+            request.org_id,
+            AcquisitionHasher::compute_hash(url)
+        );
         let cached_document: Option<CachedDocument> = match cache {
-            Some(service) => service.get(&cache_key).await.unwrap_or(None),
+            Some(service) => service
+                .get(&cache_key)
+                .await
+                .map_err(|error| anyhow::anyhow!("cache_get_failed: {}", error))?,
             None => None,
         };
 
@@ -213,11 +217,11 @@ async fn process_research_request(
                 .bind(&fetch_mode)
                 .bind(&cleaned_text)
                 .bind(&content_hash)
-                .execute(pool)
+                .execute(&mut **conn)
                 .await?;
 
                 write_audit_log(
-                    pool,
+                    conn,
                     request.org_id,
                     run_id,
                     Some(document_id),
@@ -249,12 +253,16 @@ async fn process_research_request(
                     .bind(token_estimate as i32)
                     .bind(chunk_text)
                     .bind(&chunk_hash)
-                    .execute(pool)
+                    .execute(&mut **conn)
                     .await?;
 
                     match embedding.embed_text(chunk_text).await {
                         Ok(response) => {
-                            if let Some(values) = response.embeddings.first().map(|vector| vector.values.clone()) {
+                            if let Some(values) = response
+                                .embeddings
+                                .first()
+                                .map(|vector| vector.values.clone())
+                            {
                                 vector_index
                                     .upsert_chunk(
                                         request.org_id,
@@ -278,15 +286,15 @@ async fn process_research_request(
                                 .bind(chunk_id.to_string())
                                 .bind(chunk_id)
                                 .bind(request.org_id)
-                                .execute(pool)
+                                .execute(&mut **conn)
                                 .await?;
                             } else {
-                                mark_chunk_failed(pool, request.org_id, chunk_id).await?;
+                                mark_chunk_failed(conn, request.org_id, chunk_id).await?;
                             }
                         }
                         Err(error) => {
                             write_audit_log(
-                                pool,
+                                conn,
                                 request.org_id,
                                 run_id,
                                 Some(document_id),
@@ -296,7 +304,7 @@ async fn process_research_request(
                                 json!({ "error": error.to_string(), "chunk_id": chunk_id }),
                             )
                             .await?;
-                            mark_chunk_failed(pool, request.org_id, chunk_id).await?;
+                            mark_chunk_failed(conn, request.org_id, chunk_id).await?;
                         }
                     }
                 }
@@ -320,7 +328,8 @@ async fn process_research_request(
             }
             Err(error) => {
                 urls_failed += 1;
-                let domain = UrlNormalizer::extract_domain(url).unwrap_or_else(|_| "unknown".to_string());
+                let domain =
+                    UrlNormalizer::extract_domain(url).unwrap_or_else(|_| "unknown".to_string());
                 let document_id = Uuid::new_v4();
                 sqlx::query(
                     r#"
@@ -335,11 +344,11 @@ async fn process_research_request(
                 .bind(url)
                 .bind(&domain)
                 .bind(error.to_string())
-                .execute(pool)
+                .execute(&mut **conn)
                 .await?;
 
                 write_audit_log(
-                    pool,
+                    conn,
                     request.org_id,
                     run_id,
                     Some(document_id),
@@ -359,7 +368,9 @@ async fn process_research_request(
         .first()
         .map(|value| value.values.clone())
         .ok_or_else(|| anyhow::anyhow!("empty_query_embedding"))?;
-    let hits = vector_index.search(request.org_id, query_vector, 10).await?;
+    let hits = vector_index
+        .search(request.org_id, query_vector, 10)
+        .await?;
 
     let mut citations = Vec::new();
     for (index, hit) in hits.into_iter().enumerate() {
@@ -381,7 +392,7 @@ async fn process_research_request(
         .bind(hit.score)
         .bind(&hit.source_domain)
         .bind(&hit.source_url)
-        .execute(pool)
+        .execute(&mut **conn)
         .await?;
 
         citations.push(Citation {
@@ -414,7 +425,7 @@ async fn process_research_request(
     .bind(urls_fetched)
     .bind(urls_failed)
     .bind(run_id)
-    .execute(pool)
+    .execute(&mut **conn)
     .await?;
 
     Ok(GroundedResult {
@@ -442,7 +453,11 @@ async fn fetch_and_parse(
                 fetch_mode = "browser".to_string();
                 let (browser_html, browser_final_url) = BrowserFetcher::fetch(url).await?;
                 let browser_parsed = HtmlParser::parse(&browser_html)?;
-                (browser_parsed.cleaned_text, browser_final_url, browser_parsed.title)
+                (
+                    browser_parsed.cleaned_text,
+                    browser_final_url,
+                    browser_parsed.title,
+                )
             } else {
                 (parsed.cleaned_text, final_url, parsed.title)
             }
@@ -451,7 +466,11 @@ async fn fetch_and_parse(
             fetch_mode = "browser".to_string();
             let (browser_html, browser_final_url) = BrowserFetcher::fetch(url).await?;
             let browser_parsed = HtmlParser::parse(&browser_html)?;
-            (browser_parsed.cleaned_text, browser_final_url, browser_parsed.title)
+            (
+                browser_parsed.cleaned_text,
+                browser_final_url,
+                browser_parsed.title,
+            )
         }
         Err(error) => return Err(anyhow::anyhow!(error.to_string())),
     };
@@ -461,7 +480,7 @@ async fn fetch_and_parse(
     Ok((cleaned_text, canonical_url, domain, title, fetch_mode, 200))
 }
 
-async fn mark_chunk_failed(pool: &PgPool, org_id: Uuid, chunk_id: Uuid) -> anyhow::Result<()> {
+async fn mark_chunk_failed(conn: &mut sqlx::pool::PoolConnection<sqlx::postgres::Postgres>, org_id: Uuid, chunk_id: Uuid) -> anyhow::Result<()> {
     sqlx::query(
         r#"
         UPDATE research.research_chunks
@@ -471,13 +490,13 @@ async fn mark_chunk_failed(pool: &PgPool, org_id: Uuid, chunk_id: Uuid) -> anyho
     )
     .bind(chunk_id)
     .bind(org_id)
-    .execute(pool)
+    .execute(&mut **conn)
     .await?;
     Ok(())
 }
 
 async fn write_audit_log(
-    pool: &PgPool,
+    conn: &mut sqlx::pool::PoolConnection<sqlx::postgres::Postgres>,
     org_id: Uuid,
     run_id: Uuid,
     document_id: Option<Uuid>,
@@ -500,7 +519,7 @@ async fn write_audit_log(
     .bind(domain)
     .bind(url)
     .bind(event_data)
-    .execute(pool)
+    .execute(&mut **conn)
     .await?;
     Ok(())
 }
@@ -525,7 +544,7 @@ struct CachedDocument {
 
 pub async fn accept_tool_gateway_request(
     Extension(auth): Extension<TenantContext>,
-    Extension(pool): Extension<Arc<PgPool>>,
+    Extension(tenant_pool): Extension<TenantDbPool>,
     Extension(settings): Extension<Arc<Settings>>,
     cache: Option<Extension<Arc<CacheService>>>,
     Json(request): Json<ToolGatewayRequest>,
@@ -579,11 +598,16 @@ pub async fn accept_tool_gateway_request(
     };
 
     let vector_index = VectorIndex::from_settings(settings.as_ref()).map_err(internal_error)?;
-    let embedding = EmbeddingClient::from_settings(settings.as_ref());
+    let embedding = EmbeddingClientEnum::from_settings(settings.as_ref());
     let cache = cache.map(|extension| extension.0);
 
+    let mut conn: sqlx::pool::PoolConnection<sqlx::postgres::Postgres> = tenant_pool
+        .acquire_for_tenant(auth.org_id)
+        .await
+        .map_err(internal_error)?;
+
     let result = process_research_request(
-        &pool,
+        &mut conn,
         cache.as_deref(),
         &vector_index,
         &embedding,

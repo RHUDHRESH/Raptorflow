@@ -3,28 +3,18 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { useCampaign, useUpdateCampaign } from "@/hooks/use-campaigns";
+import { useCampaign, useUpdateCampaignStatus } from "@/hooks/use-campaigns";
 import { RouteShell } from "@/components/layout/route-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 
-const STATUS_OPTIONS: Campaign["status"][] = [
-  "draft", "pending_approval", "active", "paused", "archived"
-];
+import { billingApi, type Campaign } from "@/lib/api";
 
-type Campaign = {
-  campaignId: string;
-  orgId: string;
-  name: string;
-  status: "draft" | "pending_approval" | "active" | "paused" | "archived";
-  goal?: string;
-  timeline?: string;
-  channels?: string[];
-  createdAt: string;
-  updatedAt: string;
-};
+const STATUS_OPTIONS: Campaign["status"][] = [
+  "draft", "pending_approval", "active", "paused", "completed", "archived"
+];
 
 export default function EditCampaignPage({
   params,
@@ -36,7 +26,7 @@ export default function EditCampaignPage({
   const { campaignId } = resolvedParams;
 
   const { data: campaign, isLoading } = useCampaign(campaignId);
-  const updateCampaign = useUpdateCampaign();
+  const updateCampaignStatus = useUpdateCampaignStatus();
 
   const [name, setName] = React.useState("");
   const [goal, setGoal] = React.useState("");
@@ -52,9 +42,10 @@ export default function EditCampaignPage({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    updateCampaign.mutate(
-      { id: campaignId, body: { name, goal: goal || undefined, status } },
+    // Backend only supports status updates via PATCH /status
+    // Name/goal changes are not yet persisted (no PUT route)
+    updateCampaignStatus.mutate(
+      { id: campaignId, status },
       {
         onSuccess: () => {
           router.push(`/campaigns/${campaignId}` as Route);
@@ -141,8 +132,8 @@ export default function EditCampaignPage({
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={updateCampaign.isPending || !name.trim()}>
-                {updateCampaign.isPending ? "Saving..." : "Save changes"}
+              <Button type="submit" disabled={updateCampaignStatus.isPending}>
+                {updateCampaignStatus.isPending ? "Saving..." : "Save status"}
               </Button>
               <Button
                 type="button"

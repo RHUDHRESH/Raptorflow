@@ -46,8 +46,14 @@ impl RazorpayWebhookRuntime {
         Self { settings }
     }
 
-    pub fn verify(&self, payload: &Bytes, signature: &str) -> Result<RazorpayWebhookVerified, RazorpayError> {
-        let secret = self.settings.razorpay_webhook_secret
+    pub fn verify(
+        &self,
+        payload: &Bytes,
+        signature: &str,
+    ) -> Result<RazorpayWebhookVerified, RazorpayError> {
+        let secret = self
+            .settings
+            .razorpay_webhook_secret
             .as_ref()
             .ok_or_else(|| RazorpayError::Configuration("Missing webhook secret".to_string()))?;
 
@@ -56,8 +62,8 @@ impl RazorpayWebhookRuntime {
         mac.update(payload);
 
         let expected_bytes = mac.finalize().into_bytes();
-        let signature_bytes = hex::decode(signature)
-            .map_err(|_| RazorpayError::SignatureMismatch)?;
+        let signature_bytes =
+            hex::decode(signature).map_err(|_| RazorpayError::SignatureMismatch)?;
 
         let mut diff = 0u8;
         if expected_bytes.len() != signature_bytes.len() {
@@ -83,9 +89,11 @@ impl RazorpayWebhookRuntime {
         }
     }
 
-    pub fn parse_webhook(&self, payload: &Bytes) -> Result<razorpay_webhook::WebhookPayload, RazorpayError> {
-        serde_json::from_slice(payload)
-            .map_err(|e| RazorpayError::ParseError(e.to_string()))
+    pub fn parse_webhook(
+        &self,
+        payload: &Bytes,
+    ) -> Result<razorpay_webhook::WebhookPayload, RazorpayError> {
+        serde_json::from_slice(payload).map_err(|e| RazorpayError::ParseError(e.to_string()))
     }
 }
 
@@ -239,7 +247,8 @@ async fn razorpay_webhook(
                     "resource": "razorpay.webhook",
                     "verified": true,
                 })),
-            ).into_response()
+            )
+                .into_response()
         }
         Err(error) => {
             tracing::warn!(error = ?error, "Razorpay webhook verification failed");
@@ -263,9 +272,13 @@ impl RazorpayClient {
         }
     }
 
-    pub async fn create_order(&self, amount: i64, currency: &str) -> Result<OrderCreated, RazorpayError> {
+    pub async fn create_order(
+        &self,
+        amount: i64,
+        currency: &str,
+    ) -> Result<OrderCreated, RazorpayError> {
         let client = reqwest::Client::new();
-        
+
         let response = client
             .post(&format!("{}/orders", self.base_url))
             .basic_auth(&self.key_id, Some(&self.key_secret))
@@ -284,15 +297,24 @@ impl RazorpayClient {
                 .await
                 .map_err(|e| RazorpayError::ApiError(e.to_string()))
         } else {
-            Err(RazorpayError::ApiError(format!("Order creation failed: {}", response.status())))
+            Err(RazorpayError::ApiError(format!(
+                "Order creation failed: {}",
+                response.status()
+            )))
         }
     }
 
-    pub async fn get_subscription(&self, subscription_id: &str) -> Result<serde_json::Value, RazorpayError> {
+    pub async fn get_subscription(
+        &self,
+        subscription_id: &str,
+    ) -> Result<serde_json::Value, RazorpayError> {
         let client = reqwest::Client::new();
-        
+
         let response = client
-            .get(&format!("{}/subscriptions/{}", self.base_url, subscription_id))
+            .get(&format!(
+                "{}/subscriptions/{}",
+                self.base_url, subscription_id
+            ))
             .basic_auth(&self.key_id, Some(&self.key_secret))
             .send()
             .await
@@ -304,15 +326,24 @@ impl RazorpayClient {
                 .await
                 .map_err(|e| RazorpayError::ApiError(e.to_string()))
         } else {
-            Err(RazorpayError::ApiError(format!("Get subscription failed: {}", response.status())))
+            Err(RazorpayError::ApiError(format!(
+                "Get subscription failed: {}",
+                response.status()
+            )))
         }
     }
 
-    pub async fn cancel_subscription(&self, subscription_id: &str) -> Result<serde_json::Value, RazorpayError> {
+    pub async fn cancel_subscription(
+        &self,
+        subscription_id: &str,
+    ) -> Result<serde_json::Value, RazorpayError> {
         let client = reqwest::Client::new();
-        
+
         let response = client
-            .post(&format!("{}/subscriptions/{}/cancel", self.base_url, subscription_id))
+            .post(&format!(
+                "{}/subscriptions/{}/cancel",
+                self.base_url, subscription_id
+            ))
             .basic_auth(&self.key_id, Some(&self.key_secret))
             .send()
             .await
@@ -324,7 +355,10 @@ impl RazorpayClient {
                 .await
                 .map_err(|e| RazorpayError::ApiError(e.to_string()))
         } else {
-            Err(RazorpayError::ApiError(format!("Cancel subscription failed: {}", response.status())))
+            Err(RazorpayError::ApiError(format!(
+                "Cancel subscription failed: {}",
+                response.status()
+            )))
         }
     }
 }

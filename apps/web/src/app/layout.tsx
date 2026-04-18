@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>): React.ReactElement {
   return (
-    <ClerkProvider>
+    <ClerkProvider dynamic>
       <html
         lang="en"
         className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable}`}

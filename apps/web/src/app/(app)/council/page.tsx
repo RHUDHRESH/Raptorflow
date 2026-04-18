@@ -77,15 +77,7 @@ export default function CouncilPage(): React.ReactElement {
     return true;
   });
 
-  /* Mock data for empty state display */
-  const mockSessions = [
-    { sessionId: "m1", sessionType: "council_war_room",  status: "completed", campaignId: "Diya Organics Q2",     createdAt: new Date(Date.now() - 86400000).toISOString(), agentCount: 8,  duration: "34m" },
-    { sessionId: "m2", sessionType: "strategic_review",  status: "completed", campaignId: "Monsoon Expansion",    createdAt: new Date(Date.now() - 172800000).toISOString(), agentCount: 5, duration: "18m" },
-    { sessionId: "m3", sessionType: "creative_brief",    status: "running",   campaignId: "Brand Awareness Q2",   createdAt: new Date(Date.now() - 3600000).toISOString(),  agentCount: 6,  duration: "Live" },
-    { sessionId: "m4", sessionType: "replanning",        status: "completed", campaignId: "Diya Organics Q2",     createdAt: new Date(Date.now() - 259200000).toISOString(), agentCount: 12, duration: "52m" },
-  ];
-
-  const displaySessions = (filtered && filtered.length > 0) ? filtered : (!isLoading && !error ? mockSessions : []);
+  const displaySessions = filtered ?? [];
 
   return (
     <div className="flex flex-col gap-8 py-2">
@@ -127,12 +119,18 @@ export default function CouncilPage(): React.ReactElement {
                 color: "var(--muted-foreground)",
               }}
             >
-              {sessions?.length ?? mockSessions.length} Historical Deliberations
+              {sessions?.length ?? 0} Historical Deliberations
             </p>
           </div>
 
           <button
-            onClick={() => startSession.mutate({ campaignId: "campaign-001" })}
+            onClick={() =>
+              startSession.mutate({
+                campaignId: "campaign-001",
+                sessionType: "strategic_review",
+                question: "Review campaign-001 and recommend the next best strategic move.",
+              })
+            }
             disabled={startSession.isPending}
             className="flex h-12 w-fit items-center whitespace-nowrap gap-2 px-6 transition-all hover:opacity-80 disabled:opacity-50"
             style={{
@@ -212,7 +210,7 @@ export default function CouncilPage(): React.ReactElement {
         {/* ── Session Grid ─────────────────────────────────── */}
         <div className="gsap-reveal grid md:grid-cols-2 gap-5">
           {displaySessions.map((session: any) => {
-            const isLive = session.status === "running" || session.status === "streaming";
+            const isLive = session.status === "running" || session.status === "streaming" || session.status === "active";
             const dateStr = new Date(session.createdAt).toLocaleDateString("en-IN", {
               day: "numeric", month: "short", year: "numeric",
             });

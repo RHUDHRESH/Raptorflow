@@ -43,9 +43,9 @@
 //!
 //! No circular dependencies exist in this chain.
 
-use raptorflow_contracts::{AvatarRegistryEntry, AvatarRole, ContextPack, EelLatticeState};
-pub use raptorflow_contracts::AvatarRegistry;
 use raptorflow_avatars::build_avatar_registry;
+pub use raptorflow_contracts::AvatarRegistry;
+use raptorflow_contracts::{AvatarRegistryEntry, AvatarRole, ContextPack, EelLatticeState};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -128,29 +128,43 @@ pub fn lattice_for_avatar(entry: &AvatarRegistryEntry) -> EelLatticeState {
 
 #[cfg(test)]
 mod tests {
-    use raptorflow_contracts::{AvatarRole, ContextPack};
-    use raptorflow_avatars::templates;
     use crate::{enrich_context, lattice_for_avatar, registry_for_org};
+    use raptorflow_avatars::templates;
+    use raptorflow_contracts::{AvatarRole, ContextPack};
 
     const EXPECTED_AVATAR_COUNT: usize = 21;
 
     fn all_avatar_keys() -> Vec<&'static str> {
         vec![
             "strategist",
-            "ogilvy", "bernbach", "hopkins", "draper",
-            "patel", "vaynerchuk", "sharp", "godin",
-            "kotler", "ries", "cialdini", "sutherland",
-            "qa_director", "legal_advisor", "analytics_director", "brand_manager",
-            "market_research_lead", "media_buyer", "pr_director", "growth_hacker",
+            "ogilvy",
+            "bernbach",
+            "hopkins",
+            "draper",
+            "patel",
+            "vaynerchuk",
+            "sharp",
+            "godin",
+            "kotler",
+            "ries",
+            "cialdini",
+            "sutherland",
+            "qa_director",
+            "legal_advisor",
+            "analytics_director",
+            "brand_manager",
+            "market_research_lead",
+            "media_buyer",
+            "pr_director",
+            "growth_hacker",
         ]
     }
 
     fn expected_role_for_key(key: &str) -> AvatarRole {
         match key {
             "strategist" => AvatarRole::Strategist,
-            "ogilvy" | "bernbach" | "hopkins" | "draper"
-            | "patel" | "vaynerchuk" | "sharp" | "godin"
-            | "kotler" | "ries" | "cialdini" | "sutherland" => AvatarRole::Council,
+            "ogilvy" | "bernbach" | "hopkins" | "draper" | "patel" | "vaynerchuk" | "sharp"
+            | "godin" | "kotler" | "ries" | "cialdini" | "sutherland" => AvatarRole::Council,
             _ => AvatarRole::SupportSpecialist,
         }
     }
@@ -177,7 +191,11 @@ mod tests {
     #[test]
     fn test_registry_contains_all_expected_keys() {
         let registry = registry_for_org(uuid::Uuid::new_v4());
-        let keys: Vec<_> = registry.entries.iter().map(|e| e.avatar_key.as_str()).collect();
+        let keys: Vec<_> = registry
+            .entries
+            .iter()
+            .map(|e| e.avatar_key.as_str())
+            .collect();
         for key in all_avatar_keys() {
             assert!(keys.contains(&key), "registry should contain '{}'", key);
         }
@@ -214,7 +232,9 @@ mod tests {
                 enriched.reflection_gate,
                 Some(expected_gate.to_string()),
                 "enrich_context('{}') expected '{}', got {:?}",
-                avatar_key, expected_gate, enriched.reflection_gate
+                avatar_key,
+                expected_gate,
+                enriched.reflection_gate
             );
         }
     }
@@ -263,7 +283,11 @@ mod tests {
         for tmpl in &all {
             assert!(!tmpl.display_name.is_empty());
             assert!(tmpl.ego_baseline.iter().all(|&v| (0.0..=1.0).contains(&v)));
-            assert!(tmpl.ego_multipliers.iter().all(|&v| (0.0..=1.0).contains(&v)));
+            assert!(
+                tmpl.ego_multipliers
+                    .iter()
+                    .all(|&v| (0.0..=1.0).contains(&v))
+            );
             assert!(tmpl.ego_decay_rate >= 0.0 && tmpl.ego_decay_rate <= 1.0);
             let essence = (tmpl.essence_core)();
             assert!(essence.is_object());
@@ -294,9 +318,15 @@ mod tests {
     #[test]
     fn test_avatar_role_counts() {
         let all = templates::all();
-        let strat = all.iter().filter(|t| t.role == AvatarRole::Strategist).count();
+        let strat = all
+            .iter()
+            .filter(|t| t.role == AvatarRole::Strategist)
+            .count();
         let council = all.iter().filter(|t| t.role == AvatarRole::Council).count();
-        let support = all.iter().filter(|t| t.role == AvatarRole::SupportSpecialist).count();
+        let support = all
+            .iter()
+            .filter(|t| t.role == AvatarRole::SupportSpecialist)
+            .count();
         assert_eq!(strat, 1);
         assert_eq!(council, 12);
         assert_eq!(support, 8);
@@ -313,9 +343,11 @@ mod tests {
                 tmpl.avatar_key
             );
             assert!(
-                p.chars().all(|c| c.is_lowercase() || c == '-' || c.is_ascii_digit()),
+                p.chars()
+                    .all(|c| c.is_lowercase() || c == '-' || c.is_ascii_digit()),
                 "template '{}' reflection_profile '{}' must be lowercase-kebab format",
-                tmpl.avatar_key, p
+                tmpl.avatar_key,
+                p
             );
         }
     }
@@ -325,7 +357,12 @@ mod tests {
         let all = templates::all();
         for tmpl in &all {
             assert_eq!(tmpl.ego_baseline.len(), 8, "template '{}'", tmpl.avatar_key);
-            assert_eq!(tmpl.ego_multipliers.len(), 8, "template '{}'", tmpl.avatar_key);
+            assert_eq!(
+                tmpl.ego_multipliers.len(),
+                8,
+                "template '{}'",
+                tmpl.avatar_key
+            );
         }
     }
 }

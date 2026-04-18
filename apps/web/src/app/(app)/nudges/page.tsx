@@ -12,6 +12,7 @@ import {
   LightningBoltIcon,
   ActivityLogIcon,
 } from "@radix-ui/react-icons";
+import { useNudges } from "@/hooks/use-nudges";
 import { useOfficeStore } from "@/state/office-store";
 import { AGENTS } from "@/lib/agents";
 import { AgentPill } from "@/components/ui/agent-portrait";
@@ -25,24 +26,7 @@ const SEVERITY_CONFIG = {
   system: { label: "SYS",   color: "var(--indigo-muse)",  bg: "rgba(99,102,241,0.05)",                          icon: CheckCircledIcon,        border: "var(--indigo-muse)"  },
 } as const;
 
-type Severity = keyof typeof SEVERITY_CONFIG;
-
-const TYPE_LABELS: Record<string, string> = {
-  intel:       "INTEL",
-  performance: "PERFORMANCE",
-  opportunity: "OPPORTUNITY",
-  system:      "SYSTEM",
-};
-
-/* ─── Mock Alerts (until WebSocket is live) ─────────────────────── */
-const MOCK_ALERTS = [
-  { id: "a1", severity: "high"   as Severity, type: "intel",       title: "Luminous Brands Updated Positioning",        description: "Luminous Brands added 'clinically-proven' to their hero claims. Direct attack on Diya's core differentiator.",       agentKey: "ogilvy",     ts: Date.now() - 8 * 60000,  dismissed: false },
-  { id: "a2", severity: "high"   as Severity, type: "performance", title: "Ad Frequency at Critical Threshold",          description: "Retargeting audience has seen 'Dashboard Hero' creative 8.2× in 7 days. Fatigue threshold reached. Refresh now.",   agentKey: "patel",      ts: Date.now() - 23 * 60000, dismissed: false },
-  { id: "a3", severity: "medium" as Severity, type: "opportunity", title: "LinkedIn Engagement Window Open",             description: "Algorithm is showing organic posts 3× more to your followers today. Vaynerchuk recommends posting within 2 hours.", agentKey: "vaynerchuk", ts: Date.now() - 45 * 60000, dismissed: false },
-  { id: "a4", severity: "medium" as Severity, type: "intel",       title: "Competitor DataStack Entered Your SERPs",     description: "New player ranking position 7 for 'fast analytics integration'. Monitoring their bid strategy.",                       agentKey: "godin",      ts: Date.now() - 2 * 3600000, dismissed: false },
-  { id: "a5", severity: "low"    as Severity, type: "opportunity", title: "Monsoon Expansion Budget Underspent",          description: "Move 1 is ₹4,200 under pacing. Patel recommends reallocating to Search to capture intent spike.",                    agentKey: "patel",      ts: Date.now() - 4 * 3600000, dismissed: false },
-  { id: "a6", severity: "system" as Severity, type: "system",      title: "Daily Briefing Generated",                    description: "Morning briefing for April 15th is ready. 3 priority actions, 47 intel items processed.",                           agentKey: "strategist", ts: Date.now() - 5 * 3600000, dismissed: false },
-];
+type Severity = "high" | "medium" | "low" | "system";
 
 /* ─── Radar sweep animation (CSS) ──────────────────────────────── */
 function RadarEmpty(): React.ReactElement {
@@ -94,13 +78,15 @@ function RadarEmpty(): React.ReactElement {
 }
 
 /* ─── Alert Card ────────────────────────────────────────────────── */
-function AlertCard({ alert, onDismiss }: { alert: typeof MOCK_ALERTS[0]; onDismiss: () => void }): React.ReactElement {
-  const sev  = SEVERITY_CONFIG[alert.severity];
+function AlertCard({ nudge, onDismiss }: { nudge: any; onDismiss: () => void }): React.ReactElement {
+  const sevKey = (nudge.priority?.toLowerCase() as Severity) || "system";
+  const sev  = SEVERITY_CONFIG[sevKey] || SEVERITY_CONFIG.system;
   const Icon = sev.icon;
-  const typeLabel = TYPE_LABELS[alert.type] ?? alert.type.toUpperCase();
-  const agent = AGENTS.find((a) => a.key === alert.agentKey);
+  const typeLabel = (nudge.nudge_type || "SYSTEM").toUpperCase();
+  const agentKey = nudge.action_data?.agent_key;
+  const agent = AGENTS.find((a) => a.key === agentKey);
 
-  const elapsed = Date.now() - alert.ts;
+  const elapsed = Date.now() - new Date(nudge.created_at).getTime();
   const elapsedStr = elapsed < 60000
     ? "just now"
     : elapsed < 3600000
@@ -154,10 +140,10 @@ function AlertCard({ alert, onDismiss }: { alert: typeof MOCK_ALERTS[0]; onDismi
         </div>
 
         <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>
-          {alert.title}
+          {nudge.title}
         </p>
         <p className="line-clamp-2" style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, lineHeight: 1.5, color: "var(--muted-foreground)" }}>
-          {alert.description}
+          {nudge.body}
         </p>
 
         {/* Footer */}
@@ -169,7 +155,7 @@ function AlertCard({ alert, onDismiss }: { alert: typeof MOCK_ALERTS[0]; onDismi
           )}
           <div className="flex gap-1">
             <Link
-              href={alert.type === "intel" ? "/intel" : alert.type === "performance" ? "/campaigns" : "/muse"}
+              href={nudge.nudge_type === "intel" ? "/intel" : nudge.nudge_type === "performance" ? "/campaigns" : "/muse"}
               className="flex items-center gap-1 px-2 py-1 border border-[var(--border)] hover:border-[var(--foreground)] transition-all"
               style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted-foreground)" }}
             >
@@ -195,20 +181,22 @@ type SevFilter = "all" | Severity;
 export default function NudgesPage(): React.ReactElement {
   const eventLog = useOfficeStore((s) => s.eventLog);
   const wsStatus = useOfficeStore((s) => s.connectionStatus);
-  const [alerts, setAlerts] = useState(MOCK_ALERTS);
+  const { data: realNudges, isLoading, error } = useNudges();
   const [sevFilter, setSevFilter] = useState<SevFilter>("all");
 
+  const alerts = realNudges || [];
   const handleDismiss = (id: string) => {
-    setAlerts((prev) => prev.filter((a) => a.id !== id));
+    // Backend missing dismiss route, skipping for now to be TRUTHFUL
+    console.log("Dismiss not implemented on backend", id);
   };
 
   const wsSeverityColor = wsStatus === "connected" ? "var(--leaf-confirm)" : wsStatus === "connecting" ? "var(--amber-war)" : "var(--signal-red)";
-  const filtered = alerts.filter((a) => sevFilter === "all" || a.severity === sevFilter);
+  const filtered = alerts.filter((a) => sevFilter === "all" || a.priority?.toLowerCase() === sevFilter);
 
-  const highCount   = alerts.filter((a) => a.severity === "high").length;
-  const medCount    = alerts.filter((a) => a.severity === "medium").length;
-  const lowCount    = alerts.filter((a) => a.severity === "low").length;
-  const sysCount    = alerts.filter((a) => a.severity === "system").length;
+  const highCount   = alerts.filter((a) => a.priority?.toLowerCase() === "high").length;
+  const medCount    = alerts.filter((a) => a.priority?.toLowerCase() === "medium").length;
+  const lowCount    = alerts.filter((a) => a.priority?.toLowerCase() === "low").length;
+  const sysCount    = alerts.filter((a) => a.priority?.toLowerCase() === "system").length;
 
   return (
     <div className="flex flex-col gap-8 py-2">
@@ -278,24 +266,23 @@ export default function NudgesPage(): React.ReactElement {
             );
           })}
         </div>
-        {alerts.length > 0 && (
-          <button
-            onClick={() => setAlerts([])}
-            className="px-4 py-2 border border-[var(--border)] hover:border-[var(--foreground)] transition-all"
-            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--muted-foreground)" }}
-          >
-            Dismiss All
-          </button>
-        )}
       </div>
 
       {/* ── Alert List ─────────────────────────────────────── */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="flex flex-col gap-2">
+           {[1,2,3].map(i => <div key={i} className="h-24 border border-[var(--border)] animate-pulse bg-zinc-900/10" />)}
+        </div>
+      ) : error ? (
+        <div className="p-12 border border-[var(--signal-red)] bg-zinc-900/10 text-center">
+           <p className="font-mono text-xs text-[var(--signal-red)] uppercase tracking-widest">Telemetry Error: Failed to fetch nudges from command core.</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <RadarEmpty />
       ) : (
         <div className="flex flex-col gap-0 border border-[var(--border)]">
-          {filtered.map((alert) => (
-            <AlertCard key={alert.id} alert={alert} onDismiss={() => handleDismiss(alert.id)} />
+          {filtered.map((nudge) => (
+            <AlertCard key={nudge.nudge_id} nudge={nudge} onDismiss={() => handleDismiss(nudge.nudge_id)} />
           ))}
         </div>
       )}
@@ -311,7 +298,7 @@ export default function NudgesPage(): React.ReactElement {
               <div key={i} className="flex items-start gap-3 px-4 py-3 border-b border-[var(--border)] last:border-0">
                 <span className="h-1.5 w-1.5 rounded-full mt-1.5 shrink-0" style={{ background: "var(--amber-war)" }} />
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--foreground)" }}>
-                  {ev.eventType}
+                  {ev.type || ev.eventType}
                 </span>
               </div>
             ))}

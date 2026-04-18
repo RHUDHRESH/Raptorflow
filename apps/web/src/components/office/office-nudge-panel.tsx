@@ -43,20 +43,17 @@ export function OfficeNudgePanel() {
                 Operations Feed
               </span>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <button 
               onClick={() => toggleNudgePanel(false)}
-              className="h-8 w-8 text-zinc-500 hover:text-white"
+              className="flex items-center justify-center rounded-md h-8 w-8 text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors"
             >
               <X className="w-4 h-4" />
-            </Button>
+            </button>
           </div>
 
           {/* Content */}
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-4">
-              {/* Strategist Welcome Directive (Hardcoded first ripple) */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Strategist Welcome Directive (Hardcoded first ripple) */}
               <div className="bg-secondary rounded-lg p-3 border border-zinc-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -94,7 +91,6 @@ export function OfficeNudgePanel() {
                 </div>
               ))}
             </div>
-          </ScrollArea>
 
           {/* Footer Telemetry */}
           <div className="px-4 h-10 border-t border-border bg-background flex items-center justify-between">

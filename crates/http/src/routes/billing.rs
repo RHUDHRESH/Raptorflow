@@ -1,11 +1,11 @@
 use axum::{
+    Json, Router,
     extract::{Extension, Path},
     http::{HeaderMap, Request, StatusCode},
     routing::{get, post},
-    Json, Router,
 };
 use raptorflow_billing::{RazorpayClient, RazorpayWebhookRuntime, razorpay_webhook};
-use raptorflow_db::queries;
+use raptorflow_db::{queries, Subscription};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -58,17 +58,26 @@ pub async fn billing_status(
     Extension(auth): Extension<AuthContext>,
     Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<BillingStatusResponse>, StatusCode> {
-    let subscription_status = if let Some(ref pool) = state.db_pool {
-        match raptorflow_db::queries::get_subscription_status(pool, auth.tenant.org_id).await {
-            Ok(status) => Some(status),
+    let latest_subscription = if let Some(ref pool) = state.db_pool {
+        match queries::get_latest_subscription(pool, auth.tenant.org_id).await {
+            Ok(subscription) => subscription,
             Err(e) => {
-                tracing::error!(error = %e, org_id = %auth.tenant.org_id, "Failed to get subscription status");
+                tracing::error!(error = %e, org_id = %auth.tenant.org_id, "Failed to get latest subscription");
                 return Err(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     } else {
         None
     };
+
+    let subscription_status = latest_subscription
+        .as_ref()
+        .map(|subscription| subscription.status.clone())
+        .or_else(|| Some("none".to_string()));
+
+    let current_plan = latest_subscription
+        .as_ref()
+        .and_then(current_plan_from_subscription);
 
     let available_plans = vec![
         PlanDetails {
@@ -122,11 +131,14 @@ pub async fn billing_status(
     ];
 
     Ok(Json(BillingStatusResponse {
-        provider: "razorpay".to_string(),
+        provider: latest_subscription
+            .as_ref()
+            .map(|subscription| subscription.provider.clone())
+            .unwrap_or_else(|| "razorpay".to_string()),
         currency: "INR".to_string(),
         grace_period_days: 2,
         subscription_status,
-        current_plan: None,
+        current_plan,
         available_plans,
         org_id: auth.tenant.org_id.to_string(),
     }))
@@ -144,7 +156,10 @@ pub async fn create_order(
 
     let amount_in_paise = req.amount * 100;
 
-    match razorpay_client.create_order(amount_in_paise, &req.currency).await {
+    match razorpay_client
+        .create_order(amount_in_paise, &req.currency)
+        .await
+    {
         Ok(order) => {
             tracing::info!(
                 order_id = %order.id,
@@ -172,7 +187,9 @@ pub async fn get_subscription(
     Path(subscription_id): Path<String>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     if let Some(ref pool) = state.db_pool {
-        match queries::get_subscription_by_razorpay_id(pool, auth.tenant.org_id, &subscription_id).await {
+        match queries::get_subscription_by_razorpay_id(pool, auth.tenant.org_id, &subscription_id)
+            .await
+        {
             Ok(Some(_)) => {}
             Ok(None) => {
                 tracing::warn!(
@@ -209,7 +226,9 @@ pub async fn cancel_subscription(
     Path(subscription_id): Path<String>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     if let Some(ref pool) = state.db_pool {
-        match queries::get_subscription_by_razorpay_id(pool, auth.tenant.org_id, &subscription_id).await {
+        match queries::get_subscription_by_razorpay_id(pool, auth.tenant.org_id, &subscription_id)
+            .await
+        {
             Ok(Some(_)) => {}
             Ok(None) => {
                 tracing::warn!(
@@ -276,8 +295,8 @@ pub async fn razorpay_webhook(
 
     if let Some(ref pool) = state.db_pool {
         // Re-parse payload for event processing since we need the full payload
-        let payload: razorpay_webhook::WebhookPayload = serde_json::from_slice(&body)
-            .map_err(|e| {
+        let payload: razorpay_webhook::WebhookPayload =
+            serde_json::from_slice(&body).map_err(|e| {
                 tracing::warn!(error = %e, "Failed to parse Razorpay webhook payload");
                 StatusCode::BAD_REQUEST
             })?;
@@ -314,7 +333,9 @@ async fn process_razorpay_event(
                             Some(entity.amount),
                             Some(&entity.currency),
                             Some(&entity.status),
-                        ).await.map_err(|e| e.to_string())?;
+                        )
+                        .await
+                        .map_err(|e| e.to_string())?;
                     }
                     Err(e) => {
                         tracing::warn!(
@@ -355,14 +376,78 @@ async fn process_razorpay_event(
 }
 
 fn extract_org_id_from_metadata(order_id: &Option<String>) -> Result<uuid::Uuid, String> {
-    let oid = order_id.as_ref()
+    let oid = order_id
+        .as_ref()
         .ok_or_else(|| "No order_id in payment event".to_string())?;
-    
+
     if oid.len() < 38 || !oid.starts_with("order_") {
         return Err(format!("Invalid order_id format: {}", oid));
     }
-    
+
     let uuid_part = &oid[6..];
-    Uuid::parse_str(uuid_part)
-        .map_err(|e| format!("Invalid UUID in order_id: {}", e))
+    Uuid::parse_str(uuid_part).map_err(|e| format!("Invalid UUID in order_id: {}", e))
+}
+
+fn current_plan_from_subscription(subscription: &Subscription) -> Option<PlanDetails> {
+    if subscription.status != "active" {
+        return None;
+    }
+
+    let tier = subscription.plan_tier.to_lowercase();
+    let price: i64 = if subscription.discount_percent >= 100 || subscription.plan_amount_inr <= 0 {
+        0
+    } else {
+        i64::from(subscription.plan_amount_inr)
+    };
+
+    Some(match tier.as_str() {
+        "ascend" => PlanDetails {
+            tier: PlanTier::Ascend,
+            name: "Ascend".to_string(),
+            price_inr_monthly: price.max(0),
+            description: "Perfect for small businesses starting with AI marketing".to_string(),
+            features: vec![
+                "21 AI Agents with persistent memory".to_string(),
+                "Campaign management".to_string(),
+                "Basic intel monitoring".to_string(),
+                "Daily wins briefings".to_string(),
+            ],
+        },
+        "glide" => PlanDetails {
+            tier: PlanTier::Glide,
+            name: "Glide".to_string(),
+            price_inr_monthly: price.max(0),
+            description: "For growing businesses needing advanced AI insights".to_string(),
+            features: vec![
+                "Everything in Ascend".to_string(),
+                "Advanced council debates".to_string(),
+                "Competitive intel scraping".to_string(),
+                "Priority support".to_string(),
+            ],
+        },
+        "soar" => PlanDetails {
+            tier: PlanTier::Soar,
+            name: "Soar".to_string(),
+            price_inr_monthly: price.max(0),
+            description: "Enterprise-grade AI marketing for scaleups".to_string(),
+            features: vec![
+                "Everything in Glide".to_string(),
+                "Full council synthesis".to_string(),
+                "Real-time competitor tracking".to_string(),
+                "Dedicated account manager".to_string(),
+            ],
+        },
+        _ => PlanDetails {
+            tier: PlanTier::Enterprise,
+            name: "Enterprise".to_string(),
+            price_inr_monthly: price.max(0),
+            description: "Custom solution for large organizations".to_string(),
+            features: vec![
+                "Everything in Soar".to_string(),
+                "Custom integrations".to_string(),
+                "SLA guarantees".to_string(),
+                "Talk to our sales team".to_string(),
+            ],
+        },
+    })
 }

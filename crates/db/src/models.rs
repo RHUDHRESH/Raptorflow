@@ -2,6 +2,163 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CampaignStatus {
+    Draft,
+    Active,
+    Paused,
+    Completed,
+    Archived,
+}
+
+impl CampaignStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            CampaignStatus::Draft => "draft",
+            CampaignStatus::Active => "active",
+            CampaignStatus::Paused => "paused",
+            CampaignStatus::Completed => "completed",
+            CampaignStatus::Archived => "archived",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "draft" => Some(CampaignStatus::Draft),
+            "active" => Some(CampaignStatus::Active),
+            "paused" => Some(CampaignStatus::Paused),
+            "completed" => Some(CampaignStatus::Completed),
+            "archived" => Some(CampaignStatus::Archived),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MoveStatus {
+    Planned,
+    InProgress,
+    Completed,
+    Skipped,
+}
+
+impl MoveStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            MoveStatus::Planned => "planned",
+            MoveStatus::InProgress => "in_progress",
+            MoveStatus::Completed => "completed",
+            MoveStatus::Skipped => "skipped",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "planned" => Some(MoveStatus::Planned),
+            "in_progress" => Some(MoveStatus::InProgress),
+            "completed" => Some(MoveStatus::Completed),
+            "skipped" => Some(MoveStatus::Skipped),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum TaskStatus {
+    Pending,
+    InProgress,
+    Completed,
+    Cancelled,
+}
+
+impl TaskStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            TaskStatus::Pending => "pending",
+            TaskStatus::InProgress => "in_progress",
+            TaskStatus::Completed => "completed",
+            TaskStatus::Cancelled => "cancelled",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "pending" => Some(TaskStatus::Pending),
+            "in_progress" => Some(TaskStatus::InProgress),
+            "completed" => Some(TaskStatus::Completed),
+            "cancelled" => Some(TaskStatus::Cancelled),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct Campaign {
+    pub campaign_id: String,
+    pub org_id: uuid::Uuid,
+    pub name: String,
+    pub goal: String,
+    pub status: String,
+    pub active_move_id: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CampaignMove {
+    pub move_id: String,
+    pub campaign_id: String,
+    pub org_id: uuid::Uuid,
+    pub move_type: String,
+    pub sequence_number: i32,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CampaignTask {
+    pub task_id: String,
+    pub move_id: String,
+    pub campaign_id: String,
+    pub org_id: uuid::Uuid,
+    pub title: String,
+    pub status: String,
+    pub scheduled_date: Option<chrono::NaiveDate>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CampaignBrief {
+    pub brief_id: String,
+    pub org_id: uuid::Uuid,
+    pub campaign_id: Option<String>,
+    pub status: String,
+    pub original_text: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct ReplanSession {
+    pub replan_session_id: String,
+    pub org_id: uuid::Uuid,
+    pub campaign_id: String,
+    pub trigger_type: String,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct GeneratedContent {
+    pub content_id: String,
+    pub org_id: uuid::Uuid,
+    pub campaign_id: Option<String>,
+    pub task_id: Option<String>,
+    pub content_type: String,
+    pub status: String,
+    pub body: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Organization {
     pub org_id: uuid::Uuid,
@@ -33,6 +190,41 @@ pub struct FoundationScan {
     pub deep_scan_data: Option<serde_json::Value>,
     pub started_at: DateTime<Utc>,
     pub completed_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CompetitorSnapshot {
+    pub snapshot_id: String,
+    pub org_id: uuid::Uuid,
+    pub competitor_url: String,
+    pub hash: Option<String>,
+    pub status: String,
+    pub scrape_data: Option<serde_json::Value>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct ContentStrategy {
+    pub strategy_id: String,
+    pub org_id: uuid::Uuid,
+    pub territories: serde_json::Value,
+    pub pillar_pages: serde_json::Value,
+    pub editorial_calendar: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct FoundationVersion {
+    pub version_id: String,
+    pub org_id: uuid::Uuid,
+    pub foundation_version: i32,
+    pub change_description: Option<String>,
+    pub changed_fields: serde_json::Value,
+    pub previous_values: serde_json::Value,
+    pub impact_assessment: Option<serde_json::Value>,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -145,6 +337,9 @@ pub struct Subscription {
     pub provider: String,
     pub status: String,
     pub plan_amount_inr: i32,
+    pub plan_tier: String,
+    pub referral_code: Option<String>,
+    pub discount_percent: i32,
     pub grace_period_ends_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -164,5 +359,85 @@ pub struct PaymentEvent {
     pub metadata: Option<serde_json::Value>,
     pub processed: bool,
     pub processed_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct Nudge {
+    pub nudge_id: String,
+    pub org_id: uuid::Uuid,
+    pub user_id: uuid::Uuid,
+    pub nudge_type: String,
+    pub priority: String,
+    pub title: String,
+    pub body: String,
+    pub action_type: Option<String>,
+    pub action_data: serde_json::Value,
+    pub source_type: String,
+    pub source_id: String,
+    pub created_at: DateTime<Utc>,
+    pub delivered_at: Option<DateTime<Utc>>,
+    pub viewed_at: Option<DateTime<Utc>>,
+    pub acted_on_at: Option<DateTime<Utc>>,
+    pub dismissed_at: Option<DateTime<Utc>>,
+    pub suppressed: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CouncilSession {
+    pub session_id: String,
+    pub org_id: uuid::Uuid,
+    pub campaign_id: Option<String>,
+    pub session_type: String,
+    pub status: String,
+    pub question: String,
+    pub total_cost_usd: f64,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CouncilAgentPosition {
+    pub position_id: String,
+    pub org_id: uuid::Uuid,
+    pub session_id: String,
+    pub avatar_key: String,
+    pub round_number: i32,
+    pub content: String,
+    pub extracted_ripple_data: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct MuseConversation {
+    pub conversation_id: String,
+    pub org_id: uuid::Uuid,
+    pub route: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct MuseMessage {
+    pub message_id: String,
+    pub conversation_id: String,
+    pub org_id: uuid::Uuid,
+    pub role: String,
+    pub body: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct DailyWin {
+    pub briefing_id: String,
+    pub org_id: uuid::Uuid,
+    pub briefing_date: chrono::NaiveDate,
+    pub generated_at: DateTime<Utc>,
+    pub lead_summary: String,
+    pub full_briefing: String,
+    pub recommended_action: String,
+    pub recommended_action_type: String,
+    pub recommended_action_data: serde_json::Value,
+    pub viewed_at: Option<DateTime<Utc>>,
+    pub acted_on_at: Option<DateTime<Utc>>,
+    pub action_outcome: Option<String>,
     pub created_at: DateTime<Utc>,
 }

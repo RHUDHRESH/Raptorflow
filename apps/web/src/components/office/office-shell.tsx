@@ -1,11 +1,15 @@
 "use client";
 
 import React from "react";
+import { useEffect } from "react";
 import { MagicWandIcon, ViewGridIcon, ActivityLogIcon, PersonIcon } from "@radix-ui/react-icons";
 import { OfficeCanvas } from "@/components/office/office-canvas";
 import { OfficeNudgePanel } from "@/components/office/office-nudge-panel";
+import { useQuery } from "@tanstack/react-query";
 import { useOfficeStore } from "@/state/office-store";
 import { useFoundationStore } from "@/state/foundation-store";
+import { officeApi } from "@/lib/api";
+import { useOfficeSocket } from "@/lib/socket";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -19,11 +23,31 @@ import { cn } from "@/lib/cn";
  * and hosts the Layer 1 (Canvas).
  */
 export function OfficeShell() {
-  const { zoom, focusedZone, agentStatuses, eventLog, snarkFeed } = useOfficeStore();
+  const { zoom, focusedZone, agentStatuses, eventLog, snarkFeed, connectionStatus, setConnectionStatus } = useOfficeStore();
   const { sectionData } = useFoundationStore();
   
   const bizName = sectionData.scan_results?.businessName || "RaptorFlow HQ";
   const activeAgentCount = Object.keys(agentStatuses).length;
+  const { connect, disconnect, addStatusListener } = useOfficeSocket("dev-org");
+  const officeState = useQuery({
+    queryKey: ["office", "state"],
+    queryFn: () => officeApi.getState(),
+    refetchInterval: 15_000,
+  });
+
+  useEffect(() => {
+    connect();
+    const removeListener = addStatusListener((status) => {
+      if (status === "connected" || status === "connecting" || status === "disconnected") {
+        setConnectionStatus(status);
+      }
+    });
+
+    return () => {
+      removeListener();
+      disconnect();
+    };
+  }, [addStatusListener, connect, disconnect, setConnectionStatus]);
 
   return (
     <div className="flex flex-col gap-6 p-6 h-full max-w-7xl mx-auto">
@@ -40,7 +64,7 @@ export function OfficeShell() {
               Live Operations Center
             </p>
             <Badge variant="outline" className="h-5 text-[9px] font-mono border-zinc-800 text-zinc-500">
-              UPLINK_STABLE
+              {connectionStatus.toUpperCase()}
             </Badge>
           </div>
           <div className="space-y-0.5">
@@ -62,9 +86,9 @@ export function OfficeShell() {
             </p>
           </div>
           <div className="text-right">
-            <p className="font-serif text-2xl text-white leading-none mb-1">{eventLog.length}</p>
+            <p className="font-serif text-2xl text-white leading-none mb-1">{officeState.data?.activeCampaigns ?? eventLog.length}</p>
             <p className="font-mono text-[8px] text-zinc-500 font-bold uppercase tracking-widest">
-              Events Processed
+              Active Campaigns
             </p>
           </div>
         </div>
@@ -93,7 +117,7 @@ export function OfficeShell() {
             </TabsList>
             
             <Badge variant="secondary" className="font-mono text-[9px] opacity-40">
-              ZOOM: {Math.round(zoom * 100)}%
+              ZOOM: {Math.round(zoom * 100)}% · NUDGES: {officeState.data?.openNudges ?? 0}
             </Badge>
           </div>
 
@@ -115,7 +139,7 @@ export function OfficeShell() {
             <ScrollArea className="h-[500px]">
               <div className="p-4 space-y-3">
                 {eventLog.map((event, i) => (
-                  <div key={i} className="flex items-center gap-4 border-b border-zinc-800/50 pb-2 last:border-0">
+                <div key={i} className="flex items-center gap-4 border-b border-zinc-800/50 pb-2 last:border-0">
                     <span className="text-[9px] font-mono text-zinc-600 uppercase grow-0 shrink-0 w-24">
                       {new Date(event.timestamp).toLocaleTimeString()}
                     </span>
@@ -127,6 +151,11 @@ export function OfficeShell() {
                     </span>
                   </div>
                 ))}
+                {eventLog.length === 0 && (
+                  <div className="py-12 text-center text-[10px] font-mono uppercase tracking-widest text-zinc-600">
+                    Waiting for live office events from the backend runtime.
+                  </div>
+                )}
               </div>
             </ScrollArea>
           </TabsContent>
@@ -134,9 +163,19 @@ export function OfficeShell() {
           <TabsContent value="roster" className="flex-1 m-0">
              <div className="p-6 grid grid-cols-4 gap-4">
                 {/* Roster components would go here, imported or nested */}
-                <div className="text-zinc-600 font-mono text-[10px] col-span-4 text-center py-20 uppercase tracking-widest">
-                  Initializing Roster Subsystem...
-                </div>
+                {activeAgentCount === 0 ? (
+                  <div className="text-zinc-600 font-mono text-[10px] col-span-4 text-center py-20 uppercase tracking-widest">
+                    No live agent activity yet.
+                  </div>
+                ) : (
+                  Object.entries(agentStatuses).map(([key, status]) => (
+                    <div key={key} className="border border-zinc-800 p-4 bg-zinc-950/50">
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-amber-500">{key}</div>
+                      <div className="mt-2 text-sm text-zinc-300">{status.status}</div>
+                      <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-zinc-600">{status.currentZone}</div>
+                    </div>
+                  ))
+                )}
              </div>
           </TabsContent>
         </Tabs>
@@ -156,7 +195,7 @@ export function OfficeShell() {
         </Card>
         <div className="col-span-2 bg-[#1a1a1a] border-2 border-dashed border-zinc-800/50 rounded-lg flex items-center justify-center">
            <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-[0.3em]">
-             Campaign Matrix Visualization Pending
+             Muse (7d): {officeState.data?.recentMuseConversations ?? 0} · Council Active: {officeState.data?.activeCouncilSessions ?? 0}
            </span>
         </div>
       </footer>

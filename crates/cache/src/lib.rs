@@ -31,9 +31,9 @@ pub struct CacheService {
 
 impl CacheService {
     pub async fn new(dragonfly_url: &str) -> Result<Self, CacheError> {
-        let client = Client::open(dragonfly_url)
-            .map_err(|e| CacheError::Connection(e.to_string()))?;
-        
+        let client =
+            Client::open(dragonfly_url).map_err(|e| CacheError::Connection(e.to_string()))?;
+
         let conn = ConnectionManager::new(client)
             .await
             .map_err(|e| CacheError::Connection(e.to_string()))?;
@@ -45,9 +45,9 @@ impl CacheService {
     }
 
     pub async fn with_namespace(dragonfly_url: &str, namespace: &str) -> Result<Self, CacheError> {
-        let client = Client::open(dragonfly_url)
-            .map_err(|e| CacheError::Connection(e.to_string()))?;
-        
+        let client =
+            Client::open(dragonfly_url).map_err(|e| CacheError::Connection(e.to_string()))?;
+
         let conn = ConnectionManager::new(client)
             .await
             .map_err(|e| CacheError::Connection(e.to_string()))?;
@@ -69,17 +69,19 @@ impl CacheService {
     pub async fn get<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, CacheError> {
         let mut conn = (*self.conn).clone();
         let full_key = self.make_key(key);
-        
-        let result: Option<String> = conn.get(&full_key).await
+
+        let result: Option<String> = conn
+            .get(&full_key)
+            .await
             .map_err(|e| CacheError::Get(e.to_string()))?;
-        
+
         match result {
             Some(json) => {
                 let value: T = serde_json::from_str(&json)
                     .map_err(|e| CacheError::Deserialize(e.to_string()))?;
                 Ok(Some(value))
             }
-            None => Ok(None)
+            None => Ok(None),
         }
     }
 
@@ -88,17 +90,17 @@ impl CacheService {
     }
 
     pub async fn set_with_ttl<T: Serialize + ?Sized>(
-        &self, 
-        key: &str, 
-        value: &T, 
-        ttl_seconds: u64
+        &self,
+        key: &str,
+        value: &T,
+        ttl_seconds: u64,
     ) -> Result<(), CacheError> {
         let mut conn = (*self.conn).clone();
         let full_key = self.make_key(key);
-        
-        let json = serde_json::to_string(value)
-            .map_err(|e| CacheError::Serialize(e.to_string()))?;
-        
+
+        let json =
+            serde_json::to_string(value).map_err(|e| CacheError::Serialize(e.to_string()))?;
+
         let _: () = redis::cmd("SETEX")
             .arg(&full_key)
             .arg(ttl_seconds)
@@ -106,57 +108,67 @@ impl CacheService {
             .query_async(&mut conn)
             .await
             .map_err(|e| CacheError::Set(e.to_string()))?;
-        
+
         Ok(())
     }
 
     pub async fn delete(&self, key: &str) -> Result<bool, CacheError> {
         let mut conn = (*self.conn).clone();
         let full_key = self.make_key(key);
-        
-        let deleted: i32 = conn.del(&full_key).await
+
+        let deleted: i32 = conn
+            .del(&full_key)
+            .await
             .map_err(|e| CacheError::Delete(e.to_string()))?;
-        
+
         Ok(deleted > 0)
     }
 
     pub async fn exists(&self, key: &str) -> Result<bool, CacheError> {
         let mut conn = (*self.conn).clone();
         let full_key = self.make_key(key);
-        
-        let exists: bool = conn.exists(&full_key).await
+
+        let exists: bool = conn
+            .exists(&full_key)
+            .await
             .map_err(|e| CacheError::Exists(e.to_string()))?;
-        
+
         Ok(exists)
     }
 
     pub async fn expire(&self, key: &str, ttl_seconds: u64) -> Result<bool, CacheError> {
         let mut conn = (*self.conn).clone();
         let full_key = self.make_key(key);
-        
-        let result: bool = conn.expire(&full_key, ttl_seconds as i64).await
+
+        let result: bool = conn
+            .expire(&full_key, ttl_seconds as i64)
+            .await
             .map_err(|e| CacheError::Expire(e.to_string()))?;
-        
+
         Ok(result)
     }
 
     pub async fn increment(&self, key: &str) -> Result<i64, CacheError> {
         let mut conn = (*self.conn).clone();
         let full_key = self.make_key(key);
-        
-        let value: i64 = conn.incr(&full_key, 1i64).await
+
+        let value: i64 = conn
+            .incr(&full_key, 1i64)
+            .await
             .map_err(|e| CacheError::Increment(e.to_string()))?;
-        
+
         Ok(value)
     }
 
     pub async fn decrement(&self, key: &str) -> Result<i64, CacheError> {
         let mut conn = (*self.conn).clone();
         let full_key = self.make_key(key);
-        
-        let value: i64 = conn.decr(&full_key, 1i64).await
+
+        let value: i64 = conn
+            .decr(&full_key, 1i64)
+            .await
             .map_err(|e| CacheError::Decrement(e.to_string()))?;
-        
+
         Ok(value)
     }
 
@@ -168,7 +180,7 @@ impl CacheService {
         if let Some(cached) = self.get::<T>(key).await? {
             return Ok(cached);
         }
-        
+
         let value = factory()?;
         self.set(key, &value).await?;
         Ok(value)
@@ -203,33 +215,37 @@ impl CacheService {
 
     pub async fn invalidate_prefix(&self, prefix: &str) -> Result<i32, CacheError> {
         let pattern = format!("{}:{}*", self.namespace, prefix);
-        
+
         let keys = self.scan_keys(&pattern).await?;
-        
+
         if keys.is_empty() {
             return Ok(0);
         }
-        
+
         let mut conn = (*self.conn).clone();
-        let deleted: i32 = conn.del(&keys).await
+        let deleted: i32 = conn
+            .del(&keys)
+            .await
             .map_err(|e| CacheError::Delete(e.to_string()))?;
-        
+
         Ok(deleted)
     }
 
     pub async fn flush_namespace(&self) -> Result<i32, CacheError> {
         let pattern = format!("{}:*", self.namespace);
-        
+
         let keys = self.scan_keys(&pattern).await?;
-        
+
         if keys.is_empty() {
             return Ok(0);
         }
-        
+
         let mut conn = (*self.conn).clone();
-        let deleted: i32 = conn.del(&keys).await
+        let deleted: i32 = conn
+            .del(&keys)
+            .await
             .map_err(|e| CacheError::Delete(e.to_string()))?;
-        
+
         Ok(deleted)
     }
 
@@ -280,11 +296,11 @@ pub enum CacheError {
 }
 
 pub struct FoundationCache {
-    cache: CacheService,
+    cache: Arc<CacheService>,
 }
 
 impl FoundationCache {
-    pub fn new(cache: CacheService) -> Self {
+    pub fn new(cache: Arc<CacheService>) -> Self {
         Self { cache }
     }
 
@@ -323,12 +339,19 @@ impl SessionCache {
         Self { cache }
     }
 
-    pub async fn get_session<T: DeserializeOwned>(&self, session_id: &str) -> Result<Option<T>, CacheError> {
+    pub async fn get_session<T: DeserializeOwned>(
+        &self,
+        session_id: &str,
+    ) -> Result<Option<T>, CacheError> {
         let key = format!("session:{}", session_id);
         self.cache.get(&key).await
     }
 
-    pub async fn set_session<T: Serialize + ?Sized>(&self, session_id: &str, session: &T) -> Result<(), CacheError> {
+    pub async fn set_session<T: Serialize + ?Sized>(
+        &self,
+        session_id: &str,
+        session: &T,
+    ) -> Result<(), CacheError> {
         let key = format!("session:{}", session_id);
         self.cache.set_with_ttl(&key, session, 86400).await
     }
@@ -358,7 +381,11 @@ impl StreamCache {
         self.cache.get(&key).await
     }
 
-    pub async fn set_last_message_id(&self, stream_id: &str, message_id: &str) -> Result<(), CacheError> {
+    pub async fn set_last_message_id(
+        &self,
+        stream_id: &str,
+        message_id: &str,
+    ) -> Result<(), CacheError> {
         let key = format!("stream:{}:last_id", stream_id);
         self.cache.set_with_ttl(&key, &message_id, 604800).await
     }
@@ -368,7 +395,11 @@ impl StreamCache {
         self.cache.get(&key).await
     }
 
-    pub async fn set_pending_messages(&self, stream_id: &str, count: i32) -> Result<(), CacheError> {
+    pub async fn set_pending_messages(
+        &self,
+        stream_id: &str,
+        count: i32,
+    ) -> Result<(), CacheError> {
         let key = format!("stream:{}:pending", stream_id);
         self.cache.set_with_ttl(&key, &count, 3600).await
     }
@@ -380,7 +411,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_key_formation() {
-        let service = CacheService::with_namespace("redis://localhost", "test").await.unwrap();
+        let service = CacheService::with_namespace("redis://localhost", "test")
+            .await
+            .unwrap();
         assert_eq!(service.make_key("foo"), "raptorflow:test:foo");
     }
 }

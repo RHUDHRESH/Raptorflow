@@ -38,10 +38,40 @@ pub async fn seed_foundation_handler(
         ("customer_problem", json!({ "problem": "Competitors use synthetic 'natural' labels; customers can't verify purity." })),
         ("icp", json!({ "primaryICP": { "name": "The Urban Wellness Buyer", "demographics": "25-35F, Tier 1 cities" } })),
         ("transformation", json!({ "before": "Confused about ingredient labels", "after": "Confidence in pure botanical potency" })),
-        ("competitors", json!({ "list": ["mamaearth.in", "plumgoodness.com"] })),
+        ("competitors", json!({ "direct": [{"name": "Mamaearth", "competitor_url": "https://mamaearth.in", "tracking_enabled": true}], "indirect": [{"name": "Plum Goodness", "competitor_url": "https://plumgoodness.com", "tracking_enabled": true}] })),
         ("pricing", json!({ "model": "D2C / E-commerce", "range": "₹800 - ₹2,500" })),
-        ("positioning", json!({ "statement": "For the wellness-conscious professional, Verdant Naturals provides verified botanical potency." })),
+        ("positioning", json!({
+            "statement": "For the wellness-conscious professional, Verdant Naturals provides verified botanical potency.",
+            "template_components": {
+                "for_who": "wellness-conscious professionals",
+                "who_problem": "face challenges with ingredient verification",
+                "brand": "Verdant Naturals",
+                "category": "organic skincare brand",
+                "differentiation": "provides verified botanical potency",
+                "because": "unlike competitors, we guarantee purity through cold-pressed extraction"
+            },
+            "quality_score": 0.85,
+            "quality_feedback": "Clear value proposition with strong differentiation. Consider adding specific metrics for 'verified potency'.",
+            "is_locked": false
+        })),
+        ("brand_voice_descriptors", json!(["authentic", "educational", "empowering", "natural"])),
+        ("writing_samples", json!([
+            {
+                "prompt": "Describe our serum to a new customer",
+                "output": "Our cold-pressed serum delivers the purest botanical extracts directly to your skin, verified for potency and free from synthetic additives."
+            },
+            {
+                "prompt": "Explain why natural ingredients matter",
+                "output": "Nature provides the most effective ingredients when extracted properly. We cold-press our botanicals to preserve their natural potency."
+            },
+            {
+                "prompt": "Address a customer concern about price",
+                "output": "Quality ingredients and careful extraction come at a premium. We're investing in your skin's long-term health, not short-term marketing."
+            }
+        ])),
+        ("voice_fingerprint", json!([0.1, -0.2, 0.3, 0.4, -0.1, 0.2, -0.3, 0.0, 0.5, -0.4, 0.1, 0.2, -0.3, 0.4, -0.2, 0.3, 0.1, -0.5, 0.2, 0.0, -0.1, 0.3, -0.2, 0.4, 0.1, -0.3, 0.2, 0.0, -0.4, 0.1, 0.2, -0.3, 0.4, -0.1, 0.2, 0.3, -0.4, 0.1, -0.2, 0.3, 0.0, -0.1, 0.4, -0.3, 0.2, 0.1, -0.5, 0.3, -0.2, 0.4, 0.0, -0.1, 0.2, -0.3, 0.4, 0.1, -0.2, 0.3, 0.0, -0.4, 0.2, 0.1, -0.3, 0.4, -0.1])),
         ("brand_personality", json!({ "casual": 70, "playful": 65, "bold": 75, "guardrails": ["No jargon", "No medical claims"] })),
+        ("brand_voice_sliders", json!({ "formality": 0.6, "technicality": 0.4, "tone": 0.7, "stance": 0.8, "register": 0.6 })),
         ("keywords", json!({ "primary": ["organic serum india", "cold pressed skincare", "botanical face oil"] })),
         ("content_channels", json!({ "priority": ["Instagram", "Email"], "secondary": ["LinkedIn"] })),
         ("content_history", json!({ "tried": ["Instagram Reels", "Facebook Ads"], "frustration": "High CAC on Meta ads" })),

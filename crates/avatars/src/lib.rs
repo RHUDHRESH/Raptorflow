@@ -32,11 +32,11 @@
 //!
 //! Avatars MUST NOT depend on foundation, harness, or eel (no circular deps).
 
-pub mod template;
-pub mod seeding;
 pub mod registry;
+pub mod seeding;
+pub mod template;
 pub mod templates;
 
-pub use template::{AvatarTemplate, EssenceRippleSeed};
-pub use seeding::{seed_org_avatars, SeedReport};
 pub use registry::build_avatar_registry;
+pub use seeding::{SeedReport, seed_org_avatars};
+pub use template::{AvatarTemplate, EssenceRippleSeed};

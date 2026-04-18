@@ -55,6 +55,9 @@ pub struct Settings {
     pub resend_webhook_secret: Option<String>,
     pub webhook_timestamp_tolerance_seconds: u64,
     pub sentry_dsn: String,
+    pub ai_provider: String,
+    pub groq_api_url: String,
+    pub groq_api_key: String,
 }
 
 impl Settings {
@@ -75,7 +78,10 @@ impl Settings {
             dragonfly_url: read("RAPTORFLOW_DRAGONFLY_URL", "redis://localhost:6379"),
             qdrant_url: read("RAPTORFLOW_QDRANT_URL", "http://localhost:6333"),
             s3_bucket: read("RAPTORFLOW_S3_BUCKET", "raptorflow-dev"),
-            sqs_base_url: read("RAPTORFLOW_SQS_BASE_URL", "https://sqs.ap-south-1.amazonaws.com"),
+            sqs_base_url: read(
+                "RAPTORFLOW_SQS_BASE_URL",
+                "https://sqs.ap-south-1.amazonaws.com",
+            ),
             sqs_embedding_queue: read("RAPTORFLOW_SQS_EMBEDDING_QUEUE", "raptorflow-dev-embedding"),
             sqs_content_queue: read(
                 "RAPTORFLOW_SQS_CONTENT_QUEUE",
@@ -109,6 +115,9 @@ impl Settings {
             .parse()
             .unwrap_or(300),
             sentry_dsn: read("RAPTORFLOW_SENTRY_DSN", ""),
+            ai_provider: read("AI_PROVIDER", "groq"),
+            groq_api_url: read("GROQ_API_URL", "https://api.groq.com/openai/v1"),
+            groq_api_key: read("GROQ_API_KEY", ""),
         })
     }
 }

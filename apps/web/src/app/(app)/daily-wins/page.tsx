@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { 
@@ -17,32 +16,13 @@ import {
   ChevronUp,
   LayoutDashboard
 } from "lucide-react";
+import { dailyWinsApi } from "@/lib/api";
+import type { DailyWin } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 import Link from "next/link";
-
-interface DailyWin {
-  win_id: string;
-  generated_at: string;
-  strategist_name: string;
-  lead: {
-    text: string;
-    significance: string;
-  };
-  context: Array<{ text: string; source: string }>;
-  todays_focus: {
-    action: string;
-    rationale: string;
-    action_type: "approve_content" | "review_campaign" | "respond_to_intel" | "strategic_review";
-    action_data: { task_id?: string; campaign_id?: string };
-  };
-  viewed_at: string | null;
-  acted_on_at: string | null;
-  status?: "not_started";
-  message?: string;
-}
 
 /**
  * Daily Wins Page
@@ -51,44 +31,24 @@ interface DailyWin {
  * Strategist-driven briefing every morning.
  */
 export default function DailyWinsPage() {
-  const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const [archiveOpen, setArchiveOpen] = useState(false);
 
-  // ─── Data Fetching ───────────────────────────────────────────
-
-  const { data: win, isLoading, error, refetch } = useQuery<DailyWin>({
+  const { data: win, isLoading, error, refetch } = useQuery({
     queryKey: ["daily-wins", "today"],
-    queryFn: async () => {
-      const token = await getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/daily-wins/today`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error("Failed to load today's briefing.");
-      return res.json();
-    }
+    queryFn: () => dailyWinsApi.getToday(),
   });
 
-  const { data: archive } = useQuery<Array<{ win_id: string; generated_at: string; lead_summary: string }>>({
+  const { data: archive } = useQuery({
     queryKey: ["daily-wins", "archive"],
     enabled: archiveOpen,
-    queryFn: async () => {
-      const token = await getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/daily-wins/archive`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error("Failed to load archive.");
-      return res.json();
-    }
+    queryFn: () => dailyWinsApi.getArchive(),
   });
 
   const mutation = useMutation({
-    mutationFn: async (winId: string) => {
-      const token = await getToken();
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/daily-wins/${winId}/viewed`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    mutationFn: (winId: string) => dailyWinsApi.markAsRead(winId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-wins", "today"] });
     }
   });
 
@@ -111,19 +71,19 @@ export default function DailyWinsPage() {
   }
 
   // Not Started State
-  if (win?.status === "not_started") {
+  if (!win) {
     return (
       <div className="flex flex-col items-center justify-center pt-32 px-6">
         <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center text-4xl text-amber-500 font-serif mb-6">
-          {win.strategist_name.charAt(0)}
+          S
         </div>
         <h1 className="text-2xl text-white font-bold mb-2 tracking-tight">
-          {win.strategist_name} is ready.
+          No briefing generated yet.
         </h1>
         <p className="text-zinc-500 text-center max-w-sm mb-8 leading-relaxed">
-          {win.message || "I'll have your first briefing ready once you start a campaign."}
+          Create or progress a campaign to generate your first persisted daily briefing.
         </p>
-        <Link href="/app/campaigns">
+        <Link href="/campaigns">
           <Button className="bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-widest px-8">
             Create your first campaign <ChevronRight className="ml-2 w-4 h-4" />
           </Button>
@@ -133,17 +93,15 @@ export default function DailyWinsPage() {
   }
 
   // Final rendering of the win
-  if (!win) return null;
-
   const handleMarkAsRead = () => {
     mutation.mutate(win.win_id);
   };
 
   const ctaLinks = {
-    approve_content: "/app/content",
-    review_campaign: `/app/campaigns/${win.todays_focus.action_data.campaign_id}`,
-    respond_to_intel: "/app/intel",
-    strategic_review: "/app/muse"
+    approve_content: "/content",
+    review_campaign: `/campaigns/${win.todays_focus.action_data.campaign_id}`,
+    respond_to_intel: "/intel",
+    strategic_review: "/muse"
   };
 
   return (
@@ -197,7 +155,7 @@ export default function DailyWinsPage() {
             </Badge>
           </div>
         </div>
-      </header>
+      </section>
 
       {/* ── Section 2: Context Items ────────────────────────────── */}
       {win.context && win.context.length > 0 && (
@@ -243,7 +201,7 @@ export default function DailyWinsPage() {
             </p>
           </div>
 
-          <Link href={ctaLinks[win.todays_focus.action_type] || "/app"}>
+          <Link href={(ctaLinks[win.todays_focus.action_type] || "/daily-wins") as any}>
             <Button className="h-14 px-10 bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-widest text-sm transition-all hover:translate-x-1">
               {win.todays_focus.action_type === 'approve_content' && "Review & Approve Content"}
               {win.todays_focus.action_type === 'review_campaign' && "Open Campaign Details"}
@@ -290,7 +248,7 @@ export default function DailyWinsPage() {
                 {archive.map((item) => (
                   <Link 
                     key={item.win_id} 
-                    href={`/app/daily-wins/${item.win_id}`}
+                    href={`/daily-wins/${item.win_id}` as any}
                     className="flex flex-col group"
                   >
                     <div className="absolute -left-[5px] w-2 h-2 rounded-full bg-zinc-800 group-hover:bg-amber-500 transition-colors mt-1.5" />
@@ -298,7 +256,7 @@ export default function DailyWinsPage() {
                       {format(new Date(item.generated_at), "MMM d, yyyy")}
                     </span>
                     <span className="text-sm text-zinc-400 mt-1 line-clamp-1 group-hover:text-zinc-200">
-                      {item.lead_summary}
+                      {item.lead.text}
                     </span>
                   </Link>
                 ))}

@@ -16,6 +16,8 @@ interface SnarkMessage {
 
 interface OfficeEvent {
   type: string;
+  eventType?: string; // Legacy compatibility
+  payload?: any;      // Legacy compatibility
   agentKey?: AgentKey;
   timestamp: number;
   processed: boolean;
@@ -28,6 +30,7 @@ interface OfficeState {
   focusedZone: string | null;
   focusedAgent: AgentKey | null;
   nudgePanelOpen: boolean;
+  connectionStatus: 'connected' | 'disconnected' | 'connecting';
   agentStatuses: Record<AgentKey, AgentStatus>;
   snarkFeed: SnarkMessage[];
   eventLog: OfficeEvent[];
@@ -38,10 +41,12 @@ interface OfficeState {
   setZoom: (zoom: number) => void;
   setFocusedZone: (zoneId: string | null) => void;
   setFocusedAgent: (agentKey: AgentKey | null) => void;
+  setConnectionStatus: (status: 'connected' | 'disconnected' | 'connecting') => void;
   toggleNudgePanel: (open?: boolean) => void;
   updateAgentStatus: (key: AgentKey, status: Partial<AgentStatus>) => void;
   addSnarkLine: (agentKey: AgentKey, text: string) => void;
   logEvent: (event: Omit<OfficeEvent, 'timestamp' | 'processed'>) => void;
+  clearEvents: () => void; // Alias for legacy
   clearEventLog: () => void;
 }
 
@@ -58,6 +63,7 @@ export const useOfficeStore = create<OfficeState>((set) => ({
   focusedZone: null,
   focusedAgent: null,
   nudgePanelOpen: true,
+  connectionStatus: 'disconnected',
   agentStatuses: {} as Record<AgentKey, AgentStatus>,
   snarkFeed: [],
   eventLog: [],
@@ -67,6 +73,7 @@ export const useOfficeStore = create<OfficeState>((set) => ({
   setZoom: (zoom) => set({ zoom }),
   setFocusedZone: (zoneId) => set({ focusedZone: zoneId }),
   setFocusedAgent: (agentKey) => set({ focusedAgent: agentKey }),
+  setConnectionStatus: (status) => set({ connectionStatus: status }),
   toggleNudgePanel: (open) => set((state) => ({ 
     nudgePanelOpen: open !== undefined ? open : !state.nudgePanelOpen 
   })),
@@ -95,5 +102,6 @@ export const useOfficeStore = create<OfficeState>((set) => ({
     ]
   })),
 
+  clearEvents: () => set({ eventLog: [] }),
   clearEventLog: () => set({ eventLog: [] }),
 }));

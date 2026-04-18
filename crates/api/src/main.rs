@@ -20,14 +20,19 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    eprintln!("[raptorflow-api] boot: start");
     tracing::info!("Starting RaptorFlow API server");
 
     dotenvy::dotenv().ok();
+    eprintln!("[raptorflow-api] boot: env loaded");
 
     let settings = Arc::new(Settings::from_env()?);
+    eprintln!("[raptorflow-api] boot: settings loaded");
 
     let db_pool = if settings.database_url.starts_with("postgres") {
+        eprintln!("[raptorflow-api] boot: connecting database");
         let pool = PgPool::connect(&settings.database_url).await?;
+        eprintln!("[raptorflow-api] boot: database connected");
         Some(Arc::new(pool))
     } else {
         tracing::warn!("Database URL not configured, running without database");
@@ -35,27 +40,39 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // # FIXED: initialize cache service for Clerk webhook replay protection and other caching
-    let cache_service = match raptorflow_cache::CacheService::from_settings(&settings).await {
-        Ok(cache) => {
-            tracing::info!("Cache service initialized successfully");
-            Some(Arc::new(cache))
-        }
-        Err(e) => {
-            tracing::warn!(error = %e, "Failed to initialize cache service, running without caching");
-            None
+    let cache_service = if settings.dragonfly_url.trim().is_empty() {
+        eprintln!("[raptorflow-api] boot: cache skipped");
+        None
+    } else {
+        eprintln!("[raptorflow-api] boot: connecting cache");
+        match raptorflow_cache::CacheService::from_settings(&settings).await {
+            Ok(cache) => {
+                eprintln!("[raptorflow-api] boot: cache connected");
+                tracing::info!("Cache service initialized successfully");
+                Some(Arc::new(cache))
+            }
+            Err(e) => {
+                eprintln!("[raptorflow-api] boot: cache unavailable: {e}");
+                tracing::warn!(error = %e, "Failed to initialize cache service, running without caching");
+                None
+            }
         }
     };
 
     let clerk_domain = settings.clerk_issuer.clone();
     let state = AppState::new(db_pool, clerk_domain, settings, cache_service);
+    eprintln!("[raptorflow-api] boot: state ready");
 
     let app = create_router(state);
+    eprintln!("[raptorflow-api] boot: router ready");
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
         .await
         .expect("Failed to bind to port 8080");
+    eprintln!("[raptorflow-api] boot: listener bound");
 
     tracing::info!("API server listening on 0.0.0.0:8080");
+    eprintln!("[raptorflow-api] boot: serving");
 
     axum::serve(listener, app).await?;
 

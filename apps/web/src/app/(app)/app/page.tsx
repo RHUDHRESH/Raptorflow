@@ -263,14 +263,8 @@ export default function AppHomePage(): React.ReactElement {
   const runningSessions   = councilSessions?.filter((s) => s.status === "running" || s.status === "streaming").length ?? 0;
   const foundationFilled  = foundation ? Object.values(foundation.sections).filter(Boolean).length : 0;
 
-  /* Mock campaign data for UI display */
-  const displayCampaigns = allCampaigns.length > 0
-    ? allCampaigns
-    : [
-        { campaignId: "c1", name: "Diya Organics Launch", status: "active", progress: 72, moveName: "Move 3: Reels Blitz", daysLeft: 14 },
-        { campaignId: "c2", name: "Monsoon Expansion",    status: "paused", progress: 34, moveName: "Move 1: Positioning", daysLeft: 30 },
-        { campaignId: "c3", name: "Q2 Brand Awareness",   status: "draft",  progress: 8,  moveName: undefined,             daysLeft: 60 },
-      ];
+  /* Use real campaign data only — no fake fallback */
+  const displayCampaigns = allCampaigns;
 
   return (
     <div className="flex flex-col gap-10 py-2">
@@ -383,16 +377,27 @@ export default function AppHomePage(): React.ReactElement {
         </div>
 
         <div className="flex gap-4 overflow-x-auto pb-2">
-          {displayCampaigns.map((c: any) => (
-            <CampaignCard
-              key={c.campaignId}
-              name={c.name}
-              status={c.status}
-              progress={c.progress ?? 50}
-              moveName={c.moveName}
-              daysLeft={c.daysLeft}
-            />
-          ))}
+          {displayCampaigns.length === 0 ? (
+            <div className="border border-[var(--border)] p-8 flex flex-col items-center justify-center w-full gap-3">
+              <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "var(--muted-foreground)" }}>
+                No campaigns yet
+              </p>
+              <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--muted-foreground)" }}>
+                Create your first campaign to see it here
+              </p>
+            </div>
+          ) : (
+            displayCampaigns.map((c: any) => (
+              <CampaignCard
+                key={c.campaignId}
+                name={c.name}
+                status={c.status}
+                progress={c.progress_pct ?? 0}
+                moveName={c.current_move_name}
+                daysLeft={c.end_date ? Math.max(0, Math.ceil((new Date(c.end_date).getTime() - Date.now()) / 86400000)) : undefined}
+              />
+            ))
+          )}
         </div>
       </section>
 
@@ -403,22 +408,21 @@ export default function AppHomePage(): React.ReactElement {
           Agent Pulse
         </SectionLabel>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <AgentPulseCard agentKey="ogilvy"     lastOutput="Reviewed headline variants for Diya Organics." />
-          <AgentPulseCard agentKey="vaynerchuk" lastOutput="Recommends 3x Reels frequency this week." />
-          <AgentPulseCard agentKey="strategist" lastOutput="Awaiting campaign brief approval from you." />
-          <AgentPulseCard agentKey="patel"      lastOutput="Instagram engagement up 38% vs. last week." />
+          <AgentPulseCard agentKey="ogilvy"     lastOutput="Standby — waiting for campaign briefs." />
+          <AgentPulseCard agentKey="vaynerchuk" lastOutput="Standby — ready to activate on content tasks." />
+          <AgentPulseCard agentKey="strategist" lastOutput="Standby — complete Foundation to activate." />
+          <AgentPulseCard agentKey="patel"      lastOutput="Standby — no performance data available yet." />
         </div>
       </section>
 
-      {/* ── Strip 4: System Footer ───────────────────────── */}
       <section
         className="border-t border-[var(--border)] pt-5 flex flex-wrap items-center gap-6"
       >
-        <SysIndicator label="Intel" value="47 items" live />
+        <SysIndicator label="Intel" value="—" />
         <div className="h-3 w-px bg-[var(--border)]" />
         <SysIndicator label="Council" value={`${runningSessions} running`} live={runningSessions > 0} />
         <div className="h-3 w-px bg-[var(--border)]" />
-        <SysIndicator label="Memory" value="1,284 ripples" />
+        <SysIndicator label="Memory" value="—" />
         <div className="h-3 w-px bg-[var(--border)]" />
         <SysIndicator
           label="Plan"
@@ -427,12 +431,12 @@ export default function AppHomePage(): React.ReactElement {
         <div className="h-3 w-px bg-[var(--border)]" />
         <SysIndicator
           label="Foundation"
-          value={`${foundationFilled}/21`}
+          value={`${foundationFilled} sections`}
         />
         <div className="h-3 w-px bg-[var(--border)]" />
         <div className="flex items-center gap-2">
           <TargetIcon className="h-3 w-3 text-[var(--muted-foreground)]" />
-          <SysIndicator label="Agents" value={`${AGENTS.length} ready`} />
+          <SysIndicator label="Campaigns" value={`${allCampaigns.length}`} />
         </div>
       </section>
     </div>

@@ -11,7 +11,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 pub const INTEL_COLLECTION_NAME: &str = "intel_chunks";
-pub const INTEL_VECTOR_DIM: usize = 768;
+pub const INTEL_VECTOR_DIM: usize = 1024;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GroundedResult {
@@ -87,8 +87,9 @@ impl VectorIndex {
 
         self.client
             .create_collection(
-                CreateCollectionBuilder::new(INTEL_COLLECTION_NAME)
-                    .vectors_config(VectorParamsBuilder::new(INTEL_VECTOR_DIM as u64, Distance::Cosine)),
+                CreateCollectionBuilder::new(INTEL_COLLECTION_NAME).vectors_config(
+                    VectorParamsBuilder::new(INTEL_VECTOR_DIM as u64, Distance::Cosine),
+                ),
             )
             .await
             .map_err(|e| ResearchError::Qdrant(e.to_string()))?;

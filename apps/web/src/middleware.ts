@@ -1,4 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 
 const isProtectedRoute = createRouteMatcher([
   "/app(.*)",
@@ -10,25 +12,46 @@ const isProtectedRoute = createRouteMatcher([
   "/daily-wins(.*)",
   "/billing(.*)",
   "/settings(.*)",
+  "/intel(.*)",
+  "/nudges(.*)",
+  "/content(.*)",
+  "/uploads(.*)",
+  "/ripples(.*)",
   "/internal(.*)",
   "/api/internal(.*)"
 ]);
 
-const isAppRoute = createRouteMatcher(["/app(.*)"]);
-const isFoundationManagement = createRouteMatcher(["/app/foundation(.*)"]);
+const isAppRoute = createRouteMatcher([
+  "/app(.*)",
+  "/campaigns(.*)",
+  "/office(.*)",
+  "/muse(.*)",
+  "/council(.*)",
+  "/daily-wins(.*)",
+  "/billing(.*)",
+  "/settings(.*)",
+  "/intel(.*)",
+  "/nudges(.*)",
+  "/content(.*)",
+  "/uploads(.*)",
+  "/ripples(.*)"
+]);
 
-export default clerkMiddleware(async (auth, request) => {
+const productionMiddleware = clerkMiddleware(async (auth, request) => {
   if (isProtectedRoute(request)) {
     await auth.protect();
-
-    // FOUNDATION GATE: Block internal app access until Foundation is complete
-    const isFoundationComplete = request.cookies.get("foundation_complete");
-    if (isAppRoute(request) && !isFoundationManagement(request) && !isFoundationComplete) {
-      const url = new URL("/foundation/1", request.url);
-      return Response.redirect(url);
-    }
   }
+
+  return NextResponse.next();
 });
+
+export default function middleware(request: NextRequest, event: NextFetchEvent) {
+  if (process.env.NODE_ENV !== "production") {
+    return NextResponse.next();
+  }
+
+  return productionMiddleware(request, event);
+}
 
 export const config = {
   matcher: ["/((?!_next|.*\\..*).*)", "/(api|trpc)(.*)"]

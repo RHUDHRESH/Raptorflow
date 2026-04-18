@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useBillingStatus } from "@/hooks/use-billing";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
 import { GearIcon, IdCardIcon, AvatarIcon, Link1Icon, CheckIcon } from "@radix-ui/react-icons";
+import { referralSignupHref } from "@/lib/referrals";
 
 export default function BillingPage(): React.ReactElement {
   const { data: billing, isLoading } = useBillingStatus();
@@ -43,6 +44,32 @@ export default function BillingPage(): React.ReactElement {
                  <span className="font-mono text-[10px] uppercase tracking-widest bg-green-900/40 text-green-400 border border-green-800 px-3 py-1">Active</span>
               )}
             </div>
+
+            {billing?.current_plan && (
+              <div className="mb-8 border border-[var(--border)] bg-[var(--card)] p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--muted-foreground)]">
+                  Current access
+                </p>
+                <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="font-[family-name:var(--font-display)] text-2xl">
+                      {billing.current_plan.name}
+                    </h3>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      {billing.current_plan.price_inr_monthly === 0
+                        ? "Referral unlocked: no charge on this workspace."
+                        : "Subscription is active on the selected paid plan."}
+                    </p>
+                  </div>
+                  <a
+                    href={referralSignupHref("LOKI")}
+                    className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]"
+                  >
+                    Share access link
+                  </a>
+                </div>
+              </div>
+            )}
             
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {isLoading ? (
@@ -67,7 +94,7 @@ export default function BillingPage(): React.ReactElement {
                     </div>
                     
                     <ul className="space-y-2 mb-6 flex-1">
-                      {plan.features.map((feat, i) => (
+                      {plan.features.map((feat: string, i: number) => (
                         <li key={i} className="flex items-start gap-2 text-xs">
                           <CheckIcon className="h-3 w-3 text-[var(--primary)] shrink-0 mt-0.5" />
                           <span className="text-[var(--muted-foreground)]">{feat}</span>
@@ -101,4 +128,3 @@ export default function BillingPage(): React.ReactElement {
     </div>
   );
 }
-

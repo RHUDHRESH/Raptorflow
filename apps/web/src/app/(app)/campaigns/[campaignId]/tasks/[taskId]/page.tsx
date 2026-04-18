@@ -112,7 +112,7 @@ export default function TaskDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
       setToastMessage("Approved ✓");
-      setTimeout(() => router.push(`/app/campaigns/${campaignId}`), 1000);
+      setTimeout(() => router.push(`/campaigns/${campaignId}`), 1000);
     }
   });
 
@@ -155,7 +155,7 @@ export default function TaskDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
       setToastMessage(skipOpen ? "Task skipped" : "Task completed ✓");
-      setTimeout(() => router.push(`/app/campaigns/${campaignId}`), 1000);
+      setTimeout(() => router.push(`/campaigns/${campaignId}`), 1000);
     }
   });
 
@@ -186,14 +186,14 @@ export default function TaskDetailPage() {
       <div className="flex items-center gap-2 text-sm mb-6 transition-opacity">
         <span 
           className="text-zinc-500 cursor-pointer hover:text-zinc-300 transition-colors capitalize px-1"
-          onClick={() => router.push('/app/campaigns')}
+          onClick={() => router.push('/campaigns')}
         >
           Campaigns
         </span>
         <ChevronRight className="w-4 h-4 text-zinc-700" />
         <span 
           className="text-zinc-500 cursor-pointer hover:text-zinc-300 transition-colors truncate max-w-[200px] px-1"
-          onClick={() => router.push(`/app/campaigns/${campaignId}`)}
+          onClick={() => router.push(`/campaigns/${campaignId}`)}
         >
           {task.campaign_name}
         </span>
@@ -522,7 +522,7 @@ export default function TaskDetailPage() {
               <Button 
                 className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-[0.1em] h-14"
                 disabled={completeMutation.isPending || task.status === 'completed'}
-                onClick={() => completeMutation.mutate()}
+                onClick={() => completeMutation.mutate(undefined)}
               >
                 {completeMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Mark Review Complete →"}
               </Button>
@@ -570,7 +570,7 @@ export default function TaskDetailPage() {
               <Button 
                  className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-widest h-14"
                  disabled={completeMutation.isPending || task.status === 'completed'}
-                 onClick={() => completeMutation.mutate()}
+                 onClick={() => completeMutation.mutate(undefined)}
               >
                  {completeMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "I've Executed This Move"}
               </Button>

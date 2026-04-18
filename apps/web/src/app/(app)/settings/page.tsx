@@ -4,12 +4,14 @@ import type * as React from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useUser, useOrganization } from "@clerk/nextjs";
+import { useBillingStatus } from "@/hooks/use-billing";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
-import { GearIcon, IdCardIcon, AvatarIcon, Link1Icon } from "@radix-ui/react-icons";
+import { GearIcon, IdCardIcon, AvatarIcon, Link1Icon, TargetIcon } from "@radix-ui/react-icons";
 
 export default function SettingsPage(): React.ReactElement {
   const { user, isLoaded: userLoaded } = useUser();
   const { organization, isLoaded: orgLoaded } = useOrganization();
+  const { data: billing } = useBillingStatus();
 
   return (
     <div className="min-h-[calc(100vh-theme(spacing.16))] bg-[var(--background)] px-6 py-12 md:px-12 font-body">
@@ -24,6 +26,9 @@ export default function SettingsPage(): React.ReactElement {
             </Link>
             <Link href={"/billing" as Route} className="flex items-center gap-3 hover:bg-[var(--accent)] text-[var(--foreground)] px-4 py-3 transition-colors">
               <IdCardIcon className="h-4 w-4" /> Billing & Plan
+            </Link>
+            <Link href={"/foundation" as Route} className="flex items-center gap-3 hover:bg-[var(--accent)] text-[var(--foreground)] px-4 py-3 transition-colors">
+              <TargetIcon className="h-4 w-4" /> Onboarding
             </Link>
             <button className="flex items-center gap-3 hover:bg-[var(--accent)] text-[var(--foreground)] px-4 py-3 transition-colors text-left">
               <AvatarIcon className="h-4 w-4" /> Team Access
@@ -55,9 +60,64 @@ export default function SettingsPage(): React.ReactElement {
               </div>
             </div>
             
-            <button className="mt-8 bg-[var(--primary)] text-[var(--primary-foreground)] px-8 h-12 font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity">
-              Save Changes
-            </button>
+            <div className="mt-8 flex items-center gap-4">
+              <button
+                disabled
+                title="Workspace name changes are managed via the Clerk dashboard"
+                className="bg-[var(--primary)] text-[var(--primary-foreground)] px-8 h-12 font-mono text-xs uppercase tracking-widest opacity-40 cursor-not-allowed"
+              >
+                Save Changes
+              </button>
+              <p className="text-xs font-mono text-[var(--muted-foreground)]">
+                Org name is managed via{" "}
+                <a href="https://dashboard.clerk.com" target="_blank" rel="noreferrer" className="underline hover:text-[var(--foreground)] transition-colors">
+                  Clerk Dashboard
+                </a>
+              </p>
+            </div>
+          </section>
+
+          <section className="gsap-reveal border-t border-[var(--border)] pt-6">
+            <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-8">
+              Access Status
+            </h2>
+            <div className="border border-[var(--border)] bg-[var(--card)] p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="font-[family-name:var(--font-display)] text-2xl">
+                  {billing?.current_plan?.name ?? "No active plan"}
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  {billing?.subscription_status === "active"
+                    ? billing.current_plan?.price_inr_monthly === 0
+                      ? "Referral code unlocked full workspace access."
+                      : "Paid access is active for this workspace."
+                    : "Workspace is waiting on an active plan or referral unlock."}
+                </p>
+              </div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--muted-foreground)]">
+                Status: {billing?.subscription_status ?? "loading"}
+              </div>
+            </div>
+          </section>
+
+          <section className="gsap-reveal border-t border-[var(--border)] pt-6">
+            <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-8">
+              Onboarding
+            </h2>
+            <div className="border border-[var(--border)] bg-[var(--card)] p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="font-[family-name:var(--font-display)] text-2xl">Foundation flow</p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Open the guided onboarding whenever you want. It is no longer forced on login.
+                </p>
+              </div>
+              <Link
+                href={"/foundation" as Route}
+                className="inline-flex items-center justify-center border border-[var(--border)] px-6 h-12 font-mono text-[10px] uppercase tracking-widest transition-colors hover:bg-[var(--accent)]"
+              >
+                Start onboarding
+              </Link>
+            </div>
           </section>
 
           <section className="gsap-reveal border-t border-[var(--border)] pt-6">
@@ -108,4 +168,3 @@ export default function SettingsPage(): React.ReactElement {
     </div>
   );
 }
-

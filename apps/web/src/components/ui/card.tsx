@@ -27,9 +27,23 @@ export function CardTitle({
   return <h3 className={cn("text-lg font-semibold", className)} {...props} />;
 }
 
+export function CardDescription({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>): React.ReactElement {
+  return <p className={cn("text-sm text-zinc-500", className)} {...props} />;
+}
+
 export function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>): React.ReactElement {
   return <div className={cn("px-6 pb-6 pt-3", className)} {...props} />;
+}
+
+export function CardFooter({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>): React.ReactElement {
+  return <div className={cn("flex items-center p-6 pt-0", className)} {...props} />;
 }

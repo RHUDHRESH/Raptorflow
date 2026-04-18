@@ -10,7 +10,7 @@ $$ LANGUAGE sql STABLE;
 CREATE TABLE organizations (
     org_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name text NOT NULL,
-    subscription_status text NOT NULL DEFAULT 'trialing',
+subscription_status text NOT NULL DEFAULT 'none',
     foundation_version integer NOT NULL DEFAULT 0,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()

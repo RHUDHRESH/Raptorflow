@@ -1,6 +1,6 @@
 use anyhow::Result;
-use raptorflow_db::models::FoundationSnapshot;
 use raptorflow_db::PgPool;
+use raptorflow_db::models::FoundationSnapshot;
 use tracing::info;
 use ulid::Ulid;
 use uuid::Uuid;
@@ -137,7 +137,10 @@ fn overlay_strategist_essence(
         .and_then(|s| s.get("name"))
         .and_then(|v| v.as_str());
 
-    if let Some(arr) = essence.get_mut("constitutional_principles").and_then(|v| v.as_array_mut()) {
+    if let Some(arr) = essence
+        .get_mut("constitutional_principles")
+        .and_then(|v| v.as_array_mut())
+    {
         arr.push(serde_json::json!(
             format!(
                 "This Strategist serves {} in the {} industry, crafting campaigns that resonate with their specific market context.",
@@ -145,25 +148,28 @@ fn overlay_strategist_essence(
             )
         ));
         if let Some(msg) = core_message {
-            arr.push(serde_json::json!(
-                format!("The brand's core message is: {}", msg)
-            ));
+            arr.push(serde_json::json!(format!(
+                "The brand's core message is: {}",
+                msg
+            )));
         }
         if let Some(audience) = target_audience {
-            arr.push(serde_json::json!(
-                format!("The primary target audience is: {}", audience)
-            ));
+            arr.push(serde_json::json!(format!(
+                "The primary target audience is: {}",
+                audience
+            )));
         }
     }
 
-    if let Some(arr) = essence.get_mut("core_beliefs").and_then(|v| v.as_array_mut()) {
+    if let Some(arr) = essence
+        .get_mut("core_beliefs")
+        .and_then(|v| v.as_array_mut())
+    {
         if let Some(audience) = target_audience {
-            arr.push(serde_json::json!(
-                format!(
-                    "Every campaign must speak directly to {} with precision and authenticity.",
-                    audience
-                )
-            ));
+            arr.push(serde_json::json!(format!(
+                "Every campaign must speak directly to {} with precision and authenticity.",
+                audience
+            )));
         }
     }
 

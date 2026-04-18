@@ -1,0 +1,6 @@
+strict-peer-dependencies=true
+prefer-frozen-lockfile=true
+shared-workspace-lockfile=true
+auto-install-peers=false
+save-exact=true
+engine-strict=true

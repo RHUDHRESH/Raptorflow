@@ -37,7 +37,7 @@ export default function DevBypassPage() {
       }
 
       // Success - redirect to dashboard
-      router.push("/app/daily-wins");
+      router.push("/daily-wins");
     } catch (err: any) {
       setError(err.message);
     } finally {

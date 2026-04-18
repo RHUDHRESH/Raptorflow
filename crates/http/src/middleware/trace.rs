@@ -1,7 +1,4 @@
-use axum::{
-    extract::Request,
-    response::Response,
-};
+use axum::{extract::Request, response::Response};
 
 #[derive(Clone)]
 pub struct TraceLayer;
@@ -26,7 +23,8 @@ where
 {
     type Response = Response;
     type Error = S::Error;
-    type Future = std::pin::Pin<Box<dyn Send + Future<Output = Result<Self::Response, Self::Error>>>>;
+    type Future =
+        std::pin::Pin<Box<dyn Send + Future<Output = Result<Self::Response, Self::Error>>>>;
 
     fn poll_ready(
         &mut self,

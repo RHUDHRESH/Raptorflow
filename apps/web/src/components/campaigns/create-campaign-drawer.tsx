@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { useAuth } from "@clerk/nextjs";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   X, 
@@ -17,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
+import { getApiBaseUrl, getAuthToken } from "@/lib/api";
 
 interface DrawerProps {
   open: boolean;
@@ -30,7 +30,6 @@ const STEPS = {
 } as const;
 
 export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
-  const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -74,9 +73,9 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
 
   const createBrief = useMutation({
     mutationFn: async () => {
-      const token = await getToken();
+      const token = await getAuthToken();
       const timeline_days = timelineMode === "Custom" ? parseInt(customDays) : parseInt(timelineMode);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/campaigns/brief`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/campaigns/brief`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,8 +102,8 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
     queryKey: ["campaign_detail", campaignId],
     enabled: step === 3 && !!campaignId,
     queryFn: async () => {
-      const token = await getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/campaigns/${campaignId}`, {
+      const token = await getAuthToken();
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/campaigns/${campaignId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return res.json();
@@ -113,8 +112,8 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
 
   const approveCampaign = useMutation({
     mutationFn: async () => {
-      const token = await getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/campaigns/${campaignId}/approve`, {
+      const token = await getAuthToken();
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/campaigns/${campaignId}/approve`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -129,8 +128,8 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
 
   const reviseCampaign = useMutation({
     mutationFn: async () => {
-      const token = await getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/campaigns/${campaignId}/revise`, {
+      const token = await getAuthToken();
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/campaigns/${campaignId}/revise`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -156,8 +155,8 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
     if (step === 2 && campaignId) {
       interval = setInterval(async () => {
         try {
-          const token = await getToken();
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/campaigns/${campaignId}/brief-status`, {
+          const token = await getAuthToken();
+          const res = await fetch(`${getApiBaseUrl()}/api/v1/campaigns/${campaignId}/brief-status`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           const data = await res.json();

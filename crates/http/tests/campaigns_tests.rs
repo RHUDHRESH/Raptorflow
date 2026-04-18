@@ -1,0 +1,260 @@
+use axum::body::Body;
+use axum::http::{Request, StatusCode};
+use raptorflow_config::Settings;
+use raptorflow_http::{create_router, middleware::AppState};
+use std::sync::Arc;
+use tower::ServiceExt;
+
+fn test_app_state() -> AppState {
+    let mut settings = Settings::from_env().expect("settings");
+    settings.allow_insecure_dev_auth = true;
+    settings.app_env = "dev".to_string();
+    AppState::new(
+        None,
+        "example.clerk.accounts.dev".to_string(),
+        Arc::new(settings),
+        None,
+    )
+}
+
+fn auth_header(org_id: &str, user_id: &str) -> String {
+    let claims = serde_json::json!({
+        "org_id": org_id,
+        "user_id": user_id,
+        "role": "admin",
+        "iss": "https://example.clerk.accounts.dev",
+        "sub": user_id
+    });
+    let header = format!(
+        "Bearer {}",
+        jsonwebtoken::encode(
+            &jsonwebtoken::Header::default(),
+            &claims,
+            &jsonwebtoken::EncodingKey::from_secret(b"test-secret"),
+        )
+        .unwrap()
+    );
+    header
+}
+
+#[tokio::test]
+async fn campaigns_list_requires_auth() {
+    let app = create_router(test_app_state());
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/campaigns")
+                .method("GET")
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn campaigns_list_returns_empty_for_new_org() {
+    let app = create_router(test_app_state());
+    let org_id = "00000000-0000-0000-0000-000000000001";
+    let user_id = "user_001";
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/campaigns")
+                .method("GET")
+                .header("Authorization", auth_header(org_id, user_id))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = axum::body::to_bytes(response.into_body(), 256 * 1024)
+        .await
+        .expect("body");
+    let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
+
+    assert_eq!(json["status"], "ok");
+    assert!(json["campaigns"].is_array());
+    assert_eq!(json["total"], 0);
+}
+
+#[tokio::test]
+async fn campaigns_create_requires_name_and_goal() {
+    let org_id = "00000000-0000-0000-0000-000000000002";
+    let user_id = "user_002";
+
+    let missing_name = serde_json::json!({
+        "goal": "Test goal"
+    });
+
+    let app = create_router(test_app_state());
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/campaigns")
+                .method("POST")
+                .header("Authorization", auth_header(org_id, user_id))
+                .header("Content-Type", "application/json")
+                .body(Body::from(serde_json::to_vec(&missing_name).unwrap()))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+    let body = axum::body::to_bytes(response.into_body(), 256 * 1024)
+        .await
+        .expect("body");
+    let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
+    assert_eq!(json["error"], "campaign_name_required");
+
+    let missing_goal = serde_json::json!({
+        "name": "Test Campaign"
+    });
+
+    let app = create_router(test_app_state());
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/campaigns")
+                .method("POST")
+                .header("Authorization", auth_header(org_id, user_id))
+                .header("Content-Type", "application/json")
+                .body(Body::from(serde_json::to_vec(&missing_goal).unwrap()))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+    let body = axum::body::to_bytes(response.into_body(), 256 * 1024)
+        .await
+        .expect("body");
+    let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
+    assert_eq!(json["error"], "campaign_goal_required");
+}
+
+#[tokio::test]
+async fn campaigns_get_returns_404_for_nonexistent() {
+    let app = create_router(test_app_state());
+    let org_id = "00000000-0000-0000-0000-000000000003";
+    let user_id = "user_003";
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/campaigns/nonexistent-campaign-id")
+                .method("GET")
+                .header("Authorization", auth_header(org_id, user_id))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn campaigns_update_status_rejects_invalid_status() {
+    let app = create_router(test_app_state());
+    let org_id = "00000000-0000-0000-0000-000000000004";
+    let user_id = "user_004";
+
+    let invalid_status = serde_json::json!({
+        "status": "invalid_status"
+    });
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/campaigns/some-campaign-id/status")
+                .method("PATCH")
+                .header("Authorization", auth_header(org_id, user_id))
+                .header("Content-Type", "application/json")
+                .body(Body::from(serde_json::to_vec(&invalid_status).unwrap()))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+    let body = axum::body::to_bytes(response.into_body(), 256 * 1024)
+        .await
+        .expect("body");
+    let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
+    assert_eq!(json["error"], "invalid_status");
+}
+
+#[tokio::test]
+async fn campaigns_moves_returns_404_for_nonexistent_campaign() {
+    let app = create_router(test_app_state());
+    let org_id = "00000000-0000-0000-0000-000000000005";
+    let user_id = "user_005";
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/campaigns/nonexistent-campaign/moves")
+                .method("GET")
+                .header("Authorization", auth_header(org_id, user_id))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn campaigns_tasks_returns_404_for_nonexistent_campaign() {
+    let app = create_router(test_app_state());
+    let org_id = "00000000-0000-0000-0000-000000000006";
+    let user_id = "user_006";
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/campaigns/nonexistent-campaign/tasks")
+                .method("GET")
+                .header("Authorization", auth_header(org_id, user_id))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn campaigns_brief_returns_null_for_campaign_without_brief() {
+    let app = create_router(test_app_state());
+    let org_id = "00000000-0000-0000-0000-000000000007";
+    let user_id = "user_007";
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/campaigns/some-campaign/brief")
+                .method("GET")
+                .header("Authorization", auth_header(org_id, user_id))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}

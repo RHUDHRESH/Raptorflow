@@ -4,11 +4,10 @@
 //!
 //! Routes exist for listing intel artifacts and research overview.
 
-use axum::{extract::Extension, http::StatusCode, Json, Router, routing::get};
+use axum::{Json, Router, extract::Extension, http::StatusCode, routing::get};
 use raptorflow_auth::TenantContext;
+use raptorflow_db::TenantDbPool;
 use serde_json::{Value, json};
-use sqlx::PgPool;
-use std::sync::Arc;
 
 pub fn router() -> Router {
     Router::new()
@@ -29,23 +28,26 @@ fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, Json<Value>) {
 
 pub async fn list_intel_overview(
     Extension(tenant): Extension<TenantContext>,
-    Extension(pool): Extension<Arc<PgPool>>,
+    Extension(tenant_pool): Extension<TenantDbPool>,
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
-    
-    let total_runs: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*)::bigint FROM research.research_runs WHERE org_id = $1"
-    )
-    .bind(org_id)
-    .fetch_one(pool.as_ref())
-    .await
-    .map_err(internal_error)?;
+    let mut conn: sqlx::pool::PoolConnection<sqlx::postgres::Postgres> = tenant_pool
+        .acquire_for_tenant(org_id)
+        .await
+        .map_err(internal_error)?;
+
+    let total_runs: (i64,) =
+        sqlx::query_as("SELECT COUNT(*)::bigint FROM research.research_runs WHERE org_id = $1")
+            .bind(org_id)
+            .fetch_one(&mut *conn)
+            .await
+            .map_err(internal_error)?;
 
     let total_documents: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*)::bigint FROM research.research_documents WHERE org_id = $1"
+        "SELECT COUNT(*)::bigint FROM research.research_documents WHERE org_id = $1",
     )
     .bind(org_id)
-    .fetch_one(pool.as_ref())
+    .fetch_one(&mut *conn)
     .await
     .map_err(internal_error)?;
 
@@ -58,41 +60,60 @@ pub async fn list_intel_overview(
 
 pub async fn list_research_runs(
     Extension(tenant): Extension<TenantContext>,
-    Extension(pool): Extension<Arc<PgPool>>,
+    Extension(tenant_pool): Extension<TenantDbPool>,
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
-    
-    let rows: Vec<(uuid::Uuid, String, String, chrono::DateTime<chrono::Utc>, bool)> = sqlx::query_as(
+    let mut conn: sqlx::pool::PoolConnection<sqlx::postgres::Postgres> = tenant_pool
+        .acquire_for_tenant(org_id)
+        .await
+        .map_err(internal_error)?;
+
+    let rows: Vec<(
+        uuid::Uuid,
+        String,
+        String,
+        chrono::DateTime<chrono::Utc>,
+        bool,
+    )> = sqlx::query_as(
         r#"
         SELECT run_id, request_kind, query, created_at, cache_hit
         FROM research.research_runs
         WHERE org_id = $1
         ORDER BY created_at DESC
         LIMIT 20
-        "#
+        "#,
     )
     .bind(org_id)
-    .fetch_all(pool.as_ref())
+    .fetch_all(&mut *conn)
     .await
     .map_err(internal_error)?;
 
-    let runs: Vec<Value> = rows.into_iter().map(|r| json!({
-        "run_id": r.0.to_string(),
-        "request_kind": r.1,
-        "query": r.2,
-        "created_at": r.3.to_rfc3339(),
-        "cache_hit": r.4
-    })).collect();
+    let runs: Vec<Value> = rows
+        .into_iter()
+        .map(|r| {
+            json!({
+                "run_id": r.0.to_string(),
+                "request_kind": r.1,
+                "query": r.2,
+                "created_at": r.3.to_rfc3339(),
+                "cache_hit": r.4
+            })
+        })
+        .collect();
 
     Ok(Json(json!({ "runs": runs, "status": "ok" })))
 }
 
 pub async fn list_documents(
     Extension(tenant): Extension<TenantContext>,
-    Extension(pool): Extension<Arc<PgPool>>,
+    Extension(tenant_pool): Extension<TenantDbPool>,
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
-    
+    let mut conn: sqlx::pool::PoolConnection<sqlx::postgres::Postgres> = tenant_pool
+        .acquire_for_tenant(org_id)
+        .await
+        .map_err(internal_error)?;
+
     let rows: Vec<(uuid::Uuid, String, String, chrono::DateTime<chrono::Utc>)> = sqlx::query_as(
         r#"
         SELECT document_id, url, domain, fetched_at
@@ -100,19 +121,24 @@ pub async fn list_documents(
         WHERE org_id = $1
         ORDER BY fetched_at DESC
         LIMIT 50
-        "#
+        "#,
     )
     .bind(org_id)
-    .fetch_all(pool.as_ref())
+    .fetch_all(&mut *conn)
     .await
     .map_err(internal_error)?;
 
-    let documents: Vec<Value> = rows.into_iter().map(|d| json!({
-        "document_id": d.0.to_string(),
-        "url": d.1,
-        "domain": d.2,
-        "fetched_at": d.3.to_rfc3339()
-    })).collect();
+    let documents: Vec<Value> = rows
+        .into_iter()
+        .map(|d| {
+            json!({
+                "document_id": d.0.to_string(),
+                "url": d.1,
+                "domain": d.2,
+                "fetched_at": d.3.to_rfc3339()
+            })
+        })
+        .collect();
 
     Ok(Json(json!({ "documents": documents, "status": "ok" })))
 }

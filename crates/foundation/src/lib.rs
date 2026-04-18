@@ -23,6 +23,9 @@ pub mod service;
 pub mod versioning;
 
 pub use models::*;
-pub use service::FoundationService;
-pub use versioning::VersioningService;
 pub use scan::ScanService;
+pub use service::FoundationService;
+#[cfg(test)]
+mod test_21_screens;
+
+pub use versioning::VersioningService;

@@ -74,7 +74,12 @@ impl ResendClient {
         )
     }
 
-    pub async fn send_email(&self, to: &str, subject: &str, html: &str) -> Result<SendEmailResponse, ResendError> {
+    pub async fn send_email(
+        &self,
+        to: &str,
+        subject: &str,
+        html: &str,
+    ) -> Result<SendEmailResponse, ResendError> {
         let request = SendEmailRequest {
             from: EmailAddress {
                 email: self.from_email.clone(),
@@ -164,7 +169,11 @@ pub enum ResendError {
     Config(String),
 }
 
-pub async fn send_welcome_email(client: &ResendClient, to: &str, user_name: &str) -> Result<SendEmailResponse, ResendError> {
+pub async fn send_welcome_email(
+    client: &ResendClient,
+    to: &str,
+    user_name: &str,
+) -> Result<SendEmailResponse, ResendError> {
     let html = format!(
         r#"
         <!DOCTYPE html>
@@ -245,7 +254,9 @@ pub async fn send_daily_wins_briefing(
         org_name, briefing, recommended_action
     );
 
-    client.send_email(to, "Your Daily Wins Briefing", &html).await
+    client
+        .send_email(to, "Your Daily Wins Briefing", &html)
+        .await
 }
 
 pub async fn send_payment_receipt(
@@ -288,5 +299,7 @@ pub async fn send_payment_receipt(
         chrono::Utc::now().format("%Y-%m-%d")
     );
 
-    client.send_email(to, "RaptorFlow Payment Receipt", &html).await
+    client
+        .send_email(to, "RaptorFlow Payment Receipt", &html)
+        .await
 }

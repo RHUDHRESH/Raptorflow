@@ -25,6 +25,8 @@ pub struct ClerkUserData {
     pub email_addresses: Vec<ClerkEmail>,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
+    #[serde(default)]
+    pub unsafe_metadata: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -66,12 +68,14 @@ pub struct ClerkPublicUserData {
 
 impl ClerkClient {
     pub fn new(webhook_secret: String) -> Self {
-        Self {
-            webhook_secret,
-        }
+        Self { webhook_secret }
     }
 
-    pub fn verify_webhook_signature(&self, payload: &[u8], signature: &str) -> Result<(), AuthError> {
+    pub fn verify_webhook_signature(
+        &self,
+        payload: &[u8],
+        signature: &str,
+    ) -> Result<(), AuthError> {
         let mut mac = HmacSha256::new_from_slice(self.webhook_secret.as_bytes())
             .map_err(|_| AuthError::InvalidWebhookSignature)?;
         mac.update(payload);

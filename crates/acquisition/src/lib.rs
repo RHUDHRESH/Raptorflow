@@ -152,8 +152,8 @@ impl HtmlParser {
                 continue;
             };
 
-            let candidate = UrlNormalizer::maybe_decode_redirect(href)
-                .unwrap_or_else(|| href.to_string());
+            let candidate =
+                UrlNormalizer::maybe_decode_redirect(href).unwrap_or_else(|| href.to_string());
 
             if !(candidate.starts_with("http://") || candidate.starts_with("https://")) {
                 continue;
@@ -233,16 +233,14 @@ impl HttpFetcher {
             registry
                 .entry(domain.to_string())
                 .or_insert_with(|| {
-                    Arc::new(governor::RateLimiter::direct(
-                        Quota::per_minute(NonZeroU32::new(DOMAIN_FETCHES_PER_MINUTE).unwrap()),
-                    ))
+                    Arc::new(governor::RateLimiter::direct(Quota::per_minute(
+                        NonZeroU32::new(DOMAIN_FETCHES_PER_MINUTE).unwrap(),
+                    )))
                 })
                 .clone()
         };
 
-        limiter
-            .until_ready()
-            .await;
+        limiter.until_ready().await;
 
         Ok(())
     }
@@ -312,8 +310,9 @@ impl BrowserFetcher {
             .build()
             .map_err(|e| AcquisitionError::Browser(e.to_string()))?;
 
-        let (mut browser, mut handler) =
-            Browser::launch(config).await.map_err(|e| AcquisitionError::Browser(e.to_string()))?;
+        let (mut browser, mut handler) = Browser::launch(config)
+            .await
+            .map_err(|e| AcquisitionError::Browser(e.to_string()))?;
 
         let handler_task = tokio::spawn(async move {
             while let Some(result) = handler.next().await {
@@ -353,7 +352,10 @@ impl BrowserFetcher {
 pub struct SearchDiscoverer;
 
 impl SearchDiscoverer {
-    pub async fn discover(query: &str, limit: usize) -> Result<Vec<SearchCandidate>, AcquisitionError> {
+    pub async fn discover(
+        query: &str,
+        limit: usize,
+    ) -> Result<Vec<SearchCandidate>, AcquisitionError> {
         let query = url::form_urlencoded::Serializer::new(String::new())
             .append_pair("q", query)
             .finish();
@@ -448,8 +450,7 @@ mod tests {
 
     #[test]
     fn test_html_parser() {
-        let html =
-            r#"<html><head><title>Test</title></head><body><main><p>Hello world from parser</p></main></body></html>"#;
+        let html = r#"<html><head><title>Test</title></head><body><main><p>Hello world from parser</p></main></body></html>"#;
         let parsed = HtmlParser::parse(html).unwrap();
         assert_eq!(parsed.title, Some("Test".to_string()));
         assert!(parsed.cleaned_text.contains("Hello world from parser"));

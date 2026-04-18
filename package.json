@@ -10,7 +10,9 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@clerk/shared",
-      "sharp"
+      "sharp",
+      "@sentry/cli",
+      "esbuild"
     ]
   },
   "scripts": {

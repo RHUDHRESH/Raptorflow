@@ -22,16 +22,16 @@ export default function IntelAlertsPage(): React.ReactElement {
   const eventLog = useOfficeStore((s) => s.eventLog);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  const liveAlerts = eventLog.filter((e) => e.eventType === "intel_alert_received");
+  const liveAlerts = eventLog.filter((e) => (e.type || e.eventType) === "intel_alert_received");
 
   const allAlerts = [...MOCK_ALERTS.filter((a) => !dismissed.has(a.id)), ...liveAlerts.map((e) => ({
-    id: e.eventType + Date.now(),
+    id: (e.type || "live-alert") + Date.now() + Math.random(),
     type: "live",
     label: "Intel alert received",
     source: "WebSocket",
     severity: (e.payload as { severity?: string })?.severity ?? "info",
     time: "Just now",
-    summary: JSON.stringify(e.payload).slice(0, 100),
+    summary: JSON.stringify(e.payload || {}).slice(0, 100),
   }))];
 
   const filtered = filter === "all" ? allAlerts : allAlerts.filter((a) => a.severity === filter);

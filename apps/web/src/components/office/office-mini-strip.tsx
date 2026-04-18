@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import * as PIXI from "pixi.js";
 import { useOfficeStore } from "@/state/office-store";
-import { CANVAS_COLORS, AGENT_MAP } from "@/lib/agents"; // Assuming we keep AGENT_MAP for metadata
+import { AGENT_MAP } from "@/lib/agents"; // Assuming we keep AGENT_MAP for metadata
 import { 
   PLACEHOLDER_COLORS, 
   OFFICE_ZONES,

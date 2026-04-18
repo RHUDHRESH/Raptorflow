@@ -19,21 +19,27 @@ sqlx.workspace = true
 reqwest.workspace = true
 scraper.workspace = true
 async-trait.workspace = true
-raptorflow-aws = { path = "../aws" }
 raptorflow-auth = { path = "../auth" }
+raptorflow-avatars = { path = "../avatars" }
 raptorflow-billing = { path = "../billing" }
 raptorflow-cache = { path = "../cache" }
 raptorflow-db = { path = "../db" }
 raptorflow-config = { path = "../config" }
 raptorflow-foundation = { path = "../foundation" }
+raptorflow-gcp = { path = "../gcp" }
 raptorflow-prl = { path = "../prl" }
 raptorflow-intel = { path = "../intel" }
+raptorflow-acquisition = { path = "../acquisition" }
 raptorflow-jobs = { path = "../jobs" }
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 futures.workspace = true
+futures-util.workspace = true
 hmac.workspace = true
 sha2.workspace = true
 hex.workspace = true
+
+[dev-dependencies]
+jsonwebtoken.workspace = true

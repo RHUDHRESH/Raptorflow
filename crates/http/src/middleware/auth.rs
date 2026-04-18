@@ -1,7 +1,7 @@
 use axum::{
     body::Body,
-    extract::Extension,
-    http::{Request as HttpRequest, StatusCode, header::AUTHORIZATION},
+    extract::{Extension, State},
+    http::{Method, Request as HttpRequest, StatusCode, header::AUTHORIZATION},
     middleware::Next,
     response::Response,
 };
@@ -24,18 +24,17 @@ impl AuthContext {
 }
 
 pub async fn auth_middleware(
+    State(state): State<Arc<AppState>>,
     request: HttpRequest<Body>,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    let state = request
-        .extensions()
-        .get::<Arc<AppState>>()
-        .cloned()
-        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+    if request.method() == Method::OPTIONS {
+        return Ok(next.run(request).await);
+    }
 
     // Use dev bypass if enabled (for local development only)
     if state.settings.allow_insecure_dev_auth {
-        return crate::middleware::dev_bypass::dev_auth_middleware(request, next).await;
+        return crate::middleware::dev_bypass::dev_auth_middleware(state, request, next).await;
     }
 
     let auth_header = request
@@ -53,8 +52,7 @@ pub async fn auth_middleware(
         .await
         .map_err(|_| StatusCode::UNAUTHORIZED)?;
 
-    let tenant = super::tenant::extract_tenant(&claims)
-        .map_err(|_| StatusCode::FORBIDDEN)?;
+    let tenant = super::tenant::extract_tenant(&claims).map_err(|_| StatusCode::FORBIDDEN)?;
 
     let auth_context = AuthContext::new(claims, tenant);
     let tenant_context = auth_context.tenant.clone();

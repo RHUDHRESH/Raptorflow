@@ -1,7 +1,9 @@
 pub mod auth;
 pub mod billing;
 pub mod campaigns;
+pub mod content;
 pub mod council;
+pub mod daily_wins;
 pub mod foundation;
 pub mod health;
 pub mod intel;
@@ -10,4 +12,4 @@ pub mod muse;
 pub mod nudges;
 pub mod office;
 pub mod prl;
-pub mod uploads;
+pub mod replan;

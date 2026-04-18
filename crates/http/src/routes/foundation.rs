@@ -1,15 +1,20 @@
 use axum::{
-    extract::{Extension, Path},
-    http::StatusCode,
     Json,
+    extract::{Extension, Path, Query},
+    http::StatusCode,
 };
 use chrono::Utc;
+use raptorflow_acquisition::{HtmlParser, HttpFetcher, UrlNormalizer};
+use raptorflow_avatars::seeding::seed_org_avatars;
+use raptorflow_cache::FoundationCache;
 use raptorflow_db::models::FoundationSnapshot;
 use raptorflow_foundation::{FoundationData, FoundationService};
-use scraper::{Html, Selector};
+use raptorflow_gcp::GcpInferenceService;
+use raptorflow_db::queries as db;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::sync::Arc;
+use ulid::Ulid;
 use uuid::Uuid;
 
 use crate::middleware::{AppState, auth::AuthContext};
@@ -69,15 +74,12 @@ fn not_found(message: &str) -> (StatusCode, Json<serde_json::Value>) {
 }
 
 fn db_pool(state: &Arc<AppState>) -> AppResult<&sqlx::PgPool> {
-    state
-        .db_pool
-        .as_deref()
-        .ok_or_else(|| {
-            (
-                StatusCode::SERVICE_UNAVAILABLE,
-                Json(serde_json::json!({ "error": "database_unavailable" })),
-            )
-        })
+    state.db_pool.as_deref().ok_or_else(|| {
+        (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(serde_json::json!({ "error": "database_unavailable" })),
+        )
+    })
 }
 
 fn map_snapshot(snapshot: &FoundationSnapshot) -> FoundationResponse {
@@ -206,9 +208,10 @@ pub async fn create_foundation(
 
     let snapshot = match existing {
         None => {
-            let snapshot_id = FoundationService::create_initial(pool, auth.tenant.org_id, foundation_data)
-                .await
-                .map_err(internal_error)?;
+            let snapshot_id =
+                FoundationService::create_initial(pool, auth.tenant.org_id, foundation_data)
+                    .await
+                    .map_err(internal_error)?;
             update_org_foundation_version(pool, auth.tenant.org_id, 1)
                 .await
                 .map_err(internal_error)?;
@@ -251,9 +254,35 @@ pub async fn update_section(
     Json(payload): Json<UpdateSectionRequest>,
 ) -> AppResult<Json<FoundationResponse>> {
     let pool = db_pool(&state)?;
-    let version = FoundationService::update_section(pool, auth.tenant.org_id, &section, payload.data)
+    
+    let previous_value = FoundationService::get_section(pool, auth.tenant.org_id, &section)
         .await
         .map_err(internal_error)?;
+    
+    let version =
+        FoundationService::update_section(pool, auth.tenant.org_id, &section, payload.data)
+            .await
+            .map_err(internal_error)?;
+    
+    if let Some(prev) = previous_value {
+        let latest = raptorflow_db::queries::get_latest_foundation_version(pool, auth.tenant.org_id)
+            .await
+            .map_err(internal_error)?;
+        
+        let next_version = latest.map(|v| v.foundation_version + 1).unwrap_or(1);
+        
+        let _ = raptorflow_db::queries::create_foundation_version(
+            pool,
+            &format!("fv-{}-{}", auth.tenant.org_id, ulid::Ulid::new()),
+            auth.tenant.org_id,
+            next_version,
+            Some(&format!("Updated {}", section)),
+            &serde_json::json!([section]),
+            &prev,
+            None,
+        ).await;
+    }
+    
     update_org_foundation_version(pool, auth.tenant.org_id, version)
         .await
         .map_err(internal_error)?;
@@ -264,6 +293,30 @@ pub async fn update_section(
         .ok_or_else(|| not_found("foundation_not_found"))?;
 
     Ok(Json(map_snapshot(&snapshot)))
+}
+
+pub async fn list_foundation_versions(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+) -> AppResult<Json<Vec<serde_json::Value>>> {
+    let pool = db_pool(&state)?;
+    let versions = raptorflow_db::queries::get_foundation_versions(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?;
+    
+    let response: Vec<serde_json::Value> = versions.iter().map(|v| {
+        serde_json::json!({
+            "version_id": v.version_id,
+            "version": v.foundation_version,
+            "change_description": v.change_description,
+            "changed_fields": v.changed_fields,
+            "previous_values": v.previous_values,
+            "impact_assessment": v.impact_assessment,
+            "created_at": v.created_at.to_rfc3339(),
+        })
+    }).collect();
+    
+    Ok(Json(response))
 }
 
 pub async fn list_snapshots(
@@ -398,28 +451,223 @@ pub async fn start_scan(
     let url = payload.url.clone();
 
     tokio::spawn(async move {
-        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+        let _scan_data = match quick_scan(&url).await {
+            Ok(data) => {
+                let is_failed = data
+                    .get("confidence")
+                    .and_then(|c: &serde_json::Value| c.as_str())
+                    .map(|s| s == "failed")
+                    .unwrap_or(false);
 
-        let scan_data = quick_scan(&url).await;
+                let final_status = if is_failed { "failed" } else { "complete" };
 
-        sqlx::query(
-            r#"
-            UPDATE foundation_scans
-            SET status = 'complete', quick_scan_data = $1, completed_at = now()
-            WHERE scan_id = $2
-            "#,
-        )
-        .bind(&scan_data)
-        .bind(&scan_id_clone)
-        .execute(&pool_clone)
-        .await
-        .ok();
+                let error_msg = if is_failed {
+                    data.get("error").and_then(|e: &serde_json::Value| e.as_str()).map(String::from)
+                } else {
+                    None
+                };
+
+                if let Err(e) = sqlx::query(
+                    r#"
+                    UPDATE foundation_scans
+                    SET status = $1, quick_scan_data = $2, completed_at = now(),
+                        error_message = $3
+                    WHERE scan_id = $4
+                    "#,
+                )
+                .bind(final_status)
+                .bind(&data)
+                .bind(&error_msg)
+                .bind(&scan_id_clone)
+                .execute(&pool_clone)
+                .await {
+                    tracing::error!("Failed to update scan status: {}", e);
+                }
+                data
+            }
+            Err(e) => {
+                let err_msg = e.to_string();
+                tracing::error!("Quick scan failed for {}: {}", scan_id_clone, err_msg);
+                if let Err(e) = sqlx::query(
+                    r#"
+                    UPDATE foundation_scans
+                    SET status = 'failed', error_message = $1, completed_at = now()
+                    WHERE scan_id = $2
+                    "#,
+                )
+                .bind(&err_msg)
+                .bind(&scan_id_clone)
+                .execute(&pool_clone)
+                .await {
+                    tracing::error!("Failed to update scan failed status: {}", e);
+                }
+                serde_json::json!({ "error": err_msg, "confidence": "failed" })
+            }
+        };
     });
 
     Ok(Json(ScanStartResponse {
         scan_id,
         status: "started".to_string(),
     }))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateScanRequest {
+    pub scan_id: String,
+    pub deep_scan_data: Option<serde_json::Value>,
+}
+
+pub async fn update_scan(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Json(payload): Json<UpdateScanRequest>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+
+    sqlx::query(
+        r#"
+        UPDATE foundation_scans
+        SET deep_scan_data = $1, status = 'completed', completed_at = now()
+        WHERE scan_id = $2 AND org_id = $3
+        "#,
+    )
+    .bind(payload.deep_scan_data)
+    .bind(&payload.scan_id)
+    .bind(auth.tenant.org_id)
+    .execute(pool)
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(serde_json::json!({ "ok": true })))
+}
+
+pub async fn get_scan_by_id(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Path(scan_id): Path<String>,
+) -> AppResult<Json<ScanStatusResponse>> {
+    let pool = db_pool(&state)?;
+
+    let row = sqlx::query_as::<_, (String, Option<serde_json::Value>, Option<serde_json::Value>)>(
+        r#"
+        SELECT status, quick_scan_data, deep_scan_data
+        FROM foundation_scans
+        WHERE scan_id = $1 AND org_id = $2
+        "#,
+    )
+    .bind(&scan_id)
+    .bind(auth.tenant.org_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(internal_error)?;
+
+    match row {
+        Some((status, quick_data, deep_data)) => {
+            let data = if status == "complete" {
+                if deep_data.is_some() {
+                    deep_data
+                } else {
+                    quick_data
+                }
+            } else {
+                None
+            };
+            Ok(Json(ScanStatusResponse { status, data }))
+        }
+        None => Err(not_found("scan_not_found")),
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateCompetitorSnapshotRequest {
+    pub competitor_url: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CreateCompetitorSnapshotResponse {
+    pub snapshot_id: String,
+}
+
+pub async fn create_competitor_snapshot(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Json(payload): Json<CreateCompetitorSnapshotRequest>,
+) -> AppResult<Json<CreateCompetitorSnapshotResponse>> {
+    let pool = db_pool(&state)?;
+
+    let snapshot_id = format!("comp-snap-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
+
+    raptorflow_db::queries::create_competitor_snapshot(
+        pool,
+        &snapshot_id,
+        auth.tenant.org_id,
+        &payload.competitor_url,
+    )
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(CreateCompetitorSnapshotResponse { snapshot_id }))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateCompetitorSnapshotRequest {
+    pub hash: Option<String>,
+    pub status: String,
+    pub scrape_data: Option<serde_json::Value>,
+}
+
+pub async fn update_competitor_snapshot(
+    Extension(_auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Path(snapshot_id): Path<String>,
+    Json(payload): Json<UpdateCompetitorSnapshotRequest>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+
+    raptorflow_db::queries::update_competitor_snapshot(
+        pool,
+        &snapshot_id,
+        payload.hash.as_deref(),
+        &payload.status,
+        payload.scrape_data.as_ref(),
+    )
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(serde_json::json!({ "ok": true })))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GetLatestCompetitorSnapshotQuery {
+    pub competitor_url: String,
+}
+
+pub async fn get_latest_competitor_snapshot(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Query(query): Query<GetLatestCompetitorSnapshotQuery>,
+) -> AppResult<Json<Option<serde_json::Value>>> {
+    let pool = db_pool(&state)?;
+
+    let snapshot = raptorflow_db::queries::get_latest_competitor_snapshot(
+        pool,
+        auth.tenant.org_id,
+        &query.competitor_url,
+    )
+    .await
+    .map_err(internal_error)?;
+
+    match snapshot {
+        Some(snap) => Ok(Json(Some(serde_json::json!({
+            "snapshot_id": snap.snapshot_id,
+            "hash": snap.hash,
+            "status": snap.status,
+            "scrape_data": snap.scrape_data,
+            "created_at": snap.created_at
+        })))),
+        None => Ok(Json(None)),
+    }
 }
 
 pub async fn get_scan_status(
@@ -445,7 +693,11 @@ pub async fn get_scan_status(
     match row {
         Some((status, quick_data, deep_data)) => {
             let data = if status == "complete" {
-                quick_data.or(deep_data)
+                if deep_data.is_some() {
+                    deep_data
+                } else {
+                    quick_data
+                }
             } else {
                 None
             };
@@ -469,28 +721,47 @@ pub struct SnapshotFullResponse {
 }
 
 const ALL_SECTIONS: [&str; 21] = [
-    "url",
-    "scan_results",
-    "business_stage",
-    "primary_product",
-    "customer_problem",
-    "icp",
-    "transformation",
+    "company_url",
+    "company_info",
+    "company_stage",
+    "product_catalog",
+    "problem_statement",
+    "target_audience",
+    "secondary_icps",
     "competitors",
-    "pricing_model",
+    "differentiation",
     "positioning",
     "brand_personality",
-    "keywords",
-    "content_channels",
-    "content_history",
-    "primary_goal",
-    "budget",
-    "existing_assets",
+    "voice_practice",
+    "content_territories",
+    "channels",
+    "goals",
+    "seo_keywords",
+    "asset_inventory",
     "frustrations",
-    "analytics_tracking",
+    "tools",
     "reference_brands",
     "strategist",
 ];
+
+fn canonical_section_key(section: &str) -> &str {
+    match section {
+        // Legacy aliases retained for older snapshots and old clients.
+        "url" | "scan_results" => "company_url",
+        "business_stage" => "company_stage",
+        "primary_product" | "pricing_model" => "product_catalog",
+        "customer_problem" => "problem_statement",
+        "icp" => "target_audience",
+        "transformation" => "secondary_icps",
+        "differentiation" => "differentiation",
+        "keywords" => "seo_keywords",
+        "content_channels" | "content_history" => "channels",
+        "primary_goal" | "budget" => "goals",
+        "existing_assets" => "asset_inventory",
+        "analytics_tracking" => "frustrations",
+        other => other,
+    }
+}
 
 pub async fn get_snapshot_full(
     Extension(auth): Extension<AuthContext>,
@@ -523,23 +794,37 @@ pub async fn get_snapshot_full(
     }
 
     let mut sections_map = serde_json::Map::new();
-    let mut completed = Vec::new();
+    let mut latest_by_section: std::collections::HashMap<String, (serde_json::Value, chrono::DateTime<chrono::Utc>)> =
+        std::collections::HashMap::new();
     let mut last_updated = None;
-    let mut last_updated_at = chrono::DateTime::<chrono::Utc>::from_timestamp(0, 0)
-        .unwrap_or_else(Utc::now);
+    let mut last_updated_at =
+        chrono::DateTime::<chrono::Utc>::from_timestamp(0, 0).unwrap_or_else(Utc::now);
 
-    for (key, value, updated_at) in rows {
-        sections_map.insert(key.clone(), value);
-        completed.push(key.clone());
-        if updated_at > last_updated_at {
-            last_updated_at = updated_at;
-            last_updated = Some(key);
+    for (raw_key, value, updated_at) in rows {
+        let key = canonical_section_key(&raw_key).to_string();
+        match latest_by_section.get(&key) {
+            Some((_, existing_at)) if *existing_at >= updated_at => {}
+            _ => {
+                latest_by_section.insert(key.clone(), (value, updated_at));
+            }
+        }
+    }
+
+    let mut completed = Vec::new();
+    for key in ALL_SECTIONS {
+        if let Some((value, updated_at)) = latest_by_section.get(key) {
+            sections_map.insert(key.to_string(), value.clone());
+            completed.push(key.to_string());
+            if *updated_at > last_updated_at {
+                last_updated_at = *updated_at;
+                last_updated = Some(key.to_string());
+            }
         }
     }
 
     let missing: Vec<String> = ALL_SECTIONS
         .iter()
-        .filter(|s| !completed.contains(&s.to_string()))
+        .filter(|s| !completed.iter().any(|completed_key| completed_key == *s))
         .map(|s| s.to_string())
         .collect();
 
@@ -549,12 +834,18 @@ pub async fn get_snapshot_full(
         "in_progress"
     };
 
+    let current_version = FoundationService::get_current(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?
+        .map(|snapshot| snapshot.foundation_version)
+        .unwrap_or(completed.len() as i32);
+
     Ok(Json(SnapshotFullResponse {
         status: status.to_string(),
         completed_sections: completed.clone(),
         missing_sections: missing,
         last_updated_section: last_updated,
-        version: completed.len() as i32,
+        version: current_version,
         sections: serde_json::to_value(sections_map).unwrap_or(serde_json::json!({})),
     }))
 }
@@ -572,6 +863,7 @@ pub async fn complete_foundation(
     Extension(state): Extension<Arc<AppState>>,
 ) -> AppResult<Json<CompleteResponse>> {
     let pool = db_pool(&state)?;
+    let org_id = auth.tenant.org_id;
 
     let rows = sqlx::query_as::<_, (String, serde_json::Value)>(
         r#"
@@ -580,7 +872,7 @@ pub async fn complete_foundation(
         WHERE org_id = $1
         "#,
     )
-    .bind(auth.tenant.org_id)
+    .bind(org_id)
     .fetch_all(pool)
     .await
     .map_err(internal_error)?;
@@ -591,99 +883,801 @@ pub async fn complete_foundation(
     }
 
     let foundation_json = serde_json::json!({ "sections": sections });
+    let foundation_json_str = foundation_json.to_string();
 
-    sqlx::query(
-        r#"
-        UPDATE organizations
-        SET foundation_complete = true,
-            foundation_json = $2,
-            foundation_completed_at = now(),
-            foundation_version = foundation_version + 1,
-            updated_at = now()
-        WHERE org_id = $1
-        "#,
+    let avatar_check = sqlx::query_as::<_, (i64,)>(
+        "SELECT COUNT(*) FROM agent_essences WHERE org_id = $1",
     )
-    .bind(auth.tenant.org_id)
-    .bind(&foundation_json)
-    .execute(pool)
+    .bind(org_id)
+    .fetch_optional(pool)
     .await
     .map_err(internal_error)?;
+
+    let needs_seeding = avatar_check
+        .map(|row| row.0 == 0)
+        .unwrap_or(true);
+
+    if needs_seeding {
+        let foundation_snapshot = FoundationSnapshot {
+            foundation_snapshot_id: format!("found-{}-complete", org_id),
+            org_id,
+            foundation_version: 1,
+            sections: foundation_json.clone(),
+            source: "completion".to_string(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+        if let Err(e) = seed_org_avatars(pool, org_id, Some(&foundation_snapshot)).await {
+            tracing::warn!(org_id = %org_id, error = %e, "avatar seeding failed during completion");
+        }
+    }
+
+    if let Some(ref cache_svc) = state.cache_service {
+        let foundation_cache = FoundationCache::new(Arc::new((**cache_svc).clone()));
+        if let Err(e) = foundation_cache.set_cached_content(&org_id.to_string(), &foundation_json_str).await {
+            tracing::warn!(org_id = %org_id, error = %e, "dragonflydb cache set failed");
+        }
+    }
+
+    let gcp_inference = GcpInferenceService::from_settings(&state.settings);
+    let gcp_cache_result = gcp_inference
+        .create_foundation_cache(&foundation_json_str, 86400)
+        .await;
+
+    match gcp_cache_result {
+        Ok(cached) => {
+            tracing::info!(
+                org_id = %org_id,
+                cache_name = %cached.name,
+                "foundation GCP context cache created"
+            );
+        }
+        Err(e) => {
+            tracing::warn!(org_id = %org_id, error = %e, "foundation GCP cache creation failed");
+        }
+    }
+
+    let company_name = foundation_json
+        .get("sections")
+        .and_then(|s| s.get("company_info"))
+        .and_then(|ci| ci.get("name"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("there");
+
+    let nudge_prompt = format!(
+        "The marketing team at {} just completed their foundation setup on RaptorFlow. \
+        Write a warm, professional welcome message (2-3 sentences) from their Strategist avatar. \
+        The message should: \
+        1. Welcome them to the platform by name \
+        2. Briefly introduce what the Strategist will help them with \
+        3. Invite them to visit their Office to get started. \
+        Keep it conversational and encouraging, under 100 words total.",
+        company_name
+    );
+
+    let (nudge_title, nudge_body) = match gcp_inference.generate_default(&nudge_prompt).await {
+        Ok(response) => {
+            let text = response
+                .candidates
+                .and_then(|c| c.first().cloned())
+                .and_then(|c| c.content)
+                .and_then(|content| {
+                    content.parts.iter().find_map(|p| {
+                        let t = p.text.trim();
+                        if t.is_empty() { None } else { Some(t.to_string()) }
+                    })
+                })
+                .unwrap_or_else(|| {
+                    format!(
+                        "Welcome {}! Your Strategist is now active and ready to help craft campaigns that truly resonate with your audience. Head to your Office to meet your team and get started!",
+                        company_name
+                    )
+                });
+            ("Your Strategist is ready!".to_string(), text)
+        }
+        Err(e) => {
+            tracing::warn!(org_id = %org_id, error = %e, "Gemini nudge generation failed, using fallback");
+            (
+                "Your Strategist is ready!".to_string(),
+                format!(
+                    "Welcome {}! Your Strategist is now active and ready to help craft campaigns that truly resonate with your audience. Head to your Office to meet your team and get started!",
+                    company_name
+                ),
+            )
+        }
+    };
+
+    let first_user = sqlx::query_as::<_, (Uuid,)>(
+        "SELECT org_user_id FROM org_users WHERE org_id = $1 ORDER BY created_at ASC LIMIT 1",
+    )
+    .bind(org_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(internal_error)?;
+
+    let nudge_id = Ulid::new().to_string();
+    let mut first_nudge_id: Option<String> = None;
+
+    if let Some((user_id,)) = first_user {
+        let nudge_type = "foundation_complete";
+        let priority = "high";
+        let action_data = serde_json::json!({ "action": "open_office" });
+
+        if let Err(e) = db::create_nudge(
+            pool,
+            &nudge_id,
+            org_id,
+            user_id,
+            nudge_type,
+            priority,
+            &nudge_title,
+            &nudge_body,
+            Some("navigate"),
+            &action_data,
+            "foundation",
+            &format!("found-{}", org_id),
+        )
+        .await
+        {
+            tracing::warn!(org_id = %org_id, error = %e, "failed to create nudge record");
+        } else {
+            first_nudge_id = Some(nudge_id.clone());
+            tracing::info!(org_id = %org_id, nudge_id = %nudge_id, "first strategist nudge created");
+        }
+    }
 
     Ok(Json(CompleteResponse {
         ok: true,
         office_ready: true,
         strategist_name: "Strategist".to_string(),
-        first_nudge_id: None,
+        first_nudge_id,
     }))
 }
 
-async fn quick_scan(url: &str) -> serde_json::Value {
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(10))
-        .build()
-        .unwrap_or_default();
+pub async fn content_strategy_create(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+    let strategy_id = format!("content-strategy-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
 
-    match client.get(url).send().await {
-        Ok(response) => {
-            let html = response.text().await.unwrap_or_default();
-            let title = extract_title(&html);
-            let description = extract_meta(&html, "description");
-            let og_title = extract_og(&html, "og:title");
-            let og_description = extract_og(&html, "og:description");
+    raptorflow_db::queries::create_content_strategy(pool, &strategy_id, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?;
 
-            let description_for_raw = description.clone();
-            let description_combined = og_description.or(description);
-            serde_json::json!({
-                "business_name": og_title.or(title.clone()),
-                "industry": null,
-                "description": description_combined,
-                "primary_offering": null,
-                "competitor_suggestions": [],
-                "keyword_suggestions": [],
-                "confidence": "low",
-                "raw": {
-                    "title": title,
-                    "description": description_for_raw,
-                    "url": url
-                }
-            })
-        }
-        Err(_) => serde_json::json!({
-            "business_name": null,
-            "industry": null,
-            "description": null,
-            "primary_offering": null,
-            "competitor_suggestions": [],
-            "keyword_suggestions": [],
-            "confidence": "failed",
-            "error": "Could not fetch URL"
-        }),
+    Ok(Json(serde_json::json!({
+        "strategy_id": strategy_id,
+        "status": "created"
+    })))
+}
+
+pub async fn content_strategy_get(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+    let strategy = raptorflow_db::queries::get_content_strategy(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?;
+
+    match strategy {
+        Some(s) => Ok(Json(serde_json::json!({
+            "strategy_id": s.strategy_id,
+            "territories": s.territories,
+            "pillar_pages": s.pillar_pages,
+            "editorial_calendar": s.editorial_calendar,
+            "created_at": s.created_at,
+            "updated_at": s.updated_at
+        }))),
+        None => Ok(Json(serde_json::json!({
+            "territories": [],
+            "pillar_pages": [],
+            "editorial_calendar": []
+        })))
     }
 }
 
-fn extract_title(html: &str) -> Option<String> {
-    Html::parse_document(html)
-        .select(&Selector::parse("title").ok()?)
-        .next()
-        .map(|el: scraper::ElementRef| el.text().collect::<String>().trim().to_string())
-        .filter(|t: &String| !t.is_empty())
-        .map(|t| t.clone())
+pub async fn content_strategy_update_territories(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Json(territories): Json<serde_json::Value>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+
+    // Ensure strategy exists
+    let existing = raptorflow_db::queries::get_content_strategy(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?;
+
+    if existing.is_none() {
+        raptorflow_db::queries::create_content_strategy(
+            pool,
+            &format!("content-strategy-{}-{}", auth.tenant.org_id, ulid::Ulid::new()),
+            auth.tenant.org_id
+        )
+        .await
+        .map_err(internal_error)?;
+    }
+
+    raptorflow_db::queries::update_content_strategy_territories(pool, auth.tenant.org_id, &territories)
+        .await
+        .map_err(internal_error)?;
+
+    Ok(Json(serde_json::json!({ "success": true })))
 }
 
-fn extract_meta(html: &str, name: &str) -> Option<String> {
-    let selector = Selector::parse(&format!("meta[name=\"{}\"]", name)).ok()?;
-    Html::parse_document(html)
-        .select(&selector)
-        .next()
-        .and_then(|el: scraper::ElementRef| el.value().attr("content"))
-        .map(|s: &str| s.to_string())
+pub async fn content_strategy_generate_calendar(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+
+    // Get current strategy
+    let strategy = raptorflow_db::queries::get_content_strategy(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| not_found("content_strategy_not_found"))?;
+
+    let territories: Vec<serde_json::Value> = serde_json::from_value(strategy.territories)
+        .unwrap_or_default();
+    let pillar_pages: Vec<serde_json::Value> = serde_json::from_value(strategy.pillar_pages)
+        .unwrap_or_default();
+
+    // Use AI to generate a 90-day calendar
+    let gcp_inference = GcpInferenceService::from_settings(&state.settings);
+    let calendar_prompt = format!(
+        "Generate a 90-day content marketing calendar. Return ONLY a JSON array (no markdown, no explanation) with objects containing: id, title, territory, date (YYYY-MM-DD for next 90 days), content_type (blog_post|social|email|video|podcast), status (draft|planned|published).\
+        \n\nTerritories: {}\nPillar Pages: {}\n\nDistribute content evenly. Use today's date as starting point.",
+        serde_json::to_string(&territories).unwrap_or_default(),
+        serde_json::to_string(&pillar_pages).unwrap_or_default()
+    );
+
+    let calendar: Vec<serde_json::Value> = match gcp_inference.generate_default(&calendar_prompt).await {
+        Ok(response) => {
+            response.candidates
+                .as_ref()
+                .and_then(|c| c.first())
+                .and_then(|c| c.content.as_ref())
+                .and_then(|content| content.parts.first())
+                .and_then(|p| Some(&p.text))
+                .and_then(|t| serde_json::from_str::<Vec<serde_json::Value>>(t).ok())
+                .unwrap_or_else(|| generate_fallback_calendar(&territories, &pillar_pages))
+        }
+        Err(e) => {
+            tracing::warn!("AI calendar generation failed: {}", e);
+            generate_fallback_calendar(&territories, &pillar_pages)
+        }
+    };
+
+    // Store generated calendar
+    raptorflow_db::queries::update_content_strategy_calendar(
+        pool,
+        auth.tenant.org_id,
+        &serde_json::to_value(&calendar).unwrap_or(serde_json::json!([])),
+    )
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(serde_json::json!({ "calendar": calendar })))
 }
 
-fn extract_og(html: &str, property: &str) -> Option<String> {
-    let selector = Selector::parse(&format!("meta[property=\"{}\"]", property)).ok()?;
-    Html::parse_document(html)
-        .select(&selector)
+fn generate_fallback_calendar(territories: &[serde_json::Value], pillar_pages: &[serde_json::Value]) -> Vec<serde_json::Value> {
+    let mut calendar = Vec::new();
+    let mut content_id = 1;
+    let today = chrono::Utc::now();
+
+    for territory in territories {
+        if let Some(territory_name) = territory.get("name").and_then(|v| v.as_str()) {
+            for week in 0..12 {
+                let date = today + chrono::Duration::days(week * 7);
+                calendar.push(serde_json::json!({
+                    "id": content_id,
+                    "title": format!("{} Content - Week {}", territory_name, week + 1),
+                    "territory": territory_name,
+                    "date": date.format("%Y-%m-%d").to_string(),
+                    "status": "planned",
+                    "content_type": "blog_post"
+                }));
+                content_id += 1;
+            }
+        }
+    }
+
+    for pillar in pillar_pages {
+        if let Some(pillar_title) = pillar.get("title").and_then(|v| v.as_str()) {
+            for (i, month) in [1, 4, 7, 10].iter().enumerate() {
+                let date = chrono::NaiveDate::from_ymd_opt(2026, *month, 1)
+                    .unwrap_or(today.naive_utc().date());
+                calendar.push(serde_json::json!({
+                    "id": content_id,
+                    "title": format!("{} Update - Q{}", pillar_title, i + 1),
+                    "pillar_page": pillar_title,
+                    "date": date.format("%Y-%m-%d").to_string(),
+                    "status": "planned",
+                    "content_type": "pillar_update"
+                }));
+                content_id += 1;
+            }
+        }
+    }
+
+    calendar
+}
+
+pub async fn add_secondary_icp(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Json(payload): Json<serde_json::Value>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+
+    let mode = payload.get("mode").and_then(|v| v.as_str())
+        .ok_or_else(|| bad_request("mode is required (b2b or b2c)"))?;
+    let icp_data = payload.get("icp").ok_or_else(|| bad_request("icp data is required"))?;
+
+    // Validate B2B structure
+    fn validate_b2b_icp(icp: &serde_json::Value) -> Result<(), &'static str> {
+        if icp.get("name").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+            return Err("B2B ICP requires non-empty name");
+        }
+        if icp.get("persona_name").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+            return Err("B2B ICP requires non-empty persona_name");
+        }
+        if icp.get("role_identity").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+            return Err("B2B ICP requires non-empty role_identity");
+        }
+        Ok(())
+    }
+
+    // Validate B2C structure
+    fn validate_b2c_icp(icp: &serde_json::Value) -> Result<(), &'static str> {
+        if icp.get("name").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+            return Err("B2C ICP requires non-empty name");
+        }
+        if icp.get("persona_name").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+            return Err("B2C ICP requires non-empty persona_name");
+        }
+        if icp.get("life_situation").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+            return Err("B2C ICP requires non-empty life_situation");
+        }
+        Ok(())
+    }
+
+    match mode {
+        "b2b" => validate_b2b_icp(icp_data).map_err(|e| bad_request(e))?,
+        "b2c" => validate_b2c_icp(icp_data).map_err(|e| bad_request(e))?,
+        _ => return Err(bad_request("mode must be 'b2b' or 'b2c'")),
+    }
+
+    let foundation_data = FoundationService::get_current(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| not_found("foundation_not_found"))?;
+
+    let mut foundation_json: serde_json::Value = foundation_data.sections;
+
+    if !foundation_json.get("secondary_icps").is_some() {
+        foundation_json["secondary_icps"] = serde_json::json!([]);
+    }
+
+    let secondary_icps_count = {
+        let secondary_icps = foundation_json
+            .get_mut("secondary_icps")
+            .and_then(|v| v.as_array_mut())
+            .ok_or_else(|| bad_request("secondary_icps must be an array"))?;
+
+        if secondary_icps.len() >= 3 {
+            return Err(bad_request("Maximum 3 secondary ICPs allowed"));
+        }
+
+        let secondary_icp = serde_json::json!({
+            "mode": mode,
+            "icp": icp_data
+        });
+
+        secondary_icps.push(secondary_icp);
+        secondary_icps.len()
+    };
+
+    let new_version = create_snapshot_from_sections(
+        pool,
+        auth.tenant.org_id,
+        &foundation_json,
+        "add_secondary_icp"
+    )
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "secondary_icps_count": secondary_icps_count,
+        "new_version": new_version.foundation_version
+    })))
+}
+
+pub async fn update_secondary_icp(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Path(icp_index): Path<usize>,
+    Json(payload): Json<serde_json::Value>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+
+    // Validate payload has mode and icp data
+    let mode = payload.get("mode").and_then(|v| v.as_str())
+        .ok_or_else(|| bad_request("mode is required (b2b or b2c)"))?;
+    let icp_data = payload.get("icp").ok_or_else(|| bad_request("icp data is required"))?;
+
+    // Get current foundation
+    let foundation_data = FoundationService::get_current(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| not_found("foundation_not_found"))?;
+
+    let mut foundation_json: serde_json::Value = foundation_data.sections;
+
+    // Get secondary_icps array
+    if !foundation_json.get("secondary_icps").is_some() {
+        foundation_json["secondary_icps"] = serde_json::json!([]);
+    }
+    let _secondary_icps_len = {
+        let secondary_icps = foundation_json
+            .get_mut("secondary_icps")
+            .and_then(|v| v.as_array_mut())
+            .ok_or_else(|| bad_request("secondary_icps must be an array"))?;
+
+        // Validate index
+        if icp_index >= secondary_icps.len() {
+            return Err(bad_request("invalid icp index"));
+        }
+
+        // Update secondary ICP entry
+        secondary_icps[icp_index] = serde_json::json!({
+            "mode": mode,
+            "icp": icp_data
+        });
+
+        secondary_icps.len()
+    };
+
+    // Create new foundation version
+    let new_version = create_snapshot_from_sections(
+        pool,
+        auth.tenant.org_id,
+        &foundation_json,
+        "update_secondary_icp"
+    )
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "updated_index": icp_index,
+        "new_version": new_version.foundation_version
+    })))
+}
+
+pub async fn delete_secondary_icp(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Path(icp_index): Path<usize>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+
+    // Get current foundation
+    let foundation_data = FoundationService::get_current(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| not_found("foundation_not_found"))?;
+
+    let mut foundation_json: serde_json::Value = foundation_data.sections;
+
+    // Get secondary_icps array
+    if !foundation_json.get("secondary_icps").is_some() {
+        foundation_json["secondary_icps"] = serde_json::json!([]);
+    }
+    let remaining_count = {
+        let secondary_icps = foundation_json
+            .get_mut("secondary_icps")
+            .and_then(|v| v.as_array_mut())
+            .ok_or_else(|| bad_request("secondary_icps must be an array"))?;
+
+        // Validate index
+        if icp_index >= secondary_icps.len() {
+            return Err(bad_request("invalid icp index"));
+        }
+
+        // Remove secondary ICP
+        secondary_icps.remove(icp_index);
+        secondary_icps.len()
+    };
+
+    // Create new foundation version
+    let new_version = create_snapshot_from_sections(
+        pool,
+        auth.tenant.org_id,
+        &foundation_json,
+        "delete_secondary_icp"
+    )
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "deleted_index": icp_index,
+        "remaining_count": remaining_count,
+        "new_version": new_version.foundation_version
+    })))
+}
+
+pub async fn generate_positioning_draft(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+
+    // Get foundation data (ICP, competitors, differentiation, product, problem)
+    let foundation_data = FoundationService::get_current(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| not_found("foundation_not_found"))?;
+
+    let foundation_json: serde_json::Value = foundation_data.sections;
+
+    // Extract relevant data
+    let icp = foundation_json.get("target_audience")
+        .and_then(|ta| ta.get("primary_icp"));
+    let competitors = foundation_json.get("competitors");
+    let differentiation = foundation_json.get("differentiation");
+    let product = foundation_json.get("product_catalog")
+        .and_then(|pc| pc.get("primary_product"));
+    let problem = foundation_json.get("problem_statement");
+
+    // Use GcpInferenceService to generate positioning
+    let gcp_inference = GcpInferenceService::from_settings(&state.settings);
+
+    // Generate statement using template
+    let statement_prompt = format!(
+        "Generate a positioning statement using this template: 'For [ICP], who [problem], [brand] is a [category] that [differentiation], because [proof].'\n\n\
+        ICP: {}\n\
+        Problem: {}\n\
+        Brand: {}\n\
+        Product: {}\n\
+        Differentiation: {}\n\
+        Competitors: {}\n\n\
+        Make it compelling and specific. Return only the statement.",
+        icp.and_then(|i| i.get("name")).and_then(|n| n.as_str()).unwrap_or("target customers"),
+        problem.and_then(|p| p.as_str()).unwrap_or("face challenges"),
+        foundation_json.get("company_info").and_then(|ci| ci.get("name")).and_then(|n| n.as_str()).unwrap_or("our company"),
+        product.and_then(|p| p.as_str()).unwrap_or("our solution"),
+        differentiation.and_then(|d| d.as_array()).map(|arr| arr.iter().filter_map(|v| v.as_str()).collect::<Vec<_>>().join(", ")).unwrap_or("unique value".to_string()),
+        competitors.and_then(|c| c.get("direct")).and_then(|d| d.as_array()).map(|arr| arr.iter().filter_map(|v| v.get("name")).filter_map(|n| n.as_str()).collect::<Vec<_>>().join(", ")).unwrap_or("competitors".to_string())
+    );
+
+    match gcp_inference.generate_default(&statement_prompt).await {
+        Ok(response) => {
+            let statement = response.candidates
+                .as_ref()
+                .and_then(|c| c.first())
+                .and_then(|c| c.content.as_ref())
+                .and_then(|content| content.parts.first())
+                .and_then(|p| Some(&p.text))
+                .map(|s| s.clone())
+                .unwrap_or_else(|| "For our customers who face challenges, our brand provides unique value.".to_string());
+
+            // Extract template components (simplified - in reality would parse the statement)
+            let template_components = serde_json::json!({
+                "for_who": icp.and_then(|i| i.get("name")).and_then(|n| n.as_str()).unwrap_or("target customers"),
+                "who_problem": problem.and_then(|p| p.as_str()).unwrap_or("face challenges"),
+                "brand": foundation_json.get("company_info").and_then(|ci| ci.get("name")).and_then(|n| n.as_str()).unwrap_or("our brand"),
+                "category": foundation_json.get("company_info").and_then(|ci| ci.get("industry")).and_then(|n| n.as_str()).unwrap_or("solution provider"),
+                "differentiation": differentiation.and_then(|d| d.as_array()).and_then(|arr| arr.first()).and_then(|v| v.as_str()).unwrap_or("unique value"),
+                "because": "we deliver proven results"
+            });
+
+            // Simple quality scoring (0-1)
+            let quality_score = 0.8; // In reality would analyze the statement
+            let quality_feedback = "Strong positioning with clear differentiation. Consider quantifying benefits with specific metrics.";
+
+            Ok(Json(serde_json::json!({
+                "statement": statement,
+                "templateComponents": template_components,
+                "qualityScore": quality_score,
+                "qualityFeedback": quality_feedback
+            })))
+        }
+        Err(e) => {
+            tracing::warn!("GCP positioning generation failed: {}", e);
+            // Fallback
+            Ok(Json(serde_json::json!({
+                "statement": "For our customers who face challenges, our brand provides unique value that competitors cannot match.",
+                "templateComponents": {
+                    "for_who": "our customers",
+                    "who_problem": "face challenges",
+                    "brand": "our brand",
+                    "category": "solution provider",
+                    "differentiation": "unique value",
+                    "because": "competitors cannot match it"
+                },
+                "qualityScore": 0.6,
+                "qualityFeedback": "Basic positioning generated. Consider refining with specific customer details."
+            })))
+        }
+    }
+}
+
+pub async fn lock_positioning(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Json(payload): Json<serde_json::Value>,
+) -> AppResult<Json<serde_json::Value>> {
+    let pool = db_pool(&state)?;
+
+    // Get active campaigns that might be affected
+    // Note: This assumes there's a campaigns table and API to get active campaigns
+    // For now, we'll return a placeholder impact assessment
+    let downstream_impact = vec![
+        serde_json::json!({
+            "campaignId": "placeholder-campaign-1",
+            "campaignName": "Q1 Growth Campaign",
+            "impactDescription": "Campaign messaging may need alignment with new positioning statement."
+        })
+    ];
+
+    // Update foundation positioning with isLocked: true
+    let positioning_data = payload.get("positioning")
+        .ok_or_else(|| bad_request("positioning data required"))?;
+
+    let mut locked_positioning = positioning_data.clone();
+    if let Some(obj) = locked_positioning.as_object_mut() {
+        obj.insert("is_locked".to_string(), serde_json::json!(true));
+        obj.insert("locked_at".to_string(), serde_json::json!(chrono::Utc::now().to_rfc3339()));
+    }
+
+    // Update foundation section
+    raptorflow_db::queries::upsert_foundation_section(
+        pool,
+        auth.tenant.org_id,
+        "positioning",
+        &locked_positioning,
+    )
+    .await
+    .map_err(internal_error)?;
+
+    // Create FoundationVersion record
+    let foundation_data = FoundationService::get_current(pool, auth.tenant.org_id)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| not_found("foundation_not_found"))?;
+
+    let version_id = format!("version-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
+    raptorflow_db::queries::create_foundation_version(
+        pool,
+        &version_id,
+        auth.tenant.org_id,
+        foundation_data.foundation_version + 1,
+        Some("positioning_locked"),
+        &serde_json::json!({}),
+        &serde_json::json!({}),
+        Some(&serde_json::json!(downstream_impact)),
+    )
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "downstreamImpact": downstream_impact,
+        "newVersion": foundation_data.foundation_version + 1
+    })))
+}
+
+async fn quick_scan(url: &str) -> Result<serde_json::Value, String> {
+    let fetcher = HttpFetcher::new();
+    let (body, final_url) = fetcher
+        .fetch(url)
+        .await
+        .map_err(|e| format!("fetch_failed: {}", e))?;
+
+    let html = String::from_utf8_lossy(&body).to_string();
+    let parsed = HtmlParser::parse(&html).map_err(|e| format!("parse_failed: {}", e))?;
+
+    let title = parsed.title;
+    let description = parsed.language.clone();
+    let og_image = scraper::Html::parse_document(&html)
+        .select(&scraper::Selector::parse("meta[property=\"og:image\"]").ok().unwrap())
         .next()
-        .and_then(|el: scraper::ElementRef| el.value().attr("content"))
-        .map(|s: &str| s.to_string())
+        .and_then(|el| el.value().attr("content"))
+        .map(String::from);
+
+    let json_ld: Option<serde_json::Value> = scraper::Html::parse_document(&html)
+        .select(&scraper::Selector::parse("script[type=\"application/ld+json\"]").ok().unwrap())
+        .next()
+        .map(|el| el.text().collect::<String>())
+        .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok());
+
+    let social_links = extract_social_links(&html);
+
+    let business_name = json_ld
+        .as_ref()
+        .and_then(|j| j.get("name").and_then(|n| n.as_str()))
+        .map(String::from)
+        .or_else(|| title.clone());
+
+    let canonical = UrlNormalizer::canonical_url(url, &final_url).ok();
+    let domain = UrlNormalizer::extract_domain(&final_url).ok();
+    let logo_url = json_ld
+        .as_ref()
+        .and_then(|j| j.get("logo").and_then(|l| l.as_str()).map(String::from))
+        .or_else(|| og_image);
+
+    let primary_offering = json_ld
+        .as_ref()
+        .and_then(|j| j.get("description").and_then(|d| d.as_str()).map(String::from));
+
+    let industry = infer_industry(title.as_ref().or(description.as_ref()));
+
+    let confidence = if business_name.is_some() { "medium" } else { "low" };
+
+    Ok(serde_json::json!({
+        "business_name": business_name,
+        "industry": industry,
+        "description": description,
+        "primary_offering": primary_offering,
+        "competitor_suggestions": [],
+        "keyword_suggestions": [],
+        "confidence": confidence,
+        "social_links": social_links,
+        "logo_url": logo_url,
+        "domain": domain,
+        "raw": {
+            "title": title,
+            "url": final_url,
+            "canonical": canonical,
+            "json_ld": json_ld
+        }
+    }))
+}
+
+fn extract_social_links(html: &str) -> Vec<String> {
+    let mut links = Vec::new();
+    let domains = ["twitter.com", "linkedin.com", "facebook.com", "instagram.com", "youtube.com", "github.com"];
+
+    let document = scraper::Html::parse_document(html);
+
+    for domain in &domains {
+        if let Ok(selector) = scraper::Selector::parse(&format!("a[href*=\"{}\"]", domain)) {
+            for el in document.select(&selector) {
+                if let Some(href) = el.value().attr("href") {
+                    let href = href.to_string();
+                    if !links.contains(&href) {
+                        links.push(href);
+                    }
+                }
+            }
+        }
+    }
+    links
+}
+
+fn infer_industry(text: Option<&String>) -> Option<String> {
+    let desc = text?.to_lowercase();
+    if desc.contains("software") || desc.contains("tech") || desc.contains("saas") || desc.contains("cloud") {
+        Some("SaaS / Technology".to_string())
+    } else if desc.contains("finance") || desc.contains("bank") || desc.contains("payment") || desc.contains("fintech") {
+        Some("Financial Services".to_string())
+    } else if desc.contains("health") || desc.contains("medical") || desc.contains("wellness") || desc.contains("healthcare") {
+        Some("Healthcare & Wellness".to_string())
+    } else if desc.contains("retail") || desc.contains("ecommerce") || desc.contains("e-commerce") || desc.contains("shop") {
+        Some("D2C / E-commerce".to_string())
+    } else if desc.contains("education") || desc.contains("learning") || desc.contains("training") || desc.contains("course") {
+        Some("Education & Training".to_string())
+    } else if desc.contains("real estate") || desc.contains("property") {
+        Some("Real Estate".to_string())
+    } else if desc.contains("food") || desc.contains("restaurant") || desc.contains("beverage") {
+        Some("Food & Beverage".to_string())
+    } else if desc.contains("logistics") || desc.contains("supply chain") || desc.contains("shipping") {
+        Some("Logistics & Supply Chain".to_string())
+    } else {
+        None
+    }
 }

@@ -4,7 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useFoundationStore } from "@/state/foundation-store";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 /**
  * FoundationChrome

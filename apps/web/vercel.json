@@ -1,16 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "pnpm --filter @raptorflow/web build",
-  "installCommand": "pnpm install --frozen-lockfile",
-  "devCommand": "pnpm --filter @raptorflow/web dev",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
   "regions": ["sin1"],
-  "env": {
-    "NEXT_PUBLIC_APP_URL": "@rf_app_url",
-    "NEXT_PUBLIC_API_BASE_URL": "@rf_api_base_url",
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "@rf_clerk_publishable_key",
-    "NEXT_PUBLIC_OFFLINE_MODE": "false"
-  },
   "headers": [
     {
       "source": "/api/health",
@@ -29,8 +23,7 @@
   "rewrites": [
     {
       "source": "/api/proxy/(.*)",
-      "destination": "https://api.raptorflow.io/$1",
-      "password": "@vercel_proxy_password"
+      "destination": "https://api.raptorflow.io/$1"
     }
   ]
 }
