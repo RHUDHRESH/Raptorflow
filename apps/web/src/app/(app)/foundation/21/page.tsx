@@ -109,13 +109,13 @@ export default function FoundationStep21() {
 
   const Slider = ({ labelL, labelR, val, setVal }: any) => (
     <div className="flex items-center gap-4 w-full">
-      <span className="w-24 text-right text-[10px] font-bold uppercase tracking-widest text-zinc-500">{labelL}</span>
+      <span className="w-24 text-right text-[10px] font-bold uppercase tracking-widest text-[#6B655E]">{labelL}</span>
       <input 
         type="range" min="0" max="100" value={val} 
         onChange={(e) => setVal(parseInt(e.target.value))}
-        className="flex-1 h-1 bg-zinc-800 rounded-full appearance-none accent-[#f59e0b] cursor-pointer"
+        className="flex-1 h-1 bg-[#E5DED4] rounded-full appearance-none accent-[#f59e0b] cursor-pointer"
       />
-      <span className="w-24 text-left text-[10px] font-bold uppercase tracking-widest text-zinc-500">{labelR}</span>
+      <span className="w-24 text-left text-[10px] font-bold uppercase tracking-widest text-[#6B655E]">{labelR}</span>
     </div>
   );
 
@@ -130,14 +130,14 @@ export default function FoundationStep21() {
     const voice = sectionData.brand_personality?.voiceTraits?.join(", ") || "professional";
 
     return (
-      <p className="text-lg text-white font-light leading-relaxed">
+      <p className="text-lg text-[#2A2622] font-light leading-relaxed">
         &quot;Here is what I understand about <span className="text-[#f59e0b] font-medium">{bizName}</span>. 
-        You serve <span className="text-white font-medium">{icp.name}</span> — {icp.pain}. 
+        You serve <span className="text-[#2A2622] font-medium">{icp.name}</span> — {icp.pain}. 
         The problem you solve is {problem}. 
         Your positioning: {positioning}. 
-        Your goal for the next 90 days is <span className="text-white font-medium">{goal}</span>. 
+        Your goal for the next 90 days is <span className="text-[#2A2622] font-medium">{goal}</span>. 
         The competitors I&apos;ll be watching are {comps}. 
-        And {bizName} should always sound <span className="text-white font-medium">{voice}</span>.&quot;
+        And {bizName} should always sound <span className="text-[#2A2622] font-medium">{voice}</span>.&quot;
       </p>
     );
   }, [sectionData]);
@@ -146,26 +146,26 @@ export default function FoundationStep21() {
 
   if (part === 4) {
     return (
-      <div className="fixed inset-0 bg-[#0f0f0f] z-50 flex flex-col items-center justify-center p-6 transition-all duration-1000">
+      <div className="fixed inset-0 bg-[#FBF8F2] z-50 flex flex-col items-center justify-center p-6 transition-all duration-1000">
         {!isComplete && !error && (
           <div className="w-full max-w-lg space-y-12 flex flex-col items-center animate-in fade-in duration-1000">
-            <h2 className="text-3xl font-bold text-white tracking-widest uppercase">RaptorFlow</h2>
+            <h2 className="text-3xl font-bold text-[#2A2622] tracking-widest uppercase">RaptorFlow</h2>
             
             <div className="text-center h-8 relative w-full">
-              <p className="text-lg text-white font-medium animate-pulse">
+              <p className="text-lg text-[#2A2622] font-medium animate-pulse">
                 {buildText[buildStep]}
               </p>
             </div>
 
             <div className="flex gap-2">
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-bounce" />
+              <div className="w-2 h-2 bg-[#D97757] rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-2 h-2 bg-[#D97757] rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-2 h-2 bg-[#D97757] rounded-full animate-bounce" />
             </div>
 
-            <div className="w-full bg-zinc-900 h-[2px] fixed bottom-0 left-0 right-0">
+            <div className="w-full bg-[#F5F0E8] h-[2px] fixed bottom-0 left-0 right-0">
               <div 
-                className="h-full bg-amber-500 transition-all duration-300" 
+                className="h-full bg-[#D97757] transition-all duration-300" 
                 style={{ width: `${buildProgress}%` }}
               />
             </div>
@@ -175,7 +175,7 @@ export default function FoundationStep21() {
         {error && (
           <div className="text-center space-y-6 animate-in zoom-in-95 duration-500">
             <h3 className="text-xl font-bold text-red-500">Strategic Error</h3>
-            <p className="text-zinc-400 max-w-xs">{error}</p>
+            <p className="text-[#6B655E] max-w-xs">{error}</p>
             <button 
               onClick={startBuild}
               className="px-8 py-3 bg-[#f59e0b] text-black font-bold rounded-lg flex items-center gap-2 mx-auto"
@@ -189,8 +189,8 @@ export default function FoundationStep21() {
           <div className="w-full max-w-lg space-y-8 flex flex-col items-center animate-in fade-in zoom-in-95 duration-[1200ms]">
             <CheckCircle2 className="w-20 h-20 text-green-500 animate-in bounce-in duration-1000" />
             <div className="text-center space-y-2">
-              <h2 className="text-4xl font-bold text-white">Your office is ready.</h2>
-              <p className="text-xl text-zinc-400 font-light italic mt-4">
+              <h2 className="text-4xl font-bold text-[#2A2622]">Your office is ready.</h2>
+              <p className="text-xl text-[#6B655E] font-light italic mt-4">
                 &quot;I have everything I need. Let&apos;s build something.&quot;
               </p>
             </div>
@@ -208,20 +208,20 @@ export default function FoundationStep21() {
   }
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[640px] space-y-12">
         
         {/* PART 1: NAME */}
         {part >= 1 && (
           <div className={cn("space-y-8 animate-in fade-in slide-in-from-top-4 duration-700", part > 1 && "opacity-20 pointer-events-none grayscale scale-[0.98]")}>
             <div className="space-y-2 text-center">
-              <h1 className="text-3xl font-bold text-white">Your Campaign Strategist is about to come to life.</h1>
-              <p className="text-zinc-400 text-base">What would you like to call them?</p>
+              <h1 className="text-3xl font-bold text-[#2A2622]">Your Campaign Strategist is about to come to life.</h1>
+              <p className="text-[#6B655E] text-base">What would you like to call them?</p>
             </div>
             <div className="flex flex-col items-center gap-8">
               <input
                 autoFocus
-                className="text-center text-3xl font-light text-white bg-transparent border-b-2 border-[#f59e0b] outline-none pb-2 px-4 w-full max-w-sm placeholder:text-zinc-800"
+                className="text-center text-3xl font-light text-[#2A2622] bg-transparent border-b-2 border-[#f59e0b] outline-none pb-2 px-4 w-full max-w-sm placeholder:text-[#BAB0A0]"
                 placeholder="Name your Strategist"
                 value={strategistName}
                 onChange={(e) => setStrategistName(e.target.value)}
@@ -243,19 +243,19 @@ export default function FoundationStep21() {
         {part >= 2 && (
           <div className={cn("space-y-8 animate-in fade-in slide-in-from-top-4 duration-700", part > 2 && "opacity-20 pointer-events-none grayscale scale-[0.98]")}>
             <div className="space-y-1 text-center">
-              <h2 className="text-2xl font-bold text-white">Who is {strategistName}?</h2>
-              <p className="text-sm text-zinc-500 uppercase tracking-widest font-bold">Shape how they communicate with you</p>
+              <h2 className="text-2xl font-bold text-[#2A2622]">Who is {strategistName}?</h2>
+              <p className="text-sm text-[#6B655E] uppercase tracking-widest font-bold">Shape how they communicate with you</p>
             </div>
 
-            <div className="space-y-2 bg-[#1e1e1e] p-8 rounded-2xl border border-zinc-800">
+            <div className="space-y-2 bg-[#FBF8F2] p-8 rounded-2xl border border-[#E5DED4]">
               <Slider labelL="Direct" labelR="Diplomatic" val={personality.direct} setVal={(v: any) => setPersonality({...personality, direct: v})} />
               <Slider labelL="Challenger" labelR="Conservative" val={personality.challenger} setVal={(v: any) => setPersonality({...personality, challenger: v})} />
               <Slider labelL="Data-Driven" labelR="Intuitive" val={personality.dataDriven} setVal={(v: any) => setPersonality({...personality, dataDriven: v})} />
               
-              <div className="mt-8 flex items-center gap-3 bg-black/40 border border-zinc-800 rounded-xl p-3">
-                <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-                <p className="text-xs text-zinc-400">
-                  Based on your answers, we suggest: <span className="text-white font-bold">[Direct, Challenger, Data-driven]</span> — adjust freely.
+              <div className="mt-8 flex items-center gap-3 bg-black/40 border border-[#E5DED4] rounded-xl p-3">
+                <Sparkles className="w-4 h-4 text-[#D97757] shrink-0" />
+                <p className="text-xs text-[#6B655E]">
+                  Based on your answers, we suggest: <span className="text-[#2A2622] font-bold">[Direct, Challenger, Data-driven]</span> — adjust freely.
                 </p>
               </div>
             </div>
@@ -278,20 +278,20 @@ export default function FoundationStep21() {
           <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-1000">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-zinc-500">{strategistName} speaking:</span>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#6B655E]">{strategistName} speaking:</span>
                 <span className="text-[10px] uppercase font-bold tracking-widest text-[#f59e0b] flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#f59e0b] animate-pulse" /> Final Strategist Brief
                 </span>
               </div>
               
-              <div className="bg-[#1e1e1e] border border-zinc-700/50 rounded-2xl p-8 relative shadow-2xl overflow-hidden group">
+              <div className="bg-[#FBF8F2] border border-[#D5CBC0]/50 rounded-2xl p-8 relative shadow-2xl overflow-hidden group">
                 {/* Visual Accent */}
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#f59e0b]" />
                 
                 {summary}
 
                 {/* Edit Links */}
-                <div className="mt-8 pt-8 border-t border-zinc-800 flex flex-wrap gap-x-6 gap-y-2">
+                <div className="mt-8 pt-8 border-t border-[#E5DED4] flex flex-wrap gap-x-6 gap-y-2">
                   {[
                     { label: "Edit Business", to: "/foundation/1" },
                     { label: "Target Customer", to: "/foundation/6" },
@@ -301,7 +301,7 @@ export default function FoundationStep21() {
                     <button 
                       key={link.label}
                       onClick={() => router.push(`${link.to}?returnTo=21` as never)}
-                      className="text-[10px] uppercase tracking-widest text-zinc-500 hover:text-[#f59e0b] transition-colors font-bold"
+                      className="text-[10px] uppercase tracking-widest text-[#6B655E] hover:text-[#f59e0b] transition-colors font-bold"
                     >
                       {link.label}
                     </button>
@@ -313,11 +313,11 @@ export default function FoundationStep21() {
             <div className="flex flex-col items-center gap-6 pt-4">
               <button
                 onClick={startBuild}
-                className="w-full bg-[#f59e0b] hover:bg-white text-black font-extrabold text-lg rounded-full py-5 transition-all shadow-[0_10px_30px_rgba(245,158,11,0.2)]"
+                className="w-full bg-[#f59e0b] hover:bg-white text-black font-extrabold text-lg rounded-full py-5 transition-all shadow-[0_10px_30px_rgba(217,119,87,0.2)]"
               >
                 Looks good — let&apos;s go
               </button>
-              <p className="text-xs text-zinc-500 uppercase tracking-tighter">By launching, you authorise your AI team to begin monitoring and strategy work.</p>
+              <p className="text-xs text-[#6B655E] uppercase tracking-tighter">By launching, you authorise your AI team to begin monitoring and strategy work.</p>
             </div>
           </div>
         )}

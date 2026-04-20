@@ -194,7 +194,7 @@ export function OfficeCanvas({ onAgentClick }: { onAgentClick?: (key: AgentKey) 
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-full min-h-[500px] bg-[#121212] relative overflow-hidden" 
+      className="w-full h-full min-h-[500px] bg-[#FBF8F2] relative overflow-hidden" 
       style={{ cursor: 'crosshair' }}
     />
   );

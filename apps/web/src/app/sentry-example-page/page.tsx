@@ -13,6 +13,7 @@ export default function SentryExamplePage(): React.ReactElement {
         <button
           onClick={() => {
             // This will throw an error that Sentry will capture
+            // @ts-expect-error Intentionally calling undefined function for Sentry test
             myUndefinedFunction();
           }}
           className="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"

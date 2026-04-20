@@ -100,9 +100,9 @@ impl IntegrationClients {
         Self {
             gcp: GcpClients {
                 api_key: settings.gcp_api_key.clone(),
-                strategist_model: "gemini-pro".to_string(),
-                council_reasoning_model: "gemini-flash-lite-reasoning".to_string(),
-                default_model: "gemini-flash-lite".to_string(),
+                strategist_model: settings.bedrock_model_strategist.clone(),
+                council_reasoning_model: settings.bedrock_model_fast.clone(),
+                default_model: settings.bedrock_model_fast.clone(),
             },
             clerk: ClerkClient {
                 jwks_url: settings.clerk_jwks_url.clone(),

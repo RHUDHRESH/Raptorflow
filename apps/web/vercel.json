@@ -1,9 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "devCommand": "npm run dev",
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @raptorflow/web build",
+  "outputDirectory": ".next",
+  "installCommand": "cd ../.. && pnpm install",
+  "devCommand": "pnpm --filter @raptorflow/web dev",
   "regions": ["sin1"],
   "headers": [
     {

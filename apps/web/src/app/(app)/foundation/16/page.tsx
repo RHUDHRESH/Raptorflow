@@ -88,16 +88,16 @@ export default function FoundationStep16() {
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[560px] space-y-10">
         
         {/* HEADER */}
         <div className="space-y-4">
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold text-white">What&apos;s your marketing budget for the next 90 days?</h1>
-            <p className="text-base text-zinc-400">This is for ads, content production, and tools — not for RaptorFlow.</p>
+            <h1 className="text-3xl font-bold text-[#2A2622]">What&apos;s your marketing budget for the next 90 days?</h1>
+            <p className="text-base text-[#6B655E]">This is for ads, content production, and tools — not for RaptorFlow.</p>
           </div>
-          <p className="text-sm text-zinc-500 italic text-center">
+          <p className="text-sm text-[#6B655E] italic text-center">
             Your AI team will only recommend tactics that fit this budget.
           </p>
         </div>
@@ -113,8 +113,8 @@ export default function FoundationStep16() {
                 className={cn(
                   "relative p-5 rounded-xl border flex items-center gap-4 transition-all duration-300 cursor-pointer overflow-hidden",
                   isSelected 
-                    ? "border-[#f59e0b] bg-[#f59e0b]/10 shadow-[0_0_20px_rgba(245,158,11,0.1)]" 
-                    : "bg-[#262626] border-zinc-700 hover:border-zinc-500"
+                    ? "border-[#f59e0b] bg-[#f59e0b]/10 shadow-[0_0_20px_rgba(217,119,87,0.1)]" 
+                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]"
                 )}
               >
                 {isSelected && (
@@ -125,16 +125,16 @@ export default function FoundationStep16() {
                 
                 <div className={cn(
                   "p-3 rounded-full border transition-colors",
-                  isSelected ? "bg-[#f59e0b]/20 border-[#f59e0b]/30 text-[#f59e0b]" : "bg-zinc-800 border-zinc-700 text-zinc-500"
+                  isSelected ? "bg-[#f59e0b]/20 border-[#f59e0b]/30 text-[#f59e0b]" : "bg-[#E5DED4] border-[#D5CBC0] text-[#6B655E]"
                 )}>
                   <IndianRupee className="w-5 h-5" />
                 </div>
 
                 <div className="space-y-0.5">
-                  <h3 className={cn("text-lg font-bold tracking-tight", isSelected ? "text-white" : "text-zinc-300")}>
+                  <h3 className={cn("text-lg font-bold tracking-tight", isSelected ? "text-[#2A2622]" : "text-[#9A948C]")}>
                     {range.label}
                   </h3>
-                  <p className="text-xs text-zinc-400 leading-relaxed">{range.subtext}</p>
+                  <p className="text-xs text-[#6B655E] leading-relaxed">{range.subtext}</p>
                 </div>
               </div>
             );
@@ -146,7 +146,7 @@ export default function FoundationStep16() {
           <div className="space-y-6 pt-4">
             <button
               onClick={() => setShowBreakdown(!showBreakdown)}
-              className="flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors mx-auto"
+              className="flex items-center gap-2 text-sm text-[#6B655E] hover:text-[#2A2622] transition-colors mx-auto"
             >
               <span>Want to break this down by channel? (optional)</span>
             </button>
@@ -155,16 +155,16 @@ export default function FoundationStep16() {
               "overflow-hidden transition-all duration-500",
               showBreakdown ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
             )}>
-              <div className="bg-[#1e1e1e] border border-zinc-800 rounded-2xl p-6 space-y-6 shadow-2xl">
+              <div className="bg-[#FBF8F2] border border-[#E5DED4] rounded-2xl p-6 space-y-6 shadow-2xl">
                 <div className="space-y-4">
                   {selectedChannels.map((c: any) => (
                     <div key={c.name} className="flex items-center justify-between gap-4">
-                      <span className="text-sm font-medium text-zinc-300">{c.name}</span>
+                      <span className="text-sm font-medium text-[#9A948C]">{c.name}</span>
                       <div className="relative w-40">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-xs font-mono">₹</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A948C] text-xs font-mono">₹</span>
                         <input
                           type="number"
-                          className="w-full bg-[#1a1a1a] border border-zinc-700 rounded-lg pl-6 pr-3 py-2 text-sm text-white focus:outline-none focus:border-[#f59e0b]"
+                          className="w-full bg-[#FBF8F2] border border-[#D5CBC0] rounded-lg pl-6 pr-3 py-2 text-sm text-[#2A2622] focus:outline-none focus:border-[#f59e0b]"
                           placeholder="0"
                           value={breakdown[c.name] || ""}
                           onChange={(e) => handleBreakdownChange(c.name, e.target.value)}
@@ -174,8 +174,8 @@ export default function FoundationStep16() {
                   ))}
                 </div>
                 
-                <div className="pt-4 border-t border-zinc-800 flex justify-between items-center">
-                  <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Total Allocated:</span>
+                <div className="pt-4 border-t border-[#E5DED4] flex justify-between items-center">
+                  <span className="text-xs font-bold uppercase tracking-widest text-[#6B655E]">Total Allocated:</span>
                   <span className="text-lg font-bold text-[#f59e0b]">{formatINR(totalAllocated)}</span>
                 </div>
               </div>
@@ -187,7 +187,7 @@ export default function FoundationStep16() {
         <button
           onClick={handleContinue}
           disabled={!selectedRange || isSubmitting}
-          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all mt-8 shadow-[0_5px_15px_rgba(0,0,0,0.3)]"
+          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all mt-8 shadow-[0_5px_15px_rgba(0,0,0,0.3)]"
         >
           {isSubmitting ? "Allocating Resources..." : "Continue"}
         </button>

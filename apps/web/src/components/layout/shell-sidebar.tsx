@@ -92,26 +92,26 @@ export function ShellSidebar({
 
   return (
     <>
-      <aside className="flex h-screen w-64 flex-col fixed left-0 top-0 bg-[#0f0f0f] border-r border-zinc-800 z-40 overflow-hidden">
+      <aside className="flex h-screen w-64 flex-col fixed left-0 top-0 bg-[#FBF8F2] border-r border-[#E5DED4] z-40 overflow-hidden paper-soft">
         {/* Brand Header */}
-        <div className="h-16 px-6 flex items-center justify-between border-b border-zinc-800">
+        <div className="h-16 px-6 flex items-center justify-between border-b border-[#E5DED4]">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-amber-500 flex items-center justify-center rounded-sm">
-              <LightningBoltIcon className="w-4 h-4 text-black" />
+            <div className="w-6 h-6 bg-[#D97757] flex items-center justify-center rounded-sm">
+              <LightningBoltIcon className="w-4 h-4 text-[#2A2622]" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-white tracking-tight leading-none">RaptorFlow</span>
-              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mt-0.5">EST. 1989</span>
+              <span className="text-sm font-bold text-[#2A2622] tracking-tight leading-none">RaptorFlow</span>
+              <span className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest mt-0.5">EST. 1989</span>
             </div>
           </div>
 
           <button 
             onClick={() => setNotifOpen(true)}
-            className="p-2 hover:bg-zinc-900 transition-colors relative"
+            className="p-2 hover:bg-[#F5F0E8] transition-colors relative"
           >
-            <BellIcon className={cn("w-4 h-4 transition-colors", unreadCount > 0 ? "text-amber-500" : "text-zinc-600")} />
+            <BellIcon className={cn("w-4 h-4 transition-colors", unreadCount > 0 ? "text-[#D97757]" : "text-[#9A948C]")} />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#D97757] rounded-full animate-pulse shadow-[0_0_8px_rgba(217,119,87,0.5)]" />
             )}
           </button>
         </div>
@@ -120,7 +120,7 @@ export function ShellSidebar({
         <nav className="flex-1 overflow-y-auto pt-6 space-y-8 scrollbar-hide">
           {NAV_GROUPS.map((group) => (
             <div key={group.label} className="px-3">
-              <h2 className="px-3 mb-3 text-[9px] font-bold text-zinc-600 uppercase tracking-[0.2em] font-mono">
+              <h2 className="px-3 mb-3 text-[9px] font-bold text-[#9A948C] uppercase tracking-[0.2em] font-mono">
                 {group.label}
               </h2>
               <div className="space-y-1">
@@ -135,17 +135,17 @@ export function ShellSidebar({
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 text-[13px] transition-all duration-150 group",
                         isActive
-                          ? "text-white bg-[#1a1a1a] border-l-2 border-amber-500"
-                          : "text-zinc-500 hover:text-zinc-300 hover:bg-[#161616]"
+                          ? "text-[#2A2622] bg-white border-l-2 border-[#D97757]"
+                          : "text-[#6B655E] hover:text-[#2A2622] hover:bg-[#F5F0E8]"
                       )}
                     >
                       <Icon className={cn(
                         "w-4 h-4 transition-colors",
-                        isActive ? "text-amber-500" : "text-zinc-600 group-hover:text-zinc-400"
+                        isActive ? "text-[#D97757]" : "text-[#9A948C] group-hover:text-[#6B655E]"
                       )} />
                       <span className="font-medium">{item.label}</span>
                       {isActive && (
-                        <div className="ml-auto w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+                        <div className="ml-auto w-1 h-1 rounded-full bg-[#D97757] animate-pulse" />
                       )}
                     </Link>
                   );
@@ -156,8 +156,8 @@ export function ShellSidebar({
         </nav>
 
         {/* Org Info */}
-        <div className="px-6 py-4 border-t border-zinc-900 bg-black/20">
-          <p className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest leading-relaxed">
+        <div className="px-6 py-4 border-t border-[#E5DED4] bg-[#F5F0E8]/50">
+          <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest leading-relaxed">
             UPLINK: ACTIVE<br/>
             ORG: {identity.orgId.slice(0, 12)}
           </p>

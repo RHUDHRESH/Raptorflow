@@ -99,47 +99,47 @@ export function LandingDailyWins() {
       eyebrow="Daily Wins"
       title="Wake up to one clear marketing move."
       description="Every morning, RaptorFlow turns campaign status, competitor signals, and memory into one focused action."
-      className="bg-[#0f0f0f] border-t border-zinc-900"
+      className="bg-[#F5F0E8] border-t border-[#E5DED4]"
     >
       <div ref={sectionRef} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
         {/* Briefing card */}
-        <div className="daily-card bg-[#1a1a1a] border border-zinc-800 rounded-2xl overflow-hidden">
+        <div className="daily-card bg-white border border-[#E5DED4] rounded-2xl overflow-hidden">
           {/* Card header */}
-          <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-[#E5DED4] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#D97757] animate-pulse" />
+              <span className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">
                 Morning Briefing
               </span>
             </div>
-            <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest">
+            <span className="text-[10px] font-mono text-[#BAB0A0] uppercase tracking-widest">
               Today
             </span>
           </div>
 
           {/* Rows */}
-          <div className="divide-y divide-zinc-900">
+          <div className="divide-y divide-[#E5DED4]">
             {BRIEFING_ROWS.map((row, i) => (
               <div
                 key={i}
                 className={`px-6 py-4 flex items-start gap-4 ${
                   row.priority
-                    ? "daily-priority-row bg-amber-500/5 border-l-2 border-amber-500"
+                    ? "daily-priority-row bg-[#FBE9DE] border-l-2 border-[#D97757]"
                     : "daily-context-row"
                 }`}
               >
                 <div className="flex flex-col gap-1 min-w-0">
                   <span
                     className={`text-[9px] font-mono uppercase tracking-widest ${
-                      row.priority ? "text-amber-500" : "text-zinc-600"
+                      row.priority ? "text-[#D97757]" : "text-[#9A948C]"
                     }`}
                   >
                     {row.label}
                   </span>
                   <span
                     className={`text-sm leading-5 ${
-                      row.priority ? "text-white font-medium" : "text-zinc-500"
+                      row.priority ? "text-[#2A2622] font-medium" : "text-[#6B655E]"
                     }`}
                   >
                     {row.value}
@@ -147,7 +147,7 @@ export function LandingDailyWins() {
                 </div>
                 {row.priority && (
                   <div className="shrink-0 ml-auto">
-                    <span className="bg-amber-500 text-black text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
+                    <span className="bg-[#D97757] text-[#2A2622] text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
                       Act
                     </span>
                   </div>
@@ -161,34 +161,34 @@ export function LandingDailyWins() {
         <div className="flex flex-col gap-8 pt-4">
           <div className="flex flex-col gap-4">
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center justify-center shrink-0 mt-1">
-                <span className="text-amber-500 text-sm">◈</span>
+              <div className="w-8 h-8 bg-[#FBE9DE] border border-[#D97757]/30 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                <span className="text-[#D97757] text-sm">◈</span>
               </div>
               <div>
-                <h3 className="text-base font-semibold text-white mb-1">No decision fatigue</h3>
-                <p className="text-sm text-zinc-500 leading-6">
+                <h3 className="text-base font-semibold text-[#2A2622] mb-1">No decision fatigue</h3>
+                <p className="text-sm text-[#6B655E] leading-6">
                   One priority row. Context to back it up. You know what to do.
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center justify-center shrink-0 mt-1">
-                <span className="text-amber-500 text-sm">◆</span>
+              <div className="w-8 h-8 bg-[#FBE9DE] border border-[#D97757]/30 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                <span className="text-[#D97757] text-sm">◆</span>
               </div>
               <div>
-                <h3 className="text-base font-semibold text-white mb-1">Built from live signals</h3>
-                <p className="text-sm text-zinc-500 leading-6">
+                <h3 className="text-base font-semibold text-[#2A2622] mb-1">Built from live signals</h3>
+                <p className="text-sm text-[#6B655E] leading-6">
                   Campaign state, competitor movement, and performance data feed the briefing.
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center justify-center shrink-0 mt-1">
-                <span className="text-amber-500 text-sm">◉</span>
+              <div className="w-8 h-8 bg-[#FBE9DE] border border-[#D97757]/30 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                <span className="text-[#D97757] text-sm">◉</span>
               </div>
               <div>
-                <h3 className="text-base font-semibold text-white mb-1">Replaces Monday chaos</h3>
-                <p className="text-sm text-zinc-500 leading-6">
+                <h3 className="text-base font-semibold text-[#2A2622] mb-1">Replaces Monday chaos</h3>
+                <p className="text-sm text-[#6B655E] leading-6">
                   Stop rebuilding context every week. The system remembers.
                 </p>
               </div>

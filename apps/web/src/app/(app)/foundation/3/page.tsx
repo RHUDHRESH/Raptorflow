@@ -64,11 +64,11 @@ export default function FoundationStep3() {
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[560px] space-y-10">
         
         {/* HEADER */}
-        <h1 className="text-3xl font-bold text-white">
+        <h1 className="text-3xl font-bold text-[#2A2622]">
           Where are you in your growth journey?
         </h1>
 
@@ -84,7 +84,7 @@ export default function FoundationStep3() {
                   "flex items-center gap-4 p-5 rounded-xl cursor-pointer border transition-all duration-200",
                   isSelected 
                     ? "border-[#f59e0b] bg-[#f59e0b]/10" 
-                    : "bg-[#262626] border-zinc-700 hover:border-zinc-500"
+                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]"
                 )}
               >
                 {/* Number Badge */}
@@ -92,14 +92,14 @@ export default function FoundationStep3() {
                   "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-mono transition-colors",
                   isSelected 
                     ? "bg-[#f59e0b] text-black" 
-                    : "bg-zinc-700 text-zinc-400"
+                    : "bg-[#D5CBC0] text-[#6B655E]"
                 )}>
                   {index + 1}
                 </div>
                 
                 <div className="flex flex-col">
-                  <span className="font-medium text-white">{stage.title}</span>
-                  <span className="text-sm text-zinc-400">{stage.desc}</span>
+                  <span className="font-medium text-[#2A2622]">{stage.title}</span>
+                  <span className="text-sm text-[#6B655E]">{stage.desc}</span>
                 </div>
               </div>
             );
@@ -108,7 +108,7 @@ export default function FoundationStep3() {
 
         {/* TEAM SIZE SELECTOR */}
         <div className="space-y-4 pt-4">
-          <label className="text-base text-zinc-300 font-medium">
+          <label className="text-base text-[#9A948C] font-medium">
             How many people work on marketing?
           </label>
           <div className="flex flex-wrap gap-2">
@@ -121,8 +121,8 @@ export default function FoundationStep3() {
                   className={cn(
                     "px-4 py-2 rounded-full border text-sm transition-all duration-200",
                     isSelected
-                      ? "border-[#f59e0b] bg-[#f59e0b]/10 text-white"
-                      : "border-zinc-700 bg-transparent text-zinc-300 hover:border-zinc-500"
+                      ? "border-[#f59e0b] bg-[#f59e0b]/10 text-[#2A2622]"
+                      : "border-[#D5CBC0] bg-transparent text-[#9A948C] hover:border-[#D5CBC0]"
                   )}
                 >
                   {size}
@@ -136,7 +136,7 @@ export default function FoundationStep3() {
         <button
           onClick={handleContinue}
           disabled={!selectedStage || !selectedTeamSize || isSubmitting}
-          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all"
+          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all"
         >
           {isSubmitting ? "Saving..." : "Continue"}
         </button>

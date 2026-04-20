@@ -42,8 +42,8 @@ export default function FoundationIndexPage(): React.ReactElement {
     return (
       <div className="flex h-[80vh] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
-          <p className="text-zinc-500 text-[10px] font-bold tracking-[0.2em] uppercase font-mono">
+          <Loader2 className="w-8 h-8 text-[#D97757] animate-spin" />
+          <p className="text-[#6B655E] text-[10px] font-bold tracking-[0.2em] uppercase font-mono">
             Uplink: Synchronizing Foundation Nodes...
           </p>
         </div>
@@ -64,14 +64,14 @@ export default function FoundationIndexPage(): React.ReactElement {
                The Foundation
              </h1>
            </div>
-           <p className="max-w-md text-right text-xs text-zinc-500 font-mono uppercase tracking-widest leading-relaxed">
+           <p className="max-w-md text-right text-xs text-[#6B655E] font-mono uppercase tracking-widest leading-relaxed">
              21 nodes of strategic constraint. <br/>
              Modified: {new Date().toLocaleDateString()} // STATUS: LOCKED
            </p>
         </header>
 
         {/* The Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[1px] bg-zinc-800 border border-zinc-800">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[1px] bg-[#E5DED4] border border-[#E5DED4]">
           {FOUNDATION_STEPS.map((step, i) => {
             const val = (foundation?.sections?.[step.section] as string) || "";
             const isFilled = val.length > 0;
@@ -80,39 +80,39 @@ export default function FoundationIndexPage(): React.ReactElement {
               <Link
                 key={step.id}
                 href={`/foundation/${step.id}` as Route}
-                className="gsap-reveal bg-[var(--background)] p-6 hover:bg-zinc-900 transition-colors group relative flex flex-col justify-between min-h-[200px]"
+                className="gsap-reveal bg-[var(--background)] p-6 hover:bg-[#F5F0E8] transition-colors group relative flex flex-col justify-between min-h-[200px]"
               >
                 <div>
                    <div className="flex items-center justify-between mb-4">
-                      <span className="font-mono text-[9px] text-zinc-600 font-bold tracking-widest uppercase">
+                      <span className="font-mono text-[9px] text-[#9A948C] font-bold tracking-widest uppercase">
                         Node_{String(i + 1).padStart(2, '0')}
                       </span>
                       {isFilled ? (
-                        <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#D97757]" />
                       ) : (
-                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-800" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#E5DED4]" />
                       )}
                    </div>
-                   <h3 className="font-bold text-sm text-white mb-2 group-hover:text-amber-500 transition-colors">
+                   <h3 className="font-bold text-sm text-[#2A2622] mb-2 group-hover:text-[#D97757] transition-colors">
                      {step.title}
                    </h3>
-                   <p className="text-[11px] text-zinc-500 line-clamp-3 font-light leading-relaxed">
+                   <p className="text-[11px] text-[#6B655E] line-clamp-3 font-light leading-relaxed">
                      {val || "No context provided. System default applied."}
                    </p>
                 </div>
                 
                 <div className="pt-4 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                   <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-amber-500 font-bold">Edit Node</span>
-                   <ChevronRightIcon className="w-4 h-4 text-amber-500" />
+                   <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#D97757] font-bold">Edit Node</span>
+                   <ChevronRightIcon className="w-4 h-4 text-[#D97757]" />
                 </div>
               </Link>
             );
           })}
 
           {/* Reset / Re-map Card */}
-          <div className="gsap-reveal bg-zinc-900/50 p-6 flex flex-col justify-center items-center gap-4 text-center border-dashed border-2 border-zinc-800 m-2">
-             <MixIcon className="w-8 h-8 text-zinc-700" />
-             <p className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">
+          <div className="gsap-reveal bg-[#F5F0E8]/50 p-6 flex flex-col justify-center items-center gap-4 text-center border-dashed border-2 border-[#E5DED4] m-2">
+             <MixIcon className="w-8 h-8 text-[#9A948C]" />
+             <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest">
                Destructive Action
              </p>
              <button className="text-[10px] font-bold uppercase tracking-widest text-red-500/50 hover:text-red-500 transition-colors">

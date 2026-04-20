@@ -91,15 +91,15 @@ export default function FoundationStep18() {
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[600px] space-y-10">
         
         {/* HEADER */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-white leading-tight text-center md:text-left">
+          <h1 className="text-3xl font-bold text-[#2A2622] leading-tight text-center md:text-left">
             What&apos;s your biggest marketing frustration right now?
           </h1>
-          <p className="text-base text-zinc-400 text-center md:text-left">
+          <p className="text-base text-[#6B655E] text-center md:text-left">
             Select all that apply.
           </p>
         </div>
@@ -115,8 +115,8 @@ export default function FoundationStep18() {
                 className={cn(
                   "relative p-4 rounded-xl border flex items-start gap-3 transition-all duration-200 cursor-pointer overflow-hidden",
                   isSelected 
-                    ? "border-[#f59e0b] bg-[#f59e0b]/10 shadow-[0_0_15px_rgba(245,158,11,0.1)]" 
-                    : "bg-[#262626] border-zinc-700 hover:border-zinc-500"
+                    ? "border-[#f59e0b] bg-[#f59e0b]/10 shadow-[0_0_15px_rgba(217,119,87,0.1)]" 
+                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]"
                 )}
               >
                 {isSelected && (
@@ -128,13 +128,13 @@ export default function FoundationStep18() {
                 <div className="shrink-0 mt-0.5">
                   <f.icon className={cn(
                     "w-5 h-5 transition-colors",
-                    isSelected ? "text-[#f59e0b]" : "text-zinc-500"
+                    isSelected ? "text-[#f59e0b]" : "text-[#6B655E]"
                   )} />
                 </div>
 
                 <div className="space-y-1 pr-4">
-                  <p className="text-sm font-bold text-white leading-tight">{f.label}</p>
-                  <p className="text-[11px] text-zinc-400 leading-tight font-medium">{f.desc}</p>
+                  <p className="text-sm font-bold text-[#2A2622] leading-tight">{f.label}</p>
+                  <p className="text-[11px] text-[#6B655E] leading-tight font-medium">{f.desc}</p>
                 </div>
               </div>
             );
@@ -147,7 +147,7 @@ export default function FoundationStep18() {
           <button
             onClick={handleContinue}
             disabled={isSubmitting}
-            className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all shadow-xl"
+            className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all shadow-xl"
           >
             {isSubmitting ? "Calibrating AI Response..." : "Continue"}
           </button>

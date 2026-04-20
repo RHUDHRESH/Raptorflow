@@ -88,7 +88,7 @@ export function LandingMemory() {
 
       // Future node glow pulse
       gsap.to(".memory-future-node", {
-        filter: "drop-shadow(0 0 12px rgba(245,158,11,0.8))",
+        filter: "drop-shadow(0 0 12px rgba(217,119,87,0.8))",
         duration: 1.4,
         repeat: -1,
         yoyo: true,
@@ -107,7 +107,7 @@ export function LandingMemory() {
       eyebrow="Compounding memory"
       title="Every campaign teaches the next one."
       description="RaptorFlow remembers what worked, what failed, what was predicted, and what actually happened. The longer it works with you, the less generic it becomes."
-      className="bg-[#0f0f0f] border-t border-zinc-900"
+      className="bg-[#F5F0E8] border-t border-[#E5DED4]"
     >
       <div ref={sectionRef} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
@@ -133,7 +133,7 @@ export function LandingMemory() {
                   y1={nodeA.cy}
                   x2={nodeB.cx}
                   y2={nodeB.cy}
-                  stroke={isFutureLink ? "rgba(245,158,11,0.5)" : "rgba(161,161,170,0.2)"}
+                  stroke={isFutureLink ? "rgba(217,119,87,0.5)" : "rgba(186,176,160,0.3)"}
                   strokeWidth="1"
                   strokeDasharray="200"
                 />
@@ -148,8 +148,8 @@ export function LandingMemory() {
                 cx={node.cx}
                 cy={node.cy}
                 r="8"
-                fill="#262626"
-                stroke="rgba(113,113,122,0.5)"
+                fill="#F5F0E8"
+                stroke="rgba(186,176,160,0.5)"
                 strokeWidth="1"
               />
             ))}
@@ -162,8 +162,8 @@ export function LandingMemory() {
                 cx={node.cx}
                 cy={node.cy}
                 r={i === 1 ? 13 : 10}
-                fill={i === 1 ? "rgba(245,158,11,0.15)" : "#1a1a1a"}
-                stroke={i === 1 ? "rgba(245,158,11,0.9)" : "rgba(245,158,11,0.5)"}
+                fill={i === 1 ? "rgba(217,119,87,0.15)" : "white"}
+                stroke={i === 1 ? "rgba(217,119,87,0.9)" : "rgba(217,119,87,0.5)"}
                 strokeWidth="1.5"
               />
             ))}
@@ -176,7 +176,7 @@ export function LandingMemory() {
                 y={node.cy + 20}
                 textAnchor="middle"
                 className="memory-past-node"
-                style={{ fontSize: 7, fill: "rgba(113,113,122,0.7)", fontFamily: "monospace", textTransform: "uppercase" }}
+                style={{ fontSize: 7, fill: "rgba(154,148,140,0.8)", fontFamily: "monospace", textTransform: "uppercase" }}
               >
                 {memorySignals[i]?.label ?? ""}
               </text>
@@ -186,7 +186,7 @@ export function LandingMemory() {
               y={FUTURE_NODES[0]!.cy + 20}
               textAnchor="middle"
               className="memory-future-node"
-              style={{ fontSize: 7, fill: "rgba(245,158,11,0.6)", fontFamily: "monospace", textTransform: "uppercase" }}
+              style={{ fontSize: 7, fill: "rgba(217,119,87,0.6)", fontFamily: "monospace", textTransform: "uppercase" }}
             >
               Q3 Prediction
             </text>
@@ -195,7 +195,7 @@ export function LandingMemory() {
               y={FUTURE_NODES[1]!.cy + 22}
               textAnchor="middle"
               className="memory-future-node"
-              style={{ fontSize: 7, fill: "rgba(245,158,11,0.9)", fontFamily: "monospace", textTransform: "uppercase", fontWeight: 700 }}
+              style={{ fontSize: 7, fill: "rgba(217,119,87,0.9)", fontFamily: "monospace", textTransform: "uppercase", fontWeight: 700 }}
             >
               Next Rec
             </text>
@@ -203,12 +203,12 @@ export function LandingMemory() {
 
           <div className="flex items-center gap-6 mt-4">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-zinc-600" />
-              <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Past outcomes</span>
+              <div className="w-2 h-2 rounded-full bg-[#BAB0A0]" />
+              <span className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">Past outcomes</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-amber-500" />
-              <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">Future recommendations</span>
+              <div className="w-2 h-2 rounded-full bg-[#D97757]" />
+              <span className="text-[10px] font-mono text-[#D97757] uppercase tracking-widest">Future recommendations</span>
             </div>
           </div>
         </div>
@@ -235,20 +235,20 @@ export function LandingMemory() {
               },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-4">
-                <div className="w-px h-full bg-zinc-800 shrink-0 self-stretch mt-1" />
+                <div className="w-px h-full bg-[#E5DED4] shrink-0 self-stretch mt-1" />
                 <div>
-                  <span className="text-xs font-mono text-amber-500 uppercase tracking-widest block mb-1">
+                  <span className="text-xs font-mono text-[#D97757] uppercase tracking-widest block mb-1">
                     {item.title}
                   </span>
-                  <p className="text-sm text-zinc-500 leading-6">{item.body}</p>
+                  <p className="text-sm text-[#6B655E] leading-6">{item.body}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-5 mt-2">
-            <p className="text-sm text-zinc-300 leading-6">
-              <span className="text-amber-400 font-semibold">Your business deserves marketing memory.</span>{" "}
+          <div className="bg-[#FBE9DE] border border-[#D97757]/20 rounded-xl p-5 mt-2">
+            <p className="text-sm text-[#4A4540] leading-6">
+              <span className="text-[#D97757] font-semibold">Your business deserves marketing memory.</span>{" "}
               Stop rebuilding context every Monday.
             </p>
           </div>

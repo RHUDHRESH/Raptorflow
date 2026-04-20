@@ -44,13 +44,13 @@ export default function CategoryAssetsPage({
       </div>
 
       {/* Honest degradation — S3 asset listing not yet wired */}
-      <Card className="border-zinc-800 bg-zinc-900/40">
+      <Card className="border-[#E5DED4] bg-[#F5F0E8]/40">
         <CardHeader>
-          <CardTitle className="text-base font-mono text-xs uppercase tracking-widest text-zinc-500">
+          <CardTitle className="text-base font-mono text-xs uppercase tracking-widest text-[#6B655E]">
             Backend Pending
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm text-zinc-500">
+        <CardContent className="space-y-2 text-sm text-[#6B655E]">
           <p>
             Asset listing for <Badge variant="outline" className="font-mono text-xs">{category}</Badge> requires{" "}
             <code>uploadsApi.listAssets(category)</code> — paginated S3-backed asset listing per org.

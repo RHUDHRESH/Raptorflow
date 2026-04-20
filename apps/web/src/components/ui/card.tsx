@@ -31,7 +31,7 @@ export function CardDescription({
   className,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>): React.ReactElement {
-  return <p className={cn("text-sm text-zinc-500", className)} {...props} />;
+  return <p className={cn("text-sm text-[var(--muted-foreground)]", className)} {...props} />;
 }
 
 export function CardContent({

@@ -132,12 +132,12 @@ export default function IntelPage(): React.ReactElement {
                  runs?.map((run: ResearchRun) => (
                    <div key={run.run_id} className="p-5 border border-[var(--border)] bg-[var(--card)] flex items-center justify-between">
                       <div>
-                        <h4 className="font-bold text-white tracking-tight">{run.title}</h4>
-                        <p className="text-[10px] font-mono text-zinc-600 uppercase mt-1">{run.status} // {run.run_id}</p>
+                        <h4 className="font-bold text-[#2A2622] tracking-tight">{run.title}</h4>
+                        <p className="text-[10px] font-mono text-[#9A948C] uppercase mt-1">{run.status} // {run.run_id}</p>
                       </div>
                       <div className="text-right">
-                         <div className="text-xs font-mono text-zinc-400 mb-1">{run.progress}%</div>
-                         <div className="w-32 h-1 bg-zinc-800"><div className="h-full bg-amber-500" style={{ width: `${run.progress}%` }} /></div>
+                         <div className="text-xs font-mono text-[#6B655E] mb-1">{run.progress}%</div>
+                         <div className="w-32 h-1 bg-[#E5DED4]"><div className="h-full bg-[#D97757]" style={{ width: `${run.progress}%` }} /></div>
                       </div>
                    </div>
                  ))
@@ -152,11 +152,11 @@ export default function IntelPage(): React.ReactElement {
                  documents?.map((doc: IntelDocument) => (
                    <div key={doc.document_id} className="p-6 border border-[var(--border)] bg-[var(--card)] space-y-3">
                       <div className="flex justify-between items-start">
-                        <span className="text-[9px] font-mono text-amber-500 uppercase tracking-widest">{doc.source_type}</span>
-                        <span className="text-[9px] font-mono text-zinc-600 tracking-widest">{new Date(doc.created_at).toLocaleDateString()}</span>
+                        <span className="text-[9px] font-mono text-[#D97757] uppercase tracking-widest">{doc.source_type}</span>
+                        <span className="text-[9px] font-mono text-[#9A948C] tracking-widest">{new Date(doc.created_at).toLocaleDateString()}</span>
                       </div>
-                      <h4 className="font-[family-name:var(--font-display)] text-lg text-white leading-tight">{doc.title}</h4>
-                      <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">{doc.content_preview}</p>
+                      <h4 className="font-[family-name:var(--font-display)] text-lg text-[#2A2622] leading-tight">{doc.title}</h4>
+                      <p className="text-xs text-[#6B655E] line-clamp-2 leading-relaxed">{doc.content_preview}</p>
                    </div>
                  ))
                 }

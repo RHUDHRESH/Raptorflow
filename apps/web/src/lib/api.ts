@@ -10,28 +10,31 @@ export class ApiError extends Error {
   }
 }
 
-let _authPromise: Promise<string | null> | null = null;
-
 export async function getAuthToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
-  if (_authPromise) return _authPromise;
-  _authPromise = (async () => {
-    try {
-      const clerk = (
-        window as Window & {
-          Clerk?: {
-            session?: {
-              getToken?: () => Promise<string | null>;
-            };
-          };
-        }
-      ).Clerk;
-      return (await clerk?.session?.getToken?.()) ?? publicEnv.devBearerToken;
-    } catch {
-      return publicEnv.devBearerToken;
+
+  try {
+    const clerk = (
+      window as Window & {
+        Clerk?: { session?: { getToken?: () => Promise<string | null> } };
+      }
+    ).Clerk;
+
+    if (clerk?.session?.getToken) {
+      const token = await clerk.session.getToken();
+      if (token) return token;
     }
-  })();
-  return _authPromise;
+  } catch {
+    // Clerk not loaded yet or session expired
+  }
+
+  // In development only, fall back to dev bearer token so the UI works without Clerk
+  // In production, this returns null which causes API calls to fail with 401
+  if (publicEnv.appEnv !== "prod") {
+    return publicEnv.devBearerToken;
+  }
+
+  return null;
 }
 
 export function getApiBaseUrl(): string {

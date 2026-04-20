@@ -87,7 +87,7 @@ export default function FoundationStep1() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#1a1a1a] px-6">
+    <div className="flex min-h-screen items-center justify-center bg-[#FBF8F2] px-6">
       <div className="flex w-full max-w-[440px] flex-col items-center">
         
         {/* WORDMARK */}
@@ -95,7 +95,7 @@ export default function FoundationStep1() {
           "mb-4 transition-all duration-500 ease-out",
           mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
         )}>
-          <h1 className="text-4xl font-bold tracking-tighter text-white">
+          <h1 className="text-4xl font-bold tracking-tighter text-[#2A2622]">
             RaptorFlow
           </h1>
         </div>
@@ -108,7 +108,7 @@ export default function FoundationStep1() {
 
         {/* QUESTION */}
         <p className={cn(
-          "mb-8 text-center text-xl text-white transition-all duration-500 ease-out delay-[200ms]",
+          "mb-8 text-center text-xl text-[#2A2622] transition-all duration-500 ease-out delay-[200ms]",
           mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
         )}>
           What is your business website?
@@ -129,7 +129,7 @@ export default function FoundationStep1() {
             disabled={isLoading}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="w-full bg-[#262626] border border-zinc-700 rounded-xl px-5 py-3 text-lg text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#f59e0b] transition-colors"
+            className="w-full bg-[#262626] border border-[#D5CBC0] rounded-xl px-5 py-3 text-lg text-[#2A2622] placeholder:text-[#6B655E] focus:outline-none focus:border-[#f59e0b] transition-colors"
           />
 
           <div className={cn(
@@ -139,7 +139,7 @@ export default function FoundationStep1() {
             <button
               type="submit"
               disabled={isLoading || !url.trim()}
-              className="relative w-full md:w-auto md:min-w-[280px] flex items-center justify-center gap-3 bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-semibold rounded-lg px-8 py-3 mx-auto transition-all"
+              className="relative w-full md:w-auto md:min-w-[280px] flex items-center justify-center gap-3 bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-semibold rounded-lg px-8 py-3 mx-auto transition-all"
             >
               {isLoading ? (
                 <>

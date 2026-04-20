@@ -84,8 +84,8 @@ export default function UploadsPage(): React.ReactElement {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right hidden md:block">
-              <p className="font-mono text-[8px] text-zinc-600 uppercase tracking-widest">Storage Efficiency</p>
-              <p className="text-sm font-bold text-white">99.4%</p>
+              <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest">Storage Efficiency</p>
+              <p className="text-sm font-bold text-[#2A2622]">99.4%</p>
             </div>
             <Button className="h-10 px-6 bg-[var(--foreground)] text-[var(--background)] font-bold uppercase tracking-widest text-[10px] rounded-none">
               <UploadIcon className="w-4 h-4 mr-2" />
@@ -101,49 +101,49 @@ export default function UploadsPage(): React.ReactElement {
           onDrop={handleDrop}
           className={cn(
             "gsap-reveal border-2 border-dashed p-12 flex flex-col items-center justify-center gap-4 transition-all duration-300",
-            dragging ? "border-amber-500 bg-amber-500/5" : "border-zinc-800 bg-zinc-900/20 hover:border-zinc-700"
+            dragging ? "border-[#D97757] bg-[#FBE9DE]" : "border-[#E5DED4] bg-[#F5F0E8]/20 hover:border-[#D5CBC0]"
           )}
         >
-          <div className="w-12 h-12 rounded-full border border-zinc-800 flex items-center justify-center bg-zinc-900">
-             <UploadIcon className={cn("w-6 h-6 transition-colors", dragging ? "text-amber-500" : "text-zinc-600")} />
+          <div className="w-12 h-12 rounded-full border border-[#E5DED4] flex items-center justify-center bg-[#F5F0E8]">
+             <UploadIcon className={cn("w-6 h-6 transition-colors", dragging ? "text-[#D97757]" : "text-[#9A948C]")} />
           </div>
           <div className="text-center">
-             <p className="text-white font-medium text-sm mb-1 uppercase tracking-tight">Drop tactical assets to ingest</p>
-             <p className="text-zinc-600 text-[10px] font-mono uppercase tracking-widest">Max file size: 512MB // PDF, PNG, DOCX, PPTX</p>
+             <p className="text-[#2A2622] font-medium text-sm mb-1 uppercase tracking-tight">Drop tactical assets to ingest</p>
+             <p className="text-[#9A948C] text-[10px] font-mono uppercase tracking-widest">Max file size: 512MB // PDF, PNG, DOCX, PPTX</p>
           </div>
         </div>
 
         {/* Controls */}
-        <div className="gsap-reveal flex flex-wrap items-center justify-between gap-6 border-b border-zinc-900 pb-6">
+        <div className="gsap-reveal flex flex-wrap items-center justify-between gap-6 border-b border-[#D5CBC0] pb-6">
            <div className="flex items-center gap-2">
               <div className="relative">
-                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9A948C]" />
                  <input 
                     type="text" 
                     placeholder="Search ledger..."
-                    className="h-10 pl-10 pr-4 bg-zinc-900/50 border border-zinc-800 text-[11px] font-mono text-white focus:outline-none focus:border-zinc-600 w-64 uppercase tracking-widest"
+                    className="h-10 pl-10 pr-4 bg-[#F5F0E8]/50 border border-[#E5DED4] text-[11px] font-mono text-[#2A2622] focus:outline-none focus:border-[#BAB0A0] w-64 uppercase tracking-widest"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                  />
               </div>
-              <div className="flex border border-zinc-800 h-10">
+              <div className="flex border border-[#E5DED4] h-10">
                  <button 
                     onClick={() => setView("grid")}
-                    className={cn("px-3 transition-colors", view === "grid" ? "bg-zinc-800 text-white" : "text-zinc-600 hover:text-zinc-400")}
+                    className={cn("px-3 transition-colors", view === "grid" ? "bg-[#E5DED4] text-[#2A2622]" : "text-[#9A948C] hover:text-[#6B655E]")}
                  >
                     <ViewGridIcon className="w-4 h-4" />
                  </button>
                  <button 
                     onClick={() => setView("list")}
-                    className={cn("px-3 border-l border-zinc-800 transition-colors", view === "list" ? "bg-zinc-800 text-white" : "text-zinc-600 hover:text-zinc-400")}
+                    className={cn("px-3 border-l border-[#E5DED4] transition-colors", view === "list" ? "bg-[#E5DED4] text-[#2A2622]" : "text-[#9A948C] hover:text-[#6B655E]")}
                  >
                     <ViewHorizontalIcon className="w-4 h-4" />
                  </button>
               </div>
            </div>
            <div className="flex gap-4">
-              <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-600 uppercase tracking-[0.2em]">
-                 <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              <div className="flex items-center gap-2 text-[10px] font-mono text-[#9A948C] uppercase tracking-[0.2em]">
+                 <span className="h-1.5 w-1.5 rounded-full bg-[#D97757]" />
                  {files.length} Assets Loaded
               </div>
            </div>
@@ -153,19 +153,19 @@ export default function UploadsPage(): React.ReactElement {
         {view === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {files.map((file) => (
-              <div key={file.id} className="gsap-reveal border border-zinc-800 bg-[#0d0d0d] p-5 group hover:border-zinc-600 transition-all flex flex-col h-[180px]">
+              <div key={file.id} className="gsap-reveal border border-[#E5DED4] bg-white p-5 group hover:border-[#D5CBC0] transition-all flex flex-col h-[180px]">
                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 border border-zinc-800 bg-zinc-900/50 group-hover:border-amber-500/50 transition-colors">
+                    <div className="p-2 border border-[#E5DED4] bg-[#F5F0E8]/50 group-hover:border-[#D97757]/50 transition-colors">
                        <FileIconComponent type={file.type} />
                     </div>
-                    <Badge variant="outline" className="text-[8px] font-mono tracking-widest uppercase border-zinc-800">
+                    <Badge variant="outline" className="text-[8px] font-mono tracking-widest uppercase border-[#E5DED4]">
                        {file.type.split('/')[1]?.toUpperCase() || "BIN"}
                     </Badge>
                  </div>
-                 <h3 className="text-sm font-bold text-white mb-2 line-clamp-1 group-hover:text-amber-500 transition-colors">{file.name}</h3>
-                 <p className="font-mono text-[9px] text-zinc-600 mt-auto">{formatBytes(file.size)} // {new Date(file.uploadedAt).toLocaleDateString()}</p>
-                 <div className="flex gap-2 mt-4 pt-4 border-t border-zinc-900 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 hover:text-white flex items-center gap-1">
+                 <h3 className="text-sm font-bold text-[#2A2622] mb-2 line-clamp-1 group-hover:text-[#D97757] transition-colors">{file.name}</h3>
+                 <p className="font-mono text-[9px] text-[#9A948C] mt-auto">{formatBytes(file.size)} // {new Date(file.uploadedAt).toLocaleDateString()}</p>
+                 <div className="flex gap-2 mt-4 pt-4 border-t border-[#D5CBC0] opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#6B655E] hover:text-[#2A2622] flex items-center gap-1">
                        <DownloadIcon className="w-3 h-3" /> Get
                     </button>
                     <button className="text-[10px] font-mono font-bold uppercase tracking-widest text-red-500/50 hover:text-red-500 flex items-center gap-1 ml-auto">
@@ -176,23 +176,23 @@ export default function UploadsPage(): React.ReactElement {
             ))}
           </div>
         ) : (
-          <div className="gsap-reveal border border-zinc-800 divide-y divide-zinc-900 bg-[#0d0d0d]">
+          <div className="gsap-reveal border border-[#E5DED4] divide-y divide-[#E5DED4] bg-white">
              {files.map((file) => (
                <div key={file.id} className="p-4 flex items-center justify-between group hover:bg-white/[0.02]">
                   <div className="flex items-center gap-4">
                      <FileIconComponent type={file.type} />
                      <div>
-                        <p className="text-sm font-medium text-white group-hover:text-amber-500 transition-colors uppercase tracking-tight">{file.name}</p>
-                        <p className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">{formatBytes(file.size)} // {file.type}</p>
+                        <p className="text-sm font-medium text-[#2A2622] group-hover:text-[#D97757] transition-colors uppercase tracking-tight">{file.name}</p>
+                        <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest">{formatBytes(file.size)} // {file.type}</p>
                      </div>
                   </div>
                   <div className="flex items-center gap-6">
-                     <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest hidden lg:block">Uploaded: {new Date(file.uploadedAt).toLocaleDateString()}</span>
+                     <span className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest hidden lg:block">Uploaded: {new Date(file.uploadedAt).toLocaleDateString()}</span>
                      <div className="flex gap-3">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-zinc-600 hover:text-white">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#9A948C] hover:text-[#2A2622]">
                            <DownloadIcon />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-zinc-600 hover:text-red-500">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#9A948C] hover:text-red-500">
                            <TrashIcon />
                         </Button>
                      </div>

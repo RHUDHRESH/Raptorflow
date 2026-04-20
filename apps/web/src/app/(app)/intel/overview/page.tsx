@@ -78,7 +78,7 @@ export default function IntelOverviewPage(): React.ReactElement {
                     <Badge variant="outline" className="text-xs">{artifact.type}</Badge>
                     <span className={`h-2 w-2 rounded-full ${
                       artifact.severity === "major" ? "bg-red-500" :
-                      artifact.severity === "warning" ? "bg-amber-500" : "bg-blue-500"
+                      artifact.severity === "warning" ? "bg-[#D97757]" : "bg-blue-500"
                     }`} />
                   </div>
                   <p className="mt-2 font-medium leading-snug">{artifact.preview}</p>

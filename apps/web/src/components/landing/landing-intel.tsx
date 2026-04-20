@@ -46,7 +46,7 @@ export function LandingIntel() {
 
       // Amber alert node pulse
       gsap.to(".intel-alert-node", {
-        boxShadow: "0 0 32px rgba(245,158,11,0.6)",
+        boxShadow: "0 0 32px rgba(217,119,87,0.6)",
         scale: 1.08,
         duration: 1.2,
         repeat: -1,
@@ -77,7 +77,7 @@ export function LandingIntel() {
       eyebrow="Intel"
       title="Competitor signals before they become surprises."
       description="RaptorFlow watches market changes and turns useful signals into campaign response paths."
-      className="bg-[#121212] border-t border-zinc-900"
+      className="bg-[#FBF8F2] border-t border-[#E5DED4]"
     >
       <div ref={sectionRef} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
@@ -88,7 +88,7 @@ export function LandingIntel() {
             {[1, 2, 3].map((r) => (
               <div
                 key={r}
-                className="absolute rounded-full border border-zinc-800"
+                className="absolute rounded-full border border-[#E5DED4]"
                 style={{
                   inset: `${(r - 1) * 22}%`,
                 }}
@@ -104,59 +104,59 @@ export function LandingIntel() {
                 className="absolute w-1/2 h-px origin-left"
                 style={{
                   left: "50%",
-                  background: "linear-gradient(to right, rgba(245,158,11,0.7), transparent)",
-                  boxShadow: "0 0 8px rgba(245,158,11,0.3)",
+                  background: "linear-gradient(to right, rgba(217,119,87,0.7), transparent)",
+                  boxShadow: "0 0 8px rgba(217,119,87,0.3)",
                 }}
               />
             </div>
 
             {/* Center dot */}
             <div
-              className="intel-alert-node absolute inset-[49%] rounded-full bg-amber-500"
-              style={{ boxShadow: "0 0 20px rgba(245,158,11,0.5)" }}
+              className="intel-alert-node absolute inset-[49%] rounded-full bg-[#D97757]"
+              style={{ boxShadow: "0 0 20px rgba(217,119,87,0.5)" }}
             />
 
             {/* Signal dots at various points */}
             <div className="intel-signal-dot absolute w-3 h-3 rounded-full border-2 border-red-500 bg-red-500/20" style={{ top: "18%", left: "68%" }} />
             <div className="intel-signal-dot absolute w-2.5 h-2.5 rounded-full border-2 border-amber-400 bg-amber-400/20" style={{ top: "62%", left: "78%" }} />
             <div className="intel-signal-dot absolute w-2 h-2 rounded-full border-2 border-green-500 bg-green-500/20" style={{ top: "75%", left: "32%" }} />
-            <div className="intel-signal-dot absolute w-2.5 h-2.5 rounded-full border-2 border-amber-500 bg-amber-500/20" style={{ top: "30%", left: "20%" }} />
+            <div className="intel-signal-dot absolute w-2.5 h-2.5 rounded-full border-2 border-[#D97757] bg-[#D97757]/20" style={{ top: "30%", left: "20%" }} />
 
             {/* Labels for dots */}
-            <div className="absolute text-[9px] font-mono text-red-400 uppercase tracking-wider" style={{ top: "10%", left: "72%" }}>Critical</div>
-            <div className="absolute text-[9px] font-mono text-amber-400 uppercase tracking-wider" style={{ top: "65%", left: "83%" }}>Watch</div>
-            <div className="absolute text-[9px] font-mono text-green-500 uppercase tracking-wider" style={{ top: "80%", left: "22%" }}>Low</div>
+            <div className="absolute text-[9px] font-mono text-red-500 uppercase tracking-wider" style={{ top: "10%", left: "72%" }}>Critical</div>
+            <div className="absolute text-[9px] font-mono text-[#D97757] uppercase tracking-wider" style={{ top: "65%", left: "83%" }}>Watch</div>
+            <div className="absolute text-[9px] font-mono text-green-600 uppercase tracking-wider" style={{ top: "80%", left: "22%" }}>Low</div>
           </div>
         </div>
 
         {/* Signal cards */}
         <div className="intel-signals-list flex flex-col gap-3">
-          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-2">
+          <p className="text-xs font-mono text-[#9A948C] uppercase tracking-widest mb-2">
             Active signals → Response paths
           </p>
           {intelSignals.map((signal, i) => (
             <div
               key={i}
-              className="intel-signal-card bg-[#1a1a1a] border border-zinc-800 rounded-xl p-4 flex items-center gap-4 hover:border-zinc-700 transition-colors duration-200 group"
+              className="intel-signal-card bg-white border border-[#E5DED4] rounded-xl p-4 flex items-center gap-4 hover:border-[#D5CBC0] transition-colors duration-200 group"
             >
               <div
                 className="w-2 h-2 rounded-full shrink-0"
                 style={{ backgroundColor: signal.color, boxShadow: `0 0 8px ${signal.color}60` }}
               />
               <div className="flex-1">
-                <p className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors duration-200">
+                <p className="text-sm font-medium text-[#4A4540] group-hover:text-[#2A2622] transition-colors duration-200">
                   {signal.label}
                 </p>
               </div>
-              <div className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest">
+              <div className="text-[10px] font-mono text-[#BAB0A0] uppercase tracking-widest">
                 → Response path
               </div>
             </div>
           ))}
 
-          <div className="mt-4 bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-            <p className="text-xs text-zinc-400 leading-5">
+          <div className="mt-4 bg-[#FBE9DE] border border-[#D97757]/20 rounded-xl p-4 flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-[#D97757] animate-pulse shrink-0" />
+            <p className="text-xs text-[#6B655E] leading-5">
               Every signal is tagged with strategic implication, not just raw data.
             </p>
           </div>

@@ -41,12 +41,12 @@ export function LandingSection({
           <div className={cn("mb-16 max-w-3xl", centered && "mx-auto")}>
             {eyebrow && <SectionLabel className="mb-4">{eyebrow}</SectionLabel>}
             {title && (
-              <h2 className="text-4xl md:text-5xl lg:text-6xl tracking-tight font-semibold text-white leading-[1.05] mt-3">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl tracking-tight font-semibold text-[#2A2622] leading-[1.05] mt-3 font-[family-name:var(--font-display)]">
                 {title}
               </h2>
             )}
             {description && (
-              <p className="mt-5 text-base md:text-lg text-zinc-400 leading-7">
+              <p className="mt-5 text-base md:text-lg text-[#6B655E] leading-7">
                 {description}
               </p>
             )}

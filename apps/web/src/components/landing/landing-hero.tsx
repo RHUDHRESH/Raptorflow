@@ -49,7 +49,7 @@ export function LandingHero() {
         className="absolute top-1/3 right-[8%] w-[480px] h-[480px] pointer-events-none"
         style={{
           background:
-            "radial-gradient(circle at center, rgba(245,158,11,0.07) 0%, transparent 70%)",
+            "radial-gradient(circle at center, rgba(217,119,87,0.07) 0%, transparent 70%)",
         }}
         aria-hidden="true"
       />
@@ -63,12 +63,12 @@ export function LandingHero() {
             AI-native marketing execution for Indian SMBs
           </SectionLabel>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl tracking-tight font-semibold text-white leading-[1.0] overflow-hidden flex flex-wrap gap-x-4 gap-y-1">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl tracking-tight font-semibold text-[#2A2622] leading-[1.0] overflow-hidden flex flex-wrap gap-x-4 gap-y-1 font-[family-name:var(--font-display)]">
             {headlineWords.map((word, i) => (
               <span
                 key={i}
                 className={`hero-word inline-block ${
-                  word === "marketing." ? "text-amber-400" : ""
+                  word === "marketing." ? "text-[#D97757]" : ""
                 }`}
               >
                 {word}
@@ -76,12 +76,12 @@ export function LandingHero() {
             ))}
           </h1>
 
-          <p className="hero-copy text-base md:text-lg text-zinc-400 leading-7 max-w-xl">
+          <p className="hero-copy text-base md:text-lg text-[#6B655E] leading-7 max-w-xl">
             RaptorFlow understands your business, plans campaigns, watches competitor
             signals, and turns every day into one clear action.
           </p>
 
-          <p className="hero-trust text-xs font-mono text-zinc-600 uppercase tracking-widest max-w-lg">
+          <p className="hero-trust text-xs font-mono text-[#9A948C] uppercase tracking-widest max-w-lg">
             Built for Indian SMBs that need strategy, execution, intelligence, and
             memory in one system.
           </p>

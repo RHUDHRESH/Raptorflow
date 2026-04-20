@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useBillingStatus } from "@/hooks/use-billing";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
 import { GearIcon, IdCardIcon, AvatarIcon, Link1Icon, CheckIcon } from "@radix-ui/react-icons";
-import { referralSignupHref } from "@/lib/referrals";
+
 
 export default function BillingPage(): React.ReactElement {
   const { data: billing, isLoading } = useBillingStatus();
@@ -62,10 +62,10 @@ export default function BillingPage(): React.ReactElement {
                     </p>
                   </div>
                   <a
-                    href={referralSignupHref("LOKI")}
+                    href="/sign-up"
                     className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--primary)]"
                   >
-                    Share access link
+                    Invite via referral code
                   </a>
                 </div>
               </div>

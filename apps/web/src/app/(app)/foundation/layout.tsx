@@ -12,7 +12,7 @@ export default function FoundationLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white selection:bg-[#f59e0b]/30 selection:text-[#f59e0b]">
+    <div className="min-h-screen bg-[#FBF8F2] text-[#2A2622] selection:bg-[#f59e0b]/30 selection:text-[#f59e0b]">
       {/* Interactive Chrome Layer (Client) */}
       <FoundationChrome />
 

@@ -78,7 +78,7 @@ export function LandingCouncil() {
       eyebrow="Council"
       title="Better strategy comes from disagreement."
       description="Multiple perspectives challenge a campaign decision, then RaptorFlow turns the tension into one practical plan."
-      className="bg-[#121212] border-t border-zinc-900"
+      className="bg-[#FBF8F2] border-t border-[#E5DED4]"
     >
       <div ref={sectionRef} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
@@ -108,7 +108,7 @@ export function LandingCouncil() {
                     y1={y}
                     x2="180"
                     y2="180"
-                    stroke="rgba(245,158,11,0.18)"
+                    stroke="rgba(217,119,87,0.18)"
                     strokeWidth="1"
                     strokeDasharray="120"
                   />
@@ -120,7 +120,7 @@ export function LandingCouncil() {
                 cx="180"
                 cy="180"
                 r="28"
-                stroke="rgba(245,158,11,0.7)"
+                stroke="rgba(217,119,87,0.7)"
                 strokeWidth="1.5"
                 strokeDasharray="200"
                 fill="none"
@@ -137,10 +137,10 @@ export function LandingCouncil() {
               return (
                 <div
                   key={i}
-                  className="council-node absolute -translate-x-1/2 -translate-y-1/2 bg-[#1a1a1a] border border-zinc-800 rounded-lg px-2 py-1 hover:border-amber-500/40 hover:bg-[#1f1f1f] transition-all duration-200 group cursor-default"
+                  className="council-node absolute -translate-x-1/2 -translate-y-1/2 bg-white border border-[#E5DED4] rounded-lg px-2 py-1 hover:border-[#D97757]/40 hover:bg-[#F5F0E8] transition-all duration-200 group cursor-default"
                   style={{ left: `${(x / 360) * 100}%`, top: `${(y / 360) * 100}%` }}
                 >
-                  <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest group-hover:text-amber-500 transition-colors duration-200 whitespace-nowrap">
+                  <span className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest group-hover:text-[#D97757] transition-colors duration-200 whitespace-nowrap">
                     {label}
                   </span>
                 </div>
@@ -149,10 +149,10 @@ export function LandingCouncil() {
 
             {/* Center synthesis node */}
             <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-[#1a1a1a] border-2 border-amber-500 rounded-full flex items-center justify-center"
-              style={{ boxShadow: "0 0 24px rgba(245,158,11,0.3)" }}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white border-2 border-[#D97757] rounded-full flex items-center justify-center"
+              style={{ boxShadow: "0 0 24px rgba(217,119,87,0.3)" }}
             >
-              <span className="text-[9px] font-mono text-amber-500 uppercase tracking-wider text-center leading-tight">
+              <span className="text-[9px] font-mono text-[#D97757] uppercase tracking-wider text-center leading-tight">
                 Plan
               </span>
             </div>
@@ -162,21 +162,21 @@ export function LandingCouncil() {
         {/* Copy */}
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-4">
-            <div className="bg-[#1a1a1a] border border-zinc-800 rounded-xl p-5">
-              <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest block mb-2">Positioning</span>
-              <p className="text-sm text-zinc-400 italic">
+            <div className="bg-white border border-[#E5DED4] rounded-xl p-5">
+              <span className="text-[10px] font-mono text-[#D97757] uppercase tracking-widest block mb-2">Positioning</span>
+              <p className="text-sm text-[#6B655E] italic">
                 "This campaign is positioned too broadly. We need to narrow to our top segment before spending on ads."
               </p>
             </div>
-            <div className="bg-[#1a1a1a] border border-zinc-800 rounded-xl p-5">
-              <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest block mb-2">Growth</span>
-              <p className="text-sm text-zinc-400 italic">
+            <div className="bg-white border border-[#E5DED4] rounded-xl p-5">
+              <span className="text-[10px] font-mono text-[#D97757] uppercase tracking-widest block mb-2">Growth</span>
+              <p className="text-sm text-[#6B655E] italic">
                 "Disagree. This is a reach phase. Broad now, narrow at Month 2 when we have conversion data."
               </p>
             </div>
-            <div className="bg-[#1a1a1a] border border-amber-500/20 rounded-xl p-5" style={{ boxShadow: "0 0 20px rgba(245,158,11,0.06)" }}>
-              <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest block mb-2">Synthesis</span>
-              <p className="text-sm text-white">
+            <div className="bg-white border border-[#D97757]/20 rounded-xl p-5" style={{ boxShadow: "0 0 20px rgba(217,119,87,0.06)" }}>
+              <span className="text-[10px] font-mono text-[#D97757] uppercase tracking-widest block mb-2">Synthesis</span>
+              <p className="text-sm text-[#2A2622]">
                 Run broad for 2 weeks with a performance trigger. If CPL exceeds ₹420, narrow segment automatically.
               </p>
             </div>

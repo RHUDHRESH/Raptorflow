@@ -51,12 +51,12 @@ export default function MusePage(): React.ReactElement {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#121212]">
-      <aside className="w-72 shrink-0 border-r border-zinc-800 bg-[#0f0f0f]">
-        <div className="border-b border-zinc-900 p-4">
+    <div className="flex h-screen overflow-hidden bg-[#FBF8F2]">
+      <aside className="w-72 shrink-0 border-r border-[#E5DED4] bg-[#FBF8F2]">
+        <div className="border-b border-[#D5CBC0] p-4">
           <Button
             onClick={startFreshConversation}
-            className="h-10 w-full bg-amber-500 text-black hover:bg-amber-400"
+            className="h-10 w-full bg-[#D97757] text-black hover:bg-amber-400"
           >
             <Plus className="mr-2 h-4 w-4" />
             New Conversation
@@ -65,7 +65,7 @@ export default function MusePage(): React.ReactElement {
 
         <ScrollArea className="h-[calc(100vh-73px)]">
           <div className="p-2">
-            <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+            <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#9A948C]">
               Past Conversations
             </div>
 
@@ -76,7 +76,7 @@ export default function MusePage(): React.ReactElement {
                 <Skeleton className="h-12 w-full" />
               </div>
             ) : conversations.length === 0 ? (
-              <p className="px-4 py-8 text-center text-xs text-zinc-600">
+              <p className="px-4 py-8 text-center text-xs text-[#9A948C]">
                 No persisted Muse conversations yet.
               </p>
             ) : (
@@ -86,14 +86,14 @@ export default function MusePage(): React.ReactElement {
                   onClick={() => setSelectedConversationId(conversation.conversationId)}
                   className={`w-full rounded-lg px-3 py-2.5 text-left transition-colors ${
                     selectedConversationId === conversation.conversationId
-                      ? "bg-[#1a1a1a]"
-                      : "hover:bg-[#161616]"
+                      ? "bg-[#FBF8F2]"
+                      : "hover:bg-[#F5F0E8]"
                   }`}
                 >
-                  <div className="truncate text-xs font-medium text-zinc-200">
+                  <div className="truncate text-xs font-medium text-[#4A4540]">
                     {conversation.preview || conversation.route || "Conversation"}
                   </div>
-                  <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+                  <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[#6B655E]">
                     {formatDistanceToNow(new Date(conversation.lastMessageAt || conversation.updated_at || Date.now()))} ago
                   </div>
                 </button>
@@ -104,14 +104,14 @@ export default function MusePage(): React.ReactElement {
       </aside>
 
       <main className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-zinc-800 px-6">
+        <header className="flex h-14 items-center justify-between border-b border-[#E5DED4] px-6">
           <div className="flex items-center gap-3">
-            <span className="text-base font-medium text-white">Muse</span>
-            <Badge variant="outline" className="border-zinc-800 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+            <span className="text-base font-medium text-[#2A2622]">Muse</span>
+            <Badge variant="outline" className="border-[#E5DED4] text-[10px] uppercase tracking-[0.14em] text-[#6B655E]">
               REST-backed
             </Badge>
           </div>
-          <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-600">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#9A948C]">
             Live token streaming is disabled until the backend supports it truthfully.
           </p>
         </header>
@@ -126,14 +126,14 @@ export default function MusePage(): React.ReactElement {
               </div>
             ) : messages.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-4 py-20 text-center">
-                <div className="rounded-full border border-amber-500/20 bg-amber-500/10 p-5 text-amber-500">
+                <div className="rounded-full border border-[#D97757]/20 bg-[#FBE9DE] p-5 text-[#D97757]">
                   <MessageSquare className="h-7 w-7" />
                 </div>
                 <div className="space-y-2">
-                  <h1 className="text-2xl font-semibold tracking-tight text-white">
+                  <h1 className="text-2xl font-semibold tracking-tight text-[#2A2622]">
                     Ask anything about your marketing
                   </h1>
-                  <p className="max-w-md text-sm text-zinc-500">
+                  <p className="max-w-md text-sm text-[#6B655E]">
                     Muse now uses the persisted backend conversation flow. Send a prompt to create or continue a conversation.
                   </p>
                 </div>
@@ -149,13 +149,13 @@ export default function MusePage(): React.ReactElement {
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                       message.role === "user"
-                        ? "rounded-tr-none border border-amber-500/20 bg-amber-500/10 text-white"
-                        : "rounded-tl-none border border-zinc-800 bg-[#1a1a1a] text-zinc-200"
+                        ? "rounded-tr-none border border-[#D97757]/20 bg-[#FBE9DE] text-[#2A2622]"
+                        : "rounded-tl-none border border-[#E5DED4] bg-[#FBF8F2] text-[#4A4540]"
                     }`}
                   >
                     {message.content}
                   </div>
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-zinc-600">
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-[#9A948C]">
                     {message.role}
                   </div>
                 </div>
@@ -164,18 +164,18 @@ export default function MusePage(): React.ReactElement {
           </div>
         </ScrollArea>
 
-        <footer className="border-t border-zinc-900 p-4 pb-8">
+        <footer className="border-t border-[#D5CBC0] p-4 pb-8">
           <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-3">
             <Input
               value={inputValue}
               onChange={(event) => setInputValue(event.target.value)}
               placeholder="Ask Muse about strategy, campaigns, content, or intel."
-              className="h-12 border-zinc-800 bg-[#1e1e1e] text-white placeholder:text-zinc-600"
+              className="h-12 border-[#E5DED4] bg-[#FBF8F2] text-[#2A2622] placeholder:text-[#9A948C]"
             />
             <Button
               type="submit"
               disabled={!inputValue.trim() || submitPrompt.isPending}
-              className="h-12 min-w-12 bg-amber-500 px-4 text-black hover:bg-amber-400 disabled:bg-zinc-800 disabled:text-zinc-500"
+              className="h-12 min-w-12 bg-[#D97757] px-4 text-black hover:bg-amber-400 disabled:bg-[#E5DED4] disabled:text-[#6B655E]"
             >
               {submitPrompt.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

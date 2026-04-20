@@ -95,7 +95,7 @@ export default function CampaignMoveDetailPage({
           <Badge className={
             move.status === "active" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
             move.status === "completed" ? "bg-green-500/10 text-green-500 border-green-500/20" :
-            "bg-zinc-800 text-zinc-500"
+            "bg-[#E5DED4] text-[#6B655E]"
           }>
             {move.status}
           </Badge>
@@ -114,7 +114,7 @@ export default function CampaignMoveDetailPage({
              <div className="flex items-start justify-between mb-8">
                 <div className="space-y-4 max-w-xl">
                    <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>Strategic Narrative</h3>
-                   <p className="text-zinc-400 font-light italic leading-relaxed">
+                   <p className="text-[#6B655E] font-light italic leading-relaxed">
                      &ldquo;{move.description}&rdquo;
                    </p>
                 </div>
@@ -128,23 +128,23 @@ export default function CampaignMoveDetailPage({
                 )}
              </div>
 
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-zinc-800">
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-[#E5DED4]">
                 <div>
-                   <p className="font-mono text-[8px] text-zinc-600 uppercase tracking-widest mb-1">Timeline</p>
+                   <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Timeline</p>
                    <p className="text-sm font-medium">{move.timeline}</p>
                 </div>
                 <div>
-                   <p className="font-mono text-[8px] text-zinc-600 uppercase tracking-widest mb-1">Channels</p>
+                   <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Channels</p>
                    <div className="flex gap-1 flex-wrap">
                       {move.channels.map(c => <Badge key={c} variant="outline" className="text-[9px] uppercase">{c}</Badge>)}
                    </div>
                 </div>
                 <div>
-                   <p className="font-mono text-[8px] text-zinc-600 uppercase tracking-widest mb-1">Tasks</p>
+                   <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Tasks</p>
                    <p className="text-sm font-medium">{move.tasks.filter(t => t.status === "done").length}/{move.tasks.length} Done</p>
                 </div>
                 <div>
-                   <p className="font-mono text-[8px] text-zinc-600 uppercase tracking-widest mb-1">Efficiency</p>
+                   <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Efficiency</p>
                    <p className="text-sm font-medium text-green-500">92%</p>
                 </div>
              </div>
@@ -157,7 +157,7 @@ export default function CampaignMoveDetailPage({
                    Operational Ledger
                 </p>
                 <div className="flex items-center gap-2">
-                   <Button variant="ghost" className="h-7 px-2 text-[9px] font-mono text-zinc-600 uppercase">View All</Button>
+                   <Button variant="ghost" className="h-7 px-2 text-[9px] font-mono text-[#9A948C] uppercase">View All</Button>
                    <Button size="sm" className="h-7 px-3 bg-white text-black text-[9px] font-bold uppercase rounded-none">Create Task</Button>
                 </div>
              </div>
@@ -169,17 +169,17 @@ export default function CampaignMoveDetailPage({
                         <div className="flex items-center gap-4">
                            <div className={`h-2 w-2 rounded-full ${
                              task.status === "done" ? "bg-green-500" :
-                             task.status === "in_progress" ? "bg-amber-500 animate-pulse" : "bg-zinc-800"
+                             task.status === "in_progress" ? "bg-amber-500 animate-pulse" : "bg-[#E5DED4]"
                            }`} />
                            <div>
-                              <p className="text-sm text-white font-medium group-hover:text-amber-500 transition-colors uppercase tracking-tight">{task.title}</p>
+                              <p className="text-sm text-[#2A2622] font-medium group-hover:text-amber-500 transition-colors uppercase tracking-tight">{task.title}</p>
                               <div className="flex items-center gap-3 mt-1">
-                                 <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">{task.status.replace("_", " ")}</span>
-                                 <span className="text-zinc-800">|</span>
+                                 <span className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest">{task.status.replace("_", " ")}</span>
+                                 <span className="text-[#BAB0A0]">|</span>
                                  {agent && (
                                    <div className="flex items-center gap-1.5 grayscale group-hover:grayscale-0 transition-all">
                                       <AgentPill agent={agent} size={14} />
-                                      <span className="text-[9px] font-mono text-zinc-500 uppercase">{agent.displayName}</span>
+                                      <span className="text-[9px] font-mono text-[#6B655E] uppercase">{agent.displayName}</span>
                                    </div>
                                  )}
                               </div>
@@ -217,9 +217,9 @@ export default function CampaignMoveDetailPage({
               </button>
            </div>
 
-           <div className="p-6 border border-zinc-800 bg-[#161616] space-y-4">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-500">Move Context</p>
-              <p className="text-xs text-zinc-400 font-light italic leading-relaxed">
+           <div className="p-6 border border-[#E5DED4] bg-[#FBF8F2] space-y-4">
+              <p className="text-[10px] uppercase font-bold tracking-widest text-[#6B655E]">Move Context</p>
+              <p className="text-xs text-[#6B655E] font-light italic leading-relaxed">
                  Moves are sequential blocks of tactical execution. This move was authorized by the Council of 21 after the Q2 Performance Review.
               </p>
            </div>

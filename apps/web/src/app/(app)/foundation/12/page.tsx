@@ -93,15 +93,15 @@ export default function FoundationStep12() {
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[600px] space-y-10">
         
         {/* HEADER */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-white leading-tight">
+          <h1 className="text-3xl font-bold text-[#2A2622] leading-tight">
             What should you show up for?
           </h1>
-          <p className="text-base text-zinc-400">
+          <p className="text-base text-[#6B655E]">
             The searches your ideal customer is doing right now.
           </p>
         </div>
@@ -120,9 +120,9 @@ export default function FoundationStep12() {
                   <span>{kw.text}</span>
                   <button 
                     onClick={() => removeKeyword(kw.text)}
-                    className="p-0.5 hover:bg-white/10 rounded-full transition-colors"
+                    className="p-0.5 hover:bg-[#F5F0E8] rounded-full transition-colors"
                   >
-                    <X className="w-3 h-3 text-zinc-500 hover:text-white" />
+                    <X className="w-3 h-3 text-[#6B655E] hover:text-[#2A2622]" />
                   </button>
                 </div>
                 {kw.competition === "high" && (
@@ -137,7 +137,7 @@ export default function FoundationStep12() {
           {/* HIGH COMPETITION NOTE */}
           {hasHighComp && (
             <div className="p-4 bg-red-950/10 border border-red-900/20 rounded-xl space-y-1">
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <p className="text-xs text-[#6B655E] leading-relaxed">
                 <span className="text-red-400 font-bold inline-flex items-center gap-1.5 mr-1 uppercase tracking-widest">
                   <AlertCircle className="w-3 h-3" /> Note:
                 </span>
@@ -148,10 +148,10 @@ export default function FoundationStep12() {
         </div>
 
         {/* ADD KEYWORD INPUT */}
-        <div className="space-y-4 pt-4 border-t border-zinc-800">
+        <div className="space-y-4 pt-4 border-t border-[#E5DED4]">
           <div className="flex gap-2">
             <input
-              className="flex-1 bg-[#262626] border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#f59e0b] transition-colors"
+              className="flex-1 bg-[#262626] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] transition-colors"
               placeholder="Add a search term..."
               value={newKeyword}
               onKeyDown={(e) => e.key === "Enter" && addKeyword()}
@@ -160,19 +160,19 @@ export default function FoundationStep12() {
             <button
               onClick={addKeyword}
               disabled={!newKeyword.trim()}
-              className="px-6 bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-800 disabled:text-zinc-600 text-black font-bold rounded-lg transition-all"
+              className="px-6 bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#E5DED4] disabled:text-[#9A948C] text-black font-bold rounded-lg transition-all"
             >
               Add
             </button>
           </div>
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest">At least 3 keywords required to build your SEO profile</p>
+          <p className="text-[10px] text-[#9A948C] uppercase tracking-widest">At least 3 keywords required to build your SEO profile</p>
         </div>
 
         {/* CTA */}
         <button
           onClick={handleContinue}
           disabled={keywords.length < 3 || isSubmitting}
-          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all mt-8"
+          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all mt-8"
         >
           {isSubmitting ? "Building Search Profile..." : "Continue"}
         </button>

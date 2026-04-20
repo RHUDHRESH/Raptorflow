@@ -126,13 +126,13 @@ export default function FoundationStep17() {
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[640px] space-y-10">
         
         {/* HEADER */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-white">What do you already have?</h1>
-          <p className="text-base text-zinc-400">Your AI team will build on what exists, not duplicate it.</p>
+          <h1 className="text-3xl font-bold text-[#2A2622]">What do you already have?</h1>
+          <p className="text-base text-[#6B655E]">Your AI team will build on what exists, not duplicate it.</p>
         </div>
 
         {/* ASSET CHECKLIST */}
@@ -150,17 +150,17 @@ export default function FoundationStep17() {
                 onClick={() => toggleAsset(asset.id)}
                 className={cn(
                   "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 cursor-pointer",
-                  asset.checked ? "bg-[#262626] border-zinc-700 shadow-lg" : "bg-[#1e1e1e] border-zinc-800 hover:border-zinc-700"
+                  asset.checked ? "bg-[#262626] border-[#D5CBC0] shadow-lg" : "bg-[#FBF8F2] border-[#E5DED4] hover:border-[#D5CBC0]"
                 )}
               >
                 <div className="flex items-center gap-4">
                   <div className={cn(
                     "w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all",
-                    asset.checked ? "bg-[#f59e0b] border-[#f59e0b]" : "border-zinc-700"
+                    asset.checked ? "bg-[#f59e0b] border-[#f59e0b]" : "border-[#D5CBC0]"
                   )}>
                     {asset.checked && <Check className="w-3.5 h-3.5 text-black" />}
                   </div>
-                  <span className={cn("text-sm font-medium transition-colors", asset.checked ? "text-white" : "text-zinc-400")}>
+                  <span className={cn("text-sm font-medium transition-colors", asset.checked ? "text-[#2A2622]" : "text-[#6B655E]")}>
                     {asset.label}
                   </span>
                   {asset.files.length > 0 && asset.checked && (
@@ -173,7 +173,7 @@ export default function FoundationStep17() {
                 {asset.checked && asset.files.length < 3 && (
                   <button
                     onClick={(e) => { e.stopPropagation(); handleFileUploadClick(asset.id); }}
-                    className="flex items-center gap-1.5 px-3 py-1 border border-zinc-700 rounded-lg text-xs text-zinc-400 hover:text-white hover:border-zinc-500 transition-all font-bold uppercase tracking-wider"
+                    className="flex items-center gap-1.5 px-3 py-1 border border-[#D5CBC0] rounded-lg text-xs text-[#6B655E] hover:text-[#2A2622] hover:border-[#D5CBC0] transition-all font-bold uppercase tracking-wider"
                   >
                     <Upload className="w-3 h-3" />
                     Upload
@@ -183,7 +183,7 @@ export default function FoundationStep17() {
 
               {/* UPLOADED FILES LIST */}
               {asset.checked && asset.files.length > 0 && (
-                <div className="pl-12 flex flex-col gap-1 text-xs text-zinc-500 animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="pl-12 flex flex-col gap-1 text-xs text-[#6B655E] animate-in fade-in slide-in-from-top-1 duration-200">
                   {asset.files.map((file) => (
                     <div key={file.name} className="flex items-center gap-2">
                       <span className="truncate max-w-[200px]">{file.name}</span>
@@ -203,10 +203,10 @@ export default function FoundationStep17() {
         </div>
 
         {/* SOCIAL HANDLES */}
-        <div className="pt-6 border-t border-zinc-800 space-y-8">
+        <div className="pt-6 border-t border-[#E5DED4] space-y-8">
           <div className="space-y-1">
-            <h2 className="text-lg font-medium text-white">Social media and ad accounts</h2>
-            <p className="text-sm text-zinc-400">These get added to your monitoring stack immediately.</p>
+            <h2 className="text-lg font-medium text-[#2A2622]">Social media and ad accounts</h2>
+            <p className="text-sm text-[#6B655E]">These get added to your monitoring stack immediately.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,12 +219,12 @@ export default function FoundationStep17() {
               { id: "whatsapp", label: "WhatsApp", icon: "💬", placeholder: "+91 XXXXX XXXXX" },
             ].map((p) => (
               <div key={p.id} className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-[#6B655E] flex items-center gap-2">
                   <span>{p.icon}</span>
                   {p.label}
                 </label>
                 <input
-                  className="w-full bg-[#1e1e1e] border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#f59e0b] focus:bg-[#262626] transition-all"
+                  className="w-full bg-[#FBF8F2] border border-[#E5DED4] rounded-lg px-4 py-2.5 text-sm text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] focus:bg-[#262626] transition-all"
                   placeholder={p.placeholder}
                   value={(socialHandles as any)[p.id]}
                   onChange={(e) => setSocialHandles({ ...socialHandles, [p.id]: e.target.value })}
@@ -238,7 +238,7 @@ export default function FoundationStep17() {
         <button
           onClick={handleContinue}
           disabled={isSubmitting}
-          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all mt-8"
+          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all mt-8"
         >
           {isSubmitting ? "Processing Assets..." : "Continue"}
         </button>

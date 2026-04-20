@@ -80,36 +80,36 @@ export function LandingSystem() {
       eyebrow="The operating loop"
       title="One loop for strategy, campaigns, intelligence, and action."
       description="RaptorFlow connects the parts of marketing that usually live in separate tabs."
-      className="bg-[#121212] border-t border-zinc-900"
+      className="bg-[#F5F0E8] border-t border-[#E5DED4]"
     >
       <div ref={sectionRef}>
         {/* Connector line */}
         <div className="hidden lg:flex items-center mb-[-1px] mt-[-24px] px-2">
-          <div className="system-connector h-px bg-amber-500/30 flex-1 origin-left" />
+          <div className="system-connector h-px bg-[#D97757]/30 flex-1 origin-left" />
         </div>
 
         {/* Pillars */}
-        <div className="system-pillars grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-0 border border-zinc-800">
+        <div className="system-pillars grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-0 border border-[#E5DED4]">
           {systemPillars.map((pillar, i) => (
             <div
               key={i}
-              className={`system-pillar relative p-7 border-b lg:border-b-0 lg:border-r border-zinc-800 last:border-r-0 last:border-b-0 hover:bg-[#1f1f1f] transition-colors duration-200 group cursor-default`}
+              className={`system-pillar relative p-7 border-b lg:border-b-0 lg:border-r border-[#E5DED4] last:border-r-0 last:border-b-0 hover:bg-white transition-colors duration-200 group cursor-default`}
             >
               {/* Amber top accent — reveals sequentially */}
               <div
-                className={`system-active-${i} absolute top-0 left-0 right-0 h-px bg-amber-500/70 opacity-0`}
+                className={`system-active-${i} absolute top-0 left-0 right-0 h-px bg-[#D97757]/70 opacity-0`}
               />
 
               <div className="flex items-center gap-3 mb-5">
-                <span className="text-xs font-mono text-zinc-700">{pillar.number}</span>
-                <span className="text-lg text-zinc-600 group-hover:text-amber-500 transition-colors duration-200">
+                <span className="text-xs font-mono text-[#BAB0A0]">{pillar.number}</span>
+                <span className="text-lg text-[#9A948C] group-hover:text-[#D97757] transition-colors duration-200">
                   {pillar.glyph}
                 </span>
               </div>
-              <h3 className="text-base font-semibold text-white mb-3 group-hover:text-amber-400 transition-colors duration-200">
+              <h3 className="text-base font-semibold text-[#2A2622] mb-3 group-hover:text-[#D97757] transition-colors duration-200">
                 {pillar.title}
               </h3>
-              <p className="text-sm text-zinc-500 leading-6">{pillar.body}</p>
+              <p className="text-sm text-[#6B655E] leading-6">{pillar.body}</p>
             </div>
           ))}
         </div>

@@ -378,9 +378,9 @@ impl GcpInferenceService {
         let client = Arc::new(GeminiClient::from_settings(settings));
         Self {
             client,
-            strategist_model: "gemini-pro".to_string(),
-            council_model: "gemini-flash-lite".to_string(),
-            default_model: "gemini-flash-lite".to_string(),
+            strategist_model: settings.bedrock_model_strategist.clone(),
+            council_model: settings.bedrock_model_fast.clone(),
+            default_model: settings.bedrock_model_fast.clone(),
         }
     }
 

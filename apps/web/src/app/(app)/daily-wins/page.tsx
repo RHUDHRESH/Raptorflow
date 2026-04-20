@@ -60,10 +60,10 @@ export default function DailyWinsPage() {
     return (
       <div className="flex flex-col items-center justify-center p-12 space-y-4">
         <AlertCircle className="w-12 h-12 text-red-500/50" />
-        <p className="text-zinc-500 font-mono text-sm uppercase tracking-widest">
+        <p className="text-[#6B655E] font-mono text-sm uppercase tracking-widest">
           Telemetry uplink failed
         </p>
-        <Button variant="outline" onClick={() => refetch()} className="border-zinc-800 text-zinc-400 hover:text-white">
+        <Button variant="outline" onClick={() => refetch()} className="border-[#E5DED4] text-[#6B655E] hover:text-[#2A2622]">
           Retry Uplink
         </Button>
       </div>
@@ -74,17 +74,17 @@ export default function DailyWinsPage() {
   if (!win) {
     return (
       <div className="flex flex-col items-center justify-center pt-32 px-6">
-        <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center text-4xl text-amber-500 font-serif mb-6">
+        <div className="w-20 h-20 bg-[#FBE9DE] border border-[#D97757]/20 rounded-full flex items-center justify-center text-4xl text-[#D97757] font-serif mb-6">
           S
         </div>
-        <h1 className="text-2xl text-white font-bold mb-2 tracking-tight">
+        <h1 className="text-2xl text-[#2A2622] font-bold mb-2 tracking-tight">
           No briefing generated yet.
         </h1>
-        <p className="text-zinc-500 text-center max-w-sm mb-8 leading-relaxed">
+        <p className="text-[#6B655E] text-center max-w-sm mb-8 leading-relaxed">
           Create or progress a campaign to generate your first persisted daily briefing.
         </p>
         <Link href="/campaigns">
-          <Button className="bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-widest px-8">
+          <Button className="bg-[#D97757] hover:bg-amber-400 text-black font-bold uppercase tracking-widest px-8">
             Create your first campaign <ChevronRight className="ml-2 w-4 h-4" />
           </Button>
         </Link>
@@ -107,24 +107,24 @@ export default function DailyWinsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-24">
       {/* ── Page Header ────────────────────────────────────────── */}
-      <header className="flex items-end justify-between border-b border-zinc-900 pb-8">
+      <header className="flex items-end justify-between border-b border-[#D5CBC0] pb-8">
         <div className="space-y-1">
-          <p className="text-2xl font-light text-zinc-400">
+          <p className="text-2xl font-light text-[#6B655E]">
             {format(new Date(), "EEEE, d MMMM")}
           </p>
-          <h1 className="text-5xl text-white font-bold tracking-tight">
+          <h1 className="text-5xl text-[#2A2622] font-bold tracking-tight">
             Good morning.
           </h1>
         </div>
-        <div className="flex items-center gap-3 bg-zinc-900/50 border border-zinc-800 rounded-full pl-2 pr-4 py-1.5">
-          <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-500 text-xs font-bold font-serif">
+        <div className="flex items-center gap-3 bg-[#F5F0E8]/50 border border-[#E5DED4] rounded-full pl-2 pr-4 py-1.5">
+          <div className="w-8 h-8 rounded-full bg-[#D97757]/20 border border-[#D97757]/30 flex items-center justify-center text-[#D97757] text-xs font-bold font-serif">
             {win.strategist_name.charAt(0)}
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase font-bold text-zinc-300 tracking-wider">
+            <span className="text-[10px] uppercase font-bold text-[#9A948C] tracking-wider">
               {win.strategist_name}
             </span>
-            <span className="text-[8px] uppercase font-mono text-zinc-600 font-bold">
+            <span className="text-[8px] uppercase font-mono text-[#9A948C] font-bold">
               GEN: {format(new Date(win.generated_at), "h:mm aa")}
             </span>
           </div>
@@ -132,26 +132,26 @@ export default function DailyWinsPage() {
       </header>
 
       {/* ── Section 1: The Lead ────────────────────────────────── */}
-      <section className="relative bg-[#1a1a1a] rounded-2xl p-8 border border-zinc-800/80 group">
-        <div className="absolute left-0 top-6 bottom-6 w-1 bg-amber-500 rounded-r-lg shadow-[0_0_12px_rgba(245,158,11,0.4)]" />
+      <section className="relative bg-[#FBF8F2] rounded-2xl p-8 border border-[#E5DED4]/80 group">
+        <div className="absolute left-0 top-6 bottom-6 w-1 bg-[#D97757] rounded-r-lg shadow-[0_0_12px_rgba(217,119,87,0.4)]" />
         
         <div className="space-y-6">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-zinc-600" />
-            <span className="text-xs uppercase tracking-[0.3em] font-bold text-zinc-500">
+            <Sparkles className="w-3.5 h-3.5 text-[#9A948C]" />
+            <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#6B655E]">
               Today's Lead
             </span>
           </div>
           
-          <div className="space-y-5 text-lg text-zinc-300 font-light leading-relaxed max-w-3xl">
+          <div className="space-y-5 text-lg text-[#9A948C] font-light leading-relaxed max-w-3xl">
             {win.lead.text.split('\n\n').map((para, i) => (
               <p key={i}>{para}</p>
             ))}
           </div>
 
           <div className="pt-4">
-            <Badge variant="outline" className="bg-zinc-800/40 border-zinc-800 text-[10px] text-zinc-400 font-normal px-4 py-1.5 rounded-full">
-              Why this matters: <span className="text-zinc-200 ml-1.5">{win.lead.significance}</span>
+            <Badge variant="outline" className="bg-[#E5DED4]/40 border-[#E5DED4] text-[10px] text-[#6B655E] font-normal px-4 py-1.5 rounded-full">
+              Why this matters: <span className="text-[#4A4540] ml-1.5">{win.lead.significance}</span>
             </Badge>
           </div>
         </div>
@@ -161,16 +161,16 @@ export default function DailyWinsPage() {
       {win.context && win.context.length > 0 && (
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {win.context.map((item, i) => (
-            <div key={i} className="bg-[#262626] rounded-2xl p-6 border border-zinc-800 flex flex-col justify-between h-40">
+            <div key={i} className="bg-[#262626] rounded-2xl p-6 border border-[#E5DED4] flex flex-col justify-between h-40">
               <div className="space-y-3">
-                <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-zinc-600">Context Item</span>
-                <p className="text-sm text-zinc-300 line-clamp-3 leading-relaxed">
+                <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-[#9A948C]">Context Item</span>
+                <p className="text-sm text-[#9A948C] line-clamp-3 leading-relaxed">
                   {item.text}
                 </p>
               </div>
               <div className="flex items-center gap-1.5 opacity-50">
-                <FileText className="w-3 h-3 text-zinc-500" />
-                <span className="text-[9px] uppercase font-mono font-bold text-zinc-500 tracking-wider">
+                <FileText className="w-3 h-3 text-[#6B655E]" />
+                <span className="text-[9px] uppercase font-mono font-bold text-[#6B655E] tracking-wider">
                   SOURCE: {item.source}
                 </span>
               </div>
@@ -180,29 +180,29 @@ export default function DailyWinsPage() {
       )}
 
       {/* ── Section 3: Today's Focus ────────────────────────────── */}
-      <section className="bg-amber-500/5 rounded-2xl p-10 border border-amber-500/20 relative overflow-hidden group">
+      <section className="bg-[#FBE9DE] rounded-2xl p-10 border border-[#D97757]/20 relative overflow-hidden group">
         {/* Animated Background Pulse */}
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] group-hover:bg-amber-500/10 transition-colors" />
+        <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#FBE9DE] rounded-full blur-[80px] group-hover:bg-[#FBE9DE] transition-colors" />
         
         <div className="relative z-10 space-y-6">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-            <span className="text-xs uppercase tracking-[0.3em] font-bold text-amber-600">
+            <div className="w-2 h-2 rounded-full bg-[#D97757] animate-pulse" />
+            <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#C46A4D]">
               CRITICAL FOCUS
             </span>
           </div>
 
           <div className="space-y-2 max-w-2xl">
-            <h2 className="text-3xl text-white font-bold tracking-tight">
+            <h2 className="text-3xl text-[#2A2622] font-bold tracking-tight">
               {win.todays_focus.action}
             </h2>
-            <p className="text-base text-zinc-400 leading-relaxed italic">
+            <p className="text-base text-[#6B655E] leading-relaxed italic">
               — {win.todays_focus.rationale}
             </p>
           </div>
 
           <Link href={(ctaLinks[win.todays_focus.action_type] || "/daily-wins") as any}>
-            <Button className="h-14 px-10 bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-widest text-sm transition-all hover:translate-x-1">
+            <Button className="h-14 px-10 bg-[#D97757] hover:bg-amber-400 text-black font-bold uppercase tracking-widest text-sm transition-all hover:translate-x-1">
               {win.todays_focus.action_type === 'approve_content' && "Review & Approve Content"}
               {win.todays_focus.action_type === 'review_campaign' && "Open Campaign Details"}
               {win.todays_focus.action_type === 'respond_to_intel' && "View Intel Directive"}
@@ -217,17 +217,17 @@ export default function DailyWinsPage() {
       <footer className="text-center pt-8">
         <button 
           onClick={handleMarkAsRead}
-          className="text-zinc-600 hover:text-zinc-400 transition-colors text-xs font-mono uppercase tracking-[0.2em] underline underline-offset-8 decoration-zinc-800"
+          className="text-[#9A948C] hover:text-[#6B655E] transition-colors text-xs font-mono uppercase tracking-[0.2em] underline underline-offset-8 decoration-zinc-800"
         >
           {win.viewed_at ? "Marked as read" : "Mark today's briefing as read"}
         </button>
       </footer>
 
       {/* ── Archive Section ───────────────────────────────────── */}
-      <section className="pt-12 border-t border-zinc-900">
+      <section className="pt-12 border-t border-[#D5CBC0]">
         <button 
           onClick={() => setArchiveOpen(!archiveOpen)}
-          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest"
+          className="flex items-center gap-2 text-[#6B655E] hover:text-[#2A2622] transition-colors text-xs font-bold uppercase tracking-widest"
         >
           {archiveOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           View Past Briefings
@@ -240,22 +240,22 @@ export default function DailyWinsPage() {
                 {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
               </div>
             ) : archive.length === 0 ? (
-              <p className="text-zinc-600 text-xs italic font-mono uppercase tracking-widest">
+              <p className="text-[#9A948C] text-xs italic font-mono uppercase tracking-widest">
                 Archive is empty. Briefings accrue daily.
               </p>
             ) : (
-              <div className="space-y-4 relative pl-4 border-l border-zinc-900 ml-2">
+              <div className="space-y-4 relative pl-4 border-l border-[#D5CBC0] ml-2">
                 {archive.map((item) => (
                   <Link 
                     key={item.win_id} 
                     href={`/daily-wins/${item.win_id}` as any}
                     className="flex flex-col group"
                   >
-                    <div className="absolute -left-[5px] w-2 h-2 rounded-full bg-zinc-800 group-hover:bg-amber-500 transition-colors mt-1.5" />
-                    <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-widest leading-none">
+                    <div className="absolute -left-[5px] w-2 h-2 rounded-full bg-[#E5DED4] group-hover:bg-[#D97757] transition-colors mt-1.5" />
+                    <span className="text-[10px] uppercase font-bold text-[#6B655E] tracking-widest leading-none">
                       {format(new Date(item.generated_at), "MMM d, yyyy")}
                     </span>
-                    <span className="text-sm text-zinc-400 mt-1 line-clamp-1 group-hover:text-zinc-200">
+                    <span className="text-sm text-[#6B655E] mt-1 line-clamp-1 group-hover:text-[#4A4540]">
                       {item.lead.text}
                     </span>
                   </Link>
@@ -275,7 +275,7 @@ export default function DailyWinsPage() {
 function DailyWinsSkeleton() {
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-24 animate-pulse">
-      <header className="flex items-end justify-between border-b border-zinc-900 pb-8">
+      <header className="flex items-end justify-between border-b border-[#D5CBC0] pb-8">
         <div className="space-y-3">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-12 w-64" />

@@ -120,13 +120,13 @@ export default function FoundationStep13() {
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[640px] space-y-12">
         
         {/* HEADER */}
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-white">Where do you want to show up?</h1>
-          <p className="text-base text-zinc-400">Select every channel that matters to your business.</p>
+          <h1 className="text-3xl font-bold text-[#2A2622]">Where do you want to show up?</h1>
+          <p className="text-base text-[#6B655E]">Select every channel that matters to your business.</p>
         </div>
 
         {/* CHANNEL GRID */}
@@ -137,18 +137,18 @@ export default function FoundationStep13() {
               onClick={() => !c.selected && toggleSelection(c.name)}
               className={cn(
                 "group relative p-4 rounded-xl border flex flex-col gap-3 transition-all duration-300 cursor-pointer overflow-hidden",
-                c.selected ? "border-[#f59e0b] bg-[#f59e0b]/10" : "bg-[#262626] border-zinc-700 hover:border-zinc-500"
+                c.selected ? "border-[#f59e0b] bg-[#f59e0b]/10" : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]"
               )}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">{c.icon}</span>
-                  <span className="text-sm font-medium text-white">{c.name}</span>
+                  <span className="text-sm font-medium text-[#2A2622]">{c.name}</span>
                 </div>
                 {c.selected && (
                   <button 
                     onClick={(e) => { e.stopPropagation(); toggleSelection(c.name); }}
-                    className="p-1 text-zinc-500 hover:text-white"
+                    className="p-1 text-[#6B655E] hover:text-[#2A2622]"
                   >
                     <Star className={cn("w-3 h-3 transition-colors", c.isPriority ? "fill-[#f59e0b] text-[#f59e0b]" : "")} />
                   </button>
@@ -163,16 +163,16 @@ export default function FoundationStep13() {
                 <label className="text-[10px] uppercase font-bold tracking-widest text-[#f59e0b]/70">You are currently:</label>
                 <div className="relative">
                   <select
-                    className="w-full bg-black/40 border border-[#f59e0b]/20 rounded-lg px-3 py-1.5 text-[11px] text-white appearance-none focus:outline-none focus:border-[#f59e0b]/50"
+                    className="w-full bg-black/40 border border-[#f59e0b]/20 rounded-lg px-3 py-1.5 text-[11px] text-[#2A2622] appearance-none focus:outline-none focus:border-[#f59e0b]/50"
                     value={c.status}
                     onChange={(e) => updateStatus(c.name, e.target.value)}
                     onClick={(e) => e.stopPropagation()}
                   >
                     {["Not started", "Just getting going", "Active but inconsistent", "Consistent and performing"].map(opt => (
-                      <option key={opt} value={opt} className="bg-zinc-900">{opt}</option>
+                      <option key={opt} value={opt} className="bg-[#F5F0E8]">{opt}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500 pointer-events-none" />
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[#6B655E] pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -181,10 +181,10 @@ export default function FoundationStep13() {
 
         {/* PRIORITY RANKING */}
         {selectedCount > 0 && (
-          <div className="space-y-6 pt-6 border-t border-zinc-800 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="space-y-6 pt-6 border-t border-[#E5DED4] animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="space-y-1 text-center">
-              <h2 className="text-base font-medium text-white">Which 2 channels should we prioritise first?</h2>
-              <p className="text-sm text-zinc-500">Your AI team will focus their energy here.</p>
+              <h2 className="text-base font-medium text-[#2A2622]">Which 2 channels should we prioritise first?</h2>
+              <p className="text-sm text-[#6B655E]">Your AI team will focus their energy here.</p>
             </div>
             
             <div className="flex flex-wrap justify-center gap-2">
@@ -195,8 +195,8 @@ export default function FoundationStep13() {
                   className={cn(
                     "inline-flex items-center gap-2 px-4 py-2 rounded-full border text-[11px] font-bold uppercase tracking-wider transition-all duration-300",
                     c.isPriority
-                      ? "border-[#f59e0b] bg-[#f59e0b]/10 text-white shadow-[0_0_15px_rgba(245,158,11,0.1)]"
-                      : "border-zinc-700 bg-transparent text-zinc-500 hover:border-zinc-500"
+                      ? "border-[#f59e0b] bg-[#f59e0b]/10 text-[#2A2622] shadow-[0_0_15px_rgba(217,119,87,0.1)]"
+                      : "border-[#D5CBC0] bg-transparent text-[#6B655E] hover:border-[#D5CBC0]"
                   )}
                 >
                   {c.isPriority && <Star className="w-3 h-3 fill-[#f59e0b] text-[#f59e0b]" />}
@@ -213,7 +213,7 @@ export default function FoundationStep13() {
           <button
             onClick={handleContinue}
             disabled={selectedCount === 0 || isSubmitting}
-            className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all"
+            className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all"
           >
             {isSubmitting ? "Generating Strategy Assets..." : "Continue"}
           </button>

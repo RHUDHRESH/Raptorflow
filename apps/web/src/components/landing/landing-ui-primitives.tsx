@@ -14,7 +14,7 @@ export function SectionLabel({
   return (
     <p
       className={cn(
-        "text-xs uppercase tracking-[0.28em] text-amber-500 font-mono font-bold",
+        "text-xs uppercase tracking-[0.28em] text-[#D97757] font-mono font-bold",
         className
       )}
     >
@@ -36,7 +36,7 @@ export function AmberButton({
   onClick?: () => void;
 }) {
   const base =
-    "inline-flex items-center justify-center gap-2 bg-amber-500 text-black font-semibold text-sm px-7 py-3 hover:bg-amber-400 transition-colors duration-200 rounded-none";
+    "inline-flex items-center justify-center gap-2 bg-[#D97757] text-[#2A2622] font-semibold text-sm px-7 py-3 hover:bg-[#C46A4D] transition-colors duration-200 rounded-none";
   if (href) {
     return (
       <a href={href} className={cn(base, className)}>
@@ -62,7 +62,7 @@ export function GhostButton({
   className?: string;
 }) {
   const base =
-    "inline-flex items-center justify-center gap-2 border border-zinc-700 text-zinc-300 font-medium text-sm px-7 py-3 hover:bg-zinc-900 hover:border-zinc-600 transition-colors duration-200 rounded-none";
+    "inline-flex items-center justify-center gap-2 border border-[#E5DED4] text-[#6B655E] font-medium text-sm px-7 py-3 hover:bg-[#F5F0E8] hover:border-[#D5CBC0] transition-colors duration-200 rounded-none";
   if (href) {
     return (
       <a href={href} className={cn(base, className)}>
@@ -86,8 +86,8 @@ export function DiagramCard({
   return (
     <div
       className={cn(
-        "bg-[#1a1a1a] border border-zinc-800 rounded-2xl p-5",
-        glowAmber && "border-amber-500/40 shadow-[0_0_32px_rgba(245,158,11,0.12)]",
+        "bg-white border border-[#E5DED4] rounded-2xl p-5",
+        glowAmber && "border-[#D97757]/40 shadow-[0_0_32px_rgba(217,119,87,0.12)]",
         className
       )}
     >
@@ -109,14 +109,14 @@ export function MetricPill({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-3 bg-[#1f1f1f] border border-zinc-800 px-4 py-2 rounded-full",
+        "inline-flex items-center gap-3 bg-[#F5F0E8] border border-[#E5DED4] px-4 py-2 rounded-full",
         className
       )}
     >
-      <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+      <span className="text-xs font-mono text-[#9A948C] uppercase tracking-widest">
         {label}
       </span>
-      <span className="text-sm font-semibold text-amber-500">{value}</span>
+      <span className="text-sm font-semibold text-[#D97757]">{value}</span>
     </div>
   );
 }
@@ -132,7 +132,7 @@ export function AmberLine({
   return (
     <div
       className={cn(
-        "bg-amber-500/50",
+        "bg-[#D97757]/50",
         vertical ? "w-px h-full" : "h-px w-full",
         className
       )}

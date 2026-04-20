@@ -16,7 +16,7 @@ export function AppShell({
   return (
     <div className="flex min-h-screen">
       <ShellSidebar identity={identity} />
-      <main className="flex-1 min-w-0 px-6 py-8 md:px-10 ml-64 bg-[#121212]">{children}</main>
+      <main className="flex-1 min-w-0 px-6 py-8 md:px-10 ml-64 bg-[#FBF8F2]">{children}</main>
     </div>
   );
 }

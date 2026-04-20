@@ -18,7 +18,10 @@
 //! - `RAPTORFLOW_DRAGONFLY_URL` — DragonflyDB for cache
 //! - `RAPTORFLOW_QDRANT_URL` — Qdrant for vector search
 //! - `RAPTORFLOW_S3_BUCKET` + SQS queues — storage and async jobs
-//! - `RAPTORFLOW_GCP_API_KEY` — Gemini AI inference
+//! - `RAPTORFLOW_INFERENCE_PROVIDER` — AI inference provider (`bedrock` for AWS Bedrock, `groq` for Groq)
+//! - `RAPTORFLOW_BEDROCK_REGION` — AWS region for Bedrock (defaults to ap-south-1)
+//! - `RAPTORFLOW_BEDROCK_MODEL_STRATEGIST` — Bedrock model ID for strategist tasks (Mistral Large 3)
+//! - `RAPTORFLOW_BEDROCK_MODEL_FAST` — Bedrock model ID for fast/council tasks (Mistral 7B)
 //! - Clerk, Razorpay, Resend — auth, payments, email
 //! - `RAPTORFLOW_SENTRY_DSN` — error reporting
 
@@ -41,6 +44,9 @@ pub struct Settings {
     pub sqs_embedding_queue: String,
     pub sqs_content_queue: String,
     pub gcp_api_key: String,
+    pub bedrock_region: String,
+    pub bedrock_model_strategist: String,
+    pub bedrock_model_fast: String,
     pub clerk_jwks_url: String,
     pub clerk_issuer: String,
     pub clerk_audience: Option<String>,
@@ -88,6 +94,9 @@ impl Settings {
                 "raptorflow-dev-content-pregeneration",
             ),
             gcp_api_key: read("RAPTORFLOW_GCP_API_KEY", ""),
+            bedrock_region: read("RAPTORFLOW_BEDROCK_REGION", "ap-south-1"),
+            bedrock_model_strategist: read("RAPTORFLOW_BEDROCK_MODEL_STRATEGIST", "mistral.mistral-large-3-675b-instruct"),
+            bedrock_model_fast: read("RAPTORFLOW_BEDROCK_MODEL_FAST", "mistral.mistral-7b-instruct-v0:2"),
             clerk_jwks_url: read(
                 "RAPTORFLOW_CLERK_JWKS_URL",
                 "https://example.clerk.accounts.dev/.well-known/jwks.json",

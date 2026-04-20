@@ -74,13 +74,13 @@ export function LandingProblem() {
       eyebrow="The real problem"
       title="Marketing breaks when the owner has to remember everything."
       description="RaptorFlow is built for operators who are tired of restarting strategy every week."
-      className="bg-[#0f0f0f] border-t border-zinc-900"
+      className="bg-[#FBF8F2] border-t border-[#E5DED4]"
       innerClassName=""
     >
       <div ref={sectionRef}>
         {/* Amber underline beneath title */}
         <div className="mb-16 -mt-8">
-          <div className="problem-underline h-px bg-amber-500/60 w-24 origin-left" />
+          <div className="problem-underline h-px bg-[#D97757]/60 w-24 origin-left" />
         </div>
 
         {/* Problem cards grid */}
@@ -88,28 +88,28 @@ export function LandingProblem() {
           {problemCards.map((card, i) => (
             <div
               key={i}
-              className="problem-card bg-[#1a1a1a] border border-zinc-800 rounded-2xl p-6 flex flex-col gap-3 hover:border-zinc-700 transition-colors duration-200"
+              className="problem-card bg-white border border-[#E5DED4] rounded-2xl p-6 flex flex-col gap-3 hover:border-[#D5CBC0] transition-colors duration-200"
             >
-              <div className="w-8 h-8 bg-[#262626] border border-zinc-800 rounded-lg flex items-center justify-center">
-                <span className="text-xs font-mono text-amber-500 font-bold">
+              <div className="w-8 h-8 bg-[#F5F0E8] border border-[#E5DED4] rounded-lg flex items-center justify-center">
+                <span className="text-xs font-mono text-[#D97757] font-bold">
                   {String(i + 1).padStart(2, "0")}
                 </span>
               </div>
-              <h3 className="text-base font-semibold text-white">{card.title}</h3>
-              <p className="text-sm text-zinc-500 leading-6">{card.body}</p>
+              <h3 className="text-base font-semibold text-[#2A2622]">{card.title}</h3>
+              <p className="text-sm text-[#6B655E] leading-6">{card.body}</p>
             </div>
           ))}
         </div>
 
         {/* Thesis */}
-        <div className="problem-thesis mt-16 pt-10 border-t border-zinc-900">
-          <p className="text-2xl md:text-3xl font-semibold text-zinc-300 max-w-3xl leading-snug">
+        <div className="problem-thesis mt-16 pt-10 border-t border-[#E5DED4]">
+          <p className="text-2xl md:text-3xl font-semibold text-[#4A4540] max-w-3xl leading-snug font-[family-name:var(--font-display)]">
             The issue is not effort.{" "}
-            <span className="text-amber-400">
+            <span className="text-[#D97757]">
               The issue is missing memory.
             </span>
           </p>
-          <p className="mt-4 text-sm text-zinc-500 font-mono uppercase tracking-widest">
+          <p className="mt-4 text-sm text-[#9A948C] font-mono uppercase tracking-widest">
             You are not lazy. Your marketing system is leaking context.
           </p>
         </div>

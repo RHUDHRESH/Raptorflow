@@ -6,8 +6,6 @@ Sentry.init({
   tracesSampleRate: 1.0,
   // Set profileSessionSampleRate to 1.0 to profile all sessions
   profileSessionSampleRate: 1.0,
-  // Set profileTracingSampleRate to 1.0 to profile all traces
-  profileTracingSampleRate: 1.0,
   // Enable debug logging in development
   debug: process.env.NODE_ENV === "development",
 });

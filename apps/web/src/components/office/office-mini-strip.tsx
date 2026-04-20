@@ -31,7 +31,7 @@ export function OfficeMiniStrip() {
 
     async function init() {
       await app.init({
-        background: '#0a0a0a', // Darker for sidebar
+        background: '#FBF8F2', // Warm paper sidebar
         width: 280,
         height: 96,
         resolution: 1,
@@ -43,7 +43,7 @@ export function OfficeMiniStrip() {
       // Simple Floor
       const floor = new PIXI.Graphics();
       floor.rect(0, 0, 280, 96);
-      floor.fill('#111111');
+      floor.fill('#F5F0E8');
       app.stage.addChild(floor);
 
       // Render miniature zones
@@ -53,8 +53,8 @@ export function OfficeMiniStrip() {
         const sx = zone.defaultPosition.x * 0.28;
         const sy = zone.defaultPosition.y * 0.096;
         z.rect(sx, sy, 50, 20);
-        z.fill('#1a1a1a');
-        z.stroke({ color: '#222222', width: 1 });
+        z.fill('#FFFFFF');
+        z.stroke({ color: '#E5DED4', width: 1 });
         app.stage.addChild(z);
       });
     }
@@ -87,7 +87,7 @@ export function OfficeMiniStrip() {
       dot.fill(PLACEHOLDER_COLORS[key as AgentKey]);
       
       if (status.status === 'speaking') {
-        dot.stroke({ color: '#ffffff', width: 1 });
+        dot.stroke({ color: '#2A2622', width: 1 });
       }
       
       stage.addChild(dot);
@@ -95,10 +95,10 @@ export function OfficeMiniStrip() {
   }, [agentStatuses]);
 
   return (
-    <div className="h-24 w-full border-t border-zinc-800 bg-[#0f0f0f] relative overflow-hidden group">
+    <div className="h-24 w-full border-t border-[#E5DED4] bg-[#FBF8F2] relative overflow-hidden group">
       {/* Title / Status */}
       <div className="absolute top-1.5 left-2 z-10 flex items-center gap-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
-        <span className="text-[7px] font-mono font-bold text-zinc-500 uppercase tracking-widest">
+        <span className="text-[7px] font-mono font-bold text-[#6B655E] uppercase tracking-widest">
           Passive_HQ_View
         </span>
       </div>
@@ -108,7 +108,7 @@ export function OfficeMiniStrip() {
 
       {/* Amber Event Pulse */}
       {hasUnprocessedEvents && (
-        <div className="absolute top-1.5 right-1.5 w-1 h-1 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+        <div className="absolute top-1.5 right-1.5 w-1 h-1 bg-[#D97757] rounded-full animate-pulse shadow-[0_0_8px_rgba(217,119,87,0.8)]" />
       )}
 
       {/* Static Overlay Accents */}

@@ -35,30 +35,30 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-sm bg-[#0a0a0a] border-l-2 border-[var(--foreground)] flex flex-col shadow-2xl"
+            className="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-sm bg-white border-l-2 border-[var(--foreground)] flex flex-col shadow-2xl"
           >
             {/* Header */}
             <div className="p-6 border-b-2 border-[var(--foreground)] flex items-center justify-between">
               <div>
-                <p className="font-mono text-[9px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-1">
+                <p className="font-mono text-[9px] font-bold text-[#9A948C] uppercase tracking-[0.2em] mb-1">
                   Alerts // Session_Buffer
                 </p>
-                <h2 className="font-[family-name:var(--font-display)] text-2xl text-white">System Notifications</h2>
+                <h2 className="font-[family-name:var(--font-display)] text-2xl text-[#2A2622]">System Notifications</h2>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-zinc-900 transition-colors rounded-none"
+                className="p-2 hover:bg-[#F5F0E8] transition-colors rounded-none"
               >
-                <Cross2Icon className="w-5 h-5 text-white" />
+                <Cross2Icon className="w-5 h-5 text-[#2A2622]" />
               </button>
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide divide-y divide-zinc-900">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide divide-y divide-[#E5DED4]">
               {notifications.length === 0 ? (
                 <div className="p-12 text-center">
-                  <BellIcon className="w-8 h-8 text-zinc-800 mx-auto mb-4" />
-                  <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest leading-relaxed">
+                  <BellIcon className="w-8 h-8 text-[#BAB0A0] mx-auto mb-4" />
+                  <p className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest leading-relaxed">
                     Uplink Quiet. <br/>
                     No active ripples in buffer.
                   </p>
@@ -74,34 +74,34 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                       className="p-5 hover:bg-white/[0.02] transition-colors relative group"
                     >
                       {isCritical && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#D97757] shadow-[0_0_8px_rgba(217,119,87,0.5)]" />
                       )}
                       
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
                           {isCritical ? (
-                            <LightningBoltIcon className="w-3 h-3 text-amber-500" />
+                            <LightningBoltIcon className="w-3 h-3 text-[#D97757]" />
                           ) : (
-                            <InfoCircledIcon className="w-3 h-3 text-zinc-600" />
+                            <InfoCircledIcon className="w-3 h-3 text-[#9A948C]" />
                           )}
-                          <span className="font-mono text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
+                          <span className="font-mono text-[8px] font-bold text-[#6B655E] uppercase tracking-widest">
                             {type}
                           </span>
                         </div>
-                        <span className="font-mono text-[8px] text-zinc-700">
+                        <span className="font-mono text-[8px] text-[#9A948C]">
                           {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </span>
                       </div>
                       
-                      <p className="text-zinc-400 text-xs font-light leading-relaxed mb-3">
+                      <p className="text-[#6B655E] text-xs font-light leading-relaxed mb-3">
                         {typeof msg.payload === 'string' ? msg.payload : JSON.stringify(msg.payload || {}).slice(0, 120)}
                       </p>
                       
                       <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="text-[8px] font-mono font-bold text-amber-500 uppercase tracking-widest hover:underline">
+                        <button className="text-[8px] font-mono font-bold text-[#D97757] uppercase tracking-widest hover:underline">
                           View Intel
                         </button>
-                        <button className="text-[8px] font-mono font-bold text-zinc-600 uppercase tracking-widest hover:underline">
+                        <button className="text-[8px] font-mono font-bold text-[#9A948C] uppercase tracking-widest hover:underline">
                           Dismiss
                         </button>
                       </div>
@@ -112,8 +112,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-zinc-900 bg-black/40">
-              <button className="w-full h-10 border border-zinc-800 text-[9px] font-mono text-zinc-500 uppercase tracking-widest hover:border-zinc-400 hover:text-zinc-300 transition-all">
+            <div className="p-4 border-t border-[#D5CBC0] bg-black/40">
+              <button className="w-full h-10 border border-[#E5DED4] text-[9px] font-mono text-[#6B655E] uppercase tracking-widest hover:border-zinc-400 hover:text-[#9A948C] transition-all">
                 Clear All Signals
               </button>
             </div>

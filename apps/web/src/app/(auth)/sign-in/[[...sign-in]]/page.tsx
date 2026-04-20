@@ -3,7 +3,8 @@ import { SignIn } from "@clerk/nextjs";
 
 export default function SignInPage(): React.ReactElement {
   return (
-    <SignIn 
+    <SignIn
+      signUpUrl="/sign-up"
       forceRedirectUrl="/app"
       fallbackRedirectUrl="/app"
       appearance={{

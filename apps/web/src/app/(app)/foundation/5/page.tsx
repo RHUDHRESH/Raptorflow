@@ -87,15 +87,15 @@ export default function FoundationStep5() {
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[580px] space-y-10">
         
         {/* HEADER */}
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="text-3xl font-bold text-[#2A2622]">
             What problem do you solve?
           </h1>
-          <p className="text-base text-zinc-400 leading-relaxed">
+          <p className="text-base text-[#6B655E] leading-relaxed">
             Not a description of your product. The actual pain your customer was living with before they found you. 
             The frustration they had at 11pm. The thing that made them search for a solution.
           </p>
@@ -104,16 +104,16 @@ export default function FoundationStep5() {
         {/* SCAN SUGGESTION STRIP */}
         {scanProblem && (
           <div className="space-y-2 animate-in fade-in duration-700">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+            <label className="text-[10px] font-bold text-[#6B655E] uppercase tracking-widest">
               What your website says you solve:
             </label>
-            <div className="p-3 bg-[#1e1e1e] border border-zinc-800 rounded-lg">
-              <p className="text-sm text-zinc-400 italic leading-relaxed">
+            <div className="p-3 bg-[#FBF8F2] border border-[#E5DED4] rounded-lg">
+              <p className="text-sm text-[#6B655E] italic leading-relaxed">
                 &quot;{scanProblem}&quot;
               </p>
               <button
                 onClick={() => { setProblemStatement(scanProblem); setUsedScanSuggestion(true); }}
-                className="mt-2 text-xs text-zinc-500 underline hover:text-white transition-colors"
+                className="mt-2 text-xs text-[#6B655E] underline hover:text-[#2A2622] transition-colors"
               >
                 Use this as a starting point
               </button>
@@ -126,7 +126,7 @@ export default function FoundationStep5() {
           <textarea
             autoFocus
             rows={6}
-            className="w-full bg-[#262626] border border-zinc-700 rounded-xl px-5 py-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#f59e0b] resize-y transition-colors"
+            className="w-full bg-[#262626] border border-[#D5CBC0] rounded-xl px-5 py-4 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] resize-y transition-colors"
             placeholder="Before they found us, our customers were dealing with..."
             value={problemStatement}
             onChange={(e) => setProblemStatement(e.target.value)}
@@ -157,10 +157,10 @@ export default function FoundationStep5() {
 
           {/* AI SUGGESTION PANEL */}
           {showHelperPanel && (
-            <div className="p-4 bg-[#262626] border border-zinc-700 rounded-xl space-y-4 animate-in fade-in zoom-in-95 duration-300 shadow-2xl">
+            <div className="p-4 bg-[#262626] border border-[#D5CBC0] rounded-xl space-y-4 animate-in fade-in zoom-in-95 duration-300 shadow-2xl">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Suggested Framing:</p>
-                <p className="text-sm text-zinc-200 leading-relaxed italic">
+                <p className="text-[10px] font-bold text-[#6B655E] uppercase tracking-widest">Suggested Framing:</p>
+                <p className="text-sm text-[#4A4540] leading-relaxed italic">
                   &quot;Based on your product, you might be solving: difficulty tracking inventory across multiple locations without real-time visibility, causing stock-outs and overstocking.&quot;
                 </p>
               </div>
@@ -174,7 +174,7 @@ export default function FoundationStep5() {
                 </button>
                 <button
                   onClick={() => setShowHelperPanel(false)}
-                  className="flex items-center gap-2 text-zinc-500 hover:text-white px-2 py-2 text-xs transition-colors"
+                  className="flex items-center gap-2 text-[#6B655E] hover:text-[#2A2622] px-2 py-2 text-xs transition-colors"
                 >
                   <X className="w-3 h-3" />
                   Not quite, dismiss
@@ -195,7 +195,7 @@ export default function FoundationStep5() {
           <button
             onClick={handleContinue}
             disabled={isSubmitting}
-            className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all"
+            className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all"
           >
             {isSubmitting ? "Saving..." : "Continue"}
           </button>

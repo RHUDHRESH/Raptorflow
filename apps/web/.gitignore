@@ -3,3 +3,4 @@
 # Sentry
 .sentryclirc
 sentry.properties
+.vercel

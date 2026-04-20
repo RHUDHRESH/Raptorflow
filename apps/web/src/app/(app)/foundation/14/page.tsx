@@ -101,15 +101,15 @@ export default function FoundationStep14() {
   const realSelected = selectedTypes.filter((t) => t !== "none");
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[600px] space-y-12">
         
         {/* HEADER */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-white leading-tight">
+          <h1 className="text-3xl font-bold text-[#2A2622] leading-tight">
             What have you already tried?
           </h1>
-          <p className="text-base text-zinc-400">
+          <p className="text-base text-[#6B655E]">
             This stops your AI team from recommending things that haven&apos;t worked.
           </p>
         </div>
@@ -125,8 +125,8 @@ export default function FoundationStep14() {
                 className={cn(
                   "relative p-4 rounded-xl cursor-pointer border transition-all duration-200",
                   isSelected 
-                    ? "border-[#f59e0b] bg-[#f59e0b]/10 shadow-[0_0_15px_rgba(245,158,11,0.1)]" 
-                    : "bg-[#262626] border-zinc-700 hover:border-zinc-500"
+                    ? "border-[#f59e0b] bg-[#f59e0b]/10 shadow-[0_0_15px_rgba(217,119,87,0.1)]" 
+                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]"
                 )}
               >
                 {isSelected && (
@@ -135,10 +135,10 @@ export default function FoundationStep14() {
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
-                  <type.icon className={cn("w-5 h-5", isSelected ? "text-[#f59e0b]" : "text-zinc-500")} />
+                  <type.icon className={cn("w-5 h-5", isSelected ? "text-[#f59e0b]" : "text-[#6B655E]")} />
                   <div className="space-y-0.5">
-                    <p className="text-sm font-bold text-white leading-tight">{type.label}</p>
-                    <p className="text-[11px] text-zinc-400 leading-tight">{type.desc}</p>
+                    <p className="text-sm font-bold text-[#2A2622] leading-tight">{type.label}</p>
+                    <p className="text-[11px] text-[#6B655E] leading-tight">{type.desc}</p>
                   </div>
                 </div>
               </div>
@@ -156,26 +156,26 @@ export default function FoundationStep14() {
                 return (
                   <div key={typeId} className="space-y-6">
                     <div className="flex items-center gap-4">
-                      <div className="h-[1px] flex-1 bg-zinc-800" />
+                      <div className="h-[1px] flex-1 bg-[#E5DED4]" />
                       <span className="text-[10px] uppercase font-bold tracking-widest text-[#f59e0b]/60">{label} History</span>
-                      <div className="h-[1px] flex-1 bg-zinc-800" />
+                      <div className="h-[1px] flex-1 bg-[#E5DED4]" />
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">What worked?</label>
+                        <label className="text-xs font-bold text-[#6B655E] uppercase tracking-wider">What worked?</label>
                         <textarea
                           rows={2}
-                          className="w-full bg-[#262626] border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#f59e0b] transition-colors resize-none"
+                          className="w-full bg-[#262626] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] transition-colors resize-none"
                           placeholder="What got results, even small ones?"
                           value={fieldData.worked}
                           onChange={(e) => updateDetail(typeId, "worked", e.target.value)}
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">What didn&apos;t?</label>
+                        <label className="text-xs font-bold text-[#6B655E] uppercase tracking-wider">What didn&apos;t?</label>
                         <textarea
                           rows={2}
-                          className="w-full bg-[#262626] border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#f59e0b] transition-colors resize-none"
+                          className="w-full bg-[#262626] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] transition-colors resize-none"
                           placeholder="What flopped, or what you stopped doing and why?"
                           value={fieldData.didntWork}
                           onChange={(e) => updateDetail(typeId, "didntWork", e.target.value)}
@@ -189,11 +189,11 @@ export default function FoundationStep14() {
           )}
 
           {realSelected.length > 3 && (
-            <div className="space-y-4 p-5 bg-[#262626]/50 border border-zinc-800 rounded-xl">
-              <label className="text-sm font-bold text-zinc-300">You&apos;ve tried a lot. Give us the highlights — what worked, what didn&apos;t?</label>
+            <div className="space-y-4 p-5 bg-[#262626]/50 border border-[#E5DED4] rounded-xl">
+              <label className="text-sm font-bold text-[#9A948C]">You&apos;ve tried a lot. Give us the highlights — what worked, what didn&apos;t?</label>
               <textarea
                 rows={5}
-                className="w-full bg-[#1a1a1a] border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#f59e0b] transition-colors resize-y"
+                className="w-full bg-[#FBF8F2] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] transition-colors resize-y"
                 placeholder="Summarise your learnings across these channels..."
                 value={combinedSummary}
                 onChange={(e) => setCombinedSummary(e.target.value)}
@@ -206,7 +206,7 @@ export default function FoundationStep14() {
         <button
           onClick={handleContinue}
           disabled={isSubmitting}
-          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all"
+          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all"
         >
           {isSubmitting ? "Updating Market Memory..." : "Continue"}
         </button>

@@ -82,14 +82,14 @@ export function LandingFinalCTA() {
     <section
       id="final-cta"
       ref={sectionRef}
-      className="relative px-6 py-32 lg:px-8 overflow-hidden bg-[#0f0f0f] border-t border-zinc-900"
+      className="relative px-6 py-32 lg:px-8 overflow-hidden bg-[#F5F0E8] border-t border-[#E5DED4]"
     >
       {/* Background glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at 50% 100%, rgba(245,158,11,0.06) 0%, transparent 60%)",
+            "radial-gradient(ellipse at 50% 100%, rgba(217,119,87,0.06) 0%, transparent 60%)",
         }}
         aria-hidden="true"
       />
@@ -101,9 +101,9 @@ export function LandingFinalCTA() {
           {SCATTERED_CARDS.map((card, i) => (
             <div
               key={i}
-              className="final-scattered-card absolute bg-[#1a1a1a] border border-zinc-800 rounded-xl px-3 py-2"
+              className="final-scattered-card absolute bg-white border border-[#E5DED4] rounded-xl px-3 py-2"
             >
-              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+              <span className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">
                 {card.label}
               </span>
             </div>
@@ -111,14 +111,14 @@ export function LandingFinalCTA() {
 
           {/* Amber convergence path */}
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-64 h-px">
-            <div className="final-amber-path h-full bg-amber-500/50 origin-left" />
+            <div className="final-amber-path h-full bg-[#D97757]/50 origin-left" />
           </div>
         </div>
 
-        <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-white leading-[1.05] mb-6">
+        <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#2A2622] leading-[1.05] mb-6 font-[family-name:var(--font-display)]">
           Stop restarting marketing from zero.
         </h2>
-        <p className="text-base md:text-lg text-zinc-400 leading-7 max-w-xl mx-auto mb-12">
+        <p className="text-base md:text-lg text-[#6B655E] leading-7 max-w-xl mx-auto mb-12">
           Start with Foundation. Build the memory layer. Turn strategy into daily execution.
         </p>
 
@@ -131,7 +131,7 @@ export function LandingFinalCTA() {
           </GhostButton>
         </div>
 
-        <p className="mt-8 text-xs font-mono text-zinc-700 uppercase tracking-widest">
+        <p className="mt-8 text-xs font-mono text-[#BAB0A0] uppercase tracking-widest">
           Built for Indian SMBs · No setup fees · Start today
         </p>
       </div>

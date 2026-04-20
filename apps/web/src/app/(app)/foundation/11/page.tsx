@@ -22,12 +22,12 @@ function BrandSlider({
 }) {
   return (
     <div className="flex items-center gap-6 w-full py-4">
-      <span className="w-20 text-right text-xs font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">
+      <span className="w-20 text-right text-xs font-bold uppercase tracking-widest text-[#6B655E] whitespace-nowrap">
         {labelLeft}
       </span>
       <div className="relative flex-1 h-1 flex items-center">
         {/* Background Track */}
-        <div className="absolute inset-0 bg-zinc-800 rounded-full" />
+        <div className="absolute inset-0 bg-[#E5DED4] rounded-full" />
         {/* Fill Track */}
         <div 
           className="absolute inset-y-0 left-0 bg-[#f59e0b] rounded-full transition-all duration-75"
@@ -47,7 +47,7 @@ function BrandSlider({
           style={{ left: `calc(${value}% - 10px)` }}
         />
       </div>
-      <span className="w-20 text-left text-xs font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">
+      <span className="w-20 text-left text-xs font-bold uppercase tracking-widest text-[#6B655E] whitespace-nowrap">
         {labelRight}
       </span>
     </div>
@@ -146,11 +146,11 @@ export default function FoundationStep11() {
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[600px] space-y-12">
         
         {/* HEADER */}
-        <h1 className="text-3xl font-bold text-white">
+        <h1 className="text-3xl font-bold text-[#2A2622]">
           What should your brand sound and feel like?
         </h1>
 
@@ -178,10 +178,10 @@ export default function FoundationStep11() {
 
         {/* VOICE PREVIEW PANEL */}
         <div className="space-y-4 pt-4">
-          <label className="text-[10px] uppercase font-bold tracking-widest text-zinc-500">Your brand sounds like this:</label>
-          <div className="bg-[#1e1e1e] border border-zinc-800 rounded-xl p-6 min-h-[140px] shadow-2xl transition-all duration-300">
+          <label className="text-[10px] uppercase font-bold tracking-widest text-[#6B655E]">Your brand sounds like this:</label>
+          <div className="bg-[#FBF8F2] border border-[#E5DED4] rounded-xl p-6 min-h-[140px] shadow-2xl transition-all duration-300">
             <p className={cn(
-              "text-lg text-white leading-relaxed italic transition-opacity duration-300",
+              "text-lg text-[#2A2622] leading-relaxed italic transition-opacity duration-300",
               isFading ? "opacity-0" : "opacity-100"
             )}>
               &quot;{previewText}&quot;
@@ -189,7 +189,7 @@ export default function FoundationStep11() {
             
             <div className="flex flex-wrap gap-2 mt-6">
               {traits.map(t => (
-                <span key={t} className="px-3 py-1 bg-zinc-800 text-zinc-300 border border-zinc-700 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                <span key={t} className="px-3 py-1 bg-[#E5DED4] text-[#9A948C] border border-[#D5CBC0] rounded-full text-[10px] font-bold uppercase tracking-wider">
                   {t}
                 </span>
               ))}
@@ -200,11 +200,11 @@ export default function FoundationStep11() {
         {/* NEVER SAY FIELD */}
         <div className="space-y-3 pt-4">
           <div className="space-y-1">
-            <label className="text-sm font-medium text-zinc-300 tracking-tight">One thing your brand would never say:</label>
-            <p className="text-xs text-zinc-500 tracking-tight">(Optional, but powerful — this trains your AI team on brand guardrails)</p>
+            <label className="text-sm font-medium text-[#9A948C] tracking-tight">One thing your brand would never say:</label>
+            <p className="text-xs text-[#6B655E] tracking-tight">(Optional, but powerful — this trains your AI team on brand guardrails)</p>
           </div>
           <input
-            className="w-full bg-[#262626] border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#f59e0b] transition-colors"
+            className="w-full bg-[#262626] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] transition-colors"
             placeholder="e.g. 'Synergize your go-to-market learnings to unlock growth'"
             value={neverSay}
             onChange={(e) => setNeverSay(e.target.value)}
@@ -215,7 +215,7 @@ export default function FoundationStep11() {
         <button
           onClick={handleContinue}
           disabled={isSubmitting}
-          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all mt-8"
+          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all mt-8"
         >
           {isSubmitting ? "Saving Brand Persona..." : "Continue"}
         </button>

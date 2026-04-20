@@ -108,12 +108,12 @@ export default function NudgeDetailPage({
                   <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted-foreground)" }}>
                     Strategist Direction
                   </p>
-                  <p className="text-white font-medium text-sm mt-0.5">{strategist?.displayName}</p>
+                  <p className="text-[#2A2622] font-medium text-sm mt-0.5">{strategist?.displayName}</p>
                </div>
             </div>
 
             <div className="space-y-6">
-               <p className="text-white text-2xl font-light leading-relaxed font-serif italic">
+               <p className="text-[#2A2622] text-2xl font-light leading-relaxed font-serif italic">
                  &ldquo;{nudge.description}&rdquo;
                </p>
                
@@ -121,7 +121,7 @@ export default function NudgeDetailPage({
                   <Button className="h-14 px-10 bg-[var(--amber-war)] text-black font-bold uppercase tracking-widest text-[11px] rounded-none shadow-[0_10px_30px_rgba(245,158,11,0.1)]">
                     {nudge.action}
                   </Button>
-                  <Button variant="outline" className="h-14 px-8 border-[var(--border)] text-white font-bold uppercase tracking-widest text-[11px] rounded-none bg-transparent hover:bg-zinc-800">
+                  <Button variant="outline" className="h-14 px-8 border-[var(--border)] text-[#2A2622] font-bold uppercase tracking-widest text-[11px] rounded-none bg-transparent hover:bg-[#E5DED4]">
                     Consult Muse
                   </Button>
                </div>
@@ -132,26 +132,26 @@ export default function NudgeDetailPage({
           <section className="border border-[var(--border)] bg-[var(--card)]">
             <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
                <div className="flex items-center gap-3">
-                 <LightningBoltIcon className="w-4 h-4 text-zinc-500" />
+                 <LightningBoltIcon className="w-4 h-4 text-[#6B655E]" />
                  <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted-foreground)" }}>
                    Related Telemetry
                  </p>
                </div>
-               <Badge className="bg-zinc-800 text-white px-2 py-0.5 text-xs">{relatedEvents.length}</Badge>
+               <Badge className="bg-[#E5DED4] text-[#2A2622] px-2 py-0.5 text-xs">{relatedEvents.length}</Badge>
             </div>
             <div className="divide-y divide-[var(--border)]">
                {relatedEvents.length === 0 ? (
                  <div className="p-12 text-center">
-                    <p className="text-zinc-600 font-mono text-[10px] uppercase tracking-widest">No matching telemetry signals found in current session buffer</p>
+                    <p className="text-[#9A948C] font-mono text-[10px] uppercase tracking-widest">No matching telemetry signals found in current session buffer</p>
                  </div>
                ) : (
                  relatedEvents.map((e, i) => (
                    <div key={i} className="px-6 py-4 flex flex-col gap-1 hover:bg-white/[0.02] transition-colors">
                       <div className="flex items-center justify-between">
-                         <span className="text-white font-mono text-[10px] uppercase tracking-wider">{e.type || e.eventType}</span>
-                         <span className="text-zinc-600 font-mono text-[8px] uppercase tracking-[0.2em]">Live Stream</span>
+                         <span className="text-[#2A2622] font-mono text-[10px] uppercase tracking-wider">{e.type || e.eventType}</span>
+                         <span className="text-[#9A948C] font-mono text-[8px] uppercase tracking-[0.2em]">Live Stream</span>
                       </div>
-                      <p className="text-zinc-500 text-[11px] truncate font-light italic">
+                      <p className="text-[#6B655E] text-[11px] truncate font-light italic">
                          {JSON.stringify(e.payload || {}).slice(0, 100)}...
                       </p>
                    </div>
@@ -175,16 +175,16 @@ export default function NudgeDetailPage({
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Snooze 24h</span>
                 <ChatBubbleIcon className="w-4 h-4 opacity-50 transition-transform" />
              </button>
-             <button className="w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-900 border-t border-zinc-800 transition-all group text-red-500/70 hover:text-red-500">
+             <button className="w-full flex items-center justify-between px-5 py-4 hover:bg-[#F5F0E8] border-t border-[#E5DED4] transition-all group text-red-500/70 hover:text-red-500">
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Dismiss Nudge</span>
                 <ArchiveIcon className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
              </button>
           </div>
 
-          <div className="p-6 border border-zinc-800 bg-[#161616] space-y-4">
-             <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-500">Nudge Logic</p>
-             <p className="text-xs text-zinc-400 leading-relaxed font-light italic">
-                Strategists issue nudges when live market signals cross a threshold of <span className="text-white">7.5/10 salience</span> relative to current campaign moves.
+          <div className="p-6 border border-[#E5DED4] bg-[#FBF8F2] space-y-4">
+             <p className="text-[10px] uppercase font-bold tracking-widest text-[#6B655E]">Nudge Logic</p>
+             <p className="text-xs text-[#6B655E] leading-relaxed font-light italic">
+                Strategists issue nudges when live market signals cross a threshold of <span className="text-[#2A2622]">7.5/10 salience</span> relative to current campaign moves.
              </p>
           </div>
         </aside>

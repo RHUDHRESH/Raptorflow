@@ -46,7 +46,7 @@ export default function DevBypassPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] flex items-center justify-center p-6 font-sans">
+    <div className="min-h-screen bg-[#FBF8F2] flex items-center justify-center p-6 font-sans">
       <div className="max-w-md w-full space-y-4">
         {/* Warning Banner */}
         <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-lg flex items-center gap-3">
@@ -56,30 +56,30 @@ export default function DevBypassPage() {
           </p>
         </div>
 
-        <Card className="bg-[#1a1a1a] border-zinc-800 shadow-2xl relative overflow-hidden">
+        <Card className="bg-[#FBF8F2] border-[#E5DED4] shadow-2xl relative overflow-hidden">
           {/* Subtle Grid Overlay */}
           <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
           
           <CardHeader className="text-center pt-8">
-            <div className="w-12 h-12 bg-amber-500/20 border border-amber-500/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Database className="text-amber-500 w-6 h-6" />
+            <div className="w-12 h-12 bg-[#D97757]/20 border border-[#D97757]/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Database className="text-[#D97757] w-6 h-6" />
             </div>
-            <h1 className="text-xl font-bold text-white tracking-tight">
+            <h1 className="text-xl font-bold text-[#2A2622] tracking-tight">
               Dev Bypass: Seed Foundation
             </h1>
-            <p className="text-sm text-zinc-500 font-light">
+            <p className="text-sm text-[#6B655E] font-light">
               Skip the 21-screen onboarding and populate your workspace with "Verdant Naturals" demo data.
             </p>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="bg-[#121212] border border-zinc-800 p-4 rounded-lg space-y-2">
-              <div className="flex items-center justify-between text-[10px] font-mono uppercase font-bold text-zinc-600">
+            <div className="bg-[#FBF8F2] border border-[#E5DED4] p-4 rounded-lg space-y-2">
+              <div className="flex items-center justify-between text-[10px] font-mono uppercase font-bold text-[#9A948C]">
                 <span>Dataset Profile</span>
                 <span className="text-green-500 text-[8px]">Ready</span>
               </div>
-              <p className="text-xs text-zinc-400 leading-none">Business: <span className="text-white">Verdant Naturals</span></p>
-              <p className="text-xs text-zinc-400 leading-none">Strategist: <span className="text-amber-500">ARIA</span></p>
+              <p className="text-xs text-[#6B655E] leading-none">Business: <span className="text-[#2A2622]">Verdant Naturals</span></p>
+              <p className="text-xs text-[#6B655E] leading-none">Strategist: <span className="text-[#D97757]">ARIA</span></p>
             </div>
 
             {error && (
@@ -93,7 +93,7 @@ export default function DevBypassPage() {
             <Button 
               onClick={handleSeed} 
               disabled={loading}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-widest h-12 flex items-center justify-center gap-2"
+              className="w-full bg-[#D97757] hover:bg-amber-400 text-black font-bold uppercase tracking-widest h-12 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -101,13 +101,13 @@ export default function IntelArtifactPage({
                </button>
             </div>
             <div className="aspect-video bg-[var(--card)] flex flex-col items-center justify-center border-b border-[var(--border)]">
-               <MixerHorizontalIcon className="h-12 w-12 text-zinc-800 mb-4 animate-pulse" />
-               <p className="text-zinc-600 font-mono text-[10px] uppercase tracking-widest">Visual Stream Unavailable</p>
-               <p className="text-zinc-700 text-[9px] mt-1 font-mono uppercase tracking-[0.2em]">Hardware acceleration required for v8 render</p>
+               <MixerHorizontalIcon className="h-12 w-12 text-[#BAB0A0] mb-4 animate-pulse" />
+               <p className="text-[#9A948C] font-mono text-[10px] uppercase tracking-widest">Visual Stream Unavailable</p>
+               <p className="text-[#9A948C] text-[9px] mt-1 font-mono uppercase tracking-[0.2em]">Hardware acceleration required for v8 render</p>
             </div>
             <div className="p-6 bg-[var(--card)]">
                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, marginBottom: 12 }}>Executive Summary</h3>
-               <p className="text-zinc-400 leading-relaxed font-light italic">
+               <p className="text-[#6B655E] leading-relaxed font-light italic">
                  {artifact.description}
                </p>
             </div>
@@ -125,7 +125,7 @@ export default function IntelArtifactPage({
                </div>
             </div>
             <div className="space-y-6">
-               <p className="text-white text-lg font-light leading-relaxed">
+               <p className="text-[#2A2622] text-lg font-light leading-relaxed">
                  &ldquo;This shift indicates a move toward direct comparison. They are no longer competing on features, but on the <span className="text-[var(--indigo-muse)] underline decoration-indigo-500/30">identity gap</span> we identified in the last council session. We should expect a structural push on their pricing within 14 days.&rdquo;
                </p>
                <div className="pt-6 border-t border-[var(--border)] flex gap-8">
@@ -162,11 +162,11 @@ export default function IntelArtifactPage({
              </button>
           </div>
 
-          <div className="p-6 border border-zinc-800 bg-[#161616] space-y-4">
-             <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-500">Signal Context</p>
-             <p className="text-xs text-zinc-400 leading-relaxed font-mono">
+          <div className="p-6 border border-[#E5DED4] bg-[#FBF8F2] space-y-4">
+             <p className="text-[10px] uppercase font-bold tracking-widest text-[#6B655E]">Signal Context</p>
+             <p className="text-xs text-[#6B655E] leading-relaxed font-mono">
                 Detected via: <br/>
-                <span className="text-zinc-200">Scraper_Node_Bombay_Alpha</span><br/>
+                <span className="text-[#4A4540]">Scraper_Node_Bombay_Alpha</span><br/>
                 LATENCY: 44ms<br/>
                 PROTOCOL: HTTP/2 (TLS 1.3)
              </p>

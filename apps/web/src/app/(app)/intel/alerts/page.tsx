@@ -87,7 +87,7 @@ export default function IntelAlertsPage(): React.ReactElement {
                 <div className="flex items-start gap-3">
                   <span className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${
                     alert.severity === "major" ? "bg-red-500 animate-pulse" :
-                    alert.severity === "warning" ? "bg-amber-500" : "bg-blue-500"
+                    alert.severity === "warning" ? "bg-[#D97757]" : "bg-blue-500"
                   }`} />
                   <div>
                     <div className="flex items-center gap-2">

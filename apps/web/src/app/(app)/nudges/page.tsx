@@ -271,10 +271,10 @@ export default function NudgesPage(): React.ReactElement {
       {/* ── Alert List ─────────────────────────────────────── */}
       {isLoading ? (
         <div className="flex flex-col gap-2">
-           {[1,2,3].map(i => <div key={i} className="h-24 border border-[var(--border)] animate-pulse bg-zinc-900/10" />)}
+           {[1,2,3].map(i => <div key={i} className="h-24 border border-[var(--border)] animate-pulse bg-[#F5F0E8]/10" />)}
         </div>
       ) : error ? (
-        <div className="p-12 border border-[var(--signal-red)] bg-zinc-900/10 text-center">
+        <div className="p-12 border border-[var(--signal-red)] bg-[#F5F0E8]/10 text-center">
            <p className="font-mono text-xs text-[var(--signal-red)] uppercase tracking-widest">Telemetry Error: Failed to fetch nudges from command core.</p>
         </div>
       ) : filtered.length === 0 ? (

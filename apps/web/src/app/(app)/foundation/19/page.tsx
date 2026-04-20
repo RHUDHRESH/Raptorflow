@@ -95,11 +95,11 @@ export default function FoundationStep19() {
   const activeTools = TOOLS.filter(t => selectedToolIds.includes(t.id) && t.id !== "none");
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[560px] space-y-10">
         
         {/* HEADER */}
-        <h1 className="text-3xl font-bold text-white text-center sm:text-left">
+        <h1 className="text-3xl font-bold text-[#2A2622] text-center sm:text-left">
           What are you already tracking?
         </h1>
 
@@ -115,7 +115,7 @@ export default function FoundationStep19() {
                   "group relative p-4 rounded-xl border flex flex-col gap-2 transition-all duration-300 cursor-pointer",
                   isSelected 
                     ? "border-[#f59e0b] bg-[#f59e0b]/10" 
-                    : "bg-[#262626] border-zinc-700 hover:border-zinc-500"
+                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]"
                 )}
               >
                 {isSelected && (
@@ -125,8 +125,8 @@ export default function FoundationStep19() {
                 )}
                 <span className="text-2xl">{tool.icon}</span>
                 <div className="space-y-0.5">
-                  <p className="text-sm font-bold text-white leading-tight">{tool.name}</p>
-                  <p className="text-[11px] text-zinc-400 leading-tight">{tool.desc}</p>
+                  <p className="text-sm font-bold text-[#2A2622] leading-tight">{tool.name}</p>
+                  <p className="text-[11px] text-[#6B655E] leading-tight">{tool.desc}</p>
                 </div>
               </div>
             );
@@ -138,8 +138,8 @@ export default function FoundationStep19() {
           <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
             {activeTools.map((tool) => (
               <div key={tool.id} className="space-y-4">
-                <p className="text-sm font-medium text-zinc-300">
-                  Are you actually looking at <span className="text-white font-bold">{tool.name}</span> regularly?
+                <p className="text-sm font-medium text-[#9A948C]">
+                  Are you actually looking at <span className="text-[#2A2622] font-bold">{tool.name}</span> regularly?
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {FREQUENCIES.map(freq => {
@@ -151,8 +151,8 @@ export default function FoundationStep19() {
                         className={cn(
                           "px-4 py-2 rounded-full border text-[11px] font-bold uppercase tracking-wider transition-all",
                           isSelected
-                            ? "border-[#f59e0b] bg-[#f59e0b]/10 text-white"
-                            : "border-zinc-700 bg-transparent text-zinc-500 hover:border-zinc-500"
+                            ? "border-[#f59e0b] bg-[#f59e0b]/10 text-[#2A2622]"
+                            : "border-[#D5CBC0] bg-transparent text-[#6B655E] hover:border-[#D5CBC0]"
                         )}
                       >
                         {freq}
@@ -166,16 +166,16 @@ export default function FoundationStep19() {
         )}
 
         {/* RAPTORFLOW NOTE PANEL */}
-        <div className="bg-[#1e1e1e] border border-zinc-800 rounded-xl p-5 space-y-3 shadow-xl">
+        <div className="bg-[#FBF8F2] border border-[#E5DED4] rounded-xl p-5 space-y-3 shadow-xl">
           <div className="flex items-center gap-2 text-[#f59e0b]">
             <Info className="w-4 h-4" />
             <span className="text-xs font-bold uppercase tracking-widest">RaptorFlow Engine</span>
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-zinc-300 leading-relaxed font-medium">
+            <p className="text-sm text-[#9A948C] leading-relaxed font-medium">
               RaptorFlow will track what matters for your campaigns and surface it in Daily Wins — so you don&apos;t need to check dashboards separately.
             </p>
-            <p className="text-xs text-zinc-500 italic">
+            <p className="text-xs text-[#6B655E] italic">
               We don&apos;t replace these tools. We filter the signal from the noise.
             </p>
           </div>
@@ -185,7 +185,7 @@ export default function FoundationStep19() {
         <button
           onClick={handleContinue}
           disabled={isSubmitting}
-          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all shadow-xl mt-4"
+          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all shadow-xl mt-4"
         >
           {isSubmitting ? "Finalizing Stack..." : "Continue"}
         </button>

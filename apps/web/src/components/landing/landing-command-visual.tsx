@@ -24,7 +24,7 @@ export function LandingCommandVisual() {
 
       // Pulse the central node
       gsap.to(".command-center-node", {
-        boxShadow: "0 0 36px rgba(245,158,11,0.5), 0 0 80px rgba(245,158,11,0.15)",
+        boxShadow: "0 0 36px rgba(217,119,87,0.5), 0 0 80px rgba(217,119,87,0.15)",
         scale: 1.06,
         duration: 2,
         repeat: -1,
@@ -59,7 +59,7 @@ export function LandingCommandVisual() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(circle at 50% 50%, rgba(245,158,11,0.06) 0%, transparent 65%)",
+            "radial-gradient(circle at 50% 50%, rgba(217,119,87,0.06) 0%, transparent 65%)",
         }}
       />
 
@@ -71,56 +71,56 @@ export function LandingCommandVisual() {
         aria-hidden="true"
       >
         {/* Lines from corners to center */}
-        <line className="command-line" x1="80" y1="80" x2="240" y2="240" stroke="rgba(245,158,11,0.25)" strokeWidth="1" strokeDasharray="4 6" />
-        <line className="command-line" x1="400" y1="80" x2="240" y2="240" stroke="rgba(245,158,11,0.25)" strokeWidth="1" strokeDasharray="4 6" />
-        <line className="command-line" x1="80" y1="400" x2="240" y2="240" stroke="rgba(245,158,11,0.25)" strokeWidth="1" strokeDasharray="4 6" />
-        <line className="command-line" x1="400" y1="400" x2="240" y2="240" stroke="rgba(245,158,11,0.25)" strokeWidth="1" strokeDasharray="4 6" />
-        <line className="command-line" x1="240" y1="52" x2="240" y2="240" stroke="rgba(245,158,11,0.25)" strokeWidth="1" strokeDasharray="4 6" />
+        <line className="command-line" x1="80" y1="80" x2="240" y2="240" stroke="rgba(217,119,87,0.25)" strokeWidth="1" strokeDasharray="4 6" />
+        <line className="command-line" x1="400" y1="80" x2="240" y2="240" stroke="rgba(217,119,87,0.25)" strokeWidth="1" strokeDasharray="4 6" />
+        <line className="command-line" x1="80" y1="400" x2="240" y2="240" stroke="rgba(217,119,87,0.25)" strokeWidth="1" strokeDasharray="4 6" />
+        <line className="command-line" x1="400" y1="400" x2="240" y2="240" stroke="rgba(217,119,87,0.25)" strokeWidth="1" strokeDasharray="4 6" />
+        <line className="command-line" x1="240" y1="52" x2="240" y2="240" stroke="rgba(217,119,87,0.25)" strokeWidth="1" strokeDasharray="4 6" />
       </svg>
 
       {/* Central Decision Node */}
       <div
-        className="command-center-node absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-[#1a1a1a] border-2 border-amber-500 flex flex-col items-center justify-center z-10 rounded-full"
-        style={{ boxShadow: "0 0 24px rgba(245,158,11,0.3)" }}
+        className="command-center-node absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white border-2 border-[#D97757] flex flex-col items-center justify-center z-10 rounded-full"
+        style={{ boxShadow: "0 0 24px rgba(217,119,87,0.3)" }}
       >
-        <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest leading-none">Clarity</span>
-        <span className="text-[8px] font-mono text-zinc-600 uppercase tracking-widest mt-0.5">Engine</span>
+        <span className="text-[10px] font-mono text-[#D97757] uppercase tracking-widest leading-none">Clarity</span>
+        <span className="text-[8px] font-mono text-[#9A948C] uppercase tracking-widest mt-0.5">Engine</span>
       </div>
 
       {/* Card: Foundation — top-center */}
-      <div className="command-card absolute left-1/2 top-[2%] -translate-x-1/2 bg-[#1a1a1a] border border-zinc-800 rounded-xl p-3 w-36 text-center">
-        <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest block">Foundation</span>
-        <span className="text-[9px] text-zinc-600 block mt-0.5">Business context layer</span>
+      <div className="command-card absolute left-1/2 top-[2%] -translate-x-1/2 bg-white border border-[#E5DED4] rounded-xl p-3 w-36 text-center">
+        <span className="text-[10px] font-mono text-[#D97757] uppercase tracking-widest block">Foundation</span>
+        <span className="text-[9px] text-[#9A948C] block mt-0.5">Business context layer</span>
       </div>
 
       {/* Card: Campaign — top-left */}
-      <div className="command-card absolute left-[4%] top-[10%] bg-[#1a1a1a] border border-zinc-800 rounded-xl p-3 w-36">
-        <span className="text-[10px] font-mono text-white uppercase tracking-widest block">Campaign</span>
-        <span className="text-[9px] text-zinc-600 block mt-0.5">Active execution plan</span>
+      <div className="command-card absolute left-[4%] top-[10%] bg-white border border-[#E5DED4] rounded-xl p-3 w-36">
+        <span className="text-[10px] font-mono text-[#2A2622] uppercase tracking-widest block">Campaign</span>
+        <span className="text-[9px] text-[#9A948C] block mt-0.5">Active execution plan</span>
       </div>
 
       {/* Card: Intel — top-right */}
-      <div className="command-card absolute right-[4%] top-[10%] bg-[#1a1a1a] border border-zinc-800 rounded-xl p-3 w-36">
-        <span className="text-[10px] font-mono text-white uppercase tracking-widest block">Intel</span>
-        <span className="text-[9px] text-zinc-600 block mt-0.5">Competitor signals</span>
+      <div className="command-card absolute right-[4%] top-[10%] bg-white border border-[#E5DED4] rounded-xl p-3 w-36">
+        <span className="text-[10px] font-mono text-[#2A2622] uppercase tracking-widest block">Intel</span>
+        <span className="text-[9px] text-[#9A948C] block mt-0.5">Competitor signals</span>
       </div>
 
       {/* Card: Daily Action — bottom-left */}
-      <div className="command-card absolute left-[4%] bottom-[10%] bg-[#1a1a1a] border border-zinc-800 rounded-xl p-3 w-36">
-        <span className="text-[10px] font-mono text-white uppercase tracking-widest block">Daily Action</span>
-        <span className="text-[9px] text-zinc-600 block mt-0.5">Today's single move</span>
+      <div className="command-card absolute left-[4%] bottom-[10%] bg-white border border-[#E5DED4] rounded-xl p-3 w-36">
+        <span className="text-[10px] font-mono text-[#2A2622] uppercase tracking-widest block">Daily Action</span>
+        <span className="text-[9px] text-[#9A948C] block mt-0.5">Today's single move</span>
       </div>
 
       {/* Card: Memory — bottom-right */}
-      <div className="command-card absolute right-[4%] bottom-[10%] bg-[#1a1a1a] border border-zinc-800 rounded-xl p-3 w-36">
-        <span className="text-[10px] font-mono text-white uppercase tracking-widest block">Memory</span>
-        <span className="text-[9px] text-zinc-600 block mt-0.5">Compounding knowledge</span>
+      <div className="command-card absolute right-[4%] bottom-[10%] bg-white border border-[#E5DED4] rounded-xl p-3 w-36">
+        <span className="text-[10px] font-mono text-[#2A2622] uppercase tracking-widest block">Memory</span>
+        <span className="text-[9px] text-[#9A948C] block mt-0.5">Compounding knowledge</span>
       </div>
 
       {/* Metric pill */}
-      <div className="command-card absolute right-[8%] top-1/2 -translate-y-1/2 bg-[#0f0f0f] border border-amber-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
-        <span className="text-[9px] font-mono text-amber-500 uppercase tracking-widest whitespace-nowrap">Live Signal</span>
+      <div className="command-card absolute right-[8%] top-1/2 -translate-y-1/2 bg-[#FBF8F2] border border-[#D97757]/30 rounded-lg px-3 py-2 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#D97757] animate-pulse shrink-0" />
+        <span className="text-[9px] font-mono text-[#D97757] uppercase tracking-widest whitespace-nowrap">Live Signal</span>
       </div>
     </div>
   );

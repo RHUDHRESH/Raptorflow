@@ -6,14 +6,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex">
       {/* Left Branding Pane */}
-      <div className="hidden lg:flex flex-col justify-between w-1/2 p-12 bg-[#100E0F] text-[#F3F0E7] border-r border-[#332D2F]">
+      <div className="hidden lg:flex flex-col justify-between w-1/2 p-12 bg-[#F5F0E8] text-[#2A2622] border-r border-[#E5DED4]">
         <Link href="/" className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight">RAPTORFLOW</Link>
         <GsapBridge stagger={true}>
           <div className="space-y-6 max-w-lg mb-20">
             <h1 className="gsap-reveal font-[family-name:var(--font-display)] text-5xl leading-tight">
               A council of 21 strategists awaits.
             </h1>
-            <p className="gsap-reveal text-[#EAE6DB]/70 font-mono text-sm leading-loose uppercase tracking-widest">
+            <p className="gsap-reveal text-[#6B655E]/70 font-mono text-sm leading-loose uppercase tracking-widest">
               Stop managing a tool. Start managing a team.
             </p>
           </div>

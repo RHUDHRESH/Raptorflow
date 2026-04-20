@@ -7,7 +7,7 @@ services:
     environment:
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8080
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ZXhhbXBsZS5hY2NvdW50cy5kZXYk
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ZnVua3ktc2NvcnBpb24tMjEuY2xlcmsuYWNjb3VudHMuZGV2JA
     ports:
       - "3000:3000"
     volumes:
@@ -35,9 +35,12 @@ services:
       RAPTORFLOW_SQS_BASE_URL: https://sqs.ap-south-1.amazonaws.com
       RAPTORFLOW_SQS_EMBEDDING_QUEUE: raptorflow-dev-embedding
       RAPTORFLOW_SQS_CONTENT_QUEUE: raptorflow-dev-content-pregeneration
-      RAPTORFLOW_GCP_API_KEY: replace-me
-      RAPTORFLOW_CLERK_JWKS_URL: https://example.clerk.accounts.dev/.well-known/jwks.json
-      RAPTORFLOW_CLERK_ISSUER: https://example.clerk.accounts.dev
+      RAPTORFLOW_GCP_API_KEY:
+      RAPTORFLOW_BEDROCK_REGION: ap-south-1
+      RAPTORFLOW_BEDROCK_MODEL_STRATEGIST: mistral.mistral-large-3-675b-instruct
+      RAPTORFLOW_BEDROCK_MODEL_FAST: mistral.mistral-7b-instruct-v0:2
+      RAPTORFLOW_CLERK_JWKS_URL: https://funky-scorpion-21.clerk.accounts.dev/.well-known/jwks.json
+      RAPTORFLOW_CLERK_ISSUER: https://funky-scorpion-21.clerk.accounts.dev
       RAPTORFLOW_CLERK_WEBHOOK_SECRET: whsec_dev_replace_me
       RAPTORFLOW_RAZORPAY_KEY_ID: replace-me
       RAPTORFLOW_RAZORPAY_KEY_SECRET: replace-me

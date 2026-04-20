@@ -58,7 +58,7 @@ export function LandingFoundation() {
 
       // Core pulse
       gsap.to(".foundation-core", {
-        boxShadow: "0 0 48px rgba(245,158,11,0.45)",
+        boxShadow: "0 0 48px rgba(217,119,87,0.45)",
         scale: 1.05,
         duration: 1.8,
         repeat: -1,
@@ -75,7 +75,7 @@ export function LandingFoundation() {
       eyebrow="Foundation"
       title="The system starts with your business, not a blank prompt."
       description="Foundation captures your ICP, positioning, competitors, pricing, channels, goals, voice, budget, assets, frustrations, and strategist style. That context powers every campaign and recommendation after it."
-      className="bg-[#0f0f0f] border-t border-zinc-900"
+      className="bg-[#FBF8F2] border-t border-[#E5DED4]"
     >
       <div ref={sectionRef} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
@@ -85,9 +85,9 @@ export function LandingFoundation() {
             {foundationCards.map((label, i) => (
               <div
                 key={i}
-                className="foundation-chip bg-[#1a1a1a] border border-zinc-800 rounded-lg px-3 py-2 text-center hover:border-amber-500/40 hover:bg-[#1f1f1f] transition-all duration-200 cursor-default group"
+                className="foundation-chip bg-white border border-[#E5DED4] rounded-lg px-3 py-2 text-center hover:border-[#D97757]/40 hover:bg-[#F5F0E8] transition-all duration-200 cursor-default group"
               >
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest group-hover:text-amber-500 transition-colors duration-200 block leading-tight">
+                <span className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest group-hover:text-[#D97757] transition-colors duration-200 block leading-tight">
                   {label}
                 </span>
               </div>
@@ -105,29 +105,29 @@ export function LandingFoundation() {
               fill="none"
               aria-hidden="true"
             >
-              <line className="foundation-line" x1="0" y1="30" x2="150" y2="100" stroke="rgba(245,158,11,0.3)" strokeWidth="1" strokeDasharray="60" />
-              <line className="foundation-line" x1="300" y1="30" x2="150" y2="100" stroke="rgba(245,158,11,0.3)" strokeWidth="1" strokeDasharray="60" />
-              <line className="foundation-line" x1="0" y1="100" x2="150" y2="100" stroke="rgba(245,158,11,0.3)" strokeWidth="1" strokeDasharray="60" />
-              <line className="foundation-line" x1="300" y1="100" x2="150" y2="100" stroke="rgba(245,158,11,0.3)" strokeWidth="1" strokeDasharray="60" />
-              <line className="foundation-line" x1="0" y1="170" x2="150" y2="100" stroke="rgba(245,158,11,0.3)" strokeWidth="1" strokeDasharray="60" />
-              <line className="foundation-line" x1="300" y1="170" x2="150" y2="100" stroke="rgba(245,158,11,0.3)" strokeWidth="1" strokeDasharray="60" />
-              <line className="foundation-line" x1="150" y1="0" x2="150" y2="100" stroke="rgba(245,158,11,0.3)" strokeWidth="1" strokeDasharray="60" />
-              <line className="foundation-line" x1="150" y1="200" x2="150" y2="100" stroke="rgba(245,158,11,0.3)" strokeWidth="1" strokeDasharray="60" />
+              <line className="foundation-line" x1="0" y1="30" x2="150" y2="100" stroke="rgba(217,119,87,0.3)" strokeWidth="1" strokeDasharray="60" />
+              <line className="foundation-line" x1="300" y1="30" x2="150" y2="100" stroke="rgba(217,119,87,0.3)" strokeWidth="1" strokeDasharray="60" />
+              <line className="foundation-line" x1="0" y1="100" x2="150" y2="100" stroke="rgba(217,119,87,0.3)" strokeWidth="1" strokeDasharray="60" />
+              <line className="foundation-line" x1="300" y1="100" x2="150" y2="100" stroke="rgba(217,119,87,0.3)" strokeWidth="1" strokeDasharray="60" />
+              <line className="foundation-line" x1="0" y1="170" x2="150" y2="100" stroke="rgba(217,119,87,0.3)" strokeWidth="1" strokeDasharray="60" />
+              <line className="foundation-line" x1="300" y1="170" x2="150" y2="100" stroke="rgba(217,119,87,0.3)" strokeWidth="1" strokeDasharray="60" />
+              <line className="foundation-line" x1="150" y1="0" x2="150" y2="100" stroke="rgba(217,119,87,0.3)" strokeWidth="1" strokeDasharray="60" />
+              <line className="foundation-line" x1="150" y1="200" x2="150" y2="100" stroke="rgba(217,119,87,0.3)" strokeWidth="1" strokeDasharray="60" />
             </svg>
 
             {/* Core node */}
             <div
-              className="foundation-core relative z-10 w-28 h-28 bg-[#1a1a1a] border-2 border-amber-500 rounded-full flex flex-col items-center justify-center my-12"
-              style={{ boxShadow: "0 0 32px rgba(245,158,11,0.25)" }}
+              className="foundation-core relative z-10 w-28 h-28 bg-white border-2 border-[#D97757] rounded-full flex flex-col items-center justify-center my-12"
+              style={{ boxShadow: "0 0 32px rgba(217,119,87,0.25)" }}
             >
-              <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest">Context</span>
-              <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest mt-0.5">Core</span>
+              <span className="text-[10px] font-mono text-[#D97757] uppercase tracking-widest">Context</span>
+              <span className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest mt-0.5">Core</span>
             </div>
           </div>
 
           {/* Copy below */}
           <div className="text-center max-w-xs">
-            <p className="text-sm font-mono text-zinc-600 uppercase tracking-widest">
+            <p className="text-sm font-mono text-[#9A948C] uppercase tracking-widest">
               21 context signals → one unified intelligence layer
             </p>
           </div>

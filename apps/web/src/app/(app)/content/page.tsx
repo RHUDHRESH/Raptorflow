@@ -58,7 +58,7 @@ export default function ContentPage(): React.ReactElement {
               <div key={item.contentId} className="border border-[var(--border)] bg-[var(--card)] p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-amber-500 mb-2">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-[#D97757] mb-2">
                       {item.contentType}
                     </p>
                     <h2 className="font-[family-name:var(--font-display)] text-2xl leading-tight">

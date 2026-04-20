@@ -62,7 +62,7 @@ export function LandingPricing() {
       title="Pricing built for Indian SMBs."
       description="No fake free tier. No agency retainer shock. Choose the operating level your business needs."
       centered
-      className="bg-[#121212] border-t border-zinc-900"
+      className="bg-[#FBF8F2] border-t border-[#E5DED4]"
     >
       <div ref={sectionRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
         {pricingPlans.map((plan, i) => (
@@ -70,38 +70,38 @@ export function LandingPricing() {
             key={i}
             className={`pricing-card relative flex flex-col rounded-2xl border p-8 ${
               plan.featured
-                ? "border-amber-500/60 bg-[#1a1a1a] shadow-[0_0_48px_rgba(245,158,11,0.12)]"
-                : "border-zinc-800 bg-[#1a1a1a]"
+                ? "border-[#D97757]/60 bg-white shadow-[0_0_48px_rgba(217,119,87,0.12)]"
+                : "border-[#E5DED4] bg-white"
             }`}
           >
             {plan.featured && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <div className="bg-amber-500 text-black text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1">
+                <div className="bg-[#D97757] text-[#2A2622] text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1">
                   Recommended
                 </div>
               </div>
             )}
 
             <div className="mb-6">
-              <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">
+              <p className="text-xs font-mono text-[#9A948C] uppercase tracking-widest mb-2">
                 {plan.name}
               </p>
               <div className="flex items-end gap-1 mb-3">
-                <span className={`text-4xl font-semibold ${plan.featured ? "text-amber-400" : "text-white"}`}>
+                <span className={`text-4xl font-semibold ${plan.featured ? "text-[#D97757]" : "text-[#2A2622]"}`}>
                   {plan.price}
                 </span>
-                <span className="text-zinc-500 text-sm mb-1">{plan.cadence}</span>
+                <span className="text-[#9A948C] text-sm mb-1">{plan.cadence}</span>
               </div>
-              <p className="text-sm text-zinc-500 leading-6">{plan.line}</p>
+              <p className="text-sm text-[#6B655E] leading-6">{plan.line}</p>
             </div>
 
             <div className="flex-1 flex flex-col gap-3 mb-8">
               {plan.features.map((feature, j) => (
                 <div key={j} className="pricing-feature flex items-start gap-3">
                   <CheckIcon
-                    className={`w-4 h-4 mt-0.5 shrink-0 ${plan.featured ? "text-amber-500" : "text-zinc-500"}`}
+                    className={`w-4 h-4 mt-0.5 shrink-0 ${plan.featured ? "text-[#D97757]" : "text-[#9A948C]"}`}
                   />
-                  <span className="text-sm text-zinc-400">{feature}</span>
+                  <span className="text-sm text-[#6B655E]">{feature}</span>
                 </div>
               ))}
             </div>
@@ -110,8 +110,8 @@ export function LandingPricing() {
               href={referralSignupHref(plan.referralCode)}
               className={`w-full text-center py-3 text-sm font-semibold transition-colors duration-200 ${
                 plan.featured
-                  ? "bg-amber-500 text-black hover:bg-amber-400"
-                  : "border border-zinc-700 text-zinc-300 hover:bg-zinc-900 hover:border-zinc-600"
+                  ? "bg-[#D97757] text-[#2A2622] hover:bg-[#C46A4D]"
+                  : "border border-[#E5DED4] text-[#6B655E] hover:bg-[#F5F0E8] hover:border-[#D5CBC0]"
               }`}
             >
               {plan.cta}
@@ -120,7 +120,7 @@ export function LandingPricing() {
         ))}
       </div>
 
-      <p className="mt-10 text-xs font-mono text-zinc-700 uppercase tracking-widest text-center">
+      <p className="mt-10 text-xs font-mono text-[#BAB0A0] uppercase tracking-widest text-center">
         All plans include Foundation setup · No credit card required to start
       </p>
     </LandingSection>

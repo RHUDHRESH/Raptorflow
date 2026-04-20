@@ -143,24 +143,24 @@ export default function FoundationStep20() {
   };
 
   return (
-    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#1a1a1a]">
+    <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[600px] space-y-10">
         
         {/* HEADER */}
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold text-white leading-tight">Which brands do you admire for their marketing?</h1>
-          <p className="text-base text-zinc-400">
-            Not brands you think you should name. Brands whose marketing you <span className="italic font-medium text-zinc-200 underline decoration-[#f59e0b]/30">actually</span> respect.
+          <h1 className="text-3xl font-bold text-[#2A2622] leading-tight">Which brands do you admire for their marketing?</h1>
+          <p className="text-base text-[#6B655E]">
+            Not brands you think you should name. Brands whose marketing you <span className="italic font-medium text-[#4A4540] underline decoration-[#f59e0b]/30">actually</span> respect.
           </p>
         </div>
 
         {/* INPUT SLOTS */}
         <div className="flex flex-col gap-4">
           {slots.slice(0, visibleSlots).map((slot, index) => (
-            <div key={index} className="bg-[#1e1e1e] border border-zinc-800 rounded-xl p-4 space-y-4 shadow-lg transition-all">
+            <div key={index} className="bg-[#FBF8F2] border border-[#E5DED4] rounded-xl p-4 space-y-4 shadow-lg transition-all">
               {slot.status === "empty" ? (
                 <input
-                  className="w-full bg-transparent text-sm text-white placeholder:text-zinc-600 focus:outline-none"
+                  className="w-full bg-transparent text-sm text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none"
                   placeholder="Enter brand name or website..."
                   onKeyDown={(e) => e.key === "Enter" && identifyBrand(index, (e.target as HTMLInputElement).value)}
                   onBlur={(e) => e.target.value && identifyBrand(index, e.target.value)}
@@ -168,7 +168,7 @@ export default function FoundationStep20() {
               ) : slot.status === "identifying" ? (
                 <div className="flex items-center gap-3 py-1">
                   <Loader2 className="w-5 h-5 text-[#f59e0b] animate-spin" />
-                  <span className="text-sm text-zinc-500 font-mono tracking-tighter uppercase">Identifying Brand Landscape...</span>
+                  <span className="text-sm text-[#6B655E] font-mono tracking-tighter uppercase">Identifying Brand Landscape...</span>
                 </div>
               ) : (
                 <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
@@ -176,24 +176,24 @@ export default function FoundationStep20() {
                     <div className="flex items-center gap-3">
                       {slot.identified ? (
                         <div 
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-[#2A2622] font-bold"
                           style={{ backgroundColor: slot.color }}
                         >
                           {slot.name.charAt(0).toUpperCase()}
                         </div>
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500">
+                        <div className="w-10 h-10 rounded-full bg-[#E5DED4] flex items-center justify-center text-[#6B655E]">
                           <Building className="w-5 h-5" />
                         </div>
                       )}
-                      <span className="text-sm font-bold text-white tracking-tight">{slot.name}</span>
+                      <span className="text-sm font-bold text-[#2A2622] tracking-tight">{slot.name}</span>
                     </div>
-                    <button onClick={() => removeBrand(index)} className="text-zinc-600 hover:text-white transition-colors">
+                    <button onClick={() => removeBrand(index)} className="text-[#9A948C] hover:text-[#2A2622] transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                   <input
-                    className="w-full bg-[#1a1a1a] border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-[#f59e0b]"
+                    className="w-full bg-[#FBF8F2] border border-[#E5DED4] rounded-lg px-3 py-2 text-xs text-[#9A948C] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b]"
                     placeholder="What specifically do you admire? Their voice, design, or content?"
                     value={slot.admiredFor}
                     onChange={(e) => {
@@ -215,8 +215,8 @@ export default function FoundationStep20() {
               <AlertTriangle className="w-5 h-5 text-[#f59e0b]" />
               <h4 className="text-sm font-bold text-[#f59e0b] uppercase tracking-widest">Brand Voice Mismatch</h4>
             </div>
-            <p className="text-sm text-zinc-300 leading-relaxed">
-              You admire brands like <span className="text-white font-bold">Apple</span> or <span className="text-white font-bold">Zoho</span> — known for minimal, premium communication. However, your personality sliders are set to <span className="text-[#f59e0b] font-bold">Casual & Playful</span>.
+            <p className="text-sm text-[#9A948C] leading-relaxed">
+              You admire brands like <span className="text-[#2A2622] font-bold">Apple</span> or <span className="text-[#2A2622] font-bold">Zoho</span> — known for minimal, premium communication. However, your personality sliders are set to <span className="text-[#f59e0b] font-bold">Casual & Playful</span>.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
               <button 
@@ -227,7 +227,7 @@ export default function FoundationStep20() {
               </button>
               <button 
                 onClick={() => router.push("/foundation/11?returnTo=20")}
-                className="px-4 py-2 text-zinc-400 hover:text-white text-xs font-medium transition-colors"
+                className="px-4 py-2 text-[#6B655E] hover:text-[#2A2622] text-xs font-medium transition-colors"
               >
                 Let me adjust them →
               </button>
@@ -239,7 +239,7 @@ export default function FoundationStep20() {
         <button
           onClick={handleContinue}
           disabled={slots.filter(s => s.status === "filled").length === 0 || isSubmitting}
-          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-zinc-700 disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all shadow-xl"
+          className="w-full bg-[#f59e0b] hover:bg-[#d97706] disabled:bg-[#D5CBC0] disabled:opacity-50 text-black font-bold rounded-lg py-4 transition-all shadow-xl"
         >
           {isSubmitting ? "Syncing Benchmarks..." : "Continue"}
         </button>
