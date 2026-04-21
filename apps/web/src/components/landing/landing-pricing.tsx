@@ -5,124 +5,164 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { LandingSection } from "./landing-section";
-import { usePrefersReducedMotion } from "./landing-gsap-provider";
-import { pricingPlans } from "@/lib/landing-copy";
-import { CheckIcon } from "@radix-ui/react-icons";
-import { referralSignupHref } from "@/lib/referrals";
+import { Check } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+const features = [
+  "21 AI specialists working on your business daily",
+  "Morning briefings: your market, your competitors, your actions",
+  "Weekly campaigns and content recommendations",
+  "Competitor monitoring across web, ads, and social",
+  "Positioning and messaging help built-in",
+  "2-week 100% cashback — no questions asked",
+  "No contracts. Cancel anytime.",
+];
+
+const comparisons = [
+  { option: "Senior marketing hire", cost: "₹80,000–₹1,50,000" },
+  { option: "Boutique agency retainer", cost: "₹40,000–₹1,00,000" },
+  { option: "Freelance GTM consultant", cost: "₹20,000–₹50,000" },
+  { option: "RaptorFlow", cost: "₹5,000", highlight: true },
+];
+
 export function LandingPricing() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const reducedMotion = usePrefersReducedMotion();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
-      if (reducedMotion) return;
+      const mm = gsap.matchMedia();
 
-      // Plan cards stagger upward
-      gsap.from(".pricing-card", {
-        y: 48,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.12,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 78%",
-          once: true,
-        },
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set(".pricing-card, .feature-item, .price-number", { opacity: 1, x: 0 });
       });
 
-      // Features reveal inside cards
-      gsap.from(".pricing-feature", {
-        x: -12,
-        opacity: 0,
-        duration: 0.4,
-        stagger: 0.04,
-        delay: 0.5,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 75%",
-          once: true,
-        },
+      mm.add("(min-width: 0px)", () => {
+        // Price counter animation
+        const obj = { val: 0 };
+        gsap.to(obj, {
+          val: 5000,
+          duration: 1.5,
+          ease: "power2.out",
+          onUpdate: () => {
+            const el = document.querySelector(".price-number");
+            if (el) {
+              el.textContent = "₹" + Math.floor(obj.val).toLocaleString("en-IN");
+            }
+          },
+          scrollTrigger: { trigger: ".pricing-section", start: "top 65%", once: true },
+        });
+
+        gsap.from(".feature-item", {
+          x: -20,
+          opacity: 0,
+          stagger: 0.08,
+          duration: 0.5,
+          ease: "power2.out",
+          scrollTrigger: { trigger: ".pricing-card", start: "top 65%", once: true },
+        });
       });
+
+      return () => mm.revert();
     },
-    { scope: sectionRef }
+    { scope: containerRef },
   );
 
   return (
-    <LandingSection
-      id="pricing"
-      eyebrow="Pricing"
-      title="Pricing built for Indian SMBs."
-      description="No fake free tier. No agency retainer shock. Choose the operating level your business needs."
-      centered
-      className="bg-[#FBF8F2] border-t border-[#E5DED4]"
+    <section
+      ref={containerRef}
+      className="pricing-section relative bg-[#F7F4EE] py-[120px] lg:py-[120px]"
     >
-      <div ref={sectionRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-        {pricingPlans.map((plan, i) => (
-          <div
-            key={i}
-            className={`pricing-card relative flex flex-col rounded-2xl border p-8 ${
-              plan.featured
-                ? "border-[#D97757]/60 bg-white shadow-[0_0_48px_rgba(217,119,87,0.12)]"
-                : "border-[#E5DED4] bg-white"
-            }`}
-          >
-            {plan.featured && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <div className="bg-[#D97757] text-[#2A2622] text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1">
-                  Recommended
-                </div>
-              </div>
-            )}
-
-            <div className="mb-6">
-              <p className="text-xs font-mono text-[#9A948C] uppercase tracking-widest mb-2">
-                {plan.name}
-              </p>
-              <div className="flex items-end gap-1 mb-3">
-                <span className={`text-4xl font-semibold ${plan.featured ? "text-[#D97757]" : "text-[#2A2622]"}`}>
-                  {plan.price}
-                </span>
-                <span className="text-[#9A948C] text-sm mb-1">{plan.cadence}</span>
-              </div>
-              <p className="text-sm text-[#6B655E] leading-6">{plan.line}</p>
+      <div className="mx-auto max-w-[1200px] px-6 lg:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          {/* LEFT — Pricing card */}
+          <div className="pricing-card bg-[#0E0F13] rounded-[20px] border border-[rgba(255,255,255,0.08)] p-10 lg:p-11">
+            <div className="flex items-baseline gap-1">
+              <span className="price-number text-[64px] font-extrabold text-white tracking-[-0.04em]">
+                ₹0
+              </span>
+              <span className="text-[18px] text-[rgba(255,255,255,0.40)]">/month</span>
             </div>
 
-            <div className="flex-1 flex flex-col gap-3 mb-8">
-              {plan.features.map((feature, j) => (
-                <div key={j} className="pricing-feature flex items-start gap-3">
-                  <CheckIcon
-                    className={`w-4 h-4 mt-0.5 shrink-0 ${plan.featured ? "text-[#D97757]" : "text-[#9A948C]"}`}
-                  />
-                  <span className="text-sm text-[#6B655E]">{feature}</span>
+            <div className="h-px bg-[rgba(255,255,255,0.07)] my-6" />
+
+            <div className="flex flex-col">
+              {features.map((feature, i) => (
+                <div
+                  key={i}
+                  className="feature-item flex items-start gap-3 py-2.5 border-b border-[rgba(255,255,255,0.05)]"
+                >
+                  <Check className="w-4 h-4 text-[#3FA66A] shrink-0 mt-0.5" />
+                  <span className="text-[14px] text-[rgba(255,255,255,0.70)]">{feature}</span>
                 </div>
               ))}
             </div>
 
             <a
-              href={referralSignupHref(plan.referralCode)}
-              className={`w-full text-center py-3 text-sm font-semibold transition-colors duration-200 ${
-                plan.featured
-                  ? "bg-[#D97757] text-[#2A2622] hover:bg-[#C46A4D]"
-                  : "border border-[#E5DED4] text-[#6B655E] hover:bg-[#F5F0E8] hover:border-[#D5CBC0]"
-              }`}
+              href="/sign-up"
+              className="btn-primary w-full mt-8 text-center justify-center inline-flex"
             >
-              {plan.cta}
+              Start now — ₹5,000/month
             </a>
-          </div>
-        ))}
-      </div>
 
-      <p className="mt-10 text-xs font-mono text-[#BAB0A0] uppercase tracking-widest text-center">
-        All plans include Foundation setup · No credit card required to start
-      </p>
-    </LandingSection>
+            <p className="font-[family-name:var(--font-mono)] text-[11px] text-[rgba(255,255,255,0.30)] text-center mt-3.5">
+              Pay via UPI · Cards · Net Banking · GST invoice included
+            </p>
+          </div>
+
+          {/* RIGHT — Comparison */}
+          <div className="pt-4">
+            <div className="font-[family-name:var(--font-mono)] text-[10.5px] tracking-[0.12em] uppercase text-[#6B6D78] mb-5">
+              vs. the alternative
+            </div>
+
+            <div className="flex flex-col">
+              {/* Header */}
+              <div className="grid grid-cols-2 py-3 border-b border-[rgba(19,20,26,0.08)]">
+                <span className="font-[family-name:var(--font-mono)] text-[11px] text-[#6B6D78]">
+                  Option
+                </span>
+                <span className="font-[family-name:var(--font-mono)] text-[11px] text-[#6B6D78] text-right">
+                  Monthly cost
+                </span>
+              </div>
+
+              {/* Rows */}
+              {comparisons.map((row, i) => (
+                <div
+                  key={i}
+                  className={`grid grid-cols-2 py-3.5 border-b border-[rgba(19,20,26,0.08)] ${
+                    row.highlight ? "bg-[rgba(232,90,44,0.07)] -mx-4 px-4 rounded" : ""
+                  }`}
+                >
+                  <span
+                    className={`text-[14px] ${
+                      row.highlight ? "text-[#E85A2C] font-semibold" : "text-[#13141A]"
+                    }`}
+                  >
+                    {row.option}
+                  </span>
+                  <span
+                    className={`text-[14px] text-right ${
+                      row.highlight ? "text-[#E85A2C] font-semibold" : "text-[#6B6D78]"
+                    }`}
+                  >
+                    {row.cost}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-[15px] text-[#6B6D78] mt-6 italic">
+              Less than one consultant hour per week.
+              <br />
+              More than any of the above can actually deliver.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

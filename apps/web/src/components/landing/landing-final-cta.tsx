@@ -4,136 +4,92 @@ import * as React from "react";
 import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
-import { usePrefersReducedMotion } from "./landing-gsap-provider";
-import { AmberButton, GhostButton } from "./landing-ui-primitives";
-import { ArrowRightIcon } from "@radix-ui/react-icons";
-import { referralSignupHref } from "@/lib/referrals";
 
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, SplitText);
 }
 
-const SCATTERED_CARDS = [
-  { label: "Foundation", rotate: -8, tx: -140, ty: -60 },
-  { label: "Campaign", rotate: 5, tx: 140, ty: -50 },
-  { label: "Intel", rotate: -4, tx: -100, ty: 60 },
-  { label: "Memory", rotate: 7, tx: 110, ty: 55 },
-  { label: "Daily Wins", rotate: -6, tx: 0, ty: -90 },
-];
-
 export function LandingFinalCTA() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const reducedMotion = usePrefersReducedMotion();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
-      if (reducedMotion) return;
+      const mm = gsap.matchMedia();
 
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 80%",
-          once: true,
-        },
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set(".final-h2, .final-sub, .final-cta-group", { opacity: 1, y: 0 });
       });
 
-      // Cards converge from scattered positions to center
-      tl.from(".final-scattered-card", {
-        x: (i) => SCATTERED_CARDS[i]?.tx ?? 0,
-        y: (i) => SCATTERED_CARDS[i]?.ty ?? 0,
-        rotation: (i) => SCATTERED_CARDS[i]?.rotate ?? 0,
-        opacity: 0,
-        scale: 0.9,
-        duration: 0.9,
-        stagger: 0.08,
-        ease: "power3.out",
-      });
+      mm.add("(min-width: 0px)", () => {
+        SplitText.create(".final-h2", {
+          type: "lines",
+          mask: "lines",
+          autoSplit: true,
+          onSplit(self) {
+            gsap.from(self.lines, {
+              yPercent: 110,
+              duration: 0.8,
+              stagger: 0.12,
+              ease: "power3.out",
+              scrollTrigger: { trigger: ".final-section", start: "top 70%", once: true },
+            });
+          },
+        });
 
-      // Amber path draws
-      tl.fromTo(
-        ".final-amber-path",
-        { scaleX: 0 },
-        {
-          scaleX: 1,
-          transformOrigin: "left center",
-          duration: 0.8,
-          ease: "power2.inOut",
-        },
-        "-=0.3"
-      );
-
-      // CTA appears last
-      tl.from(
-        ".final-cta-group",
-        {
-          y: 24,
+        gsap.from(".final-sub", {
+          y: 20,
           opacity: 0,
           duration: 0.7,
-          ease: "power3.out",
-        },
-        "-=0.2"
-      );
+          delay: 0.4,
+          ease: "power2.out",
+          scrollTrigger: { trigger: ".final-section", start: "top 70%", once: true },
+        });
+
+        gsap.from(".final-cta-group", {
+          y: 20,
+          opacity: 0,
+          duration: 0.7,
+          delay: 0.6,
+          ease: "power2.out",
+          scrollTrigger: { trigger: ".final-section", start: "top 70%", once: true },
+        });
+      });
+
+      return () => mm.revert();
     },
-    { scope: sectionRef }
+    { scope: containerRef },
   );
 
   return (
     <section
-      id="final-cta"
-      ref={sectionRef}
-      className="relative px-6 py-32 lg:px-8 overflow-hidden bg-[#F5F0E8] border-t border-[#E5DED4]"
+      ref={containerRef}
+      className="final-section relative bg-[#0E0F13] py-[120px] lg:py-[160px]"
     >
-      {/* Background glow */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 100%, rgba(217,119,87,0.06) 0%, transparent 60%)",
-        }}
-        aria-hidden="true"
-      />
-
-      <div className="relative mx-auto max-w-4xl text-center">
-
-        {/* Scattered cards converging */}
-        <div className="relative h-40 mb-12 flex items-center justify-center overflow-hidden">
-          {SCATTERED_CARDS.map((card, i) => (
-            <div
-              key={i}
-              className="final-scattered-card absolute bg-white border border-[#E5DED4] rounded-xl px-3 py-2"
-            >
-              <span className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">
-                {card.label}
-              </span>
-            </div>
-          ))}
-
-          {/* Amber convergence path */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-64 h-px">
-            <div className="final-amber-path h-full bg-[#D97757]/50 origin-left" />
-          </div>
-        </div>
-
-        <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#2A2622] leading-[1.05] mb-6 font-[family-name:var(--font-display)]">
-          Stop restarting marketing from zero.
+      <div className="mx-auto max-w-[800px] px-6 lg:px-12 text-center">
+        <h2 className="final-h2 text-[36px] lg:text-[56px] font-extrabold text-white tracking-[-0.035em] leading-[1.06] mb-7">
+          The product exists.
+          <br />
+          The market needs it.
+          <br />
+          Now they need to find it.
         </h2>
-        <p className="text-base md:text-lg text-[#6B655E] leading-7 max-w-xl mx-auto mb-12">
-          Start with Foundation. Build the memory layer. Turn strategy into daily execution.
+
+        <p className="final-sub text-[18px] text-[rgba(255,255,255,0.50)] leading-[1.65] max-w-[560px] mx-auto mb-12">
+          Your competitor is not smarter than you. They just showed up more consistently. RaptorFlow
+          is the system that makes consistency automatic.
         </p>
 
-        <div className="final-cta-group flex flex-col sm:flex-row gap-4 justify-center">
-          <AmberButton href={referralSignupHref("LOKI")} className="text-base px-10 py-4">
-            Start now <ArrowRightIcon className="w-4 h-4" />
-          </AmberButton>
-          <GhostButton href="/sign-in" className="text-base px-10 py-4">
-            Sign in
-          </GhostButton>
+        <div className="final-cta-group">
+          <a href="/sign-up" className="btn-primary text-[16px] px-10 py-4 inline-flex">
+            Start now — ₹5,000/month
+          </a>
+
+          <p className="font-[family-name:var(--font-mono)] text-[11px] text-[rgba(255,255,255,0.30)] mt-4">
+            2-week 100% cashback · No contracts · raptorflow.in
+          </p>
         </div>
-
-        <p className="mt-8 text-xs font-mono text-[#BAB0A0] uppercase tracking-widest">
-          Built for Indian SMBs · No setup fees · Start today
-        </p>
       </div>
     </section>
   );
