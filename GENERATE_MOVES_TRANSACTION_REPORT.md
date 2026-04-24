@@ -73,13 +73,21 @@ pub async fn create_generated_campaign_moves_transactional(
 // has_failure flag to track partial inserts
 // atomicity_note in response admitting risk
 // Filter invalid moves, proceed with valid ones
+// .take(max_moves) silently truncates
+// sequence_number: next_seq (all same value)
 ```
 
 ### After (Safe)
 
 ```rust
 // Validate ALL moves first - reject whole output if any invalid
-// Build insert vector
+// validate_generated_moves(moves, max_moves) rejects:
+//   - empty list
+//   - count > max_moves
+//   - invalid move_type
+//   - short description/expected_impact
+//   - out-of-range confidence
+// Build insert vector with incrementing sequence numbers
 // Single transaction call
 // No partial inserts possible
 // No atomicity_note - atomic by default
@@ -95,6 +103,8 @@ pub async fn create_generated_campaign_moves_transactional(
 - If some valid, some invalid → proceeded with valid ones
 - No error count reported to caller
 - Empty result only if ALL moves were invalid
+- `.take(max_moves)` silently truncated AI output
+- All moves got same `sequence_number`
 
 ### After (All-or-Nothing)
 
@@ -102,15 +112,9 @@ pub async fn create_generated_campaign_moves_transactional(
 - If ANY move is invalid → reject entire AI output with 502
 - Returns `{ "error": "invalid_ai_output", "validation_errors": <count> }`
 - Does not reveal raw AI text in errors
-
-**Validation checks:**
-
-- `move_type` must be in allowlist
-- `description` min 5 chars (after trim)
-- `expected_impact` min 10 chars (after trim)
-- `confidence` must be 0.0..1.0
-- Empty move list rejected
-- Max moves enforced by `take(max_moves)`
+- Rejects if AI returns more than `max_moves` (no silent truncation)
+- Sequence numbers increment correctly (4, 5, 6 not 4, 4, 4)
+- `move_id` stored in `generated_content` JSON body for linkage
 
 ---
 
@@ -171,47 +175,25 @@ pub async fn create_generated_campaign_moves_transactional(
 
 ## 9. Remaining Risks
 
-| Risk                          | Severity     | Mitigation                                                |
-| ----------------------------- | ------------ | --------------------------------------------------------- |
-| DB integration test not added | Medium       | No test DB fixture available; pure validation tests added |
-| `cargo test` linking fails    | Pre-existing | aws-lc-sys/Windows toolchain issue                        |
+| Risk                          | Severity     | Status                                   |
+| ----------------------------- | ------------ | ---------------------------------------- |
+| DB integration test not added | Medium       | Not fixed - requires test infrastructure |
+| `cargo test` linking fails    | Pre-existing | aws-lc-sys/Windows toolchain issue       |
+| `cargo fmt --all --check`     | Pre-existing | Fails across codebase                    |
 
 ---
 
 ## 10. Recommended Next Patch
 
-**The "recommended next patch: none" claim is premature.**
+**`fix/db-test-infrastructure-for-transactions`**
 
-The patch makes `generate_campaign_moves` transaction-safe, but we have **no DB integration test proving rollback behavior**. Validation unit tests prove "bad AI output is rejected"; they do **not prove transactional atomicity**.
+Still needed to prove the transaction actually rolls back:
 
-The transaction helper is structurally correct (begin → inserts → commit/rollback on drop), but correctness is claimed, not verified.
+- Add `TEST_DATABASE_URL` environment support
+- Add `#[sqlx::test]` infrastructure to `crates/db`
+- Enable the `#[ignore]` rollback test in `campaigns_tests.rs`
 
-### Minimal Next Patch: Add Transaction Rollback Integration Test
-
-**Prerequisites needed:**
-
-1. Add `sqlx` dev-dependency with `postgres` feature and `migrate` feature to `crates/db/Cargo.toml`
-2. Add `DATABASE_URL` environment variable support for tests
-3. Create a test organization fixture
-4. Add a `#[sqlx::test]` integration test
-
-**Test should:**
-
-1. Create a campaign via the `create_campaign` query helper
-2. Call `create_generated_campaign_moves_transactional` with one valid move + one deliberately invalid move (e.g., empty description)
-3. Assert the function returns an error
-4. Query `campaign_moves` table and assert **zero rows** were inserted
-
-**Alternative if test infra is too heavy:**
-Add a `#[doc_test]` or `#[ignore]` test in `crates/db/src/queries.rs` that documents the expected behavior and can be run manually with a test database.
-
-### Why This Matters
-
-Without the rollback test, we cannot prove:
-
-- `pool.begin().await` works as expected in this codebase
-- Dropping a failed transaction actually rolls back
-- No orphan rows exist after a partial failure
+This patch is **not ready to close** until that integration test passes.
 
 ---
 
