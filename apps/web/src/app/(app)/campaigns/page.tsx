@@ -68,7 +68,7 @@ function NewCampaignModal({
     if (!isValid) return;
     try {
       const result = await create.mutateAsync({ title: title.trim(), brief: brief.trim(), goal: goal || undefined, budget: budget || undefined, timeframe: timeframe || undefined });
-      await evaluate.mutateAsync(result.id);
+      await evaluate.mutateAsync({ campaignId: result.id });
       onCreated(result.id);
     } catch (err) {
       console.error("Failed to create campaign:", err);

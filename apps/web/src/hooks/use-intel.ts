@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 
 export interface IntelSignal {
   id: string;
@@ -29,7 +29,7 @@ export function useIntelSignals(category?: string) {
       const params = new URLSearchParams();
       if (category) params.set("type", category);
       const query = params.toString();
-      return apiFetch<IntelSignalsResponse>(`/api/intel${query ? `?${query}` : ""}`, {
+      return apiFetch<IntelSignalsResponse>(`/api/v1/intel${query ? `?${query}` : ""}`, {
         auth: true,
       });
     },
@@ -40,15 +40,16 @@ export function useIntelSignals(category?: string) {
 export function useCompetitorSnapshots() {
   return useQuery({
     queryKey: ["intel", "competitors"],
-    queryFn: () => apiFetch<{ snapshots: unknown[] }>("/api/intel/competitors", { auth: true }),
-    staleTime: 60_000,
+    queryFn: () => {
+      throw new ApiError(501, "intel_competitors_endpoint_not_implemented");
+    },
   });
 }
 
 export function useIntelOverview() {
   return useQuery({
     queryKey: ["intel", "overview"],
-    queryFn: () => apiFetch<{ signals: IntelSignal[] }>("/api/intel", { auth: true }),
+    queryFn: () => apiFetch<{ signals: IntelSignal[] }>("/api/v1/intel", { auth: true }),
     staleTime: 30_000,
   });
 }

@@ -17,7 +17,6 @@ pub struct AppState {
     pub tenant_pool: Option<TenantDbPool>,
     pub bedrock: Option<Arc<BedrockInferenceClient>>,
     pub auth_validator: Arc<JwtValidator>,
-    pub clerk_domain: String,
     pub settings: Arc<raptorflow_config::Settings>,
 }
 
@@ -25,7 +24,6 @@ impl AppState {
     pub fn new(
         db_pool: Option<Arc<sqlx::PgPool>>,
         bedrock: Option<Arc<BedrockInferenceClient>>,
-        clerk_domain: String,
         settings: Arc<raptorflow_config::Settings>,
     ) -> Self {
         let tenant_pool = db_pool.as_ref().map(|p| TenantDbPool::new((**p).clone()));
@@ -33,8 +31,11 @@ impl AppState {
             db_pool,
             tenant_pool,
             bedrock,
-            auth_validator: Arc::new(JwtValidator::new(clerk_domain.clone())),
-            clerk_domain,
+            auth_validator: Arc::new(JwtValidator::new(
+                settings.clerk_issuer.clone(),
+                settings.clerk_jwks_url.clone(),
+                settings.clerk_audience.clone(),
+            )),
             settings,
         }
     }

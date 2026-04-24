@@ -42,19 +42,24 @@ pub struct ClerkOrganizationClaim {
 
 pub struct JwtValidator {
     decoding_keys: Arc<RwLock<HashMap<String, DecodingKey>>>,
-    clerk_domain: String,
+    issuer: String,
+    jwks_url: String,
+    audience: Option<String>,
 }
 
 impl JwtValidator {
-    pub fn new(clerk_domain: String) -> Self {
+    pub fn new(issuer: String, jwks_url: String, audience: Option<String>) -> Self {
+        let issuer = issuer.trim_end_matches('/').to_string();
         Self {
             decoding_keys: Arc::new(RwLock::new(HashMap::new())),
-            clerk_domain,
+            issuer,
+            jwks_url,
+            audience,
         }
     }
 
-    pub fn clerk_domain(&self) -> String {
-        self.clerk_domain.clone()
+    pub fn issuer(&self) -> String {
+        self.issuer.clone()
     }
 
     pub async fn validate(&self, token: &str) -> Result<Claims, AuthError> {
@@ -64,7 +69,10 @@ impl JwtValidator {
         let decoding_key = self.get_decoding_key(&kid).await?;
 
         let mut validation = Validation::new(Algorithm::RS256);
-        validation.set_issuer(&[&format!("https://{}/", self.clerk_domain)]);
+        validation.set_issuer(&[self.issuer.as_str()]);
+        if let Some(aud) = &self.audience {
+            validation.set_audience(&[aud.as_str()]);
+        }
 
         let token_data = decode::<Claims>(token, &decoding_key, &validation)?;
         Ok(token_data.claims)
@@ -82,8 +90,7 @@ impl JwtValidator {
     }
 
     async fn fetch_and_cache_jwks(&self, kid: &str) -> Result<DecodingKey, AuthError> {
-        let jwks_url = format!("https://{}/.well-known/jwks.json", self.clerk_domain);
-        let response = reqwest::get(&jwks_url).await?.json::<Jwks>().await?;
+        let response = reqwest::get(&self.jwks_url).await?.json::<Jwks>().await?;
 
         let mut keys = self.decoding_keys.write().await;
         for key in &response.keys {
@@ -126,5 +133,54 @@ pub fn extract_bearer_token(auth_header: &str) -> Option<&str> {
         Some(&auth_header[7..])
     } else {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_issuer_normalization_no_double_prepend() {
+        let validator = JwtValidator::new(
+            "https://example.clerk.accounts.dev".to_string(),
+            "https://example.clerk.accounts.dev/.well-known/jwks.json".to_string(),
+            None,
+        );
+        assert_eq!(validator.issuer(), "https://example.clerk.accounts.dev");
+        assert_eq!(
+            validator.jwks_url,
+            "https://example.clerk.accounts.dev/.well-known/jwks.json"
+        );
+    }
+
+    #[test]
+    fn test_issuer_trims_trailing_slash() {
+        let validator = JwtValidator::new(
+            "https://example.clerk.accounts.dev/".to_string(),
+            "https://example.clerk.accounts.dev/.well-known/jwks.json".to_string(),
+            None,
+        );
+        assert_eq!(validator.issuer(), "https://example.clerk.accounts.dev");
+    }
+
+    #[test]
+    fn test_jwks_url_unchanged() {
+        let url = "https://funky-scorpion-21.clerk.accounts.dev/.well-known/jwks.json";
+        let validator = JwtValidator::new(
+            "https://funky-scorpion-21.clerk.accounts.dev".to_string(),
+            url.to_string(),
+            None,
+        );
+        assert_eq!(validator.jwks_url, url);
+    }
+
+    #[test]
+    fn test_full_url_issuer_not_double_prepended() {
+        let issuer = "https://funky-scorpion-21.clerk.accounts.dev";
+        let jwks = "https://funky-scorpion-21.clerk.accounts.dev/.well-known/jwks.json";
+        let validator = JwtValidator::new(issuer.to_string(), jwks.to_string(), None);
+        let iss = validator.issuer();
+        assert!(!iss.starts_with("https://https://"));
     }
 }

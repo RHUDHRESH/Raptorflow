@@ -41,14 +41,6 @@ export async function getAuthToken(): Promise<string | null> {
     // Clerk not loaded yet or session expired
   }
 
-  const sessionCookie = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith("__session=") || cookie.startsWith("__session_"));
-  if (sessionCookie) {
-    const token = sessionCookie.split("=").slice(1).join("=");
-    if (token) return token;
-  }
-
   return null;
 }
 
@@ -188,20 +180,31 @@ export const foundationApi = {
     apiFetch<FoundationSnapshot>("/api/v1/foundation/snapshots", { method: "POST", auth: true }),
   restoreSnapshot: (id: string) =>
     apiFetch<void>(`/api/v1/foundation/snapshots/${id}/restore`, { method: "POST", auth: true }),
-  triggerScan: (url: string, _mode?: "quick" | "deep") =>
-    apiFetch<ScanJob>("/api/v1/foundation/scan/start", {
+  triggerScan: (url: string, mode?: "quick" | "deep") => {
+    const path =
+      mode === "deep"
+        ? "/api/v1/foundation/scan/deep"
+        : mode === "quick"
+          ? "/api/v1/foundation/scan/quick"
+          : "/api/v1/foundation/scan/start";
+    return apiFetch<ScanJob>(path, {
       method: "POST",
       body: { url },
       auth: true,
-    }),
+    });
+  },
   getScanStatus: () => apiFetch<ScanJob>("/api/v1/foundation/scan/status", { auth: true }),
   getFullStatus: () =>
     apiFetch<SnapshotFullResponse>("/api/v1/foundation/snapshot", { auth: true }),
-  triggerQuickScan: async (): Promise<{ scan: QuickScanResult; scannedAt: string }> => {
-    const res = await apiFetch<{ scan: QuickScanResult; scannedAt: string }>("/api/v1/foundation/scan/quick", {
-      method: "POST",
-      auth: true,
-    });
+  triggerQuickScan: async (url?: string): Promise<{ scan: QuickScanResult; scannedAt: string }> => {
+    const res = await apiFetch<{ scan: QuickScanResult; scannedAt: string }>(
+      "/api/v1/foundation/scan/quick",
+      {
+        method: "POST",
+        body: url ? { url } : {},
+        auth: true,
+      },
+    );
     return res;
   },
 };
@@ -332,13 +335,54 @@ export const campaignsApi = {
       body: { status },
       auth: true,
     }),
+  evaluate: async (id: string, focus?: string) => {
+    const res = await apiFetch<{
+      campaign_id: string;
+      evaluation: {
+        overall_score: number;
+        strengths: string[];
+        weaknesses: string[];
+        opportunities: string[];
+        threats: string[];
+        recommendations: string[];
+      };
+    }>(`/api/v1/campaigns/${id}/evaluate`, {
+      method: "POST",
+      body: { focus },
+      auth: true,
+    });
+    return {
+      campaign_id: res.campaign_id,
+      evaluation: res.evaluation,
+      evaluated_at: new Date().toISOString(),
+    };
+  },
+  generateMoves: async (id: string, context?: string, maxMoves?: number) => {
+    const res = await apiFetch<{
+      campaign_id: string;
+      generated_moves: Array<{
+        move_id: string;
+        move_type: string;
+        description: string;
+        expected_impact: string;
+        confidence: number;
+        sequence_number: number;
+      }>;
+      total: number;
+    }>(`/api/v1/campaigns/${id}/moves/generate`, {
+      method: "POST",
+      body: { context, max_moves: maxMoves },
+      auth: true,
+    });
+    return res;
+  },
 };
 
 export const councilApi = {
   startSession: async (body: StartCouncilRequest) => {
-    const res = await appFetch<{
+    const res = await apiFetch<{
       session: BackendCouncilSession;
-    }>("/api/council", {
+    }>("/api/v1/council", {
       method: "POST",
       body: {
         campaign_id: body.campaignId,
@@ -355,13 +399,11 @@ export const councilApi = {
     return normalizeCouncilSession(session);
   },
   listSessions: async () => {
-    const res = await appFetch<unknown>("/api/council", { auth: true });
-    return unwrapList<BackendCouncilSession>(res, ["sessions"]).map(
-      normalizeCouncilSession,
-    );
+    const res = await apiFetch<unknown>("/api/v1/council", { auth: true });
+    return unwrapList<BackendCouncilSession>(res, ["sessions"]).map(normalizeCouncilSession);
   },
   getSession: async (id: string) => {
-    const res = await appFetch<unknown>(`/api/council/${id}`, { auth: true });
+    const res = await apiFetch<unknown>(`/api/v1/council/${id}`, { auth: true });
     const session = unwrapItem<BackendCouncilSession>(res, ["session"]);
     if (!session) {
       throw new ApiError(500, "Council session response missing session payload");
@@ -369,11 +411,52 @@ export const councilApi = {
     return normalizeCouncilSession(session);
   },
   getMessages: async (id: string) => {
-    const res = await appFetch<unknown>(`/api/council/${id}/messages`, { auth: true });
-    return unwrapList<BackendCouncilPosition>(res, ["positions"]).map(
-      normalizeCouncilMessage,
-    );
+    const res = await apiFetch<unknown>(`/api/v1/council/${id}/messages`, { auth: true });
+    return unwrapList<BackendCouncilPosition>(res, ["positions"]).map(normalizeCouncilMessage);
   },
+  startCouncilGeneration: async (sessionId: string, agentRoster?: string[], maxAgents?: number) => {
+    const res = await apiFetch<{
+      session_id: string;
+      status: string;
+      positions: BackendCouncilPosition[];
+    }>(`/api/v1/council/${sessionId}/start`, {
+      method: "POST",
+      body: {
+        agent_roster: agentRoster ?? [],
+        max_agents: maxAgents ?? 5,
+      },
+      auth: true,
+    });
+    return res;
+  },
+  synthesizeSession: async (sessionId: string, focus?: string) => {
+    const res = await apiFetch<{
+      session_id: string;
+      status: string;
+      synthesis: {
+        decision: string;
+        rationale: string;
+        risks: string[];
+        next_actions: string[];
+        participating_agents: string[];
+      };
+    }>(`/api/v1/council/${sessionId}/synthesize`, {
+      method: "POST",
+      body: { focus },
+      auth: true,
+    });
+    return res;
+  },
+  pollSession: async (sessionId: string) => {
+    return councilApi.getSession(sessionId);
+  },
+  pollMessages: async (sessionId: string) => {
+    return councilApi.getMessages(sessionId);
+  },
+  pollSessionRaw: async (sessionId: string): Promise<CouncilPollSessionResponse> =>
+    apiFetch<CouncilPollSessionResponse>(`/api/v1/council/${sessionId}`, { auth: true }),
+  pollMessagesRaw: async (sessionId: string): Promise<CouncilPollMessagesResponse> =>
+    apiFetch<CouncilPollMessagesResponse>(`/api/v1/council/${sessionId}/messages`, { auth: true }),
 };
 
 export const museApi = {
@@ -450,14 +533,22 @@ export const intelApi = {
   getSignals: async (_params?: {
     category?: string;
     competitorId?: string;
-  }): Promise<IntelSignal[]> => [],
-  getCompetitors: async (): Promise<Competitor[]> => [],
-  getSignalStats: async (): Promise<IntelStats> => ({
-    monitoredCount: 0,
-    signalsTwentyFourHours: 0,
-    highPriorityCount: 0,
-    categoryBreakdown: {},
-  }),
+  }): Promise<IntelSignal[]> => {
+    const overview = await intelApi.getOverview();
+    return overview.latest_signals ?? [];
+  },
+  getCompetitors: async (): Promise<Competitor[]> => {
+    throw new ApiError(501, "intel_competitors_endpoint_not_implemented");
+  },
+  getSignalStats: async (): Promise<IntelStats> => {
+    const overview = await intelApi.getOverview();
+    return {
+      monitoredCount: overview.monitored_count ?? 0,
+      signalsTwentyFourHours: overview.signals_24h ?? 0,
+      highPriorityCount: overview.high_priority_count ?? 0,
+      categoryBreakdown: {},
+    };
+  },
   getOverview: () => apiFetch<IntelOverview>("/api/v1/intel", { auth: true }),
   listRuns: async () => {
     const res = await apiFetch<unknown>("/api/v1/intel/runs", { auth: true });
@@ -470,43 +561,33 @@ export const intelApi = {
 };
 
 export const uploadsApi = {
-  generateUploadUrl: (body: { filename: string; contentType: string }) =>
-    apiFetch<{ uploadUrl: string; key: string }>("/api/v1/uploads", {
-      method: "POST",
-      body,
-      auth: true,
-    }),
-  generateDownloadUrl: (key: string) =>
-    apiFetch<{ downloadUrl: string }>(`/api/v1/uploads/download?key=${key}`, { auth: true }),
-  deleteUpload: (key: string) =>
-    apiFetch<void>(`/api/v1/uploads/${key}`, { method: "DELETE", auth: true }),
-  generateScreenshotUploadUrl: (filename: string) =>
-    apiFetch<{ uploadUrl: string; key: string }>("/api/v1/screenshots", {
-      method: "POST",
-      body: { filename },
-      auth: true,
-    }),
-  generateExportUrl: (exportId: string) =>
-    apiFetch<{ uploadUrl: string; key: string }>("/api/v1/exports", {
-      method: "POST",
-      body: { exportId },
-      auth: true,
-    }),
-  generateExportDownloadUrl: (exportId: string) =>
-    apiFetch<{ downloadUrl: string }>(`/api/v1/exports/download?exportId=${exportId}`, {
-      auth: true,
-    }),
+  generateUploadUrl: (_body: { filename: string; contentType: string }) => {
+    throw new ApiError(501, "uploads_api_not_implemented");
+  },
+  generateDownloadUrl: (_key: string) => {
+    throw new ApiError(501, "uploads_api_not_implemented");
+  },
+  deleteUpload: (_key: string) => {
+    throw new ApiError(501, "uploads_api_not_implemented");
+  },
+  generateScreenshotUploadUrl: (_filename: string) => {
+    throw new ApiError(501, "uploads_api_not_implemented");
+  },
+  generateExportUrl: (_exportId: string) => {
+    throw new ApiError(501, "uploads_api_not_implemented");
+  },
+  generateExportDownloadUrl: (_exportId: string) => {
+    throw new ApiError(501, "uploads_api_not_implemented");
+  },
 };
 
 export const contentApi = {
   list: async () => {
-    const res = await appFetch<unknown>("/api/content", { auth: true });
-    return unwrapList<BackendGeneratedContent>(res, ["content"]).map(
-      normalizeGeneratedContent,
-    );
+    const res = await apiFetch<unknown>("/api/v1/content", { auth: true });
+    return unwrapList<BackendGeneratedContent>(res, ["content"]).map(normalizeGeneratedContent);
   },
   get: async (id: string) => {
-    const res = await appFetch<unknown>(`/api/content/${id}`, { auth: true });
+    const res = await apiFetch<unknown>(`/api/v1/content/${id}`, { auth: true });
     const content = unwrapItem<BackendGeneratedContent>(res, ["content"]);
     if (!content) {
       throw new ApiError(500, "Content response missing content payload");
@@ -587,7 +668,7 @@ export interface SnapshotFullResponse {
 
 export interface ScanJob {
   scan_id: string;
-  status: "pending" | "running" | "completed" | "failed";
+  status: "queued" | "running" | "completed" | "failed";
   progress?: number;
 }
 
@@ -759,14 +840,35 @@ export interface CouncilMessage {
   content: string;
   createdAt: string;
 }
-interface BackendCouncilPosition {
+export interface BackendCouncilPosition {
   position_id: string;
   avatar_key: string;
   round_number: number;
   content: string;
+  extracted_ripple_data?: {
+    key_risks?: string[];
+    recommended_next_move?: string;
+    ripple_candidates?: Array<{
+      summary: string;
+      salience: number;
+      type: string;
+    }>;
+  };
   created_at: string;
 }
-interface BackendCouncilSession {
+
+export interface CouncilPollSessionResponse {
+  session: BackendCouncilSession;
+  positions?: BackendCouncilPosition[];
+  status: string;
+}
+
+export interface CouncilPollMessagesResponse {
+  session_id: string;
+  positions: BackendCouncilPosition[];
+  status: string;
+}
+export interface BackendCouncilSession {
   session_id: string;
   org_id: string;
   campaign_id?: string | null;

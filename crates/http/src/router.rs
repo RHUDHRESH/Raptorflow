@@ -1,15 +1,15 @@
 use axum::{
+    Router,
     extract::Extension,
     routing::{delete, get, patch, post, put},
-    Router,
 };
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
 use crate::middleware::{
+    AppState,
     auth::auth_middleware,
     rate_limit::{RateLimitConfig, RateLimitLayer, RateLimitState},
-    AppState,
 };
 use crate::routes::{
     auth, billing, campaigns, content, council, daily_wins, foundation, health, intel, jobs, muse,
@@ -56,10 +56,7 @@ fn public_router(_state: &AppState) -> Router {
         .route("/health/live", get(health::liveness))
         .route("/health/ready", get(health::readiness))
         .route("/api/v1/webhooks/clerk", post(auth::clerk_webhook))
-        .route(
-            "/api/v1/webhooks/razorpay",
-            post(billing::razorpay_webhook),
-        )
+        .route("/api/v1/webhooks/razorpay", post(billing::razorpay_webhook))
         .layer(RateLimitLayer::per_ip(rate_limit_state))
 }
 
@@ -73,11 +70,11 @@ fn protected_router(state: Arc<AppState>) -> Router {
         )
         .route(
             "/api/v1/foundation/scan/quick",
-            post(foundation::start_scan),
+            post(foundation::start_quick_scan),
         )
         .route(
             "/api/v1/foundation/scan/deep",
-            post(foundation::start_scan),
+            post(foundation::start_deep_scan),
         )
         .route(
             "/api/v1/foundation/scan/status",
@@ -231,6 +228,14 @@ fn protected_router(state: Arc<AppState>) -> Router {
             patch(campaigns::update_brief_status),
         )
         .route(
+            "/api/v1/campaigns/{id}/evaluate",
+            post(campaigns::evaluate_campaign),
+        )
+        .route(
+            "/api/v1/campaigns/{id}/moves/generate",
+            post(campaigns::generate_campaign_moves),
+        )
+        .route(
             "/api/v1/campaigns/{id}/replan",
             get(replan::list_replans).post(replan::trigger_replan),
         )
@@ -278,6 +283,18 @@ fn protected_router(state: Arc<AppState>) -> Router {
         .route(
             "/api/v1/council/{session_id}/messages",
             get(council::get_session_messages),
+        )
+        .route(
+            "/api/v1/council/{session_id}/start",
+            post(council::start_council_session),
+        )
+        .route(
+            "/api/v1/council/{session_id}/stream",
+            get(council::stream_council_session),
+        )
+        .route(
+            "/api/v1/council/{session_id}/synthesize",
+            post(council::synthesize_council_session),
         )
         .route(
             "/api/v1/muse",

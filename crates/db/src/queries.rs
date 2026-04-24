@@ -1,7 +1,8 @@
 use crate::models::{
-    AgentEssence, Campaign, CampaignBrief, CampaignMove, CampaignTask, CompetitorSnapshot, ContentStrategy, CouncilAgentPosition,
-    CouncilSession, DailyWin, FoundationScan, FoundationSection, FoundationSnapshot, FoundationVersion, GeneratedContent,
-    MuseConversation, MuseMessage, Nudge, OrgUser, Organization, ReplanSession, Ripple, RippleEdge, Subscription,
+    AgentEssence, Campaign, CampaignBrief, CampaignMove, CampaignTask, CompetitorSnapshot,
+    ContentStrategy, CouncilAgentPosition, CouncilSession, DailyWin, FoundationScan,
+    FoundationSection, FoundationSnapshot, FoundationVersion, GeneratedContent, MuseConversation,
+    MuseMessage, Nudge, OrgUser, Organization, ReplanSession, Ripple, RippleEdge, Subscription,
 };
 use sqlx::{PgPool, Row};
 
@@ -60,7 +61,11 @@ pub async fn get_org_users(pool: &PgPool) -> Result<Vec<OrgUser>, sqlx::Error> {
         .collect()
 }
 
-pub async fn create_organization(pool: &PgPool, org_id: uuid::Uuid, name: &str) -> Result<(), sqlx::Error> {
+pub async fn create_organization(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    name: &str,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         INSERT INTO organizations (org_id, name)
@@ -118,7 +123,10 @@ pub async fn create_org_user(
     Ok(())
 }
 
-pub async fn get_foundation_snapshots(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<FoundationSnapshot>, sqlx::Error> {
+pub async fn get_foundation_snapshots(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<FoundationSnapshot>, sqlx::Error> {
     let rows = sqlx::query(
         r#"
         SELECT foundation_snapshot_id, org_id, foundation_version, sections, source, created_at, updated_at
@@ -146,7 +154,14 @@ pub async fn get_foundation_snapshots(pool: &PgPool, org_id: uuid::Uuid) -> Resu
         .collect()
 }
 
-pub async fn create_foundation_snapshot(pool: &PgPool, snapshot_id: &str, org_id: uuid::Uuid, version: i32, sections: &serde_json::Value, source: &str) -> Result<(), sqlx::Error> {
+pub async fn create_foundation_snapshot(
+    pool: &PgPool,
+    snapshot_id: &str,
+    org_id: uuid::Uuid,
+    version: i32,
+    sections: &serde_json::Value,
+    source: &str,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         INSERT INTO foundation_snapshots (foundation_snapshot_id, org_id, foundation_version, sections, source)
@@ -509,7 +524,11 @@ pub async fn get_user_referral_code(
     .fetch_optional(pool)
     .await?;
 
-    Ok(row.and_then(|row| row.try_get::<Option<String>, _>("referral_code").ok().flatten()))
+    Ok(row.and_then(|row| {
+        row.try_get::<Option<String>, _>("referral_code")
+            .ok()
+            .flatten()
+    }))
 }
 
 pub async fn create_payment_event(
@@ -567,7 +586,10 @@ pub async fn upsert_foundation_section(
     Ok(())
 }
 
-pub async fn get_foundation_sections(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<FoundationSection>, sqlx::Error> {
+pub async fn get_foundation_sections(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<FoundationSection>, sqlx::Error> {
     let rows = sqlx::query(
         r#"
         SELECT org_id, section_key, value, updated_at
@@ -592,7 +614,12 @@ pub async fn get_foundation_sections(pool: &PgPool, org_id: uuid::Uuid) -> Resul
         .collect()
 }
 
-pub async fn create_foundation_scan(pool: &PgPool, scan_id: &str, org_id: uuid::Uuid, url: &str) -> Result<(), sqlx::Error> {
+pub async fn create_foundation_scan(
+    pool: &PgPool,
+    scan_id: &str,
+    org_id: uuid::Uuid,
+    url: &str,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         INSERT INTO foundation_scans (scan_id, org_id, url, status, started_at)
@@ -607,7 +634,10 @@ pub async fn create_foundation_scan(pool: &PgPool, scan_id: &str, org_id: uuid::
     Ok(())
 }
 
-pub async fn get_foundation_scan(pool: &PgPool, scan_id: &str) -> Result<Option<FoundationScan>, sqlx::Error> {
+pub async fn get_foundation_scan(
+    pool: &PgPool,
+    scan_id: &str,
+) -> Result<Option<FoundationScan>, sqlx::Error> {
     let row = sqlx::query_as::<_, FoundationScan>(
         r#"
         SELECT scan_id, org_id, url, status, quick_scan_data, deep_scan_data, started_at, completed_at
@@ -621,7 +651,10 @@ pub async fn get_foundation_scan(pool: &PgPool, scan_id: &str) -> Result<Option<
     Ok(row)
 }
 
-pub async fn get_latest_foundation_scan(pool: &PgPool, org_id: uuid::Uuid) -> Result<Option<FoundationScan>, sqlx::Error> {
+pub async fn get_latest_foundation_scan(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Option<FoundationScan>, sqlx::Error> {
     let row = sqlx::query_as::<_, FoundationScan>(
         r#"
         SELECT scan_id, org_id, url, status, quick_scan_data, deep_scan_data, started_at, completed_at
@@ -637,7 +670,13 @@ pub async fn get_latest_foundation_scan(pool: &PgPool, org_id: uuid::Uuid) -> Re
     Ok(row)
 }
 
-pub async fn update_foundation_scan(pool: &PgPool, scan_id: &str, status: &str, quick_scan_data: Option<&serde_json::Value>, deep_scan_data: Option<&serde_json::Value>) -> Result<(), sqlx::Error> {
+pub async fn update_foundation_scan(
+    pool: &PgPool,
+    scan_id: &str,
+    status: &str,
+    quick_scan_data: Option<&serde_json::Value>,
+    deep_scan_data: Option<&serde_json::Value>,
+) -> Result<(), sqlx::Error> {
     if status == "complete" || status == "failed" {
         sqlx::query(
             r#"
@@ -672,7 +711,12 @@ pub async fn update_foundation_scan(pool: &PgPool, scan_id: &str, status: &str, 
     Ok(())
 }
 
-pub async fn create_competitor_snapshot(pool: &PgPool, snapshot_id: &str, org_id: uuid::Uuid, competitor_url: &str) -> Result<(), sqlx::Error> {
+pub async fn create_competitor_snapshot(
+    pool: &PgPool,
+    snapshot_id: &str,
+    org_id: uuid::Uuid,
+    competitor_url: &str,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         INSERT INTO competitor_snapshots (snapshot_id, org_id, competitor_url, status, created_at, updated_at)
@@ -687,7 +731,10 @@ pub async fn create_competitor_snapshot(pool: &PgPool, snapshot_id: &str, org_id
     Ok(())
 }
 
-pub async fn get_competitor_snapshot(pool: &PgPool, snapshot_id: &str) -> Result<Option<CompetitorSnapshot>, sqlx::Error> {
+pub async fn get_competitor_snapshot(
+    pool: &PgPool,
+    snapshot_id: &str,
+) -> Result<Option<CompetitorSnapshot>, sqlx::Error> {
     let row = sqlx::query_as::<_, CompetitorSnapshot>(
         r#"
         SELECT snapshot_id, org_id, competitor_url, hash, status, scrape_data, created_at, updated_at
@@ -701,7 +748,11 @@ pub async fn get_competitor_snapshot(pool: &PgPool, snapshot_id: &str) -> Result
     Ok(row)
 }
 
-pub async fn get_latest_competitor_snapshot(pool: &PgPool, org_id: uuid::Uuid, competitor_url: &str) -> Result<Option<CompetitorSnapshot>, sqlx::Error> {
+pub async fn get_latest_competitor_snapshot(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    competitor_url: &str,
+) -> Result<Option<CompetitorSnapshot>, sqlx::Error> {
     let row = sqlx::query_as::<_, CompetitorSnapshot>(
         r#"
         SELECT snapshot_id, org_id, competitor_url, hash, status, scrape_data, created_at, updated_at
@@ -718,7 +769,13 @@ pub async fn get_latest_competitor_snapshot(pool: &PgPool, org_id: uuid::Uuid, c
     Ok(row)
 }
 
-pub async fn update_competitor_snapshot(pool: &PgPool, snapshot_id: &str, hash: Option<&str>, status: &str, scrape_data: Option<&serde_json::Value>) -> Result<(), sqlx::Error> {
+pub async fn update_competitor_snapshot(
+    pool: &PgPool,
+    snapshot_id: &str,
+    hash: Option<&str>,
+    status: &str,
+    scrape_data: Option<&serde_json::Value>,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE competitor_snapshots
@@ -735,7 +792,11 @@ pub async fn update_competitor_snapshot(pool: &PgPool, snapshot_id: &str, hash: 
     Ok(())
 }
 
-pub async fn create_content_strategy(pool: &PgPool, strategy_id: &str, org_id: uuid::Uuid) -> Result<(), sqlx::Error> {
+pub async fn create_content_strategy(
+    pool: &PgPool,
+    strategy_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         INSERT INTO content_strategy (strategy_id, org_id, territories, pillar_pages, editorial_calendar)
@@ -749,7 +810,10 @@ pub async fn create_content_strategy(pool: &PgPool, strategy_id: &str, org_id: u
     Ok(())
 }
 
-pub async fn get_content_strategy(pool: &PgPool, org_id: uuid::Uuid) -> Result<Option<ContentStrategy>, sqlx::Error> {
+pub async fn get_content_strategy(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Option<ContentStrategy>, sqlx::Error> {
     let row = sqlx::query_as::<_, ContentStrategy>(
         r#"
         SELECT strategy_id, org_id, territories, pillar_pages, editorial_calendar, created_at, updated_at
@@ -763,7 +827,11 @@ pub async fn get_content_strategy(pool: &PgPool, org_id: uuid::Uuid) -> Result<O
     Ok(row)
 }
 
-pub async fn update_content_strategy_territories(pool: &PgPool, org_id: uuid::Uuid, territories: &serde_json::Value) -> Result<(), sqlx::Error> {
+pub async fn update_content_strategy_territories(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    territories: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE content_strategy
@@ -778,7 +846,11 @@ pub async fn update_content_strategy_territories(pool: &PgPool, org_id: uuid::Uu
     Ok(())
 }
 
-pub async fn update_content_strategy_pillar_pages(pool: &PgPool, org_id: uuid::Uuid, pillar_pages: &serde_json::Value) -> Result<(), sqlx::Error> {
+pub async fn update_content_strategy_pillar_pages(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    pillar_pages: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE content_strategy
@@ -793,7 +865,11 @@ pub async fn update_content_strategy_pillar_pages(pool: &PgPool, org_id: uuid::U
     Ok(())
 }
 
-pub async fn update_content_strategy_calendar(pool: &PgPool, org_id: uuid::Uuid, editorial_calendar: &serde_json::Value) -> Result<(), sqlx::Error> {
+pub async fn update_content_strategy_calendar(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    editorial_calendar: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE content_strategy
@@ -836,7 +912,10 @@ pub async fn create_foundation_version(
     Ok(())
 }
 
-pub async fn get_foundation_versions(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<FoundationVersion>, sqlx::Error> {
+pub async fn get_foundation_versions(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<FoundationVersion>, sqlx::Error> {
     let rows = sqlx::query_as::<_, FoundationVersion>(
         r#"
         SELECT version_id, org_id, foundation_version, change_description, changed_fields, previous_values, impact_assessment, created_at
@@ -851,7 +930,10 @@ pub async fn get_foundation_versions(pool: &PgPool, org_id: uuid::Uuid) -> Resul
     Ok(rows)
 }
 
-pub async fn get_latest_foundation_version(pool: &PgPool, org_id: uuid::Uuid) -> Result<Option<FoundationVersion>, sqlx::Error> {
+pub async fn get_latest_foundation_version(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Option<FoundationVersion>, sqlx::Error> {
     let row = sqlx::query_as::<_, FoundationVersion>(
         r#"
         SELECT version_id, org_id, foundation_version, change_description, changed_fields, previous_values, impact_assessment, created_at
@@ -867,7 +949,11 @@ pub async fn get_latest_foundation_version(pool: &PgPool, org_id: uuid::Uuid) ->
     Ok(row)
 }
 
-pub async fn complete_foundation(pool: &PgPool, org_id: uuid::Uuid, foundation_json: &serde_json::Value) -> Result<(), sqlx::Error> {
+pub async fn complete_foundation(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    foundation_json: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE organizations
@@ -923,10 +1009,7 @@ pub async fn create_nudge(
     Ok(())
 }
 
-pub async fn list_nudges(
-    pool: &PgPool,
-    org_id: uuid::Uuid,
-) -> Result<Vec<Nudge>, sqlx::Error> {
+pub async fn list_nudges(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<Nudge>, sqlx::Error> {
     let rows = sqlx::query_as::<_, Nudge>(
         r#"
         SELECT nudge_id, org_id, user_id, nudge_type, priority, title, body,
@@ -944,7 +1027,11 @@ pub async fn list_nudges(
     Ok(rows)
 }
 
-pub async fn get_nudge(pool: &PgPool, nudge_id: &str, org_id: uuid::Uuid) -> Result<Option<Nudge>, sqlx::Error> {
+pub async fn get_nudge(
+    pool: &PgPool,
+    nudge_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Option<Nudge>, sqlx::Error> {
     let row = sqlx::query_as::<_, Nudge>(
         r#"
         SELECT nudge_id, org_id, user_id, nudge_type, priority, title, body,
@@ -961,7 +1048,11 @@ pub async fn get_nudge(pool: &PgPool, nudge_id: &str, org_id: uuid::Uuid) -> Res
     Ok(row)
 }
 
-pub async fn update_nudge_viewed(pool: &PgPool, nudge_id: &str, org_id: uuid::Uuid) -> Result<(), sqlx::Error> {
+pub async fn update_nudge_viewed(
+    pool: &PgPool,
+    nudge_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE nudges
@@ -976,7 +1067,11 @@ pub async fn update_nudge_viewed(pool: &PgPool, nudge_id: &str, org_id: uuid::Uu
     Ok(())
 }
 
-pub async fn update_nudge_dismissed(pool: &PgPool, nudge_id: &str, org_id: uuid::Uuid) -> Result<(), sqlx::Error> {
+pub async fn update_nudge_dismissed(
+    pool: &PgPool,
+    nudge_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE nudges
@@ -1082,7 +1177,10 @@ pub async fn update_daily_win_viewed(
     Ok(())
 }
 
-pub async fn list_campaigns(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<Campaign>, sqlx::Error> {
+pub async fn list_campaigns(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<Campaign>, sqlx::Error> {
     let rows = sqlx::query_as::<_, Campaign>(
         r#"
         SELECT campaign_id, org_id, name, goal, status, active_move_id, created_at, updated_at
@@ -1097,7 +1195,11 @@ pub async fn list_campaigns(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<Cam
     Ok(rows)
 }
 
-pub async fn get_campaign(pool: &PgPool, campaign_id: &str, org_id: uuid::Uuid) -> Result<Option<Campaign>, sqlx::Error> {
+pub async fn get_campaign(
+    pool: &PgPool,
+    campaign_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Option<Campaign>, sqlx::Error> {
     let row = sqlx::query_as::<_, Campaign>(
         r#"
         SELECT campaign_id, org_id, name, goal, status, active_move_id, created_at, updated_at
@@ -1155,7 +1257,11 @@ pub async fn update_campaign_status(
     Ok(())
 }
 
-pub async fn list_campaign_moves(pool: &PgPool, campaign_id: &str, org_id: uuid::Uuid) -> Result<Vec<CampaignMove>, sqlx::Error> {
+pub async fn list_campaign_moves(
+    pool: &PgPool,
+    campaign_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Vec<CampaignMove>, sqlx::Error> {
     let rows = sqlx::query_as::<_, CampaignMove>(
         r#"
         SELECT move_id, campaign_id, org_id, move_type, sequence_number, status, created_at
@@ -1216,7 +1322,11 @@ pub async fn update_move_status(
     Ok(())
 }
 
-pub async fn list_campaign_tasks(pool: &PgPool, campaign_id: &str, org_id: uuid::Uuid) -> Result<Vec<CampaignTask>, sqlx::Error> {
+pub async fn list_campaign_tasks(
+    pool: &PgPool,
+    campaign_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Vec<CampaignTask>, sqlx::Error> {
     let rows = sqlx::query_as::<_, CampaignTask>(
         r#"
         SELECT task_id, move_id, campaign_id, org_id, title, status, scheduled_date, created_at
@@ -1232,7 +1342,11 @@ pub async fn list_campaign_tasks(pool: &PgPool, campaign_id: &str, org_id: uuid:
     Ok(rows)
 }
 
-pub async fn list_move_tasks(pool: &PgPool, move_id: &str, org_id: uuid::Uuid) -> Result<Vec<CampaignTask>, sqlx::Error> {
+pub async fn list_move_tasks(
+    pool: &PgPool,
+    move_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Vec<CampaignTask>, sqlx::Error> {
     let rows = sqlx::query_as::<_, CampaignTask>(
         r#"
         SELECT task_id, move_id, campaign_id, org_id, title, status, scheduled_date, created_at
@@ -1315,7 +1429,11 @@ pub async fn create_campaign_brief(
     Ok(())
 }
 
-pub async fn get_campaign_brief(pool: &PgPool, campaign_id: &str, org_id: uuid::Uuid) -> Result<Option<CampaignBrief>, sqlx::Error> {
+pub async fn get_campaign_brief(
+    pool: &PgPool,
+    campaign_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Option<CampaignBrief>, sqlx::Error> {
     let row = sqlx::query_as::<_, CampaignBrief>(
         r#"
         SELECT brief_id, org_id, campaign_id, status, original_text, created_at
@@ -1353,7 +1471,10 @@ pub async fn update_brief_status(
     Ok(())
 }
 
-pub async fn list_council_sessions(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<CouncilSession>, sqlx::Error> {
+pub async fn list_council_sessions(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<CouncilSession>, sqlx::Error> {
     let rows = sqlx::query_as::<_, CouncilSession>(
         r#"
         SELECT session_id, org_id, campaign_id, session_type, status, question, total_cost_usd, created_at
@@ -1369,7 +1490,11 @@ pub async fn list_council_sessions(pool: &PgPool, org_id: uuid::Uuid) -> Result<
     Ok(rows)
 }
 
-pub async fn get_council_session(pool: &PgPool, session_id: &str, org_id: uuid::Uuid) -> Result<Option<CouncilSession>, sqlx::Error> {
+pub async fn get_council_session(
+    pool: &PgPool,
+    session_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Option<CouncilSession>, sqlx::Error> {
     let row = sqlx::query_as::<_, CouncilSession>(
         r#"
         SELECT session_id, org_id, campaign_id, session_type, status, question, total_cost_usd, created_at
@@ -1477,7 +1602,10 @@ pub async fn create_agent_position(
     Ok(())
 }
 
-pub async fn list_muse_conversations(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<MuseConversation>, sqlx::Error> {
+pub async fn list_muse_conversations(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<MuseConversation>, sqlx::Error> {
     let rows = sqlx::query_as::<_, MuseConversation>(
         r#"
         SELECT conversation_id, org_id, route, created_at
@@ -1493,7 +1621,11 @@ pub async fn list_muse_conversations(pool: &PgPool, org_id: uuid::Uuid) -> Resul
     Ok(rows)
 }
 
-pub async fn get_muse_conversation(pool: &PgPool, conversation_id: &str, org_id: uuid::Uuid) -> Result<Option<MuseConversation>, sqlx::Error> {
+pub async fn get_muse_conversation(
+    pool: &PgPool,
+    conversation_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Option<MuseConversation>, sqlx::Error> {
     let row = sqlx::query_as::<_, MuseConversation>(
         r#"
         SELECT conversation_id, org_id, route, created_at
@@ -1528,7 +1660,11 @@ pub async fn create_muse_conversation(
     Ok(())
 }
 
-pub async fn list_muse_messages(pool: &PgPool, conversation_id: &str, org_id: uuid::Uuid) -> Result<Vec<MuseMessage>, sqlx::Error> {
+pub async fn list_muse_messages(
+    pool: &PgPool,
+    conversation_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Vec<MuseMessage>, sqlx::Error> {
     let rows = sqlx::query_as::<_, MuseMessage>(
         r#"
         SELECT message_id, conversation_id, org_id, role, body, created_at
@@ -1568,7 +1704,10 @@ pub async fn create_muse_message(
     Ok(())
 }
 
-pub async fn list_generated_content(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<GeneratedContent>, sqlx::Error> {
+pub async fn list_generated_content(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<GeneratedContent>, sqlx::Error> {
     let rows = sqlx::query_as::<_, GeneratedContent>(
         r#"
         SELECT content_id, org_id, campaign_id, task_id, content_type, status, body, created_at
@@ -1584,7 +1723,11 @@ pub async fn list_generated_content(pool: &PgPool, org_id: uuid::Uuid) -> Result
     Ok(rows)
 }
 
-pub async fn get_generated_content(pool: &PgPool, content_id: &str, org_id: uuid::Uuid) -> Result<Option<GeneratedContent>, sqlx::Error> {
+pub async fn get_generated_content(
+    pool: &PgPool,
+    content_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Option<GeneratedContent>, sqlx::Error> {
     let row = sqlx::query_as::<_, GeneratedContent>(
         r#"
         SELECT content_id, org_id, campaign_id, task_id, content_type, status, body, created_at
@@ -1627,7 +1770,11 @@ pub async fn create_generated_content(
     Ok(())
 }
 
-pub async fn list_replan_sessions(pool: &PgPool, campaign_id: &str, org_id: uuid::Uuid) -> Result<Vec<ReplanSession>, sqlx::Error> {
+pub async fn list_replan_sessions(
+    pool: &PgPool,
+    campaign_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Vec<ReplanSession>, sqlx::Error> {
     let rows = sqlx::query_as::<_, ReplanSession>(
         r#"
         SELECT replan_session_id, org_id, campaign_id, trigger_type, status, created_at
@@ -1644,7 +1791,11 @@ pub async fn list_replan_sessions(pool: &PgPool, campaign_id: &str, org_id: uuid
     Ok(rows)
 }
 
-pub async fn get_replan_session(pool: &PgPool, replan_session_id: &str, org_id: uuid::Uuid) -> Result<Option<ReplanSession>, sqlx::Error> {
+pub async fn get_replan_session(
+    pool: &PgPool,
+    replan_session_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Option<ReplanSession>, sqlx::Error> {
     let row = sqlx::query_as::<_, ReplanSession>(
         r#"
         SELECT replan_session_id, org_id, campaign_id, trigger_type, status, created_at
@@ -1700,4 +1851,74 @@ pub async fn update_replan_session_status(
     .execute(pool)
     .await?;
     Ok(())
+}
+
+pub struct GeneratedCampaignMoveInsert {
+    pub move_id: String,
+    pub content_id: String,
+    pub move_type: String,
+    pub sequence_number: i32,
+    pub content_body: serde_json::Value,
+}
+
+pub struct GeneratedCampaignMoveCreated {
+    pub move_id: String,
+    pub move_type: String,
+    pub sequence_number: i32,
+    pub content_body: serde_json::Value,
+}
+
+pub async fn create_generated_campaign_moves_transactional(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    campaign_id: &str,
+    moves: Vec<GeneratedCampaignMoveInsert>,
+) -> Result<Vec<GeneratedCampaignMoveCreated>, sqlx::Error> {
+    let mut tx = pool.begin().await?;
+
+    sqlx::query("SET LOCAL app.current_org_id = $1")
+        .bind(org_id)
+        .execute(&mut *tx)
+        .await?;
+
+    let mut results = Vec::with_capacity(moves.len());
+
+    for m in moves {
+        sqlx::query(
+            r#"
+            INSERT INTO campaign_moves (move_id, campaign_id, org_id, move_type, sequence_number, status, created_at)
+            VALUES ($1, $2, $3, $4, $5, 'planned', now())
+            "#,
+        )
+        .bind(&m.move_id)
+        .bind(campaign_id)
+        .bind(org_id)
+        .bind(&m.move_type)
+        .bind(m.sequence_number)
+        .execute(&mut *tx)
+        .await?;
+
+        sqlx::query(
+            r#"
+            INSERT INTO generated_content (content_id, org_id, campaign_id, task_id, content_type, status, body)
+            VALUES ($1, $2, $3, NULL, 'move_generation', 'generated', $4)
+            "#,
+        )
+        .bind(&m.content_id)
+        .bind(org_id)
+        .bind(campaign_id)
+        .bind(&m.content_body)
+        .execute(&mut *tx)
+        .await?;
+
+        results.push(GeneratedCampaignMoveCreated {
+            move_id: m.move_id,
+            move_type: m.move_type,
+            sequence_number: m.sequence_number,
+            content_body: m.content_body,
+        });
+    }
+
+    tx.commit().await?;
+    Ok(results)
 }
