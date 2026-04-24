@@ -36,6 +36,11 @@ jobs:
           DATABASE_URL: postgres://testuser:testpass@localhost:5432/raptorflow_test
         run: pnpm --filter @raptorflow/database generate
 
+      - name: Build database package (emit dist/index.d.ts for typecheck)
+        env:
+          DATABASE_URL: postgres://testuser:testpass@localhost:5432/raptorflow_test
+        run: pnpm --filter @raptorflow/database build
+
       - name: Structural check - no Prisma in product runtime
         run: pnpm structural:check
 
