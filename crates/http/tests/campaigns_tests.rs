@@ -256,3 +256,78 @@ async fn campaigns_brief_returns_null_for_campaign_without_brief() {
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
+
+#[ignore = "requires DATABASE_URL and test org setup; see GENERATE_MOVES_TRANSACTION_REPORT.md"]
+#[tokio::test]
+async fn generate_moves_transaction_rollback_on_validation_failure() {
+    use raptorflow_db::queries;
+    use sqlx::PgPoolOptions;
+
+    let database_url = std::env::var("TEST_DATABASE_URL")
+        .expect("TEST_DATABASE_URL must be set for this test");
+
+    let pool = PgPoolOptions::new()
+        .max_connections(1)
+        .connect(&database_url)
+        .await
+        .expect("failed to connect to test database");
+
+    let org_id = uuid::Uuid::parse_str("00000000-0000-0000-0000-000000000099")
+        .expect("valid UUID");
+    let campaign_id = "test-rollback-campaign";
+
+    sqlx::query("SET LOCAL app.current_org_id = $1")
+        .bind(org_id)
+        .execute(&pool)
+        .await
+        .expect("failed to set org_id");
+
+    let create_err = queries::create_campaign(&pool, campaign_id, org_id, "Test", "Rollback test")
+        .await;
+    if create_err.is_err() {
+        return;
+    }
+
+    let moves = vec![
+        queries::GeneratedCampaignMoveInsert {
+            move_id: "valid-move".to_string(),
+            content_id: "valid-content".to_string(),
+            move_type: "positioning".to_string(),
+            sequence_number: 1,
+            content_body: serde_json::json!({
+                "description": "Valid move with sufficient description",
+                "expected_impact": "This is a valid impact string with enough chars",
+                "confidence": 0.8
+            }),
+        },
+        queries::GeneratedCampaignMoveInsert {
+            move_id: "invalid-move".to_string(),
+            content_id: "invalid-content".to_string(),
+            move_type: "invalid_type".to_string(),
+            sequence_number: 2,
+            content_body: serde_json::json!({"description": "x", "expected_impact": "x", "confidence": 0.5}),
+        },
+    ];
+
+    let result = queries::create_generated_campaign_moves_transactional(&pool, org_id, campaign_id, moves).await;
+
+    assert!(result.is_err(), "Should reject due to invalid move_type");
+
+    let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM campaign_moves WHERE campaign_id = $1")
+        .bind(campaign_id)
+        .fetch_one(&pool)
+        .await
+        .expect("query should succeed");
+    assert_eq!(count.0, 0, "Zero moves should be inserted after rollback");
+
+    sqlx::query("DELETE FROM campaign_moves WHERE campaign_id = $1")
+        .bind(campaign_id)
+        .execute(&pool)
+        .await
+        .expect("cleanup");
+    sqlx::query("DELETE FROM campaigns WHERE campaign_id = $1")
+        .bind(campaign_id)
+        .execute(&pool)
+        .await
+        .expect("cleanup");
+}
