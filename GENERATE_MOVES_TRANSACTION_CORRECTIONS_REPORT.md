@@ -174,22 +174,16 @@ Extracts response fields from created structs and body JSON safely.
 
 ## 8. Remaining Risks
 
-| Risk                                | Severity     | Status                                     |
-| ----------------------------------- | ------------ | ------------------------------------------ |
-| No DB integration test for rollback | Medium       | Not fixed - requires test infrastructure   |
-| `cargo fmt --all --check`           | Pre-existing | Fails across codebase, not from this patch |
-| `cargo test` linking                | Pre-existing | aws-lc-sys/Windows linking issue           |
+| Risk                                | Severity     | Status                                                     |
+| ----------------------------------- | ------------ | ---------------------------------------------------------- |
+| No DB integration test for rollback | Medium       | **FIXED in `fix/db-test-infrastructure-for-transactions`** |
+| `cargo fmt --all --check`           | Pre-existing | Fails across codebase, not from this patch                 |
+| `cargo test` linking                | Pre-existing | aws-lc-sys/Windows linking issue                           |
 
 ---
 
 ## 9. Recommended Next Patch
 
-**`fix/db-test-infrastructure-for-transactions`**
+**None for this workstream.**
 
-Still needed to prove the transaction actually rolls back:
-
-- Add `TEST_DATABASE_URL` environment support
-- Add `#[sqlx::test]` infrastructure to `crates/db`
-- Enable the `#[ignore]` rollback test in `campaigns_tests.rs`
-
-This patch is **not ready to close** until that integration test passes.
+DB integration tests now exist in `crates/db/tests/generated_moves_transaction.rs`. See `DB_TRANSACTION_TEST_INFRA_REPORT.md`.

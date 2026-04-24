@@ -175,25 +175,25 @@ pub async fn create_generated_campaign_moves_transactional(
 
 ## 9. Remaining Risks
 
-| Risk                          | Severity     | Status                                   |
-| ----------------------------- | ------------ | ---------------------------------------- |
-| DB integration test not added | Medium       | Not fixed - requires test infrastructure |
-| `cargo test` linking fails    | Pre-existing | aws-lc-sys/Windows toolchain issue       |
-| `cargo fmt --all --check`     | Pre-existing | Fails across codebase                    |
+| Risk                          | Severity     | Status                                                     |
+| ----------------------------- | ------------ | ---------------------------------------------------------- |
+| DB integration test not added | Medium       | **FIXED in `fix/db-test-infrastructure-for-transactions`** |
+| `cargo test` linking fails    | Pre-existing | aws-lc-sys/Windows toolchain issue                         |
+| `cargo fmt --all --check`     | Pre-existing | Fails across codebase                                      |
 
 ---
 
 ## 10. Recommended Next Patch
 
-**`fix/db-test-infrastructure-for-transactions`**
+**None for this workstream.**
 
-Still needed to prove the transaction actually rolls back:
+The `generate_campaign_moves` endpoint is now:
 
-- Add `TEST_DATABASE_URL` environment support
-- Add `#[sqlx::test]` infrastructure to `crates/db`
-- Enable the `#[ignore]` rollback test in `campaigns_tests.rs`
+- Transaction-safe (`create_generated_campaign_moves_transactional`)
+- Validation-corrected (empty list, no silent truncation, sequence numbers, move_id in body)
+- DB integration-tested (`crates/db/tests/generated_moves_transaction.rs`)
 
-This patch is **not ready to close** until that integration test passes.
+See `DB_TRANSACTION_TEST_INFRA_REPORT.md` for details.
 
 ---
 
