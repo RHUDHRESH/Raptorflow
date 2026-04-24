@@ -1725,6 +1725,11 @@ pub async fn create_generated_campaign_moves_transactional(
 ) -> Result<Vec<GeneratedCampaignMoveCreated>, sqlx::Error> {
     let mut tx = pool.begin().await?;
 
+    sqlx::query("SET LOCAL app.current_org_id = $1")
+        .bind(org_id)
+        .execute(&mut *tx)
+        .await?;
+
     let mut results = Vec::with_capacity(moves.len());
 
     for m in moves {

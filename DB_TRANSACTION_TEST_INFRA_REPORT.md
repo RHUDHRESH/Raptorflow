@@ -70,7 +70,7 @@ Proves:
 
 ## 5. How RLS / `app.current_org_id` Is Handled
 
-The test uses an **outer transaction + `SET LOCAL`**:
+**The helper sets RLS context itself.** Inside `create_generated_campaign_moves_transactional`:
 
 ```rust
 let mut tx = pool.begin().await?;
@@ -80,17 +80,16 @@ sqlx::query("SET LOCAL app.current_org_id = $1")
     .await?;
 ```
 
-Then calls `create_generated_campaign_moves_transactional(&pool, org_id, &campaign_id, moves)`.
+This ensures the tenant context is set in the same transaction that performs the inserts.
 
-**How it works:**
+**Test design** uses separate transactions for setup and verification:
 
-1. Outer test transaction starts
-2. `SET LOCAL app.current_org_id = '<test_org>'` sets the session variable
-3. Helper calls `pool.begin().await` — starts inner transaction on the **same connection**
-4. PostgreSQL `SET LOCAL` persists for the duration of the outer transaction, including nested savepoints
-5. All RLS policies see the correct `org_id`
+- Setup: `create_campaign_fixture()` uses its own transaction with `SET LOCAL`
+- Execute: helper uses its own transaction with `SET LOCAL` (correctly set inside helper)
+- Verify: `count_rows()` uses its own transaction with `SET LOCAL`
+- Cleanup: `cleanup_org()` uses its own transaction with `SET LOCAL` (CASCADE deletes campaigns/moves/content)
 
-**Key insight:** `SET LOCAL` only affects the current transaction. Since the helper uses `pool.begin()` on the same connection, it inherits the session variable from the outer transaction.
+**Note:** The previous version of this test incorrectly assumed `SET LOCAL` from an outer test transaction would be inherited by the helper. This is wrong — `pool.begin()` creates a new transaction, not a savepoint.
 
 ---
 

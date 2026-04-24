@@ -101,19 +101,39 @@ CREATE POLICY campaign_moves_tenant_isolation ON campaign_moves
   WITH CHECK (org_id = app.current_org_id());
 ```
 
-The tests handle this by:
+**The helper sets RLS context itself.** Inside `create_generated_campaign_moves_transactional`:
 
-1. Beginning an outer transaction
-2. Running `SET LOCAL app.current_org_id = '<test_org_id>'`
-3. Calling the helper (which starts its own inner transaction via `pool.begin().await`)
+```rust
+let mut tx = pool.begin().await?;
+sqlx::query("SET LOCAL app.current_org_id = $1")
+    .bind(org_id)
+    .execute(&mut *tx)
+    .await?;
+```
 
-**Important:** In PostgreSQL, `SET LOCAL` only affects the current session transaction. Because the helper starts its own transaction with `pool.begin()` on the same connection, the `SET LOCAL` value from the outer transaction persists into the inner transaction's savepoint context. This allows RLS to pass correctly.
+This ensures the tenant context is set in the same transaction that performs the inserts. The helper commits only after all inserts succeed; if any insert fails, the transaction rolls back when `tx` is dropped.
+
+**Test setup and verification** use separate transactions with their own `SET LOCAL` calls:
+
+```rust
+// Setup: org and campaign fixtures
+let mut tx = pool.begin().await?;
+sqlx::query("SET LOCAL app.current_org_id = $1").bind(org_id).execute(&mut *tx).await?;
+// ... inserts ...
+tx.commit().await?;
+
+// Verification: count rows with RLS
+let mut tx = pool.begin().await?;
+sqlx::query("SET LOCAL app.current_org_id = $1").bind(org_id).execute(&mut *tx).await?;
+// ... selects ...
+tx.rollback().await?;
+```
 
 If you see RLS errors when running tests locally, ensure:
 
 - The migrations have been applied (including RLS policies)
 - The test role is not a superuser (which bypasses RLS)
-- `SET LOCAL` was called before the helper
+- `SET LOCAL` was called before any tenant-scoped query
 
 ## Test Fixtures and Cleanup
 

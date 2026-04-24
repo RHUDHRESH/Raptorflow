@@ -6,17 +6,18 @@
 //! Run with:
 //! ```text
 //! TEST_DATABASE_URL=postgres://user:pass@localhost:5432/test_db \
-//!   cargo test -p raptorflow-db --test generated_moves_transaction -- --nocapture
+//!   cargo test -p raptorflow-db --test generated_moves_transaction -- --nocapture --test-threads=1
 //! ```
 //!
 //! ## RLS note
 //! Tenant-scoped tables use `app.current_org_id()` via RLS WITH CHECK policies.
-//! The tests use `SET LOCAL app.current_org_id` inside an outer transaction so that
-//! all operations (including those inside the helper's inner transaction via savepoints)
-//! see the correct org_id.
+//! The helper (`create_generated_campaign_moves_transactional`) sets `SET LOCAL app.current_org_id`
+//! at the start of its own transaction before performing tenant-scoped inserts.
+//!
+//! Setup and verification use separate transactions with their own `SET LOCAL` calls.
 
 use raptorflow_db::queries::{
-    create_campaign, create_generated_campaign_moves_transactional, GeneratedCampaignMoveInsert,
+    create_generated_campaign_moves_transactional, GeneratedCampaignMoveInsert,
 };
 use sqlx::postgres::{PgPool as SqlxPgPool, PgPoolOptions};
 use std::env;
@@ -28,7 +29,7 @@ fn get_test_db_url() -> Option<String> {
 
 async fn setup_test_pool(database_url: &str) -> Result<SqlxPgPool, sqlx::Error> {
     PgPoolOptions::new()
-        .max_connections(1)
+        .max_connections(2)
         .connect(database_url)
         .await
 }
@@ -61,11 +62,79 @@ async fn create_org_fixture(pool: &SqlxPgPool, org_id: Uuid) -> Result<(), sqlx:
     Ok(())
 }
 
+async fn create_campaign_fixture(
+    pool: &SqlxPgPool,
+    org_id: Uuid,
+    campaign_id: &str,
+) -> Result<(), sqlx::Error> {
+    let mut tx = pool.begin().await?;
+
+    sqlx::query("SET LOCAL app.current_org_id = $1")
+        .bind(org_id)
+        .execute(&mut *tx)
+        .await?;
+
+    sqlx::query(
+        r#"
+        INSERT INTO campaigns (campaign_id, org_id, name, goal, status, created_at, updated_at)
+        VALUES ($1, $2, 'Test Campaign', 'Test Goal', 'draft', now(), now())
+        "#,
+    )
+    .bind(campaign_id)
+    .bind(org_id)
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(())
+}
+
+async fn count_rows(
+    pool: &SqlxPgPool,
+    org_id: Uuid,
+    campaign_id: &str,
+) -> Result<(i64, i64), sqlx::Error> {
+    let mut tx = pool.begin().await?;
+
+    sqlx::query("SET LOCAL app.current_org_id = $1")
+        .bind(org_id)
+        .execute(&mut *tx)
+        .await?;
+
+    let move_count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM campaign_moves WHERE campaign_id = $1 AND org_id = $2",
+    )
+    .bind(campaign_id)
+    .bind(org_id)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    let content_count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM generated_content WHERE campaign_id = $1 AND org_id = $2 AND content_type = 'move_generation'",
+    )
+    .bind(campaign_id)
+    .bind(org_id)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    tx.rollback().await?;
+    Ok((move_count.0, content_count.0))
+}
+
 async fn cleanup_org(pool: &SqlxPgPool, org_id: Uuid) -> Result<(), sqlx::Error> {
+    let mut tx = pool.begin().await?;
+
+    sqlx::query("SET LOCAL app.current_org_id = $1")
+        .bind(org_id)
+        .execute(&mut *tx)
+        .await?;
+
     sqlx::query("DELETE FROM organizations WHERE org_id = $1")
         .bind(org_id)
-        .execute(pool)
+        .execute(&mut *tx)
         .await?;
+
+    tx.commit().await?;
     Ok(())
 }
 
@@ -118,30 +187,8 @@ async fn generated_moves_transaction_commits_all_rows() {
         return;
     }
 
-    let create_err = create_campaign(&pool, &campaign_id, org_id, "Test Campaign", "Goal")
-        .await;
-    if create_err.is_err() {
-        eprintln!("Failed to create campaign fixture: {:?}; skipping test", create_err);
-        let _ = cleanup_org(&pool, org_id).await;
-        return;
-    }
-
-    let mut tx = match pool.begin().await {
-        Ok(t) => t,
-        Err(e) => {
-            eprintln!("Failed to begin transaction: {}; skipping test", e);
-            let _ = cleanup_org(&pool, org_id).await;
-            return;
-        }
-    };
-
-    if let Err(e) = sqlx::query("SET LOCAL app.current_org_id = $1")
-        .bind(org_id)
-        .execute(&mut *tx)
-        .await
-    {
-        eprintln!("Failed to SET LOCAL org_id: {}; skipping test", e);
-        let _ = tx.rollback().await;
+    if let Err(e) = create_campaign_fixture(&pool, org_id, &campaign_id).await {
+        eprintln!("Failed to create campaign fixture: {}; skipping test", e);
         let _ = cleanup_org(&pool, org_id).await;
         return;
     }
@@ -155,41 +202,26 @@ async fn generated_moves_transaction_commits_all_rows() {
 
     if let Err(e) = result {
         eprintln!("Transaction helper returned error (unexpected): {}; FAIL", e);
-        let _ = tx.rollback().await;
         let _ = cleanup_org(&pool, org_id).await;
         panic!("expected Ok but got Err: {}", e);
     }
 
     let created = result.unwrap();
     assert_eq!(created.len(), 2, "expected 2 created moves");
-
     assert_eq!(created[0].sequence_number, 1);
     assert_eq!(created[1].sequence_number, 2);
 
-    let move_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM campaign_moves WHERE campaign_id = $1 AND org_id = $2",
-    )
-    .bind(&campaign_id)
-    .bind(org_id)
-    .fetch_one(&mut *tx)
-    .await
-    .expect("move count query should succeed");
+    let (move_count, content_count) = match count_rows(&pool, org_id, &campaign_id).await {
+        Ok((m, c)) => (m, c),
+        Err(e) => {
+            eprintln!("Failed to count rows: {}; FAIL", e);
+            let _ = cleanup_org(&pool, org_id).await;
+            panic!("count query failed: {}", e);
+        }
+    };
 
-    let content_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM generated_content WHERE campaign_id = $1 AND org_id = $2 AND content_type = 'move_generation'",
-    )
-    .bind(&campaign_id)
-    .bind(org_id)
-    .fetch_one(&mut *tx)
-    .await
-    .expect("content count query should succeed");
-
-    assert_eq!(move_count.0, 2, "expected 2 campaign_moves rows");
-    assert_eq!(content_count.0, 2, "expected 2 generated_content rows");
-
-    if let Err(e) = tx.commit().await {
-        eprintln!("Commit failed: {}; attempting cleanup", e);
-    }
+    assert_eq!(move_count, 2, "expected 2 campaign_moves rows");
+    assert_eq!(content_count, 2, "expected 2 generated_content rows");
 
     let _ = cleanup_org(&pool, org_id).await;
 }
@@ -222,30 +254,8 @@ async fn generated_moves_transaction_rolls_back_on_failure() {
         return;
     }
 
-    let create_err = create_campaign(&pool, &campaign_id, org_id, "Test Campaign", "Goal")
-        .await;
-    if create_err.is_err() {
-        eprintln!("Failed to create campaign fixture: {:?}; skipping test", create_err);
-        let _ = cleanup_org(&pool, org_id).await;
-        return;
-    }
-
-    let mut tx = match pool.begin().await {
-        Ok(t) => t,
-        Err(e) => {
-            eprintln!("Failed to begin transaction: {}; skipping test", e);
-            let _ = cleanup_org(&pool, org_id).await;
-            return;
-        }
-    };
-
-    if let Err(e) = sqlx::query("SET LOCAL app.current_org_id = $1")
-        .bind(org_id)
-        .execute(&mut *tx)
-        .await
-    {
-        eprintln!("Failed to SET LOCAL org_id: {}; skipping test", e);
-        let _ = tx.rollback().await;
+    if let Err(e) = create_campaign_fixture(&pool, org_id, &campaign_id).await {
+        eprintln!("Failed to create campaign fixture: {}; skipping test", e);
         let _ = cleanup_org(&pool, org_id).await;
         return;
     }
@@ -260,30 +270,17 @@ async fn generated_moves_transaction_rolls_back_on_failure() {
 
     assert!(result.is_err(), "expected Err due to duplicate content_id, got Ok");
 
-    let move_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM campaign_moves WHERE campaign_id = $1 AND org_id = $2",
-    )
-    .bind(&campaign_id)
-    .bind(org_id)
-    .fetch_one(&mut *tx)
-    .await
-    .expect("move count query should succeed");
+    let (move_count, content_count) = match count_rows(&pool, org_id, &campaign_id).await {
+        Ok((m, c)) => (m, c),
+        Err(e) => {
+            eprintln!("Failed to count rows: {}; FAIL", e);
+            let _ = cleanup_org(&pool, org_id).await;
+            panic!("count query failed: {}", e);
+        }
+    };
 
-    let content_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM generated_content WHERE campaign_id = $1 AND org_id = $2 AND content_type = 'move_generation'",
-    )
-    .bind(&campaign_id)
-    .bind(org_id)
-    .fetch_one(&mut *tx)
-    .await
-    .expect("content count query should succeed");
-
-    assert_eq!(move_count.0, 0, "expected ZERO campaign_moves rows after rollback");
-    assert_eq!(content_count.0, 0, "expected ZERO generated_content rows after rollback");
-
-    if let Err(e) = tx.rollback().await {
-        eprintln!("Rollback warning: {}", e);
-    }
+    assert_eq!(move_count, 0, "expected ZERO campaign_moves rows after rollback");
+    assert_eq!(content_count, 0, "expected ZERO generated_content rows after rollback");
 
     let _ = cleanup_org(&pool, org_id).await;
 }
