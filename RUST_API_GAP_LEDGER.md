@@ -12,25 +12,25 @@
 
 ## Gap Summary
 
-| Category   | Route                                          | Status                       | Risk       |
-| ---------- | ---------------------------------------------- | ---------------------------- | ---------- |
-| Auth       | `auth/forgot-password`                         | Gap                          | Low        |
-| Auth       | `auth/reset-password`                          | Gap                          | Low        |
-| Avatars    | `avatars`                                      | Gap                          | Medium     |
-| Dashboard  | `dashboard`                                    | Gap                          | Medium     |
-| Foundation | `foundation/scan/quick`                        | Gap                          | Medium     |
-| Campaign   | `campaigns/[id]/evaluate`                      | **Implemented + Red-teamed** | ~~Medium~~ |
-| Campaign   | `campaigns/[id]/moves/generate`                | **Implemented + Red-teamed** | ~~High~~   |
-| Campaign   | `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | Gap                          | Low        |
-| Council    | `council/[sessionId]/start`                    | **Implemented + Red-teamed** | ~~High~~   |
-| Council    | `council/[sessionId]/stream`                   | **Implemented + Red-teamed** | ~~High~~   |
-| Council    | `council/[sessionId]/synthesize`               | **Implemented + Red-teamed** | ~~High~~   |
-| Daily-wins | `daily-wins/cron`                              | Gap                          | Low        |
-| Intel      | `intel/[signalId]`                             | Gap                          | Low        |
-| Intel      | `intel/brief/cron`                             | Gap                          | Medium     |
-| Intel      | `intel/competitors`                            | Gap                          | High       |
-| Nudges     | `nudges/cron`                                  | Gap                          | Low        |
-| PRL        | `prl/decay/cron`                               | Gap                          | Low        |
+| Category   | Route                                          | Status                                    | Risk       |
+| ---------- | ---------------------------------------------- | ----------------------------------------- | ---------- |
+| Auth       | `auth/forgot-password`                         | Gap                                       | Low        |
+| Auth       | `auth/reset-password`                          | Gap                                       | Low        |
+| Avatars    | `avatars`                                      | Gap                                       | Medium     |
+| Dashboard  | `dashboard`                                    | Gap                                       | Medium     |
+| Foundation | `foundation/scan/quick`                        | Gap                                       | Medium     |
+| Campaign   | `campaigns/[id]/evaluate`                      | **Implemented + Red-teamed**              | ~~Medium~~ |
+| Campaign   | `campaigns/[id]/moves/generate`                | **Implemented + Red-teamed**              | ~~High~~   |
+| Campaign   | `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | Gap                                       | Low        |
+| Council    | `council/[sessionId]/start`                    | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
+| Council    | `council/[sessionId]/stream`                   | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
+| Council    | `council/[sessionId]/synthesize`               | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
+| Daily-wins | `daily-wins/cron`                              | Gap                                       | Low        |
+| Intel      | `intel/[signalId]`                             | Gap                                       | Low        |
+| Intel      | `intel/brief/cron`                             | Gap                                       | Medium     |
+| Intel      | `intel/competitors`                            | Gap                                       | High       |
+| Nudges     | `nudges/cron`                                  | Gap                                       | Low        |
+| PRL        | `prl/decay/cron`                               | Gap                                       | Low        |
 
 ---
 

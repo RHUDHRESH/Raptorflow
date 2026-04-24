@@ -453,6 +453,10 @@ export const councilApi = {
   pollMessages: async (sessionId: string) => {
     return councilApi.getMessages(sessionId);
   },
+  pollSessionRaw: async (sessionId: string): Promise<CouncilPollSessionResponse> =>
+    apiFetch<CouncilPollSessionResponse>(`/api/v1/council/${sessionId}`, { auth: true }),
+  pollMessagesRaw: async (sessionId: string): Promise<CouncilPollMessagesResponse> =>
+    apiFetch<CouncilPollMessagesResponse>(`/api/v1/council/${sessionId}/messages`, { auth: true }),
 };
 
 export const museApi = {
@@ -836,14 +840,35 @@ export interface CouncilMessage {
   content: string;
   createdAt: string;
 }
-interface BackendCouncilPosition {
+export interface BackendCouncilPosition {
   position_id: string;
   avatar_key: string;
   round_number: number;
   content: string;
+  extracted_ripple_data?: {
+    key_risks?: string[];
+    recommended_next_move?: string;
+    ripple_candidates?: Array<{
+      summary: string;
+      salience: number;
+      type: string;
+    }>;
+  };
   created_at: string;
 }
-interface BackendCouncilSession {
+
+export interface CouncilPollSessionResponse {
+  session: BackendCouncilSession;
+  positions?: BackendCouncilPosition[];
+  status: string;
+}
+
+export interface CouncilPollMessagesResponse {
+  session_id: string;
+  positions: BackendCouncilPosition[];
+  status: string;
+}
+export interface BackendCouncilSession {
   session_id: string;
   org_id: string;
   campaign_id?: string | null;

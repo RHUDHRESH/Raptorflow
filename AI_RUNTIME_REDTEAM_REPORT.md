@@ -1,7 +1,7 @@
 # AI Runtime Red Team Report
 
 **Branch:** `fix/ai-runtime-redteam-contracts`
-**Commit SHA:** (pending)
+**Commit SHA:** `0ac88111e57e861abf8d5101e331178999ecebf8`
 **Date:** 2026-04-24
 
 ---
@@ -192,7 +192,7 @@ Add proper DB transaction in `crates/db/src/queries.rs`
 
 ### Prisma in product runtime
 
-**Result:** Old Next.js routes still have Prisma (tombstoned routes). No Prisma in new Rust handlers. ✓
+**Result:** Old Next.js routes are tombstoned (returning 410). No Prisma in new Rust handlers. ✓
 
 ### fallback/dummy/mock/placeholder
 
@@ -217,13 +217,13 @@ Add proper DB transaction in `crates/db/src/queries.rs`
 
 ## 12. Remaining Risks
 
-| Risk                                                  | Severity | Mitigation                                  |
-| ----------------------------------------------------- | -------- | ------------------------------------------- |
-| SSE auth cannot use EventSource headers               | Medium   | Polling fallback added                      |
-| No DB transaction for generate_moves                  | Medium   | Validated before insert, note in response   |
-| Frontend council page still uses old EventSource path | High     | Needs separate fix                          |
-| Campaign brief not loaded before evaluation           | Low      | Returns 400 if no brief                     |
-| Evaluate doesn't check if moves/tasks exist           | Low      | Returns empty arrays, AI handles gracefully |
+| Risk                                                      | Severity | Mitigation                                      |
+| --------------------------------------------------------- | -------- | ----------------------------------------------- |
+| SSE auth cannot use EventSource headers                   | Medium   | Polling fallback added                          |
+| No DB transaction for generate_moves                      | Medium   | Validated before insert, note in response       |
+| ~~Frontend council page still uses old EventSource path~~ | ~~High~~ | ~~Needs separate fix~~ **FIXED in `43f64e44c`** |
+| Campaign brief not loaded before evaluation               | Low      | Returns 400 if no brief                         |
+| Evaluate doesn't check if moves/tasks exist               | Low      | Returns empty arrays, AI handles gracefully     |
 
 ---
 
@@ -238,9 +238,8 @@ The council page at `apps/web/src/app/(app)/council/[sessionId]/page.tsx`:
 
 ### After That
 
-1. Add DB transaction for `generate_campaign_moves`
-2. Tombstone the old Next.js routes for council start/stream/synthesize and campaigns evaluate/generate
-3. Update `RUST_API_GAP_LEDGER.md`
+1. ~~Tombstone the old Next.js routes for council start/stream/synthesize~~ - **DONE in `fix/council-route-tombstones-and-poll-contract`**
+2. Add DB transaction for `generate_campaign_moves`
 
 ---
 

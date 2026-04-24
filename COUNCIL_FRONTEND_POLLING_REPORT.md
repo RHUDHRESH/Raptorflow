@@ -1,7 +1,7 @@
 # Council Frontend Polling Report
 
 **Branch:** `fix/council-frontend-polling`
-**Commit SHA:** (pending)
+**Commit SHA:** `43f64e44c31fce56714df40f352360df053a6771`
 **Date:** 2026-04-24
 
 ---
@@ -150,15 +150,15 @@ All use `apiFetch` with `{ auth: true }`.
 
 ## 10. Recommended Next Patch
 
-### Tombstone Next.js Council Routes
+### ~~Tombstone Next.js Council Routes~~ DONE
 
-The old Next.js routes still exist as Prisma-using gap routes:
+The old Next.js routes were tombstoned in `fix/council-route-tombstones-and-poll-contract`:
 
-- `apps/web/src/app/api/council/[sessionId]/start/route.ts`
-- `apps/web/src/app/api/council/[sessionId]/stream/route.ts`
-- `apps/web/src/app/api/council/[sessionId]/synthesize/route.ts`
+- `apps/web/src/app/api/council/[sessionId]/start/route.ts` → 410
+- `apps/web/src/app/api/council/[sessionId]/stream/route.ts` → 410
+- `apps/web/src/app/api/council/[sessionId]/synthesize/route.ts` → 410
 
-These should be tombstoned now that the frontend uses Rust endpoints.
+See `COUNCIL_TOMBSTONE_CONTRACT_REPORT.md` for details.
 
 ---
 
