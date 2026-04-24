@@ -765,7 +765,7 @@ pub async fn run_decay(
         "ripples_processed": total_processed,
         "decayed": total_decayed,
         "deleted": total_deleted,
-        "status": "complete"
+        "status": "completed"
     }))
     .into_response())
 }

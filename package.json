@@ -32,7 +32,10 @@
     "lint-staged": "pnpm lint && pnpm docs:check && pnpm scaffold:check",
     "seed:avatars": "npx tsx src/lib/avatars/seed.ts",
     "db:push": "cd packages/database && npx prisma db push",
-    "db:studio": "cd packages/database && npx prisma studio"
+    "db:studio": "cd packages/database && npx prisma studio",
+    "runtime-authority:check": "node scripts/check-no-prisma-product-runtime.mjs",
+    "route-parity:check": "node scripts/check-route-parity.mjs",
+    "structural:check": "node scripts/check-no-prisma-product-runtime.mjs && node scripts/check-route-parity.mjs"
   },
   "devDependencies": {
     "@types/node": "24.0.0",

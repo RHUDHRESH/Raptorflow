@@ -6,11 +6,10 @@
 //! - `Settings` from environment variables (via `raptorflow_config`)
 //! - PostgreSQL connection pool (via `raptorflow_db`)
 //! - AWS Bedrock inference client (via `raptorflow_aws`)
-//! - Clerk JWT validation middleware (domain read from settings)
+//! - Clerk JWT validation middleware (issuer + JWKS URL read from settings)
 //! - The main router built in the `http` crate
 //!
-//! The server binds to `0.0.0.0:8080` in all environments. Configure the port
-//! via the `APP_PORT` environment variable if needed.
+//! The server binds to the address configured via `RAPTORFLOW_BIND_ADDR`.
 
 use raptorflow_aws::bedrock::BedrockInferenceClient;
 use raptorflow_config::Settings;
@@ -30,6 +29,11 @@ async fn main() -> anyhow::Result<()> {
     let settings = Arc::new(Settings::from_env()?);
     eprintln!("[raptorflow-api] boot: settings loaded");
 
+    if settings.app_env == "prod" {
+        settings.validate()?;
+        eprintln!("[raptorflow-api] boot: settings validated");
+    }
+
     let _sentry_guard = raptorflow_telemetry::init(
         "raptorflow-api",
         Some(settings.sentry_dsn.as_str()),
@@ -47,12 +51,12 @@ async fn main() -> anyhow::Result<()> {
         None
     };
 
-    let bedrock_client = match BedrockInferenceClient::new(&settings.bedrock_region).await {
+    let bedrock_client = match BedrockInferenceClient::from_settings(settings.as_ref()).await {
         Ok(client) => {
             tracing::info!(
-                region = %settings.bedrock_region,
-                model_strategist = %settings.bedrock_model_strategist,
-                model_fast = %settings.bedrock_model_fast,
+                region = %client.region(),
+                model_strategist = %client.strategist_model(),
+                model_fast = %client.fast_model(),
                 "Bedrock inference client ready"
             );
             Some(Arc::new(client))
@@ -63,19 +67,18 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
-    let clerk_domain = settings.clerk_issuer.clone();
-    let state = AppState::new(db_pool, bedrock_client, clerk_domain, settings);
+    let state = AppState::new(db_pool, bedrock_client, settings.clone());
     eprintln!("[raptorflow-api] boot: state ready");
 
     let app = create_router(state);
     eprintln!("[raptorflow-api] boot: router ready");
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
+    let listener = tokio::net::TcpListener::bind(settings.bind_addr.as_str())
         .await
-        .expect("Failed to bind to port 8080");
+        .expect("Failed to bind to configured address");
     eprintln!("[raptorflow-api] boot: listener bound");
 
-    tracing::info!("API server listening on 0.0.0.0:8080");
+    tracing::info!("API server listening on {}", settings.bind_addr);
     eprintln!("[raptorflow-api] boot: serving");
 
     axum::serve(listener, app).await?;

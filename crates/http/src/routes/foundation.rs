@@ -423,7 +423,7 @@ pub async fn get_snapshot(
 
 #[derive(Debug, Deserialize)]
 pub struct ScanStartRequest {
-    pub url: String,
+    pub url: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -434,8 +434,27 @@ pub struct ScanStartResponse {
 
 #[derive(Debug, Serialize)]
 pub struct ScanStatusResponse {
+    pub scan_id: Option<String>,
     pub status: String,
     pub data: Option<serde_json::Value>,
+    pub error_message: Option<String>,
+}
+
+async fn resolve_scan_url(pool: &sqlx::PgPool, org_id: Uuid) -> Result<Option<String>, sqlx::Error> {
+    let row = sqlx::query_as::<_, (Option<String>,)>(
+        r#"
+        SELECT value::text as url
+        FROM foundation_sections
+        WHERE org_id = $1 AND section_key IN ('company_url', 'url', 'website')
+        ORDER BY updated_at DESC
+        LIMIT 1
+        "#,
+    )
+    .bind(org_id)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(row.and_then(|(url,)| if url.as_ref().is_some_and(|u| !u.is_empty()) { url } else { None }))
 }
 
 pub async fn start_scan(
@@ -445,9 +464,16 @@ pub async fn start_scan(
 ) -> AppResult<Json<ScanStartResponse>> {
     let pool = db_pool(&state)?;
 
-    if payload.url.is_empty() {
-        return Err(bad_request("URL is required"));
-    }
+    let url = match &payload.url {
+        Some(u) if !u.is_empty() => u.clone(),
+        _ => {
+            let resolved = resolve_scan_url(pool, auth.tenant.org_id)
+                .await
+                .map_err(internal_error)?
+                .ok_or_else(|| bad_request("scan_url_required"))?;
+            resolved
+        }
+    };
 
     let scan_id = format!("scan-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
 
@@ -459,14 +485,13 @@ pub async fn start_scan(
     )
     .bind(&scan_id)
     .bind(auth.tenant.org_id)
-    .bind(&payload.url)
+    .bind(&url)
     .execute(pool)
     .await
     .map_err(internal_error)?;
 
     let pool_clone = pool.clone();
     let scan_id_clone = scan_id.clone();
-    let url = payload.url.clone();
 
     tokio::spawn(async move {
         let _scan_data = match quick_scan(&url).await {
@@ -477,7 +502,7 @@ pub async fn start_scan(
                     .map(|s| s == "failed")
                     .unwrap_or(false);
 
-                let final_status = if is_failed { "failed" } else { "complete" };
+                let final_status = if is_failed { "failed" } else { "completed" };
 
                 let error_msg = if is_failed {
                     data.get("error").and_then(|e: &serde_json::Value| e.as_str()).map(String::from)
@@ -526,7 +551,203 @@ pub async fn start_scan(
 
     Ok(Json(ScanStartResponse {
         scan_id,
-        status: "started".to_string(),
+        status: "queued".to_string(),
+    }))
+}
+
+pub async fn start_quick_scan(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Json(payload): Json<ScanStartRequest>,
+) -> AppResult<Json<ScanStartResponse>> {
+    let pool = db_pool(&state)?;
+
+    let url = match &payload.url {
+        Some(u) if !u.is_empty() => u.clone(),
+        _ => {
+            let resolved = resolve_scan_url(pool, auth.tenant.org_id)
+                .await
+                .map_err(internal_error)?
+                .ok_or_else(|| bad_request("scan_url_required"))?;
+            resolved
+        }
+    };
+
+    let scan_id = format!("scan-quick-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
+
+    sqlx::query(
+        r#"
+        INSERT INTO foundation_scans (scan_id, org_id, url, status, started_at)
+        VALUES ($1, $2, $3, 'running', now())
+        "#,
+    )
+    .bind(&scan_id)
+    .bind(auth.tenant.org_id)
+    .bind(&url)
+    .execute(pool)
+    .await
+    .map_err(internal_error)?;
+
+    let pool_clone = pool.clone();
+    let scan_id_clone = scan_id.clone();
+
+    tokio::spawn(async move {
+        let _scan_data = match quick_scan(&url).await {
+            Ok(data) => {
+                let is_failed = data
+                    .get("confidence")
+                    .and_then(|c: &serde_json::Value| c.as_str())
+                    .map(|s| s == "failed")
+                    .unwrap_or(false);
+
+                let final_status = if is_failed { "failed" } else { "completed" };
+
+                let error_msg = if is_failed {
+                    data.get("error").and_then(|e: &serde_json::Value| e.as_str()).map(String::from)
+                } else {
+                    None
+                };
+
+                if let Err(e) = sqlx::query(
+                    r#"
+                    UPDATE foundation_scans
+                    SET status = $1, quick_scan_data = $2, completed_at = now(),
+                        error_message = $3
+                    WHERE scan_id = $4
+                    "#,
+                )
+                .bind(final_status)
+                .bind(&data)
+                .bind(&error_msg)
+                .bind(&scan_id_clone)
+                .execute(&pool_clone)
+                .await {
+                    tracing::error!("Failed to update scan status: {}", e);
+                }
+                data
+            }
+            Err(e) => {
+                let err_msg = e.to_string();
+                tracing::error!("Quick scan failed for {}: {}", scan_id_clone, err_msg);
+                if let Err(e) = sqlx::query(
+                    r#"
+                    UPDATE foundation_scans
+                    SET status = 'failed', error_message = $1, completed_at = now()
+                    WHERE scan_id = $2
+                    "#,
+                )
+                .bind(&err_msg)
+                .bind(&scan_id_clone)
+                .execute(&pool_clone)
+                .await {
+                    tracing::error!("Failed to update scan failed status: {}", e);
+                }
+                serde_json::json!({ "error": err_msg, "confidence": "failed" })
+            }
+        };
+    });
+
+    Ok(Json(ScanStartResponse {
+        scan_id,
+        status: "queued".to_string(),
+    }))
+}
+
+pub async fn start_deep_scan(
+    Extension(auth): Extension<AuthContext>,
+    Extension(state): Extension<Arc<AppState>>,
+    Json(payload): Json<ScanStartRequest>,
+) -> AppResult<Json<ScanStartResponse>> {
+    let pool = db_pool(&state)?;
+
+    let url = match &payload.url {
+        Some(u) if !u.is_empty() => u.clone(),
+        _ => {
+            let resolved = resolve_scan_url(pool, auth.tenant.org_id)
+                .await
+                .map_err(internal_error)?
+                .ok_or_else(|| bad_request("scan_url_required"))?;
+            resolved
+        }
+    };
+
+    let scan_id = format!("scan-deep-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
+
+    sqlx::query(
+        r#"
+        INSERT INTO foundation_scans (scan_id, org_id, url, status, started_at)
+        VALUES ($1, $2, $3, 'running', now())
+        "#,
+    )
+    .bind(&scan_id)
+    .bind(auth.tenant.org_id)
+    .bind(&url)
+    .execute(pool)
+    .await
+    .map_err(internal_error)?;
+
+    let pool_clone = pool.clone();
+    let scan_id_clone = scan_id.clone();
+
+    tokio::spawn(async move {
+        let _scan_data = match deep_scan(&url).await {
+            Ok(data) => {
+                let is_failed = data
+                    .get("confidence")
+                    .and_then(|c: &serde_json::Value| c.as_str())
+                    .map(|s| s == "failed")
+                    .unwrap_or(false);
+
+                let final_status = if is_failed { "failed" } else { "completed" };
+
+                let error_msg = if is_failed {
+                    data.get("error").and_then(|e: &serde_json::Value| e.as_str()).map(String::from)
+                } else {
+                    None
+                };
+
+                if let Err(e) = sqlx::query(
+                    r#"
+                    UPDATE foundation_scans
+                    SET status = $1, deep_scan_data = $2, completed_at = now(),
+                        error_message = $3
+                    WHERE scan_id = $4
+                    "#,
+                )
+                .bind(final_status)
+                .bind(&data)
+                .bind(&error_msg)
+                .bind(&scan_id_clone)
+                .execute(&pool_clone)
+                .await {
+                    tracing::error!("Failed to update scan status: {}", e);
+                }
+                data
+            }
+            Err(e) => {
+                let err_msg = e.to_string();
+                tracing::error!("Deep scan failed for {}: {}", scan_id_clone, err_msg);
+                if let Err(e) = sqlx::query(
+                    r#"
+                    UPDATE foundation_scans
+                    SET status = 'failed', error_message = $1, completed_at = now()
+                    WHERE scan_id = $2
+                    "#,
+                )
+                .bind(&err_msg)
+                .bind(&scan_id_clone)
+                .execute(&pool_clone)
+                .await {
+                    tracing::error!("Failed to update scan failed status: {}", e);
+                }
+                serde_json::json!({ "error": err_msg, "confidence": "failed" })
+            }
+        };
+    });
+
+    Ok(Json(ScanStartResponse {
+        scan_id,
+        status: "queued".to_string(),
     }))
 }
 
@@ -567,9 +788,9 @@ pub async fn get_scan_by_id(
 ) -> AppResult<Json<ScanStatusResponse>> {
     let pool = db_pool(&state)?;
 
-    let row = sqlx::query_as::<_, (String, Option<serde_json::Value>, Option<serde_json::Value>)>(
+    let row = sqlx::query_as::<_, (String, Option<serde_json::Value>, Option<serde_json::Value>, Option<String>)>(
         r#"
-        SELECT status, quick_scan_data, deep_scan_data
+        SELECT status, quick_scan_data, deep_scan_data, error_message
         FROM foundation_scans
         WHERE scan_id = $1 AND org_id = $2
         "#,
@@ -581,8 +802,8 @@ pub async fn get_scan_by_id(
     .map_err(internal_error)?;
 
     match row {
-        Some((status, quick_data, deep_data)) => {
-            let data = if status == "complete" {
+        Some((status, quick_data, deep_data, error_message)) => {
+            let data = if status == "completed" {
                 if deep_data.is_some() {
                     deep_data
                 } else {
@@ -591,7 +812,12 @@ pub async fn get_scan_by_id(
             } else {
                 None
             };
-            Ok(Json(ScanStatusResponse { status, data }))
+            Ok(Json(ScanStatusResponse {
+                scan_id: Some(scan_id),
+                status,
+                data,
+                error_message,
+            }))
         }
         None => Err(not_found("scan_not_found")),
     }
@@ -694,9 +920,9 @@ pub async fn get_scan_status(
 ) -> AppResult<Json<ScanStatusResponse>> {
     let pool = db_pool(&state)?;
 
-    let row = sqlx::query_as::<_, (String, Option<serde_json::Value>, Option<serde_json::Value>)>(
+    let row = sqlx::query_as::<_, (String, Option<serde_json::Value>, Option<serde_json::Value>, Option<String>)>(
         r#"
-        SELECT status, quick_scan_data, deep_scan_data
+        SELECT status, quick_scan_data, deep_scan_data, error_message
         FROM foundation_scans
         WHERE org_id = $1
         ORDER BY started_at DESC
@@ -709,8 +935,8 @@ pub async fn get_scan_status(
     .map_err(internal_error)?;
 
     match row {
-        Some((status, quick_data, deep_data)) => {
-            let data = if status == "complete" {
+        Some((status, quick_data, deep_data, error_message)) => {
+            let data = if status == "completed" {
                 if deep_data.is_some() {
                     deep_data
                 } else {
@@ -719,11 +945,18 @@ pub async fn get_scan_status(
             } else {
                 None
             };
-            Ok(Json(ScanStatusResponse { status, data }))
+            Ok(Json(ScanStatusResponse {
+                scan_id: None,
+                status,
+                data,
+                error_message,
+            }))
         }
         None => Ok(Json(ScanStatusResponse {
+            scan_id: None,
             status: "not_found".to_string(),
             data: None,
+            error_message: None,
         })),
     }
 }
@@ -847,7 +1080,7 @@ pub async fn get_snapshot_full(
         .collect();
 
     let status = if missing.is_empty() {
-        "complete"
+        "completed"
     } else {
         "in_progress"
     };
@@ -1520,6 +1753,67 @@ pub async fn lock_positioning(
         "downstreamImpact": downstream_impact,
         "newVersion": foundation_data.foundation_version + 1
     })))
+}
+
+async fn deep_scan(url: &str) -> Result<serde_json::Value, String> {
+    let fetcher = HttpFetcher::new();
+    let (body, final_url) = fetcher
+        .fetch(url)
+        .await
+        .map_err(|e| format!("fetch_failed: {}", e))?;
+
+    let html = String::from_utf8_lossy(&body).to_string();
+    let parsed = HtmlParser::parse(&html).map_err(|e| format!("parse_failed: {}", e))?;
+
+    let title = parsed.title;
+    let description = parsed.language.clone();
+
+    let json_ld: Option<serde_json::Value> = scraper::Html::parse_document(&html)
+        .select(&scraper::Selector::parse("script[type=\"application/ld+json\"]").ok().unwrap())
+        .next()
+        .map(|el| el.text().collect::<String>())
+        .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok());
+
+    let social_links = extract_social_links(&html);
+
+    let business_name = json_ld
+        .as_ref()
+        .and_then(|j| j.get("name").and_then(|n| n.as_str()))
+        .map(String::from)
+        .or_else(|| title.clone());
+
+    let canonical = UrlNormalizer::canonical_url(url, &final_url).ok();
+    let domain = UrlNormalizer::extract_domain(&final_url).ok();
+    let logo_url = json_ld
+        .as_ref()
+        .and_then(|j| j.get("logo").and_then(|l| l.as_str()).map(String::from));
+
+    let primary_offering = json_ld
+        .as_ref()
+        .and_then(|j| j.get("description").and_then(|d| d.as_str()).map(String::from));
+
+    let industry = infer_industry(title.as_ref().or(description.as_ref()));
+
+    let confidence = if business_name.is_some() { "medium" } else { "low" };
+
+    Ok(serde_json::json!({
+        "business_name": business_name,
+        "industry": industry,
+        "description": description,
+        "primary_offering": primary_offering,
+        "competitor_suggestions": [],
+        "keyword_suggestions": [],
+        "confidence": confidence,
+        "social_links": social_links,
+        "logo_url": logo_url,
+        "domain": domain,
+        "raw": {
+            "title": title,
+            "url": final_url,
+            "canonical": canonical,
+            "json_ld": json_ld
+        }
+    }))
 }
 
 async fn quick_scan(url: &str) -> Result<serde_json::Value, String> {

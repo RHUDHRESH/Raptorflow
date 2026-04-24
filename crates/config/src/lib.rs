@@ -24,7 +24,7 @@
 //! - Clerk, Razorpay, Resend — auth, payments, email
 //! - `RAPTORFLOW_SENTRY_DSN` / `SENTRY_DSN` — error reporting
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use serde::Serialize;
 use std::env;
 
@@ -60,6 +60,55 @@ pub struct Settings {
 }
 
 impl Settings {
+    pub fn validate(&self) -> Result<()> {
+        if self.app_env != "prod" {
+            return Ok(());
+        }
+
+        fn nonempty(name: &str, value: &str) -> Result<()> {
+            if value.is_empty() {
+                return Err(anyhow!("{} must be non-empty in prod", name));
+            }
+            Ok(())
+        }
+
+        fn valid_url(name: &str, value: &str) -> Result<()> {
+            if value.is_empty() {
+                return Err(anyhow!("{} must be non-empty in prod", name));
+            }
+            if !value.starts_with("https://") {
+                return Err(anyhow!("{} must be a valid https URL in prod", name));
+            }
+            Ok(())
+        }
+
+        nonempty("RAPTORFLOW_FRONTEND_URL", &self.frontend_url)?;
+        nonempty("RAPTORFLOW_DATABASE_URL", &self.database_url)?;
+        if !self.database_url.starts_with("postgres") {
+            return Err(anyhow!("RAPTORFLOW_DATABASE_URL must be a postgres URL in prod"));
+        }
+        nonempty("RAPTORFLOW_DIRECT_DATABASE_URL", &self.direct_database_url)?;
+        if !self.direct_database_url.starts_with("postgres") {
+            return Err(anyhow!("RAPTORFLOW_DIRECT_DATABASE_URL must be a postgres URL in prod"));
+        }
+
+        let example_issuer = "https://example.clerk.accounts.dev";
+        if self.clerk_issuer.is_empty() || self.clerk_issuer == example_issuer {
+            return Err(anyhow!("RAPTORFLOW_CLERK_ISSUER must be set to a real Clerk issuer in prod"));
+        }
+        valid_url("RAPTORFLOW_CLERK_JWKS_URL", &self.clerk_jwks_url)?;
+        nonempty("RAPTORFLOW_BEDROCK_REGION", &self.bedrock_region)?;
+        nonempty("RAPTORFLOW_BEDROCK_MODEL_STRATEGIST", &self.bedrock_model_strategist)?;
+        nonempty("RAPTORFLOW_BEDROCK_MODEL_FAST", &self.bedrock_model_fast)?;
+        nonempty("RAPTORFLOW_RAZORPAY_KEY_ID", &self.razorpay_key_id)?;
+        nonempty("RAPTORFLOW_RAZORPAY_KEY_SECRET", &self.razorpay_key_secret)?;
+        nonempty("RAPTORFLOW_RESEND_API_KEY", &self.resend_api_key)?;
+        nonempty("RAPTORFLOW_S3_BUCKET", &self.s3_bucket)?;
+        nonempty("RAPTORFLOW_SQS_BASE_URL", &self.sqs_base_url)?;
+
+        Ok(())
+    }
+
     pub fn from_env() -> Result<Self> {
         Ok(Self {
             app_env: read("APP_ENV", "dev"),

@@ -35,7 +35,7 @@ export default function UploadsPage(): React.ReactElement {
       const response = await generateUploadUrl.mutateAsync({
         filename: selectedFile.name,
         contentType: selectedFile.type || "application/octet-stream",
-      });
+      }) as { uploadUrl: string; key: string };
       await uploadFile(selectedFile, response.uploadUrl);
       setStatus(`Uploaded ${selectedFile.name} to ${response.key}`);
       setSelectedFile(null);

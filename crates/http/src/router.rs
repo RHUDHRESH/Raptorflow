@@ -73,11 +73,11 @@ fn protected_router(state: Arc<AppState>) -> Router {
         )
         .route(
             "/api/v1/foundation/scan/quick",
-            post(foundation::start_scan),
+            post(foundation::start_quick_scan),
         )
         .route(
             "/api/v1/foundation/scan/deep",
-            post(foundation::start_scan),
+            post(foundation::start_deep_scan),
         )
         .route(
             "/api/v1/foundation/scan/status",
