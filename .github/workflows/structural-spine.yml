@@ -87,7 +87,7 @@ jobs:
       - name: Grant CREATEDB to testuser
         run: |
           CONTAINER_ID=$(docker ps -q --filter "ancestor=pgvector/pgvector:pg16")
-          docker exec $CONTAINER_ID psql -U testuser -c "ALTER USER testuser CREATEDB;"
+          docker exec $CONTAINER_ID psql -U testuser -d postgres -c "ALTER USER testuser CREATEDB;"
 
       - name: Run DB transaction integration tests
         env:
