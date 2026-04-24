@@ -16,22 +16,27 @@ export async function getAuthToken(): Promise<string | null> {
   try {
     const clerk = (
       window as Window & {
-        Clerk?: { session?: { getToken?: () => Promise<string | null> } };
+        Clerk?: {
+          loaded?: boolean;
+          session?: {
+            getToken?: (options?: { template?: string }) => Promise<string | null>;
+          };
+        };
       }
     ).Clerk;
 
-    if (clerk?.session?.getToken) {
-      const token = await clerk.session.getToken();
-      if (token) return token;
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      if (clerk?.loaded && clerk.session?.getToken) {
+        const token =
+          (await clerk.session.getToken({ template: "backend" } as never)) ??
+          (await clerk.session.getToken());
+        if (token) return token;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   } catch {
     // Clerk not loaded yet or session expired
-  }
-
-  // In development only, fall back to dev bearer token so the UI works without Clerk
-  // In production, this returns null which causes API calls to fail with 401
-  if (publicEnv.appEnv !== "prod") {
-    return publicEnv.devBearerToken;
   }
 
   return null;
@@ -63,6 +68,38 @@ export async function apiFetch<T>(
 
   const res = await fetch(`${base}${path}`, {
     method: options.method ?? "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new ApiError(res.status, text || `API request failed with status ${res.status}`);
+  }
+
+  return res.json() as Promise<T>;
+}
+
+export async function appFetch<T>(
+  path: string,
+  options: {
+    token?: string | null;
+    method?: string;
+    body?: unknown;
+    headers?: HeadersInit;
+    auth?: boolean;
+  } = {},
+): Promise<T> {
+  const token = options.auth ? (options.token ?? (await getAuthToken())) : null;
+
+  const res = await fetch(path, {
+    method: options.method ?? "GET",
+    credentials: "include",
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -127,6 +164,12 @@ export const foundationApi = {
       body: { data },
       auth: true,
     }),
+  savePartial: (fields: Record<string, unknown>, method: "POST" | "PATCH" = "PATCH") =>
+    apiFetch<{ id: string }>("/api/v1/foundation", {
+      method,
+      body: fields,
+      auth: true,
+    }),
   listSnapshots: () =>
     apiFetch<FoundationSnapshot[]>("/api/v1/foundation/snapshots", { auth: true }),
   getSnapshot: (id: string) =>
@@ -144,6 +187,13 @@ export const foundationApi = {
   getScanStatus: () => apiFetch<ScanJob>("/api/v1/foundation/scan/status", { auth: true }),
   getFullStatus: () =>
     apiFetch<SnapshotFullResponse>("/api/v1/foundation/snapshot", { auth: true }),
+  triggerQuickScan: async (): Promise<{ scan: QuickScanResult; scannedAt: string }> => {
+    const res = await apiFetch<{ scan: QuickScanResult; scannedAt: string }>("/api/v1/foundation/scan/quick", {
+      method: "POST",
+      auth: true,
+    });
+    return res;
+  },
 };
 
 export const campaignsApi = {
@@ -276,7 +326,9 @@ export const campaignsApi = {
 
 export const councilApi = {
   startSession: async (body: StartCouncilRequest) => {
-    const res = await apiFetch<unknown>("/api/v1/council", {
+    const res = await appFetch<{
+      session: BackendCouncilSession;
+    }>("/api/council", {
       method: "POST",
       body: {
         campaign_id: body.campaignId,
@@ -293,11 +345,13 @@ export const councilApi = {
     return normalizeCouncilSession(session);
   },
   listSessions: async () => {
-    const res = await apiFetch<unknown>("/api/v1/council", { auth: true });
-    return unwrapList<BackendCouncilSession>(res, ["sessions"]).map(normalizeCouncilSession);
+    const res = await appFetch<unknown>("/api/council", { auth: true });
+    return unwrapList<BackendCouncilSession>(res, ["sessions"]).map(
+      normalizeCouncilSession,
+    );
   },
   getSession: async (id: string) => {
-    const res = await apiFetch<unknown>(`/api/v1/council/${id}`, { auth: true });
+    const res = await appFetch<unknown>(`/api/council/${id}`, { auth: true });
     const session = unwrapItem<BackendCouncilSession>(res, ["session"]);
     if (!session) {
       throw new ApiError(500, "Council session response missing session payload");
@@ -305,8 +359,10 @@ export const councilApi = {
     return normalizeCouncilSession(session);
   },
   getMessages: async (id: string) => {
-    const res = await apiFetch<unknown>(`/api/v1/council/${id}/messages`, { auth: true });
-    return unwrapList<BackendCouncilPosition>(res, ["positions"]).map(normalizeCouncilMessage);
+    const res = await appFetch<unknown>(`/api/council/${id}/messages`, { auth: true });
+    return unwrapList<BackendCouncilPosition>(res, ["positions"]).map(
+      normalizeCouncilMessage,
+    );
   },
 };
 
@@ -403,16 +459,6 @@ export const intelApi = {
   },
 };
 
-export const billingApi = {
-  getStatus: () => apiFetch<BillingStatus>("/api/v1/billing", { auth: true }),
-  createOrder: (body: CreateOrderRequest) =>
-    apiFetch<any>("/api/v1/billing/orders", { method: "POST", body, auth: true }),
-  getSubscription: (id: string) =>
-    apiFetch<any>(`/api/v1/billing/subscriptions/${id}`, { auth: true }),
-  cancelSubscription: (id: string) =>
-    apiFetch<void>(`/api/v1/billing/subscriptions/${id}/cancel`, { method: "POST", auth: true }),
-};
-
 export const uploadsApi = {
   generateUploadUrl: (body: { filename: string; contentType: string }) =>
     apiFetch<{ uploadUrl: string; key: string }>("/api/v1/uploads", {
@@ -444,11 +490,13 @@ export const uploadsApi = {
 
 export const contentApi = {
   list: async () => {
-    const res = await apiFetch<unknown>("/api/v1/content", { auth: true });
-    return unwrapList<BackendGeneratedContent>(res, ["content"]).map(normalizeGeneratedContent);
+    const res = await appFetch<unknown>("/api/content", { auth: true });
+    return unwrapList<BackendGeneratedContent>(res, ["content"]).map(
+      normalizeGeneratedContent,
+    );
   },
   get: async (id: string) => {
-    const res = await apiFetch<unknown>(`/api/v1/content/${id}`, { auth: true });
+    const res = await appFetch<unknown>(`/api/content/${id}`, { auth: true });
     const content = unwrapItem<BackendGeneratedContent>(res, ["content"]);
     if (!content) {
       throw new ApiError(500, "Content response missing content payload");
@@ -531,6 +579,14 @@ export interface ScanJob {
   scan_id: string;
   status: "pending" | "running" | "completed" | "failed";
   progress?: number;
+}
+
+export interface QuickScanResult {
+  strengths: string[];
+  gaps: string[];
+  recommendations: string[];
+  positioning_score: number;
+  summary: string;
 }
 
 export interface Campaign {
@@ -823,24 +879,6 @@ export interface Essence {
   createdAt: string;
 }
 
-export interface BillingPlan {
-  tier: string;
-  name: string;
-  description: string;
-  price_inr_monthly: number | string;
-  features: string[];
-}
-
-export interface BillingStatus {
-  subscription_status: "active" | "past_due" | "canceled" | "unpaid" | "none";
-  current_plan: BillingPlan | null;
-  available_plans: BillingPlan[];
-  plan: string;
-  status: string;
-  currentPeriodEnd: string;
-  invoiceCount: number;
-}
-
 export interface CreateRippleRequest {
   summaryText: string;
   rawText: string;
@@ -865,11 +903,6 @@ export interface CreateEssenceRequest {
 export interface UpdateEssenceRequest {
   content?: string;
   category?: string;
-}
-export interface CreateOrderRequest {
-  amount: number;
-  currency: string;
-  planId?: string;
 }
 
 export interface GeneratedContentRecord {

@@ -1,0 +1,317 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrgRole {
+  owner
+  admin
+  member
+  viewer
+}
+
+model Organization {
+  orgId        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  slug         String?     @unique
+  logoUrl      String?     @map("logo_url")
+  planTier     String?     @default("free")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  members      OrgMember[]
+  sessions     Session[]
+
+  @@map("organizations")
+}
+
+model User {
+  clerkUserId  String      @id @map("clerk_user_id")
+  email        String      @unique
+  firstName    String?     @map("first_name")
+  lastName     String?     @map("last_name")
+  avatarUrl    String?     @map("avatar_url")
+  referralCode String?     @map("referral_code")
+  referralAppliedAt DateTime? @map("referral_applied_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  memberships       OrgMember[]
+  campaigns         Campaign[]
+  conversations     MuseConversation[]
+  ripples           Ripple[]
+  egoStates         AvatarEgoState[]
+  intelSignals      IntelSignal[]
+  competitorSnapshots CompetitorSnapshot[]
+  dailyWins         DailyWin[]
+  nudges            Nudge[]
+
+  @@map("users")
+}
+
+model OrgMember {
+  orgMemberId   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId        String   @map("org_id") @db.Uuid
+  clerkUserId   String   @map("clerk_user_id")
+  role         OrgRole  @default(member)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [orgId], references: [orgId], onDelete: Cascade)
+  user        User        @relation(fields: [clerkUserId], references: [clerkUserId], onDelete: Cascade)
+
+  @@unique([orgId, clerkUserId])
+  @@map("org_members")
+}
+
+model Session {
+  sessionId       String    @id @default(dbgenerated("gen_random_uuid()")) @map("session_id") @db.Uuid
+  orgId           String    @map("org_id") @db.Uuid
+  clerkUserId     String?   @map("clerk_user_id")
+  clerkSessionId  String?   @map("clerk_session_id")
+  transport       String    @default("http")
+  connectedAt     DateTime  @default(now()) @map("connected_at")
+  disconnectedAt  DateTime? @map("disconnected_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization    Organization @relation(fields: [orgId], references: [orgId], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([clerkUserId])
+  @@map("sessions")
+}
+
+model Avatar {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  role        String
+  tier        String
+  egoVector   Json
+  systemPrompt String
+  createdAt   DateTime @default(now())
+
+  @@map("avatars")
+}
+
+model CouncilSession {
+  id               String    @id @default(cuid())
+  clerkUserId      String    @map("clerk_user_id")
+  topic            String
+  context          String?
+  status           String    @default("pending")
+  errorMessage     String?   @map("error_message")
+  lastScanResult   Json?     @map("last_scan_result")
+  synthesisResult  Json?
+  synthesizedAt    DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  positions        CouncilPosition[]
+
+  @@map("council_sessions")
+}
+
+model CouncilPosition {
+  id          String   @id @default(cuid())
+  sessionId   String   @map("session_id")
+  avatarKey   String  @map("avatar_key")
+  avatarName  String  @map("avatar_name")
+  avatarRole  String  @map("avatar_role")
+  position    String
+  confidence  Float
+  createdAt   DateTime @default(now())
+
+  session     CouncilSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("council_positions")
+}
+
+model Campaign {
+  id               String   @id @default(cuid())
+  clerkUserId      String   @map("clerk_user_id")
+  title            String
+  brief            String
+  status           String   @default("draft")
+  evaluationResult Json?    @map("evaluation_result")
+  evaluatedAt      DateTime? @map("evaluated_at")
+  goal             String?
+  budget           String?
+  timeframe        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user   User   @relation(fields: [clerkUserId], references: [clerkUserId], onDelete: Cascade)
+  moves  Move[]
+
+  @@map("campaigns")
+}
+
+model Move {
+  id          String   @id @default(cuid())
+  campaignId  String   @map("campaign_id")
+  title       String
+  description String
+  channel     String
+  priority    Int
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tasks    Task[]
+
+  @@map("moves")
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  moveId      String   @map("move_id")
+  title       String
+  description String?
+  status      String   @default("pending")
+  dueDate     DateTime? @map("due_date")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  move Move @relation(fields: [moveId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+model MuseConversation {
+  id        String        @id @default(cuid())
+  clerkUserId String      @map("clerk_user_id")
+  title     String        @default("New conversation")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user     User          @relation(fields: [clerkUserId], references: [clerkUserId], onDelete: Cascade)
+  messages MuseMessage[]
+
+  @@map("muse_conversations")
+}
+
+model MuseMessage {
+  id             String           @id @default(cuid())
+  conversationId String           @map("conversation_id")
+  role           String
+  content        String
+  route          String?
+  createdAt      DateTime         @default(now())
+
+  conversation MuseConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("muse_messages")
+}
+
+model Ripple {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  type       String
+  sourceId   String    @map("source_id")
+  content    String
+  salience   Float     @default(1.0)
+  qdrantId   String?   @map("qdrant_id")
+  embeddedAt DateTime? @map("embedded_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, type])
+  @@index([userId, salience])
+}
+
+model AvatarEgoState {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  user          User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  avatarKey     String   @map("avatar_key")
+  authority     Float    @default(0.5)
+  empathy       Float    @default(0.5)
+  risk          Float    @default(0.5)
+  creativity    Float    @default(0.5)
+  precision     Float    @default(0.5)
+  sessionCount  Int      @default(0)
+  lastActiveAt  DateTime @default(now()) @map("last_active_at")
+  agreementRate Float    @default(0.5)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, avatarKey])
+  @@index([userId])
+}
+
+model IntelSignal {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  type       String
+  source     String
+  title      String
+  summary    String
+  detail     String?
+  severity   String   @default("medium")
+  isRead     Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  relatedTo  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, isRead])
+  @@index([userId, type])
+}
+
+model CompetitorSnapshot {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  competitorName  String
+  website         String?
+  snapshot        Json
+  lastAnalyzedAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, competitorName])
+}
+
+model DailyWin {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  date            DateTime
+  briefing        Json
+  highlights      String[]
+  focusAreas      String[]
+  systemActivity  Json
+  isRead          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model Nudge {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  type        String
+  title       String
+  body        String
+  cta         String?
+  ctaHref     String?
+  priority    Int       @default(5)
+  isDismissed Boolean   @default(false)
+  isActioned  Boolean   @default(false)
+  expiresAt   DateTime?
+  trigger     String
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, isDismissed])
+  @@index([userId, priority])
+}

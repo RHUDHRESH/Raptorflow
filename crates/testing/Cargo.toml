@@ -14,6 +14,4 @@ hmac.workspace = true
 sha2.workspace = true
 hex.workspace = true
 raptorflow-contracts = { path = "../contracts" }
-raptorflow-billing = { path = "../billing" }
-raptorflow-cache = { path = "../cache" }
 raptorflow-aws = { path = "../aws" }

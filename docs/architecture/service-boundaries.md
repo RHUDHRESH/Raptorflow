@@ -1,27 +1,19 @@
 # Service Boundaries
 
-## Web application
+## Backend
 
-- Renders marketing and authenticated product surfaces
-- Owns browser-only state, app shell orchestration, and Office rendering
-- Talks to the Rust API over REST and WebSockets
+- `crates/api` owns process startup and routing.
+- `crates/http` owns Axum HTTP wiring.
+- `crates/auth` owns Clerk JWT validation.
+- `crates/db` owns SQLx access.
+- `crates/aws` owns AWS Bedrock and S3 helpers.
 
-## API binary
+## Frontend
 
-- Owns auth enforcement, tenant context, contracts, jobs, and integrations
-- Exposes REST, WebSockets, and internal job commands
-- Delegates domain structure to internal crates
+- `apps/web` owns the Next.js App Router, Clerk provider, and typed API hooks.
+- `packages/contracts` owns shared TypeScript contracts.
+- `packages/database` owns Prisma 7 for TypeScript-side direct data access.
 
-## Data systems
+## Rule
 
-- Aurora is the primary source of truth
-- Qdrant stores filtered vector collections
-- DragonflyDB stores ephemeral cache, pub/sub, and locks
-
-## External systems
-
-- Clerk for identity
-- GCP API for inference
-- Razorpay for billing
-- S3 for blobs
-- SQS for background queues
+- `org_id` is the tenant boundary everywhere.

@@ -5,7 +5,6 @@ This repository now treats a few values as explicit operator inputs instead of h
 ## Required before apply
 
 - `github_oidc_thumbprints`: set the real GitHub Actions OIDC thumbprint list for the AWS account before applying the security module.
-- `dragonfly_ami_id`: point this at a hardened private AMI for the Dragonfly EC2 host.
 - `qdrant_image_uri`: pin this to the approved Qdrant container image for the environment.
 
 ## What the scaffold already covers

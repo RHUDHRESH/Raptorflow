@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Badges &amp; Status</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 24px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .b { display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.12em; padding:5px 10px; border-radius:9999px; border:1px solid; }
+  .b-active { color:var(--leaf-confirm); background:var(--leaf-wash); border-color:transparent; }
+  .b-draft { color:var(--ink-500); background:var(--paper-150); border-color:transparent; }
+  .b-amber { color:var(--primary-hover); background:var(--amber-wash); border-color:transparent; }
+  .b-danger { color:var(--destructive); background:var(--destructive-wash); border-color:transparent; }
+  .b-outline { color:var(--ink-700); background:transparent; border-color:var(--border); }
+</style></head>
+<body class="paper-soft">
+  <div class="row">
+    <span class="b b-active"><span class="status-dot-live" style="width:6px;height:6px;"></span>Active</span>
+    <span class="b b-amber">Pending approval</span>
+    <span class="b b-draft">Draft</span>
+    <span class="b b-danger">At risk</span>
+    <span class="b b-outline">Awareness</span>
+    <span class="b b-outline">Conversion</span>
+  </div>
+  <div class="row">
+    <span class="b b-outline" style="font-family:var(--font-body); text-transform:none; letter-spacing:0;">Diya Organics</span>
+    <span class="b b-amber" style="font-family:var(--font-body); text-transform:none; letter-spacing:0;">3 due today</span>
+    <span class="b b-active" style="font-family:var(--font-body); text-transform:none; letter-spacing:0;">Move 3 of 5</span>
+  </div>
+</body></html>

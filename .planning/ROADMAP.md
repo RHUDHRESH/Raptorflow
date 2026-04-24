@@ -21,7 +21,7 @@
 - [ ] Modal/Dialog component
 - [ ] Global error/loading/404 states
 - [ ] Office canvas with real WebSocket integration
-- [ ] GROQ API key moved server-side
+- [ ] AWS Bedrock credentials wired server-side
 
 ### Tech Stack
 

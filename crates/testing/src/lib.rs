@@ -7,8 +7,6 @@
 //!
 //! | Module | Purpose |
 //! |---|---|
-//! | `billing_tests` | Billing and subscription test helpers |
-//! | `cache_tests` | DragonflyDB cache layer test helpers |
 //! | `s3_tests` | S3 upload/download test helpers |
 //!
 //! ## Usage
@@ -29,8 +27,6 @@ use raptorflow_contracts::Campaign;
 use serde_json::json;
 use uuid::Uuid;
 
-pub mod billing_tests;
-pub mod cache_tests;
 pub mod s3_tests;
 
 pub fn sample_campaign() -> Campaign {

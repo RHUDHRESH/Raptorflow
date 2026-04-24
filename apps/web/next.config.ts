@@ -1,18 +1,35 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import {
+  sentryAuthToken,
+  sentryOrg,
+  sentryProject,
+  sentryRelease,
+} from "./src/lib/sentry";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  typedRoutes: true,
   outputFileTracingRoot: path.join(process.cwd(), "../.."),
+  productionBrowserSourceMaps: true,
+  transpilePackages: ["@raptorflow/database", "@raptorflow/contracts"],
 };
 
 const sentryConfig = {
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
-  org: "raptorflow",
-  project: "javascript-nextjs",
+  org: sentryOrg,
+  project: sentryProject,
+  authToken: sentryAuthToken,
+  silent: !sentryAuthToken,
+  debug: process.env.NODE_ENV === "development",
+  widenClientFileUpload: true,
+  release: {
+    name: sentryRelease,
+    create: true,
+    finalize: true,
+  },
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
 };
 
 export default withSentryConfig(nextConfig, sentryConfig);

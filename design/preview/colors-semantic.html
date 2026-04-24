@@ -1,0 +1,26 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Colors — Ink &amp; Amber</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 20px; }
+  .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 10px; }
+  .sw { border-radius: 10px; padding: 12px; height: 92px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border); box-shadow: var(--shadow-xs); }
+  .sw .name { font-family: var(--font-mono); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+  .sw .hex { font-family: var(--font-mono); font-size: 10px; font-weight: 600; opacity: 0.85; }
+</style></head>
+<body class="paper-soft">
+  <div class="row">
+    <div class="sw" style="background:var(--ink-700); color:#fff"><span class="name">ink-700</span><span class="hex">#4A433C</span></div>
+    <div class="sw" style="background:var(--ink-900); color:#fff"><span class="name">ink-900 / fg</span><span class="hex">#2A2622</span></div>
+    <div class="sw" style="background:var(--primary); color:#fff"><span class="name">primary / amber</span><span class="hex">#D97757</span></div>
+    <div class="sw" style="background:var(--primary-hover); color:#fff"><span class="name">primary-hover</span><span class="hex">#C26645</span></div>
+    <div class="sw" style="background:var(--amber-wash); color:var(--primary-hover)"><span class="name">amber-wash</span><span class="hex">#FBE9DE</span></div>
+  </div>
+  <div class="row">
+    <div class="sw" style="background:var(--leaf-confirm); color:#fff"><span class="name">success</span><span class="hex">#5C8A5A</span></div>
+    <div class="sw" style="background:var(--leaf-wash); color:var(--leaf-confirm)"><span class="name">success-wash</span><span class="hex">#E8F0E5</span></div>
+    <div class="sw" style="background:var(--destructive); color:#fff"><span class="name">destructive</span><span class="hex">#C44A3F</span></div>
+    <div class="sw" style="background:var(--destructive-wash); color:var(--destructive)"><span class="name">destruct-wash</span><span class="hex">#FBEAE7</span></div>
+    <div class="sw" style="background:var(--indigo-muse); color:#fff"><span class="name">indigo · muse</span><span class="hex">#5B5FB8</span></div>
+  </div>
+</body></html>

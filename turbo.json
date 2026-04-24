@@ -7,6 +7,14 @@
     "docs/canonical/decision-register.json",
     "schemas/**"
   ],
+  "globalEnv": [
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "RAPTORFLOW_SENTRY_DSN",
+    "SENTRY_DSN",
+    "SENTRY_AUTH_TOKEN",
+    "SENTRY_ORG",
+    "SENTRY_PROJECT"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

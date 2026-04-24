@@ -31,7 +31,6 @@ Each environment (`environments/<env>/`) instantiates the modules with environme
 | `compute/ecs-service`     | ECS service definition, task definition, health checks    |
 | `compute/ecs-task`        | One-off task definition (migrations, admin jobs)          |
 | `data/aurora`             | Aurora Serverless v2, subnet group, parameter group       |
-| `data/elasticache`        | ElastiCache (Dragonfly), replication group                |
 | `data/s3`                 | S3 buckets with versioning, encryption, lifecycle rules   |
 | `data/qdrant`             | Qdrant on ECS with EFS-backed storage                     |
 | `network/vpc`             | VPC, public/private subnets, NAT gateways                 |
@@ -64,7 +63,6 @@ Three values must be set before running `tofu apply` in any environment. They ar
 
 ```hcl
 github_oidc_thumbprints = ["<real GitHub Actions OIDC thumbprint>"]
-dragonfly_ami_id         = "<hardened private AMI ID for ElastiCache>"
 certificate_arn          = "arn:aws:acm:ap-south-1:123456789012:certificate/<real-cert>"
 ```
 
@@ -113,3 +111,4 @@ See `infra/tofu/modules/compute/ecs-task.tf` for the pattern.
 - Vercel project setup
 - Cost alarms and billing alerts
 - Disaster recovery procedures
+

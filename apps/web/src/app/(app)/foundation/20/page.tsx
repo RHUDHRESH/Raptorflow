@@ -45,8 +45,8 @@ export default function FoundationStep20() {
     }
   }, [setStep, sectionData]);
 
-  // Mock Dictionary
-  const BRAND_DB: Record<string, string> = {
+  // Local brand reference palette for consistent tone cues.
+  const BRAND_REFERENCE_PALETTE: Record<string, string> = {
     apple: "#000000",
     zoho: "#f26d21",
     flipkart: "#2874f0",
@@ -69,7 +69,7 @@ export default function FoundationStep20() {
       let foundColor = "";
       let identified = false;
 
-      for (const [key, color] of Object.entries(BRAND_DB)) {
+      for (const [key, color] of Object.entries(BRAND_REFERENCE_PALETTE)) {
         if (search.includes(key)) {
           foundColor = color;
           identified = true;

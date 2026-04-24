@@ -242,7 +242,7 @@ resource "aws_ecs_task_definition" "api" {
         { name = "DATABASE_APP_SECRET", valueFrom = var.database_app_secret_arn },
         { name = "DATABASE_DIRECT_SECRET", valueFrom = var.database_direct_secret_arn },
         { name = "CLERK_JWT_SECRET", valueFrom = var.clerk_jwt_secret_arn },
-        { name = "GCP_API_KEY", valueFrom = var.gcp_api_key_secret_arn },
+        { name = "BEDROCK_API_KEY", valueFrom = var.bedrock_api_key_secret_arn },
         { name = "RAZORPAY_API_KEY", valueFrom = var.razorpay_api_secret_arn },
         { name = "RESEND_API_KEY", valueFrom = var.resend_api_key_secret_arn }
       ]
@@ -406,3 +406,4 @@ resource "aws_ecs_service" "qdrant" {
     container_port  = 6333
   }
 }
+

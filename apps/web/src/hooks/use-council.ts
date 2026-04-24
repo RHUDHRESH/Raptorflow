@@ -1,8 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { councilApi } from "@/lib/api";
-import type { StartCouncilRequest } from "@/lib/api";
+import { councilApi, type StartCouncilRequest } from "@/lib/api";
 
 export function useCouncilSessions() {
   return useQuery({

@@ -4,3 +4,4 @@ resource "terraform_data" "vercel_link" {
     root_directory = var.root_directory
   }
 }
+

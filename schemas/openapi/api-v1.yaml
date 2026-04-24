@@ -110,6 +110,26 @@ paths:
       responses:
         "200":
           description: Scan started
+  /api/v1/foundation/scan/quick:
+    post:
+      summary: Quick scan endpoint
+      responses:
+        "200":
+          description: Quick scan triggered
+  /api/v1/foundation/scan/deep:
+    post:
+      summary: Deep scan endpoint
+      responses:
+        "200":
+          description: Deep scan triggered
+  /api/v1/foundation/scans/{scanId}:
+    get:
+      summary: Get foundation scan by ID
+      responses:
+        "200":
+          description: Scan found
+        "404":
+          description: Scan not found
   /api/v1/foundation/scan/status:
     get:
       summary: Get latest foundation scan status
@@ -159,6 +179,28 @@ paths:
       responses:
         "200":
           description: Snapshot restored
+  /api/v1/foundation/versions:
+    get:
+      summary: List foundation versions
+      responses:
+        "200":
+          description: Version list
+  /api/v1/foundation/versions/{versionId}:
+    get:
+      summary: Get foundation version by ID
+      responses:
+        "200":
+          description: Version found
+        "404":
+          description: Version not found
+  /api/v1/foundation/versions/{versionId}/sections/{section}:
+    get:
+      summary: Get section from foundation version
+      responses:
+        "200":
+          description: Section found
+        "404":
+          description: Section not found
   /api/v1/prl/ripples:
     get:
       summary: List ripples

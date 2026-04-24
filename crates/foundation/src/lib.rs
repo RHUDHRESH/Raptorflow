@@ -17,13 +17,30 @@
 //! foundation → db, avatars, config
 //! ```
 
+//! ## Foundation scan routes
+//!
+//! The following scan routes are available:
+//! - `/scan/quick` — lightweight website scan
+//! - `/scan/deep` — comprehensive website analysis
+//! - `/scan/:scan_id` — get scan by ID
+//! - `/versions` — list foundation versions
+//! - `/versions/:version_id` — get specific version
+//! - `/versions/:version_id/sections/:section` — get specific section from version
+//!
+//! ## Data contracts
+//!
+//! - [`FoundationScanMode`] — scan mode enum (Quick, Deep)
+//! - [`FoundationScanRequest`] — scan request payload
+//! - [`FoundationScanStatusRecord`] — scan status record
+//! - [`FoundationVersion`] — foundation version record
+
 pub mod models;
 pub mod scan;
 pub mod service;
 pub mod versioning;
 
 pub use models::*;
-pub use scan::ScanService;
+pub use scan::*;
 pub use service::FoundationService;
 #[cfg(test)]
 mod test_21_screens;

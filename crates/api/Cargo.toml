@@ -12,7 +12,7 @@ axum.workspace = true
 dotenvy.workspace = true
 tokio.workspace = true
 tracing.workspace = true
-raptorflow-cache = { path = "../cache" }
+raptorflow-aws = { path = "../aws" }
 raptorflow-config = { path = "../config" }
 raptorflow-db = { path = "../db" }
 raptorflow-http = { path = "../http" }

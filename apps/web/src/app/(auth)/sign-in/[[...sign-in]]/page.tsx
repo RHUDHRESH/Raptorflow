@@ -4,6 +4,8 @@ import { SignIn } from "@clerk/nextjs";
 export default function SignInPage(): React.ReactElement {
   return (
     <SignIn
+      routing="path"
+      path="/sign-in"
       signUpUrl="/sign-up"
       forceRedirectUrl="/app"
       fallbackRedirectUrl="/app"

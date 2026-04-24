@@ -5,400 +5,479 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Route } from "next";
-import { 
-  ChevronRightIcon, 
-  ChevronDownIcon, 
-  ExclamationTriangleIcon, 
-  FileTextIcon, 
-  BarChartIcon, 
-  RocketIcon, 
-  CheckCircledIcon, 
+import {
+  ChevronRightIcon,
+  CheckCircledIcon,
   TargetIcon,
-  MixerHorizontalIcon,
-  InfoCircledIcon,
-  LightningBoltIcon
+  ChatBubbleIcon,
+  ArrowLeftIcon,
 } from "@radix-ui/react-icons";
-
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { campaignsApi } from "@/lib/api";
-import type { CampaignDetail, Move, Task } from "@/lib/api";
-import { Badge } from "@/components/ui/badge";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useCampaign,
+  useEvaluateCampaign,
+  useGenerateMoves,
+  useUpdateTask,
+  type CampaignMove,
+  type CampaignDetail,
+} from "@/features/campaigns/hooks";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
 import { cn } from "@/lib/cn";
-import { AgentPill } from "@/components/ui/agent-portrait";
-import { AGENT_MAP } from "@/lib/agents";
+import { usePusherEvent } from "@/lib/pusher/hooks";
+
+function ScoreBadge({ score }: { score: number }): React.ReactElement {
+  const color =
+    score >= 8 ? "var(--leaf-confirm)" : score >= 5 ? "var(--amber-war)" : "var(--destructive)";
+  return (
+    <div
+      className="inline-flex flex-col items-center justify-center border px-4 py-2"
+      style={{ borderColor: color, background: `${color}10` }}
+    >
+      <span className="text-3xl font-bold" style={{ color, fontFamily: "'DM Serif Display', serif" }}>
+        {score}
+      </span>
+      <span className="text-[8px] font-mono uppercase tracking-[0.18em]" style={{ color }}>
+        /10
+      </span>
+    </div>
+  );
+}
+
+function ChannelBadge({ channel }: { channel: string }): React.ReactElement {
+  const colors: Record<string, string> = {
+    email: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+    social: "bg-pink-500/10 text-pink-600 border-pink-500/30",
+    seo: "bg-green-500/10 text-green-600 border-green-500/30",
+    paid: "bg-purple-500/10 text-purple-600 border-purple-500/30",
+    content: "bg-amber-500/10 text-amber-600 border-amber-500/30",
+    events: "bg-indigo-500/10 text-indigo-600 border-indigo-500/30",
+  };
+  const cls = colors[channel] ?? "bg-gray-500/10 text-gray-600 border-gray-500/30";
+  return (
+    <span
+      className={cn("text-[8px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 border font-mono", cls)}
+      style={{ borderWidth: 1 }}
+    >
+      {channel}
+    </span>
+  );
+}
+
+function MoveCard({
+  move,
+  campaignId,
+  onToggleTask,
+}: {
+  move: CampaignMove;
+  campaignId: string;
+  onToggleTask: (taskId: string, moveId: string, currentStatus: string) => void;
+}): React.ReactElement {
+  const completedCount = move.tasks.filter((t) => t.status === "complete").length;
+  const total = move.tasks.length;
+  const pct = total > 0 ? (completedCount / total) * 100 : 0;
+
+  return (
+    <div className="border border-[#E5DED4] bg-white">
+      <div className="p-6 border-b border-[#E5DED4] flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div
+            className="w-8 h-8 border border-[#E5DED4] flex items-center justify-center font-mono text-xs font-bold text-[#9A948C] flex-shrink-0"
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+          >
+            {move.priority}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h4
+                className="text-base font-bold uppercase tracking-tight text-[#2A2622]"
+                style={{ fontFamily: "'DM Serif Display', serif" }}
+              >
+                {move.title}
+              </h4>
+              <ChannelBadge channel={move.channel} />
+            </div>
+            <p className="text-sm text-[#6B655E] leading-relaxed">{move.description}</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          <span
+            className="text-[9px] font-mono uppercase tracking-[0.14em]"
+            style={{
+              color: pct === 100 ? "var(--leaf-confirm)" : pct > 0 ? "var(--amber-war)" : "#9A948C",
+            }}
+          >
+            {completedCount}/{total}
+          </span>
+          <div className="w-20 h-1 bg-[#E5DED4] overflow-hidden">
+            <div
+              className="h-full transition-all"
+              style={{
+                width: `${pct}%`,
+                background: pct === 100 ? "var(--leaf-confirm)" : "var(--amber-war)",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {move.tasks.length > 0 && (
+        <div className="divide-y divide-[#F0EBE3]">
+          {move.tasks.map((task) => (
+            <div
+              key={task.id}
+              className="flex items-center gap-4 px-6 py-3 hover:bg-[#F5F0E8]/50 transition-colors cursor-pointer"
+              onClick={() => onToggleTask(task.id, move.id, task.status)}
+            >
+              <div
+                className="w-5 h-5 border flex items-center justify-center flex-shrink-0 transition-all"
+                style={{
+                  borderColor: task.status === "complete" ? "var(--leaf-confirm)" : "#D5CBC0",
+                  background: task.status === "complete" ? "var(--leaf-confirm)" : "transparent",
+                }}
+              >
+                {task.status === "complete" && (
+                  <CheckCircledIcon className="w-3 h-3 text-white" />
+                )}
+              </div>
+              <span
+                className="text-sm flex-1"
+                style={{
+                  color: task.status === "complete" ? "#9A948C" : "#2A2622",
+                  textDecoration: task.status === "complete" ? "line-through" : "none",
+                }}
+              >
+                {task.title}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CampaignDetailPage(): React.ReactElement {
   const params = useParams();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const campaignId = params.campaignId as string;
 
-  const [activeTab, setActiveTab] = useState<"overview" | "moves" | "tasks" | "performance">("overview");
-  const [rationaleExpanded, setRationaleExpanded] = useState(true);
-  const [taskFilter, setTaskFilter] = useState<"all" | "due" | "ready" | "completed" | "missed">("all");
+  const { data: campaign, isLoading } = useCampaign(campaignId);
+  const evaluate = useEvaluateCampaign();
+  const generateMoves = useGenerateMoves();
+  const updateTask = useUpdateTask();
 
-  // ─── Queries ────────────────────────────────────────────────
+  const [confirmRegenerate, setConfirmRegenerate] = useState(false);
+  const queryClient = useQueryClient();
 
-  const { data: campaign, isLoading: isCampaignLoading } = useQuery<CampaignDetail>({
-    queryKey: ["campaign", campaignId],
-    queryFn: () => campaignsApi.get(campaignId)
+  usePusherEvent(`private-campaign-${campaignId}`, "task.updated", (data: { taskId: string; moveId: string; status: string; moveStats: { totalTasks: number; completedTasks: number } }) => {
+    queryClient.setQueryData(["campaigns", campaignId], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        moves: old.moves.map((move: any) =>
+          move.id === data.moveId
+            ? {
+                ...move,
+                tasks: move.tasks.map((task: any) =>
+                  task.id === data.taskId ? { ...task, status: data.status } : task
+                ),
+              }
+            : move
+        ),
+      };
+    });
   });
 
-  const { data: movesData, isLoading: isMovesLoading } = useQuery<{ moves: Move[] }>({
-    queryKey: ["campaign_moves", campaignId],
-    enabled: activeTab === "moves" || activeTab === "overview",
-    queryFn: () => campaignsApi.getMoves(campaignId)
+  usePusherEvent(`private-campaign-${campaignId}`, "campaign.evaluated", () => {
+    queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId] });
   });
 
-  const { data: tasksData, isLoading: isTasksLoading } = useQuery<{ tasks: Task[] }>({
-    queryKey: ["campaign_tasks", campaignId],
-    enabled: activeTab === "tasks" || activeTab === "overview",
-    queryFn: () => campaignsApi.getTasks(campaignId)
+  usePusherEvent(`private-campaign-${campaignId}`, "moves.generated", () => {
+    queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId] });
   });
 
-  const approveMutation = useMutation({
-    mutationFn: () => campaignsApi.updateStatus(campaignId, "active"),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["campaign", campaignId] });
+  function handleToggleTask(taskId: string, moveId: string, currentStatus: string) {
+    const next = currentStatus === "complete" ? "pending" : "complete";
+    updateTask.mutate({ campaignId, moveId, taskId, status: next });
+  }
+
+  async function handleRegenerateMoves() {
+    if (!confirmRegenerate) {
+      setConfirmRegenerate(true);
+      return;
     }
-  });
+    setConfirmRegenerate(false);
+    await generateMoves.mutateAsync(campaignId);
+  }
 
-  // ─── Rendering Helper Logic ──────────────────────────────────
+  async function handleEvaluate() {
+    await evaluate.mutateAsync(campaignId);
+  }
 
-  const formatDate = (date: string) => new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-4 p-8">
+        <div className="h-12 w-48 animate-pulse bg-[#E5DED4]" />
+        <div className="h-64 animate-pulse bg-[#F5F0E8]" />
+      </div>
+    );
+  }
 
-  // ─── Final JSX ───────────────────────────────────────────────
+  if (!campaign) {
+    return (
+      <div className="p-12 text-center">
+        <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>Campaign not found</p>
+        <Link href="/campaigns" className="mt-4 text-sm font-mono text-[#9A948C] hover:text-[#2A2622]">
+          ← Back to campaigns
+        </Link>
+      </div>
+    );
+  }
+
+  const evalResult = campaign.evaluation_result as
+    | {
+        score: number;
+        summary: string;
+        strengths: string[];
+        weaknesses: string[];
+        icp_fit: string;
+        suggested_goal: string;
+        recommended_channels: string[];
+        budget_assessment: string;
+      }
+    | null
+    | undefined;
 
   return (
     <div className="flex flex-col gap-8 py-2">
-      <GsapBridge stagger={true}>
-        
-        {/* ── Breadcrumb ── */}
-        <div className="gsap-reveal flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-[#9A948C] mb-2">
-           <Link href={"/campaigns" as Route} className="hover:text-[#2A2622] transition-colors">Ledger</Link>
-           <ChevronRightIcon className="w-3 h-3" />
-           <span className="text-[#6B655E]">Campaign Profile</span>
-        </div>
+      <GsapBridge>
 
-        {/* ── Campaign Header Card ── */}
-        <section className="gsap-reveal border-2 border-[var(--foreground)] bg-white p-8 md:p-10 relative overflow-hidden">
-           {/* Visual Flourish */}
-           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rotate-45 translate-x-16 -translate-y-16 border-b border-l border-amber-500/10" />
-           
-           {isCampaignLoading ? (
-             <div className="space-y-6">
-                <Skeleton className="h-12 w-64" />
-                <Skeleton className="h-4 w-full" />
-             </div>
-           ) : campaign && (
-             <div className="relative z-10">
-               <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-                  <div>
-                    <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, lineHeight: 1, margin: 0 }} className="text-[#2A2622] mb-4">
-                      {campaign.name}
-                    </h1>
-                    <div className="flex items-center gap-4">
-                       <Badge variant="outline" className="border-amber-500/50 text-amber-500 font-mono text-[9px] uppercase tracking-[0.2em] rounded-none px-3 py-1 bg-amber-500/5">
-                          {campaign.status}
-                       </Badge>
-                       <span className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">{campaign.goal_type.replace('_', ' ')}</span>
-                       <span className="h-1 w-1 bg-[#E5DED4] rounded-full" />
-                       <span className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">Est: {formatDate(campaign.start_date)} – {formatDate(campaign.end_date)}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                     <Button variant="outline" className="border-[#E5DED4] text-[10px] font-mono font-bold uppercase tracking-widest h-10 px-6 rounded-none hover:bg-[#F5F0E8] transition-colors">
-                        Edit Strategy
-                     </Button>
-                     {campaign.status === 'pending_approval' && (
-                       <Button 
-                         className="bg-amber-500 text-black text-[10px] font-mono font-bold uppercase tracking-widest h-10 px-8 rounded-none hover:bg-amber-400"
-                         onClick={() => approveMutation.mutate()}
-                         disabled={approveMutation.isPending}
-                       >
-                         {approveMutation.isPending ? "AUTHORIZING..." : "Authorize Execution"}
-                       </Button>
-                     )}
-                  </div>
-               </div>
+        <Link
+          href="/campaigns"
+          className="flex w-fit items-center gap-2 hover:underline"
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 9,
+            textTransform: "uppercase",
+            letterSpacing: "0.16em",
+            color: "var(--muted-foreground)",
+          }}
+        >
+          <ArrowLeftIcon className="h-3 w-3" />
+          Campaign Ledger
+        </Link>
 
-               {/* Progress Ledger */}
-               <div className="grid md:grid-cols-3 gap-8 py-8 border-t border-[#D5CBC0]">
-                  <div className="space-y-3">
-                     <p className="font-mono text-[9px] text-[#9A948C] uppercase tracking-widest">Operational Success</p>
-                     <div className="flex items-end gap-3">
-                        <span className="text-3xl font-[family-name:var(--font-display)] text-[#2A2622]">{campaign.progress_pct}%</span>
-                        <div className="flex-1 h-1.5 bg-[#F5F0E8] mb-2 relative overflow-hidden">
-                           <div className="h-full bg-amber-500" style={{ width: `${campaign.progress_pct}%` }} />
-                        </div>
-                     </div>
-                  </div>
-                  <div className="space-y-3">
-                     <p className="font-mono text-[9px] text-[#9A948C] uppercase tracking-widest">Tasks Cleared</p>
-                     <p className="text-3xl font-[family-name:var(--font-display)] text-[#2A2622]">
-                        {campaign.tasks_completed}<span className="text-[#9A948C] mx-2">/</span>{campaign.tasks_total}
-                     </p>
-                  </div>
-                  <div className="space-y-3">
-                     <p className="font-mono text-[9px] text-[#9A948C] uppercase tracking-widest">Today's Load</p>
-                     <p className={cn("text-3xl font-[family-name:var(--font-display)]", (campaign.tasks_due_today ?? 0) > 0 ? "text-amber-500" : "text-[#9A948C]")}>
-                        {campaign.tasks_due_today ?? 0} Directives
-                     </p>
-                  </div>
-               </div>
+        <div className="border-2 border-[var(--foreground)] bg-white p-8 md:p-10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rotate-45 translate-x-16 -translate-y-16 border-b border-l border-amber-500/10" />
 
-               {/* Council Deck */}
-               <div className="mt-4 border-t border-[#D5CBC0] pt-8">
-                  <button 
-                    onClick={() => setRationaleExpanded(!rationaleExpanded)}
-                    className="flex items-center justify-between w-full group"
+          <div className="relative z-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+              <div>
+                <h1
+                  style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, lineHeight: 1, margin: 0 }}
+                  className="text-[#2A2622] mb-4"
+                >
+                  {campaign.title}
+                </h1>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <span
+                    className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] px-3 py-1 border"
+                    style={{
+                      color:
+                        campaign.status === "active"
+                          ? "var(--leaf-confirm)"
+                          : campaign.status === "evaluating"
+                          ? "var(--amber-war)"
+                          : "#9A948C",
+                      borderColor:
+                        campaign.status === "active"
+                          ? "var(--leaf-confirm)"
+                          : campaign.status === "evaluating"
+                          ? "var(--amber-war)"
+                          : "#E5DED4",
+                      background:
+                        campaign.status === "active"
+                          ? "rgba(34,197,94,0.08)"
+                          : campaign.status === "evaluating"
+                          ? "rgba(255,180,0,0.08)"
+                          : "transparent",
+                    }}
                   >
-                     <p className="font-mono text-[9px] font-bold text-[#6B655E] uppercase tracking-widest">Executive Rationale // Council Analysis</p>
-                     <ChevronDownIcon className={cn("w-4 h-4 text-[#9A948C] transition-transform", rationaleExpanded && "rotate-180")} />
-                  </button>
-                  {rationaleExpanded && (
-                    <div className="mt-6 flex flex-col md:flex-row gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
-                       <div className="flex-1">
-                          <p className="text-[#6B655E] text-sm leading-relaxed italic font-light font-serif">
-                            "{campaign.council_rationale.synthesis}"
-                          </p>
-                       </div>
-                       <div className="flex flex-wrap gap-2 h-fit md:w-64">
-                           {campaign.council_rationale.participating_agents.map(agentKey => {
-                             const ag = AGENT_MAP.get(agentKey);
-                             if (!ag) return null;
-                             return (<div key={agentKey} className="grayscale hover:grayscale-0 transition-all opacity-40 hover:opacity-100"><AgentPill agent={ag} size={24} /></div>);
-                           })}
-                       </div>
+                    {campaign.status}
+                  </span>
+                  {campaign.goal && (
+                    <span className="text-[10px] font-mono text-[#6B655E] uppercase tracking-widest">
+                      {campaign.goal.replace("_", " ")}
+                    </span>
+                  )}
+                  {evalResult && (
+                    <div className="flex items-center gap-1.5">
+                      <ScoreBadge score={evalResult.score} />
                     </div>
                   )}
-               </div>
-             </div>
-           )}
-        </section>
-
-        {/* ── Tabs Buffer ── */}
-        <section className="gsap-reveal mt-12">
-           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "overview" | "moves" | "tasks" | "performance")} className="w-full">
-              <TabsList className="bg-transparent border-b border-[#D5CBC0] w-full justify-start h-auto p-0 rounded-none mb-10">
-                {["overview", "moves", "tasks", "performance"].map(tab => (
-                  <TabsTrigger 
-                    key={tab}
-                    value={tab}
-                    className="px-8 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#9A948C] data-[state=active]:text-[#2A2622] data-[state=active]:border-b-2 data-[state=active]:border-amber-500 rounded-none bg-transparent transition-all"
+                </div>
+              </div>
+              <div className="flex gap-3 flex-wrap">
+                {campaign.status === "draft" && (
+                  <Button
+                    className="h-10 px-6 bg-[#D97757] text-white font-bold uppercase tracking-[0.14em] text-[10px] rounded-none hover:bg-[#c4684a] disabled:opacity-50"
+                    onClick={handleEvaluate}
+                    disabled={evaluate.isPending}
                   >
-                    {tab}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+                    {evaluate.isPending ? "Evaluating…" : "Evaluate Brief"}
+                  </Button>
+                )}
+                <Link
+                  href="/muse"
+                  className="flex h-10 items-center gap-2 px-6 border border-[#E5DED4] text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#6B655E] hover:bg-[#F5F0E8] transition-colors"
+                >
+                  <ChatBubbleIcon className="w-4 h-4" />
+                  Ask Muse
+                </Link>
+              </div>
+            </div>
 
-              {/* ── Overview Tab ── */}
-              <TabsContent value="overview" className="mt-0">
-                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    
-                    {/* Active Directives */}
-                    <div className="space-y-6">
-                       <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-mono font-bold text-[#6B655E] uppercase tracking-widest">Active Directives</h3>
-                          <span className="text-[10px] font-mono text-[#BAB0A0] uppercase tracking-widest">Load Order</span>
-                       </div>
-                       <div className="border border-[#D5CBC0] bg-white divide-y divide-zinc-900">
-                          {isTasksLoading ? (
-                            <Skeleton className="h-40 w-full" />
-                          ) : tasksData?.tasks.filter(t => t.status === 'due' || t.status === 'ready_for_review').slice(0, 5).map(task => (
-                            <div 
-                              key={task.task_id}
-                              onClick={() => router.push(`/campaigns/${campaignId}/tasks/${task.task_id}` as Route)}
-                              className="p-5 flex items-center justify-between group hover:bg-white/[0.01] transition-colors cursor-pointer"
-                            >
-                               <div className="flex items-center gap-4">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-                                  <div>
-                                     <p className="text-[13px] font-medium text-[#9A948C] group-hover:text-[#2A2622] transition-colors">{task.title}</p>
-                                     <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest">{task.channel} // {task.move_name}</p>
-                                  </div>
-                               </div>
-                               <ChevronRightIcon className="w-4 h-4 text-[#BAB0A0] group-hover:text-amber-500 transition-colors" />
-                            </div>
-                          ))}
-                          {(!tasksData || tasksData.tasks.filter(t => t.status === 'due' || t.status === 'ready_for_review').length === 0) && (
-                            <div className="p-12 text-center">
-                               <p className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">Tactical queue empty.</p>
-                            </div>
-                          )}
-                       </div>
-                    </div>
-
-                    {/* Operational Phase */}
-                    <div className="space-y-6">
-                       <h3 className="text-xs font-mono font-bold text-[#6B655E] uppercase tracking-widest">Operational Phase</h3>
-                       {campaign?.current_move ? (
-                         <div className="border-2 border-[#E5DED4] bg-white p-8 space-y-6">
-                            <div className="space-y-2">
-                               <p className="text-[9px] font-mono font-bold text-amber-500 uppercase tracking-widest">Current Initiative</p>
-                               <h4 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28 }} className="text-[#2A2622]">
-                                 {campaign.current_move.name}
-                               </h4>
-                            </div>
-                            <p className="text-[#6B655E] text-sm leading-relaxed italic font-light">
-                               "{campaign.current_move.sub_goal}"
-                            </p>
-                            <div className="pt-4 border-t border-[#D5CBC0] grid grid-cols-2 gap-8">
-                               <div>
-                                  <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Timeline</p>
-                                  <p className="text-sm font-bold text-[#2A2622] uppercase tracking-tight">Day {campaign.current_move.day_number} / {campaign.current_move.total_days}</p>
-                               </div>
-                               <div>
-                                  <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Clearance</p>
-                                  <p className="text-sm font-bold text-[#2A2622] uppercase tracking-tight">{campaign.current_move.tasks_completed} / {campaign.current_move.tasks_total} OPS</p>
-                               </div>
-                            </div>
-                            <Button 
-                              variant="outline" 
-                              className="w-full border-[#E5DED4] text-[10px] font-mono uppercase tracking-[0.2em] h-10 rounded-none hover:bg-[#F5F0E8]"
-                              onClick={() => setActiveTab('moves')}
-                            >
-                               View Full Sequence
-                            </Button>
-                         </div>
-                       ) : (
-                         <div className="border border-dashed border-[#E5DED4] p-12 text-center">
-                            <TargetIcon className="w-8 h-8 text-[#BAB0A0] mx-auto mb-4" />
-                            <p className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">No active phase.</p>
-                         </div>
-                       )}
-                    </div>
-                 </div>
-              </TabsContent>
-
-              {/* ── Moves Tab ── */}
-              <TabsContent value="moves" className="mt-0">
-                 <div className="space-y-2 border border-[#E5DED4] bg-white divide-y divide-zinc-900">
-                    {isMovesLoading ? (
-                      <Skeleton className="h-64 w-full" />
-                    ) : movesData?.moves.map((move) => (
-                      <Link 
-                        key={move.move_id}
-                        href={`/campaigns/${campaignId}/moves/${move.move_id}` as Route}
-                        className="p-8 flex items-center justify-between group hover:bg-white/[0.01] transition-colors"
-                      >
-                         <div className="flex items-start gap-8">
-                            <div className={cn(
-                              "w-10 h-10 border flex items-center justify-center font-mono text-xs font-bold transition-all",
-                              move.status === 'active' ? "bg-amber-500 border-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.3)]" : 
-                              move.status === 'completed' ? "bg-[#F5F0E8] border-[#E5DED4] text-[#6B655E]" :
-                              "bg-transparent border-[#E5DED4] text-[#9A948C]"
-                            )}>
-                               {move.move_number}
-                            </div>
-                            <div>
-                               <div className="flex items-center gap-3 mb-1">
-                                  <h4 className="text-xl font-bold text-[#2A2622] tracking-tight uppercase group-hover:text-amber-500 transition-colors">{move.name}</h4>
-                                  {move.status === 'active' && <Badge className="bg-amber-500 text-black text-[8px] font-bold uppercase tracking-widest px-1.5 h-4">Executing</Badge>}
-                               </div>
-                               <p className="text-[10px] font-mono text-[#6B655E] uppercase tracking-widest">{move.type} // {move.sub_goal}</p>
-                               <p className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest mt-2">{formatDate(move.start_date)} – {formatDate(move.end_date)}</p>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-8">
-                            <div className="text-right hidden sm:block">
-                               <p className="text-[9px] font-mono text-[#BAB0A0] uppercase tracking-widest mb-1">Completion</p>
-                               <p className="text-xs font-bold text-[#6B655E] uppercase tracking-tight">{move.tasks_completed} / {move.tasks_total} OPS</p>
-                            </div>
-                            <ChevronRightIcon className="w-5 h-5 text-[#BAB0A0] group-hover:text-[#2A2622] transition-colors" />
-                         </div>
-                      </Link>
-                    ))}
-                 </div>
-              </TabsContent>
-
-              {/* ── Tasks Tab ── */}
-              <TabsContent value="tasks" className="mt-0">
-                 <div className="flex gap-4 mb-10 overflow-x-auto pb-2 scrollbar-hide">
-                    {["all", "due", "ready", "completed", "missed"].map(f => (
-                      <button
-                        key={f}
-                        onClick={() => setTaskFilter(f as any)}
-                        className={cn(
-                          "px-6 py-2 border-2 text-[9px] font-mono font-bold uppercase tracking-widest transition-all whitespace-nowrap",
-                          taskFilter === f ? "border-amber-500 bg-amber-500 text-black" : "border-[#E5DED4] text-[#9A948C] hover:border-[#BAB0A0]"
-                        )}
-                      >
-                        {f}
-                      </button>
-                    ))}
-                 </div>
-                 <div className="space-y-4">
-                    {tasksData?.tasks.filter(t => {
-                      if (taskFilter === 'all') return true;
-                      if (taskFilter === 'due') return t.status === 'due' || t.status === 'pending';
-                      if (taskFilter === 'ready') return t.status === 'ready_for_review';
-                      return t.status === taskFilter;
-                    }).map(task => (
-                      <div 
-                        key={task.task_id}
-                        onClick={() => router.push(`/campaigns/${campaignId}/tasks/${task.task_id}` as Route)}
-                        className="border border-[#D5CBC0] bg-white p-5 flex flex-col md:flex-row md:items-center justify-between group hover:border-[#BAB0A0] transition-all cursor-pointer gap-6"
-                      >
-                         <div className="flex items-center gap-5">
-                            <div className="w-10 h-10 border border-[#D5CBC0] flex items-center justify-center group-hover:bg-[#F5F0E8] transition-colors">
-                               {task.task_type === 'publish_content' ? <FileTextIcon className="w-4 h-4 text-[#9A948C]" /> : 
-                                task.task_type === 'review_performance' ? <BarChartIcon className="w-4 h-4 text-[#9A948C]" /> :
-                                <RocketIcon className="w-4 h-4 text-[#9A948C]" />}
-                            </div>
-                            <div>
-                               <p className="text-[13px] font-bold text-[#9A948C] group-hover:text-amber-500 transition-colors uppercase tracking-tight">{task.title}</p>
-                               <div className="flex items-center gap-3 mt-1">
-                                  <span className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest">{task.channel}</span>
-                                  <span className="text-[9px] font-mono text-[#BAB0A0] uppercase tracking-widest">//</span>
-                                  <span className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest">{task.move_name}</span>
-                               </div>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-6 justify-between md:justify-end">
-                            <div className="flex items-center gap-3">
-                               <div className="text-right">
-                                  <p className="text-[8px] font-mono text-[#9A948C] uppercase tracking-widest">Agent Link</p>
-                                  <p className="text-[10px] font-bold text-[#6B655E] uppercase tracking-tight">{task.assigned_agent_name}</p>
-                               </div>
-                               <div className="w-6 h-6 border border-[#E5DED4] flex items-center justify-center font-mono text-[9px] text-[#6B655E]">
-                                  {task.assigned_agent_name.charAt(0)}
-                               </div>
-                            </div>
-                            <div className="flex items-center gap-4">
-                               <Badge variant="outline" className={cn(
-                                 "rounded-none border-[#E5DED4] font-mono text-[9px] px-3 py-1 uppercase tracking-widest",
-                                 task.status === 'due' ? "text-amber-500 border-amber-900" :
-                                 task.status === 'ready_for_review' ? "text-blue-500 border-blue-900" :
-                                 "text-[#9A948C]"
-                               )}>
-                                 {task.status}
-                               </Badge>
-                               <ChevronRightIcon className="w-4 h-4 text-[#2A2622] group-hover:text-[#2A2622] transition-colors" />
-                            </div>
-                         </div>
-                      </div>
-                    ))}
-                 </div>
-              </TabsContent>
-
-              {/* ── Performance Tab ── */}
-              <TabsContent value="performance" className="mt-0">
-                 <div className="border border-dashed border-[#E5DED4] p-24 text-center">
-                    <BarChartIcon className="w-10 h-10 text-[#BAB0A0] mx-auto mb-6 opacity-30" />
-                    <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }} className="text-[#9A948C]">Collecting Market Signals</p>
-                    <p className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest mt-2 max-w-sm mx-auto leading-relaxed">
-                      Performance matrix will materialize once the first phase completes and ingestion results are verified by the Council.
+            {evalResult && (
+              <div className="border-t border-[#D5CBC0] pt-8 mt-6">
+                <p
+                  className="text-[9px] font-mono font-bold uppercase tracking-[0.18em] text-[#9A948C] mb-4"
+                >
+                  Strategic Evaluation
+                </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <p
+                      className="text-base leading-relaxed text-[#2A2622] italic"
+                      style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16 }}
+                    >
+                      "{evalResult.summary}"
                     </p>
-                 </div>
-              </TabsContent>
+                    {evalResult.icp_fit && (
+                      <div className="border-l-2 border-[#D97757] pl-4">
+                        <p className="text-[9px] font-mono text-[#D97757] uppercase tracking-[0.14em] mb-1">
+                          ICP Fit
+                        </p>
+                        <p className="text-sm text-[#2A2622]">{evalResult.icp_fit}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-[0.14em] mb-2">
+                        Suggested Goal
+                      </p>
+                      <p className="text-sm font-bold text-[#2A2622]">{evalResult.suggested_goal}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-[0.14em] mb-2">
+                        Recommended Channels
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {evalResult.recommended_channels.map((ch) => (
+                          <ChannelBadge key={ch} channel={ch} />
+                        ))}
+                      </div>
+                    </div>
+                    {evalResult.budget_assessment && (
+                      <div>
+                        <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-[0.14em] mb-1">
+                          Budget Assessment
+                        </p>
+                        <p className="text-sm text-[#6B655E]">{evalResult.budget_assessment}</p>
+                      </div>
+                    )}
+                  </div>
 
-           </Tabs>
-        </section>
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-[9px] font-mono text-[var(--leaf-confirm)] uppercase tracking-[0.14em] mb-3">
+                        Strengths ({evalResult.strengths.length})
+                      </p>
+                      <ul className="space-y-2">
+                        {evalResult.strengths.map((s, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-[var(--leaf-confirm)] font-mono text-sm">→</span>
+                            <span className="text-sm text-[#2A2622]">{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-mono text-[var(--amber-war)] uppercase tracking-[0.14em] mb-3">
+                        Weaknesses ({evalResult.weaknesses.length})
+                      </p>
+                      <ul className="space-y-2">
+                        {evalResult.weaknesses.map((w, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-[var(--amber-war)] font-mono text-sm">!</span>
+                            <span className="text-sm text-[#2A2622]">{w}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2
+              className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-[#9A948C]"
+            >
+              Move Ladder
+            </h2>
+            {campaign.moves.length > 0 && (
+              <Button
+                className="h-9 px-5 text-[9px] font-mono font-bold uppercase tracking-[0.14em] rounded-none border border-[#E5DED4] text-[#9A948C] hover:border-[#D97757] hover:text-[#D97757] bg-transparent disabled:opacity-50"
+                onClick={handleRegenerateMoves}
+                disabled={generateMoves.isPending}
+              >
+                {confirmRegenerate ? "Confirm — this will replace all moves" : "Regenerate Moves"}
+              </Button>
+            )}
+          </div>
+
+          {campaign.moves.length === 0 ? (
+            <div className="border border-dashed border-[#E5DED4] p-16 text-center space-y-4">
+              <TargetIcon className="w-10 h-10 text-[#E5DED4] mx-auto" />
+              <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20 }} className="text-[#2A2622]">
+                No moves generated yet
+              </p>
+              <p className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">
+                Generate the move ladder to see actionable steps
+              </p>
+              <Button
+                className="h-11 px-8 bg-[#D97757] text-white font-bold uppercase tracking-[0.14em] text-[10px] rounded-none hover:bg-[#c4684a] disabled:opacity-50"
+                onClick={() => generateMoves.mutate(campaignId)}
+                disabled={!evalResult || generateMoves.isPending}
+              >
+                {generateMoves.isPending ? "Generating…" : "Generate Move Ladder"}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {campaign.moves.map((move) => (
+                <MoveCard
+                  key={move.id}
+                  move={move}
+                  campaignId={campaignId}
+                  onToggleTask={handleToggleTask}
+                />
+              ))}
+              <div className="text-center pt-4">
+                <Button
+                  className="h-9 px-5 text-[9px] font-mono font-bold uppercase tracking-[0.14em] rounded-none border border-[#E5DED4] text-[#9A948C] hover:border-[#D97757] hover:text-[#D97757] bg-transparent disabled:opacity-50"
+                  onClick={handleRegenerateMoves}
+                  disabled={generateMoves.isPending || confirmRegenerate}
+                >
+                  {confirmRegenerate ? "Click again to confirm" : "Regenerate Move Ladder"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
 
       </GsapBridge>
     </div>

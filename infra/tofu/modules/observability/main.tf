@@ -27,3 +27,4 @@ resource "aws_cloudwatch_metric_alarm" "api_unhealthy" {
   threshold           = 1
   alarm_description   = "API healthy host count dropped below 1"
 }
+

@@ -1,0 +1,33 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Cards</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 20px; }
+  .row { display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+  .card { background:#fff; border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-sm); padding:18px; }
+  .card-tinted { background:var(--amber-wash); border:none; box-shadow:var(--shadow-amber); }
+  .corner { position:absolute; top:14px; right:16px; font-family:var(--font-mono); font-size:10px; font-weight:700; color:var(--ink-400); }
+  .rel { position:relative; }
+  .num { font-family:var(--font-mono); font-size:9px; color:var(--ink-400); letter-spacing:0.12em; text-transform:uppercase; }
+  .ttl { font-family:var(--font-display); font-size:18px; color:var(--ink-900); margin:6px 0 4px; }
+  .desc { font-family:var(--font-body); font-size:12.5px; color:var(--ink-500); line-height:1.55; margin:0; }
+  .bar { height:3px; background:var(--paper-200); border-radius:9999px; margin-top:12px; overflow:hidden; }
+  .bar > span { display:block; height:100%; background:var(--primary); border-radius:inherit; }
+</style></head>
+<body class="paper-soft">
+  <div class="row">
+    <div class="card rel">
+      <span class="corner">01</span>
+      <div class="num">CAMPAIGN · ACTIVE</div>
+      <div class="ttl">Diya Organics launch</div>
+      <p class="desc">Move 3 of 5 — Reels blitz. 14 days left.</p>
+      <div class="bar"><span style="width:72%"></span></div>
+    </div>
+    <div class="card-tinted rel" style="border-radius:16px; padding:18px;">
+      <span class="corner" style="color:var(--primary-hover)">★</span>
+      <div class="num" style="color:var(--primary-hover)">RECOMMENDED</div>
+      <div class="ttl">Approve next move</div>
+      <p class="desc" style="color:var(--ink-700)">The Council finished synthesis. One click and Move 4 starts at 9am.</p>
+    </div>
+  </div>
+</body></html>

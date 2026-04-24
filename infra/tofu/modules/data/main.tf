@@ -156,12 +156,12 @@ resource "aws_efs_mount_target" "qdrant" {
   security_groups = [var.qdrant_security_group_id]
 }
 
-resource "aws_instance" "dragonfly" {
-  ami                    = var.dragonfly_ami_id
+resource "aws_instance" "vector" {
+  ami                    = var.vector_node_ami_id
   instance_type          = "m5.large"
   subnet_id              = var.private_subnet_ids[0]
-  vpc_security_group_ids = [var.dragonfly_security_group_id]
-  tags                   = merge(var.tags, { Name = "${var.name}-dragonfly" })
+  vpc_security_group_ids = [var.vector_security_group_id]
+  tags                   = merge(var.tags, { Name = "${var.name}-vector" })
 
   metadata_options {
     http_endpoint = "enabled"
@@ -175,3 +175,4 @@ resource "aws_instance" "dragonfly" {
     delete_on_termination = true
   }
 }
+

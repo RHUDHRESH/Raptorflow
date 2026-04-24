@@ -117,17 +117,9 @@ This ensures the scaffold can always be traced back to its source material.
 
 ---
 
-## Offline development
+## Local development
 
-### `scripts/dev-offline.sh` — full offline dev environment
-
-Starts everything you need for offline development: Postgres, Dragonfly, Qdrant, LocalStack (SQS+S3), and a GROQ container. Also starts the mock office WebSocket server on `ws://localhost:3001`.
-
-```bash
-./scripts/dev-offline.sh
-```
-
-The frontend is automatically started with `NEXT_PUBLIC_OFFLINE_MODE=true`. API calls return mock data. AI calls go to the local GROQ container. The office WebSocket replays a canned event sequence on a timer.
+Stage 1 uses the real local stack: Postgres, PgBouncer, and Qdrant for data, plus the Rust API and Next.js frontend. There is no mock offline AI or offline WebSocket stack in the current setup.
 
 ### `scripts/deploy-frontend.sh` — deploy to Vercel
 
@@ -141,18 +133,6 @@ The frontend is automatically started with `NEXT_PUBLIC_OFFLINE_MODE=true`. API 
 
 Requires `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` environment variables.
 
-### Switching between online and offline
+### Switching environments
 
-```bash
-# Online (default)
-echo "NEXT_PUBLIC_OFFLINE_MODE=false" > apps/web/.env.local
-
-# Offline
-echo "NEXT_PUBLIC_OFFLINE_MODE=true" > apps/web/.env.local
-```
-
-When `NEXT_PUBLIC_OFFLINE_MODE=true`:
-
-- API client returns mock data (no real backend calls)
-- AI calls go to GROQ (`http://localhost:8081`) instead of GCP Gemini
-- Office WebSocket connects to `ws://localhost:3001` (mock server)
+Use `apps/web/.env.local` and the root `.env` file to point the frontend and backend at the environment you want. Clerk, Bedrock, and database URLs determine whether you are talking to local or cloud infrastructure.

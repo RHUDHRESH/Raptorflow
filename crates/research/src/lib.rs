@@ -57,13 +57,16 @@ pub struct VectorIndex {
 
 impl VectorIndex {
     pub fn from_settings(settings: &raptorflow_config::Settings) -> Result<Self, ResearchError> {
-        let url = settings.qdrant_url.clone();
-        let grpc_url = if url.ends_with(":6333") {
-            url.replace(":6333", ":6334")
-        } else {
-            url
-        };
-        let client = Qdrant::from_url(&grpc_url)
+        let grpc_url = normalize_qdrant_url(&settings.qdrant_url);
+        let mut client_builder = Qdrant::from_url(&grpc_url);
+
+        if let Some(api_key) = settings.qdrant_api_key.as_deref() {
+            if !api_key.trim().is_empty() {
+                client_builder = client_builder.api_key(api_key);
+            }
+        }
+
+        let client = client_builder
             .build()
             .map_err(|e| ResearchError::Qdrant(e.to_string()))?;
         Ok(Self {
@@ -198,6 +201,22 @@ impl VectorIndex {
 fn value_as_string(value: &qdrant_client::qdrant::Value) -> Option<String> {
     let json = value.clone().into_json();
     json.as_str().map(ToString::to_string)
+}
+
+fn normalize_qdrant_url(url: &str) -> String {
+    if url.contains(":6333") {
+        return url.replace(":6333", ":6334");
+    }
+
+    if url.starts_with("https://") && !url.contains(":6334") {
+        return format!("{url}:6334");
+    }
+
+    if url.starts_with("http://") && !url.contains(":6334") && url.contains("qdrant.io") {
+        return format!("{url}:6334");
+    }
+
+    url.to_string()
 }
 
 pub struct Chunker;

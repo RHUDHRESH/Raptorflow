@@ -6,9 +6,8 @@
 //!
 //! ## Current status
 //!
-//! [`OFFICE_EVENT_TYPES`] catalog (29 event types) is defined. The WebSocket
-//! transport and DragonflyDB pub/sub for real-time event broadcasting are
-//! not yet implemented.
+//! [`OFFICE_EVENT_TYPES`] catalog (29 event types) is defined. WebSocket
+//! transport for real-time event broadcasting is not yet implemented.
 //!
 //! ## Event catalog
 //!

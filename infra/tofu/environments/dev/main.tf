@@ -34,11 +34,11 @@ module "data" {
   private_subnet_ids          = module.network.private_subnet_ids
   database_subnet_ids         = module.network.database_subnet_ids
   db_security_group_id        = module.security.db_security_group_id
-  dragonfly_security_group_id = module.security.dragonfly_security_group_id
+  vector_security_group_id = module.security.vector_security_group_id
   qdrant_security_group_id    = module.security.qdrant_security_group_id
   db_name                     = "raptorflow"
   db_username                 = "raptorflow"
-  dragonfly_ami_id            = var.dragonfly_ami_id
+  vector_node_ami_id            = var.vector_node_ami_id
   tags                        = local.tags
 }
 
@@ -58,7 +58,7 @@ module "compute" {
   database_app_secret_arn       = module.security.database_app_secret_arn
   database_direct_secret_arn    = module.security.database_direct_secret_arn
   clerk_jwt_secret_arn          = module.security.clerk_jwt_secret_arn
-  gcp_api_key_secret_arn        = module.security.gcp_api_key_secret_arn
+  bedrock_api_key_secret_arn        = module.security.bedrock_api_key_secret_arn
   razorpay_api_secret_arn       = module.security.razorpay_api_secret_arn
   resend_api_key_secret_arn     = module.security.resend_api_key_secret_arn
   execution_role_arn            = var.execution_role_arn
@@ -79,3 +79,4 @@ module "vercel" {
   project_name   = "raptorflow-web-dev"
   root_directory = "apps/web"
 }
+

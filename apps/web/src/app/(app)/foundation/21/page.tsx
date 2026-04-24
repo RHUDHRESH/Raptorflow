@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { CheckCircle2, ChevronRight, Loader2, Sparkles, RefreshCcw } from "lucide-react";
 import { useFoundationStore } from "@/state/foundation-store";
+import { foundationApi } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 /**
@@ -89,15 +90,20 @@ export default function FoundationStep21() {
     }, 50);
 
     const success = await apiCall();
-    
+
     // Wait for at least 8 seconds
     const remainingTime = 8000 - (Date.now() - startTime);
-    setTimeout(() => {
+    setTimeout(async () => {
       clearInterval(progressInterval);
       if (success) {
         setIsComplete(true);
         setIsBuilding(false);
         setBuildProgress(100);
+
+        // Trigger foundation quick scan in background — result shown on /app/foundation
+        foundationApi.triggerQuickScan().catch((e) =>
+          console.error("[Foundation21] Quick scan failed:", e)
+        );
       } else {
         setError("We couldn't finalize your office. Please check your connection and try again.");
         setIsBuilding(false);
@@ -195,10 +201,10 @@ export default function FoundationStep21() {
               </p>
             </div>
             <button
-              onClick={() => router.push("/office")}
+              onClick={() => router.push("/app/foundation")}
               className="mt-8 px-12 py-4 bg-[#f59e0b] hover:bg-white text-black font-bold rounded-full transition-all group flex items-center gap-3"
             >
-              Open my office
+              Open Foundation
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>

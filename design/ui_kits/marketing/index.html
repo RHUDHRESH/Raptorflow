@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RaptorFlow — A Marketing Firm of Record</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../colors_and_type.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  body { background: var(--paper-100); color: var(--ink-900); }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 56px; }
+
+  /* ── FOLIO BAR ── editorial masthead strip */
+  .folio {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--ink-300);
+    display:flex; justify-content:space-between; align-items:center;
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+    color: var(--ink-500); letter-spacing: 0.22em; text-transform: uppercase;
+  }
+  .folio b { color: var(--ink-900); font-weight: 700; }
+  .folio .spread { display:flex; gap: 22px; }
+
+  /* ── NAV ── */
+  .nav { display:flex; justify-content:space-between; align-items:center; padding: 28px 0; }
+  .brand-wm { font-family: var(--font-display); font-size: 30px; line-height: 1; letter-spacing: -0.02em; color: var(--ink-900); }
+  .brand-wm .it { font-style: italic; }
+  .brand-wm .dot { color: var(--primary); }
+  .nav-mid { display:flex; gap: 36px; }
+  .nav-mid a {
+    font-family: var(--font-body); font-size: 13px; color: var(--ink-700);
+    text-decoration: none; position: relative;
+  }
+  .nav-mid a::after {
+    content:""; position:absolute; left:0; right:0; bottom:-6px; height:1px;
+    background: var(--primary); transform: scaleX(0); transform-origin: left;
+    transition: transform 240ms var(--ease-soft);
+  }
+  .nav-mid a:hover::after { transform: scaleX(1); }
+  .btn {
+    font-family: var(--font-body); font-size: 13px; font-weight: 500;
+    padding: 11px 18px; border-radius: 10px; border: 1px solid transparent;
+    cursor: pointer; text-decoration: none; display:inline-flex; align-items:center; gap:8px;
+    transition: all 240ms var(--ease-soft);
+  }
+  .btn-primary { background: var(--ink-900); color: #fff; }
+  .btn-primary:hover { background: #000; transform: translateY(-1px); }
+  .btn-ghost { color: var(--ink-700); border: 1px solid var(--ink-300); background: transparent; }
+  .btn-ghost:hover { border-color: var(--ink-700); color: var(--ink-900); }
+
+  /* ── HERO — editorial masthead ── */
+  .hero {
+    padding: 96px 0 104px;
+    border-bottom: 1px solid var(--ink-300);
+    position: relative;
+  }
+  .hero .overlay {
+    position: absolute; top: 96px; left: 0;
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+    color: var(--primary); letter-spacing: 0.28em; text-transform: uppercase;
+    writing-mode: vertical-rl; transform: rotate(180deg);
+    padding-left: 8px;
+  }
+  .hero .eyebrow-row {
+    display:flex; gap: 22px; align-items:baseline;
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+    color: var(--ink-500); letter-spacing: 0.22em; text-transform: uppercase;
+    margin-bottom: 46px;
+  }
+  .hero .eyebrow-row .p { color: var(--primary-hover); }
+  .hero .eyebrow-row .rule { flex:1; height:1px; background: var(--ink-300); max-width: 200px; }
+  .hero h1 {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: clamp(80px, 10.5vw, 168px);
+    line-height: 0.9; letter-spacing: -0.028em;
+    margin: 0; color: var(--ink-900); max-width: 1160px;
+  }
+  .hero h1 em { font-style: italic; color: var(--ink-900); }
+  .hero h1 .dot { color: var(--primary); }
+  .hero-meta {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 48px;
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--border);
+  }
+  .hero-meta .lede {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 22px; line-height: 1.4; color: var(--ink-700);
+    grid-column: 1 / 3; max-width: 640px; margin: 0;
+  }
+  .hero-meta .lede::first-letter { color: var(--primary); }
+  .hero-meta .ctas { display:flex; flex-direction:column; gap: 12px; align-items:flex-end; justify-content:flex-end; }
+  .hero-meta .ctas .big {
+    font-family: var(--font-display); font-size: 20px; color: var(--ink-900);
+    text-decoration: none; display:flex; align-items:center; gap: 10px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--ink-900);
+    transition: color 200ms;
+  }
+  .hero-meta .ctas .big:hover { color: var(--primary-hover); border-bottom-color: var(--primary); }
+  .hero-meta .ctas .big em { font-style: italic; }
+  .hero-meta .ctas .small {
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+    color: var(--ink-400); letter-spacing: 0.2em; text-transform: uppercase;
+  }
+
+  /* ── IN THIS ISSUE — contents ── */
+  .issue {
+    padding: 88px 0;
+    border-bottom: 1px solid var(--ink-300);
+  }
+  .sec-lbl {
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+    color: var(--ink-500); letter-spacing: 0.26em; text-transform: uppercase;
+    display:flex; align-items:center; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .sec-lbl::before {
+    content: ""; width: 34px; height: 1px; background: var(--ink-400);
+  }
+  .issue-grid {
+    display:grid; grid-template-columns: 1fr 1.2fr; gap: 80px; align-items:start;
+  }
+  .issue-h {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 68px; line-height: 0.95; letter-spacing: -0.02em;
+    color: var(--ink-900); margin: 0;
+  }
+  .issue-h em { font-style: italic; color: var(--ink-500); }
+  .contents { list-style: none; padding: 0; margin: 0; }
+  .contents li {
+    display:flex; align-items:baseline; padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-display); font-size: 22px; color: var(--ink-900);
+    line-height: 1.2;
+    cursor: pointer;
+    transition: color 200ms;
+  }
+  .contents li:hover { color: var(--primary-hover); }
+  .contents li:hover .pg { color: var(--primary); }
+  .contents li .num {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    color: var(--ink-400); letter-spacing: 0.08em;
+    width: 44px; flex-shrink: 0;
+  }
+  .contents li em { font-style: italic; color: var(--ink-500); font-family: var(--font-display); }
+  .contents li .leader {
+    flex:1; border-bottom: 1px dotted var(--ink-300);
+    transform: translateY(-6px); margin: 0 14px;
+  }
+  .contents li .pg {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    color: var(--ink-500); letter-spacing: 0.1em;
+    transition: color 200ms;
+  }
+
+  /* ── PULL QUOTE ── editorial confidence */
+  .quote {
+    padding: 120px 0;
+    border-bottom: 1px solid var(--ink-300);
+    text-align: center;
+    position: relative;
+  }
+  .quote .mark {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 180px; line-height: 0.4; color: var(--primary);
+    display: block; margin-bottom: 8px; opacity: 0.9;
+  }
+  .quote blockquote {
+    font-family: var(--font-display); font-weight: 400; font-style: italic;
+    font-size: clamp(40px, 4.4vw, 64px); line-height: 1.12;
+    letter-spacing: -0.01em;
+    color: var(--ink-900); margin: 0 auto; max-width: 980px;
+  }
+  .quote blockquote .not-italic { font-style: normal; }
+  .quote cite {
+    display:block; margin-top: 40px;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    color: var(--ink-500); letter-spacing: 0.24em; text-transform: uppercase;
+    font-style: normal;
+  }
+
+  /* ── THE OFFICE — numbered manifesto ── */
+  .office { padding: 96px 0; border-bottom: 1px solid var(--ink-300); }
+  .office-head {
+    display:grid; grid-template-columns: 1.1fr 1fr; gap: 80px; align-items:end;
+    margin-bottom: 64px;
+  }
+  .office-head h2 {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 68px; line-height: 0.98; letter-spacing: -0.02em;
+    color: var(--ink-900); margin: 0;
+  }
+  .office-head h2 em { font-style: italic; }
+  .office-head p {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 20px; line-height: 1.5; color: var(--ink-500);
+    margin: 0;
+  }
+  .manifesto { display:grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .m-item {
+    padding: 32px 28px 34px 0;
+    border-top: 1px solid var(--ink-300);
+    position: relative;
+  }
+  .m-item:not(:last-child) { border-right: 1px solid var(--border); padding-right: 28px; }
+  .m-item + .m-item { padding-left: 32px; }
+  .m-item .num {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 44px; color: var(--primary); line-height: 1;
+    margin-bottom: 20px; letter-spacing: -0.02em;
+  }
+  .m-item h3 {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 28px; line-height: 1.1; color: var(--ink-900);
+    margin: 0 0 14px;
+  }
+  .m-item h3 em { font-style: italic; color: var(--ink-500); }
+  .m-item p {
+    font-family: var(--font-body); font-size: 14.5px; line-height: 1.65;
+    color: var(--ink-700); margin: 0;
+  }
+  .m-item .roster {
+    margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
+    display:flex; gap: 6px;
+  }
+  .m-item .roster .m {
+    width: 24px; height: 24px; border-radius: 6px; color: #fff;
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+    display:flex; align-items:center; justify-content:center;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── COUNCIL — large roster */
+  .council { padding: 96px 0; border-bottom: 1px solid var(--ink-300); }
+  .council h2 {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 88px; line-height: 0.92; letter-spacing: -0.025em;
+    color: var(--ink-900); margin: 0 0 56px; max-width: 1000px;
+  }
+  .council h2 em { font-style: italic; color: var(--ink-500); }
+  .council-grid {
+    display:grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+    background: var(--ink-300);
+    border: 1px solid var(--ink-300);
+  }
+  .agent-cell {
+    background: var(--paper-50);
+    padding: 22px 18px 18px;
+    display:flex; flex-direction:column; gap: 14px;
+    min-height: 168px;
+    position: relative;
+    transition: background 200ms;
+  }
+  .agent-cell:hover { background: #fff; }
+  .agent-cell .mon {
+    width: 40px; height: 40px; border-radius: 9px; color: #fff;
+    font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+    display:flex; align-items:center; justify-content:center;
+    letter-spacing: 0.04em;
+  }
+  .agent-cell .nm {
+    font-family: var(--font-display); font-size: 22px; line-height: 1.05;
+    color: var(--ink-900); letter-spacing: -0.01em;
+  }
+  .agent-cell .rl {
+    margin-top: auto;
+    font-family: var(--font-mono); font-size: 8.5px; font-weight: 700;
+    color: var(--ink-400); letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .agent-cell .idx {
+    position: absolute; top: 16px; right: 18px;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    color: var(--ink-300);
+  }
+
+  /* ── PRICING — two bills */
+  .pricing { padding: 96px 0; border-bottom: 1px solid var(--ink-300); }
+  .pricing-head { margin-bottom: 56px; }
+  .pricing-head h2 {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 68px; line-height: 0.98; letter-spacing: -0.02em;
+    color: var(--ink-900); margin: 0 0 16px; max-width: 840px;
+  }
+  .pricing-head h2 em { font-style: italic; color: var(--ink-500); }
+  .pricing-head p {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 20px; line-height: 1.5; color: var(--ink-500);
+    max-width: 640px; margin: 0;
+  }
+  .bills { display:grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--ink-300); }
+  .bill { padding: 40px 40px 36px; position: relative; }
+  .bill + .bill { border-left: 1px solid var(--ink-300); background: var(--paper-50); }
+  .bill .tag {
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--ink-500);
+    display:flex; align-items:center; gap: 10px;
+    margin-bottom: 24px;
+  }
+  .bill.feat .tag { color: var(--primary-hover); }
+  .bill h3 {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 44px; line-height: 1; letter-spacing: -0.015em;
+    color: var(--ink-900); margin: 0 0 6px;
+  }
+  .bill h3 em { font-style: italic; }
+  .bill .desc {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 18px; color: var(--ink-500);
+    margin: 0 0 28px;
+  }
+  .bill .amt {
+    font-family: var(--font-display); font-size: 88px; line-height: 0.9;
+    color: var(--ink-900); letter-spacing: -0.025em;
+    padding: 20px 0 24px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    display:flex; align-items:baseline; gap: 8px;
+  }
+  .bill .amt small {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 22px; color: var(--ink-500); font-weight: 400;
+    letter-spacing: 0;
+  }
+  .bill ul { list-style: none; padding: 0; margin: 28px 0 36px; }
+  .bill li {
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-family: var(--font-body); font-size: 14px; color: var(--ink-700);
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .bill li .check { color: var(--primary); font-weight: 700; }
+  .bill .cta {
+    display:inline-flex; align-items:center; gap: 12px;
+    font-family: var(--font-display); font-size: 22px;
+    color: var(--ink-900); text-decoration: none;
+    padding-bottom: 6px; border-bottom: 1px solid var(--ink-900);
+    transition: all 200ms;
+  }
+  .bill.feat .cta { color: var(--primary-hover); border-bottom-color: var(--primary); }
+  .bill .cta em { font-style: italic; }
+  .bill .cta:hover { transform: translateX(4px); }
+
+  /* ── MASTHEAD FOOTER / COLOPHON ── */
+  footer {
+    padding: 80px 0 40px;
+    display:grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 48px;
+    border-top: 1px solid var(--ink-300);
+  }
+  footer .brand-col .wm {
+    font-family: var(--font-display); font-size: 56px; line-height: 0.9;
+    color: var(--ink-900); letter-spacing: -0.02em; margin: 0 0 14px;
+  }
+  footer .brand-col .wm .it { font-style: italic; }
+  footer .brand-col .wm .dot { color: var(--primary); }
+  footer .brand-col p {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 17px; color: var(--ink-500); line-height: 1.45;
+    margin: 0; max-width: 340px;
+  }
+  .f-col h5 {
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+    color: var(--ink-400); letter-spacing: 0.22em; text-transform: uppercase;
+    margin: 0 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  .f-col ul { list-style: none; padding: 0; margin: 0; }
+  .f-col li {
+    font-family: var(--font-body); font-size: 13.5px; color: var(--ink-700);
+    padding: 5px 0; cursor: pointer;
+  }
+  .f-col li:hover { color: var(--primary-hover); }
+
+  .imprint {
+    margin-top: 40px; padding: 20px 0 0;
+    border-top: 1px solid var(--border);
+    display:flex; justify-content:space-between; align-items:center;
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+    color: var(--ink-400); letter-spacing: 0.22em; text-transform: uppercase;
+  }
+
+  .gsap-reveal { opacity: 0; transform: translateY(14px); }
+</style>
+</head>
+<body class="paper-soft">
+  <div class="wrap">
+
+    <!-- FOLIO BAR -->
+    <div class="folio">
+      <span>VOL. I · <b>№ 14</b> · MMXXVI</span>
+      <div class="spread">
+        <span>TUESDAY · 14 MAY</span>
+        <span>BANGALORE · IST 14:32</span>
+        <span>STATUS · <b style="color:var(--leaf-confirm);">ON THE FLOOR</b></span>
+      </div>
+      <span>A MARKETING FIRM OF RECORD</span>
+    </div>
+
+    <!-- NAV -->
+    <nav class="nav gsap-reveal">
+      <div class="brand-wm">Raptor<span class="it">flow</span><span class="dot">.</span></div>
+      <div class="nav-mid">
+        <a href="#">The office</a>
+        <a href="#">Council</a>
+        <a href="#">Method</a>
+        <a href="#">Pricing</a>
+        <a href="#">Journal</a>
+      </div>
+      <div style="display:flex; gap:12px;">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="#">Begin →</a>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+      <span class="overlay">PLATE I · THE OPENING</span>
+      <div class="eyebrow-row gsap-reveal">
+        <span class="p">THE COVER STORY</span>
+        <span class="rule"></span>
+        <span>RAPTORFLOW · № 14</span>
+        <span class="rule"></span>
+        <span>PP. 001–188</span>
+      </div>
+      <h1 class="gsap-reveal">
+        Your marketing<br>
+        office<span class="dot">.</span><br>
+        <em>Staffed, already<span class="dot" style="color:var(--primary);">.</span></em>
+      </h1>
+      <div class="hero-meta">
+        <p class="lede gsap-reveal">Stop managing a tool. Start managing a team — twenty-one marketing strategists, on call, quietly running the department you never got around to hiring.</p>
+        <div class="ctas gsap-reveal">
+          <a class="big" href="#">Build your office <em>→</em></a>
+          <span class="small">· OR READ A SAMPLE WEEK ·</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- IN THIS ISSUE -->
+    <section class="issue">
+      <div class="issue-grid">
+        <div>
+          <div class="sec-lbl gsap-reveal">IN THIS ISSUE</div>
+          <h3 class="issue-h gsap-reveal">What you will <em>find</em> inside the office.</h3>
+        </div>
+        <ol class="contents gsap-reveal" start="1">
+          <li><span class="num">001</span>The <em>Desk</em><span class="leader"></span><span class="pg">PP. 4–18</span></li>
+          <li><span class="num">002</span>The <em>Council</em> in session<span class="leader"></span><span class="pg">PP. 24–58</span></li>
+          <li><span class="num">003</span>Moves, <em>tasks</em>, daily wins<span class="leader"></span><span class="pg">PP. 62–94</span></li>
+          <li><span class="num">004</span>Muse — the <em>studio</em><span class="leader"></span><span class="pg">PP. 98–112</span></li>
+          <li><span class="num">005</span>Foundation &amp; <em>archive</em><span class="leader"></span><span class="pg">PP. 118–160</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- PULL QUOTE -->
+    <section class="quote">
+      <div class="sec-lbl gsap-reveal" style="justify-content:center; margin-bottom:32px;">
+        <span style="background:var(--paper-100); padding:0 12px;">FROM THE EDITOR'S NOTE</span>
+      </div>
+      <span class="mark">“</span>
+      <blockquote class="gsap-reveal">
+        You are, frankly, <em>competent</em> at some of these<span class="not-italic" style="color:var(--primary);">.</span><br>
+        You are faking it at <em>most</em> of them.
+      </blockquote>
+      <cite>THE STRATEGIST · OPENING MEMO</cite>
+    </section>
+
+    <!-- THE OFFICE -->
+    <section class="office">
+      <div class="office-head">
+        <h2 class="gsap-reveal">Four pods. <em>One brief.</em><br>Zero meetings you have to attend<span style="color:var(--primary);">.</span></h2>
+        <p class="gsap-reveal">Each pod keeps its own chamber, corkboard, and memory. You drop a brief on the desk. The work happens around you.</p>
+      </div>
+      <div class="manifesto">
+        <div class="m-item gsap-reveal">
+          <div class="num">I.</div>
+          <h3>The <em>Creative</em> pod.</h3>
+          <p>Big ideas, taglines, story spines. Ogilvy chairs; Bernbach pushes back. Three concepts on the desk by Tuesday.</p>
+          <div class="roster">
+            <span class="m" style="background:#8B6FC2">OG</span>
+            <span class="m" style="background:#8B6FC2">BB</span>
+            <span class="m" style="background:#8B6FC2">CH</span>
+            <span class="m" style="background:#8B6FC2">DD</span>
+          </div>
+        </div>
+        <div class="m-item gsap-reveal">
+          <div class="num">II.</div>
+          <h3>The <em>Digital</em> pod.</h3>
+          <p>Funnels, attribution, content cadence. Vaynerchuk shouts. Godin whispers. Sharp brings the uncomfortable data.</p>
+          <div class="roster">
+            <span class="m" style="background:#4F87B8">GV</span>
+            <span class="m" style="background:#4F87B8">SG</span>
+            <span class="m" style="background:#4F87B8">BS</span>
+            <span class="m" style="background:#4F87B8">NP</span>
+          </div>
+        </div>
+        <div class="m-item gsap-reveal">
+          <div class="num">III.</div>
+          <h3>The <em>Strategy</em> pod.</h3>
+          <p>Positioning, segments, the long game. Ries argues; Trout cuts. Cialdini points quietly at the lever you missed.</p>
+          <div class="roster">
+            <span class="m" style="background:#B8556B">AR</span>
+            <span class="m" style="background:#B8556B">JT</span>
+            <span class="m" style="background:#B8556B">RC</span>
+            <span class="m" style="background:#B8556B">RS</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COUNCIL -->
+    <section class="council">
+      <div class="sec-lbl gsap-reveal">THE COUNCIL · TWENTY LEGENDS · ON CALL</div>
+      <h2 class="gsap-reveal">You don't <em>hire</em> them.<br>You summon them<span style="color:var(--primary);">.</span></h2>
+      <div class="council-grid gsap-reveal">
+        <div class="agent-cell"><span class="idx">01</span><div class="mon" style="background:#8B6FC2">OG</div><div class="nm">David Ogilvy</div><div class="rl">CREATIVE · CHAIR</div></div>
+        <div class="agent-cell"><span class="idx">02</span><div class="mon" style="background:#8B6FC2">BB</div><div class="nm">Bill Bernbach</div><div class="rl">CREATIVE</div></div>
+        <div class="agent-cell"><span class="idx">03</span><div class="mon" style="background:#4F87B8">GV</div><div class="nm">Gary Vaynerchuk</div><div class="rl">DIGITAL</div></div>
+        <div class="agent-cell"><span class="idx">04</span><div class="mon" style="background:#4F87B8">SG</div><div class="nm">Seth Godin</div><div class="rl">DIGITAL</div></div>
+        <div class="agent-cell"><span class="idx">05</span><div class="mon" style="background:#B8556B">AR</div><div class="nm">Al Ries</div><div class="rl">STRATEGY</div></div>
+        <div class="agent-cell"><span class="idx">06</span><div class="mon" style="background:#B8556B">RC</div><div class="nm">Robert Cialdini</div><div class="rl">STRATEGY</div></div>
+        <div class="agent-cell"><span class="idx">07</span><div class="mon" style="background:#B8556B">RS</div><div class="nm">Rory Sutherland</div><div class="rl">STRATEGY</div></div>
+        <div class="agent-cell"><span class="idx">08</span><div class="mon" style="background:#4F87B8">BS</div><div class="nm">Byron Sharp</div><div class="rl">DIGITAL · DATA</div></div>
+        <div class="agent-cell"><span class="idx">09</span><div class="mon" style="background:#C26F4A">CH</div><div class="nm">Claude Hopkins</div><div class="rl">CREATIVE</div></div>
+        <div class="agent-cell"><span class="idx">—</span><div class="mon" style="background:#4A433C">+11</div><div class="nm">...and eleven more</div><div class="rl">SEE THE FULL COUNCIL</div></div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="pricing">
+      <div class="pricing-head">
+        <div class="sec-lbl gsap-reveal">PRICING · ONE RATE CARD</div>
+        <h2 class="gsap-reveal">One workspace. <em>Twenty-one strategists.</em> Flat.</h2>
+        <p class="gsap-reveal">No seats. No agent quotas. No "creative credits." You are hiring a firm, not leasing a sandbox.</p>
+      </div>
+      <div class="bills">
+        <div class="bill gsap-reveal">
+          <div class="tag">· FOR THE SOLE PROPRIETOR ·</div>
+          <h3>The <em>Studio</em>.</h3>
+          <p class="desc">Founder plus the Council. One brand, unlimited briefs.</p>
+          <div class="amt">₹4,900<small>/ per month</small></div>
+          <ul>
+            <li>Twenty-one strategists on call<span class="check">✓</span></li>
+            <li>Three active campaigns<span class="check">✓</span></li>
+            <li>Office canvas &amp; memory<span class="check">✓</span></li>
+          </ul>
+          <a class="cta" href="#">Begin the Studio <em>→</em></a>
+        </div>
+        <div class="bill feat gsap-reveal">
+          <div class="tag">★ · RECOMMENDED · THE HOUSE ·</div>
+          <h3>The <em>Office</em>.</h3>
+          <p class="desc">A staffed marketing department. Up to five brands.</p>
+          <div class="amt">₹14,900<small>/ per month</small></div>
+          <ul>
+            <li>Everything in Studio<span class="check">✓</span></li>
+            <li>Unlimited campaigns &amp; moves<span class="check">✓</span></li>
+            <li>Daily Wins, Ripples, Muse<span class="check">✓</span></li>
+            <li>Foundation across brands<span class="check">✓</span></li>
+          </ul>
+          <a class="cta" href="#">Open the Office <em>→</em></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER COLOPHON -->
+    <footer>
+      <div class="brand-col">
+        <div class="wm">Raptor<span class="it">flow</span><span class="dot">.</span></div>
+        <p>A marketing firm of record — assembled in code, staffed by the dead, answerable to you.</p>
+      </div>
+      <div class="f-col"><h5>THE HOUSE</h5><ul><li>About</li><li>The method</li><li>Journal</li><li>Colophon</li></ul></div>
+      <div class="f-col"><h5>THE FLOOR</h5><ul><li>Pricing</li><li>Book a walkthrough</li><li>For agencies</li><li>Imprint</li></ul></div>
+      <div class="f-col"><h5>CORRESPOND</h5><ul><li>desk@raptorflow.in</li><li>+91 80 4000 0000</li><li>Koramangala · Bangalore</li></ul></div>
+    </footer>
+    <div class="imprint">
+      <span>© MMXXVI RAPTORFLOW OS · BANGALORE</span>
+      <span>SET IN <span style="font-family:var(--font-display); font-style:italic; text-transform:none; letter-spacing:0; color:var(--ink-900);">Instrument Serif</span>, DM SANS, JETBRAINS MONO</span>
+      <span>ALL RIGHTS OBSERVED</span>
+    </div>
+
+  </div>
+
+  <script>
+    gsap.to(".gsap-reveal", { opacity: 1, y: 0, duration: 0.75, ease: "power3.out", stagger: 0.05 });
+  </script>
+</body>
+</html>

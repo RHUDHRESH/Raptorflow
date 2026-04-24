@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiFetch } from "@/lib/api";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -106,30 +105,7 @@ Descriptors: ${descriptors.join(", ")}
 
 Write a cohesive description that captures how this brand would communicate across different contexts. Focus on language patterns, attitude, and relationship with the audience.`;
 
-  try {
-    const aiResponse = await apiFetch<{ choices: { message: { content: string } }[] }>(
-      "/api/ai/chat",
-      {
-        method: "POST",
-        body: {
-          messages: [{ role: "user", content: prompt }],
-          model: "mixtral-8x7b-32768",
-          max_tokens: 300,
-          temperature: 0.3,
-        },
-        auth: true,
-      },
-    );
-
-    return (
-      aiResponse.choices?.[0]?.message?.content?.trim() ||
-      "A balanced brand voice that communicates clearly and effectively."
-    );
-  } catch (error) {
-    console.error("Voice description generation failed:", error);
-    // Fallback description
-    return `This brand voice combines ${descriptors.join(" and ")} communication with ${formality > 0.5 ? "formal" : "casual"} language patterns, ${technicality > 0.5 ? "technical" : "accessible"} explanations, and a ${tone > 0.5 ? "playful" : "serious"} tone.`;
-  }
+  return `This brand voice combines ${descriptors.join(" and ")} communication with ${formality > 0.5 ? "formal" : "casual"} language patterns, ${technicality > 0.5 ? "technical" : "accessible"} explanations, and a ${tone > 0.5 ? "playful" : "serious"} tone.`;
 }
 
 async function getEmbeddings(texts: string[]): Promise<number[][]> {

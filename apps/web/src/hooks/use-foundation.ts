@@ -68,6 +68,12 @@ export function useTriggerFoundationScan() {
   });
 }
 
+export function useTriggerQuickScan() {
+  return useMutation({
+    mutationFn: () => foundationApi.triggerQuickScan(),
+  });
+}
+
 export function useFoundationScanStatus(jobId?: string) {
   return useQuery({
     queryKey: ["foundation", "scan", jobId || "latest"],

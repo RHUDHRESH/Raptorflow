@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiFetch } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -42,49 +41,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 async function generateVoiceExample(sliders: LiveExampleRequest["sliders"]): Promise<string> {
-  const { formality, technicality, tone, stance, register } = sliders;
-
-  // Map sliders to descriptive terms
-  const formalityLevel = formality > 0.7 ? "formal" : formality > 0.4 ? "neutral" : "casual";
-  const technicalityLevel =
-    technicality > 0.7 ? "technical" : technicality > 0.4 ? "balanced" : "accessible";
-  const toneLevel = tone > 0.7 ? "playful" : tone > 0.4 ? "balanced" : "serious";
-  const stanceLevel = stance > 0.7 ? "collaborative" : stance > 0.4 ? "balanced" : "authoritative";
-  const registerLevel = register > 0.7 ? "bold" : register > 0.4 ? "balanced" : "conservative";
-
-  // Create prompt for AI
-  const prompt = `Generate a single sentence that demonstrates a brand voice with these characteristics:
-- Formality: ${formalityLevel} (${(formality * 100).toFixed(0)}%)
-- Technicality: ${technicalityLevel} (${(technicality * 100).toFixed(0)}%)
-- Tone: ${toneLevel} (${(tone * 100).toFixed(0)}%)
-- Stance: ${stanceLevel} (${(stance * 100).toFixed(0)}%)
-- Register: ${registerLevel} (${(register * 100).toFixed(0)}%)
-
-The sentence should be about a software company helping businesses grow. Make it sound natural and authentic to the voice profile. Return only the sentence, no explanation.`;
-
-  try {
-    // Call AI API (using the existing chat endpoint with flash-lite model)
-    const aiResponse = await apiFetch<{ choices: { message: { content: string } }[] }>(
-      "/api/ai/chat",
-      {
-        method: "POST",
-        body: {
-          messages: [{ role: "user", content: prompt }],
-          model: "mixtral-8x7b-32768", // Use fast model for live examples
-          max_tokens: 100,
-          temperature: 0.7,
-        },
-        auth: true,
-      },
-    );
-
-    const example = aiResponse.choices?.[0]?.message?.content?.trim();
-    return example || "We help businesses grow through innovative solutions.";
-  } catch (error) {
-    console.error("AI call failed:", error);
-    // Fallback examples based on slider positions
-    return generateFallbackExample(sliders);
-  }
+  return generateFallbackExample(sliders);
 }
 
 function generateFallbackExample(sliders: LiveExampleRequest["sliders"]): string {

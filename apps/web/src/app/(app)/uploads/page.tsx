@@ -2,205 +2,127 @@
 
 import * as React from "react";
 import { useCallback, useState } from "react";
-import { 
-  UploadIcon, 
-  FileIcon, 
-  ImageIcon, 
-  FileTextIcon, 
-  ArchiveIcon, 
-  TrashIcon, 
-  DownloadIcon,
-  MagnifyingGlassIcon,
-  ViewGridIcon,
-  ViewHorizontalIcon
-} from "@radix-ui/react-icons";
-import { cn } from "@/lib/cn";
-import { Badge } from "@/components/ui/badge";
+import { UploadIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  uploadedAt: string;
-  status: "uploading" | "done" | "error";
-  progress?: number;
-  url?: string;
-}
-
-const MOCK_ASSETS: UploadedFile[] = [
-  { id: "f1", name: "Q2_Strategic_Objective.pdf", size: 245760, type: "application/pdf", uploadedAt: "2025-04-10T09:00:00Z", status: "done", url: "#" },
-  { id: "f2", name: "Identity_Core_v3.docx", size: 184320, type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", uploadedAt: "2025-04-09T14:30:00Z", status: "done", url: "#" },
-  { id: "f3", name: "Market_Scan_01.png", size: 892416, type: "image/png", uploadedAt: "2025-04-08T11:15:00Z", status: "done", url: "#" },
-  { id: "f4", name: "LinkedIn_Creative_Draft.docx", size: 43520, type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", uploadedAt: "2025-04-07T16:45:00Z", status: "done", url: "#" },
-  { id: "f5", name: "Pitch_Deck_Final.pptx", size: 3145728, type: "application/vnd.openxmlformats-officedocument.presentationml.presentation", uploadedAt: "2025-04-05T10:00:00Z", status: "done", url: "#" },
-];
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function FileIconComponent({ type }: { type: string }) {
-  if (type.startsWith("image/")) return <ImageIcon className="w-4 h-4" />;
-  if (type.includes("pdf")) return <FileTextIcon className="w-4 h-4" />;
-  if (type.includes("word") || type.includes("document")) return <FileIcon className="w-4 h-4" />;
-  return <ArchiveIcon className="w-4 h-4" />;
-}
+import { useGenerateUploadUrl, uploadFile } from "@/hooks/use-uploads";
 
 export default function UploadsPage(): React.ReactElement {
-  const [files, setFiles] = useState<UploadedFile[]>(MOCK_ASSETS);
-  const [view, setView] = useState<"grid" | "list">("grid");
-  const [search, setSearch] = useState("");
-  const [dragging, setDragging] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [dropActive, setDropActive] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const generateUploadUrl = useGenerateUploadUrl();
 
-  const onFiles = (newFiles: File[]) => {
-     // Implementation flow would go here
-     console.log("Files received:", newFiles);
-  };
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length) onFiles(files);
+  const handleFile = useCallback((file: File | null) => {
+    setSelectedFile(file);
+    setStatus(null);
   }, []);
 
+  const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDropActive(false);
+    const [file] = Array.from(event.dataTransfer.files);
+    handleFile(file ?? null);
+  }, [handleFile]);
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+    setUploading(true);
+    setStatus(null);
+    try {
+      const response = await generateUploadUrl.mutateAsync({
+        filename: selectedFile.name,
+        contentType: selectedFile.type || "application/octet-stream",
+      });
+      await uploadFile(selectedFile, response.uploadUrl);
+      setStatus(`Uploaded ${selectedFile.name} to ${response.key}`);
+      setSelectedFile(null);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-10 py-2">
+    <div className="flex flex-col gap-6 py-2">
       <GsapBridge stagger={true}>
-        {/* Header */}
         <header className="gsap-reveal flex items-end justify-between border-b-2 border-[var(--foreground)] pb-8">
           <div>
-            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)", marginBottom: 8 }}>
-              Asset Repository // L1_STORAGE
+            <p
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: "var(--muted-foreground)",
+                marginBottom: 8,
+              }}
+            >
+              Asset Repository // Live Uploads
             </p>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, lineHeight: 1, margin: 0 }}>
-              Asset Ledger
+              Uploads
             </h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden md:block">
-              <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest">Storage Efficiency</p>
-              <p className="text-sm font-bold text-[#2A2622]">99.4%</p>
-            </div>
-            <Button className="h-10 px-6 bg-[var(--foreground)] text-[var(--background)] font-bold uppercase tracking-widest text-[10px] rounded-none">
-              <UploadIcon className="w-4 h-4 mr-2" />
-              Ingest Asset
-            </Button>
           </div>
         </header>
 
-        {/* Upload Zone */}
-        <div 
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
+        <div
+          onDragOver={(event) => {
+            event.preventDefault();
+            setDropActive(true);
+          }}
+          onDragLeave={() => setDropActive(false)}
           onDrop={handleDrop}
-          className={cn(
-            "gsap-reveal border-2 border-dashed p-12 flex flex-col items-center justify-center gap-4 transition-all duration-300",
-            dragging ? "border-[#D97757] bg-[#FBE9DE]" : "border-[#E5DED4] bg-[#F5F0E8]/20 hover:border-[#D5CBC0]"
-          )}
+          className={`gsap-reveal border-2 border-dashed p-12 flex flex-col items-center justify-center gap-4 transition-all duration-300 ${
+            dropActive ? "border-[#D97757] bg-[#FBE9DE]" : "border-[#E5DED4] bg-[#F5F0E8]/20 hover:border-[#D5CBC0]"
+          }`}
         >
           <div className="w-12 h-12 rounded-full border border-[#E5DED4] flex items-center justify-center bg-[#F5F0E8]">
-             <UploadIcon className={cn("w-6 h-6 transition-colors", dragging ? "text-[#D97757]" : "text-[#9A948C]")} />
+            <UploadIcon className={dropActive ? "w-6 h-6 text-[#D97757]" : "w-6 h-6 text-[#9A948C]"} />
           </div>
-          <div className="text-center">
-             <p className="text-[#2A2622] font-medium text-sm mb-1 uppercase tracking-tight">Drop tactical assets to ingest</p>
-             <p className="text-[#9A948C] text-[10px] font-mono uppercase tracking-widest">Max file size: 512MB // PDF, PNG, DOCX, PPTX</p>
+          <div className="text-center space-y-2">
+            <p className="text-[#2A2622] font-medium text-sm uppercase tracking-tight">
+              Drop an asset here or choose a file
+            </p>
+            <p className="text-[#9A948C] text-[10px] font-mono uppercase tracking-widest">
+              S3-backed upload through the live backend
+            </p>
+            <input
+              type="file"
+              className="mx-auto block text-xs"
+              onChange={(event) => handleFile(event.target.files?.[0] ?? null)}
+            />
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="gsap-reveal flex flex-wrap items-center justify-between gap-6 border-b border-[#D5CBC0] pb-6">
-           <div className="flex items-center gap-2">
-              <div className="relative">
-                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9A948C]" />
-                 <input 
-                    type="text" 
-                    placeholder="Search ledger..."
-                    className="h-10 pl-10 pr-4 bg-[#F5F0E8]/50 border border-[#E5DED4] text-[11px] font-mono text-[#2A2622] focus:outline-none focus:border-[#BAB0A0] w-64 uppercase tracking-widest"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                 />
-              </div>
-              <div className="flex border border-[#E5DED4] h-10">
-                 <button 
-                    onClick={() => setView("grid")}
-                    className={cn("px-3 transition-colors", view === "grid" ? "bg-[#E5DED4] text-[#2A2622]" : "text-[#9A948C] hover:text-[#6B655E]")}
-                 >
-                    <ViewGridIcon className="w-4 h-4" />
-                 </button>
-                 <button 
-                    onClick={() => setView("list")}
-                    className={cn("px-3 border-l border-[#E5DED4] transition-colors", view === "list" ? "bg-[#E5DED4] text-[#2A2622]" : "text-[#9A948C] hover:text-[#6B655E]")}
-                 >
-                    <ViewHorizontalIcon className="w-4 h-4" />
-                 </button>
-              </div>
-           </div>
-           <div className="flex gap-4">
-              <div className="flex items-center gap-2 text-[10px] font-mono text-[#9A948C] uppercase tracking-[0.2em]">
-                 <span className="h-1.5 w-1.5 rounded-full bg-[#D97757]" />
-                 {files.length} Assets Loaded
-              </div>
-           </div>
-        </div>
+        <Card className="gsap-reveal">
+          <CardHeader>
+            <CardTitle className="text-base">Upload status</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-[var(--muted-foreground)]">
+              {selectedFile ? `Selected: ${selectedFile.name}` : "No file selected yet."}
+            </p>
+            {status && <p className="text-sm">{status}</p>}
+            <Button onClick={handleUpload} disabled={!selectedFile || uploading || generateUploadUrl.isPending}>
+              {uploading || generateUploadUrl.isPending ? "Uploading…" : "Upload file"}
+            </Button>
+          </CardContent>
+        </Card>
 
-        {/* Results */}
-        {view === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {files.map((file) => (
-              <div key={file.id} className="gsap-reveal border border-[#E5DED4] bg-white p-5 group hover:border-[#D5CBC0] transition-all flex flex-col h-[180px]">
-                 <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 border border-[#E5DED4] bg-[#F5F0E8]/50 group-hover:border-[#D97757]/50 transition-colors">
-                       <FileIconComponent type={file.type} />
-                    </div>
-                    <Badge variant="outline" className="text-[8px] font-mono tracking-widest uppercase border-[#E5DED4]">
-                       {file.type.split('/')[1]?.toUpperCase() || "BIN"}
-                    </Badge>
-                 </div>
-                 <h3 className="text-sm font-bold text-[#2A2622] mb-2 line-clamp-1 group-hover:text-[#D97757] transition-colors">{file.name}</h3>
-                 <p className="font-mono text-[9px] text-[#9A948C] mt-auto">{formatBytes(file.size)} // {new Date(file.uploadedAt).toLocaleDateString()}</p>
-                 <div className="flex gap-2 mt-4 pt-4 border-t border-[#D5CBC0] opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#6B655E] hover:text-[#2A2622] flex items-center gap-1">
-                       <DownloadIcon className="w-3 h-3" /> Get
-                    </button>
-                    <button className="text-[10px] font-mono font-bold uppercase tracking-widest text-red-500/50 hover:text-red-500 flex items-center gap-1 ml-auto">
-                       <TrashIcon className="w-3 h-3" /> Wipe
-                    </button>
-                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="gsap-reveal border border-[#E5DED4] divide-y divide-[#E5DED4] bg-white">
-             {files.map((file) => (
-               <div key={file.id} className="p-4 flex items-center justify-between group hover:bg-white/[0.02]">
-                  <div className="flex items-center gap-4">
-                     <FileIconComponent type={file.type} />
-                     <div>
-                        <p className="text-sm font-medium text-[#2A2622] group-hover:text-[#D97757] transition-colors uppercase tracking-tight">{file.name}</p>
-                        <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest">{formatBytes(file.size)} // {file.type}</p>
-                     </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                     <span className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest hidden lg:block">Uploaded: {new Date(file.uploadedAt).toLocaleDateString()}</span>
-                     <div className="flex gap-3">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#9A948C] hover:text-[#2A2622]">
-                           <DownloadIcon />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#9A948C] hover:text-red-500">
-                           <TrashIcon />
-                        </Button>
-                     </div>
-                  </div>
-               </div>
-             ))}
-          </div>
-        )}
+        <Card className="gsap-reveal border-amber-200 bg-amber-50/50">
+          <CardHeader>
+            <CardTitle className="text-base">What this page does now</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-amber-800">
+            <p>This page now generates a presigned S3 upload URL and sends the file directly to storage.</p>
+            <p>Asset listing remains backend-driven; do not reintroduce local mock ledgers here.</p>
+          </CardContent>
+        </Card>
       </GsapBridge>
     </div>
   );

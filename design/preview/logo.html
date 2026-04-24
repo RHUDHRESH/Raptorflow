@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Logo & Brand Mark</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 0; margin: 0; background: var(--paper-100); }
+  .sheet { padding: 40px 48px 44px; }
+
+  /* ── Masthead rule ── */
+  .meta-row {
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--ink-300);
+    margin-bottom: 56px;
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+    color: var(--ink-500); letter-spacing: 0.22em; text-transform: uppercase;
+  }
+  .meta-row b { color: var(--ink-900); font-weight: 700; }
+
+  /* ── Hero wordmark ── */
+  .hero {
+    text-align: center;
+    padding: 8px 0 64px;
+  }
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: 148px;
+    line-height: 0.88;
+    color: var(--ink-900);
+    letter-spacing: -0.028em;
+    margin: 0;
+    font-weight: 400;
+  }
+  .wordmark .flow { font-style: italic; color: var(--ink-900); }
+  .wordmark .dot { color: var(--primary); }
+  .hero .sub {
+    margin-top: 22px;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    color: var(--ink-500); letter-spacing: 0.32em; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 14px;
+  }
+  .hero .sub::before, .hero .sub::after {
+    content: ""; width: 38px; height: 1px; background: var(--ink-300);
+  }
+
+  /* ── Specimen grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 56px;
+  }
+  .tile {
+    border-radius: 16px;
+    padding: 36px 28px 28px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    min-height: 220px;
+    position: relative;
+  }
+  .tile.paper {
+    background: var(--paper-50);
+    background-image: var(--paper-grain-soft);
+    background-size: 240px 240px;
+    border: 1px solid var(--border);
+  }
+  .tile.amber { background: var(--primary); }
+  .tile.ink { background: var(--ink-900); }
+
+  .tile-lbl {
+    font-family: var(--font-mono); font-size: 8.5px; font-weight: 700;
+    letter-spacing: 0.24em; text-transform: uppercase;
+  }
+  .tile.paper .tile-lbl { color: var(--ink-400); }
+  .tile.amber .tile-lbl { color: rgba(255,255,255,0.75); }
+  .tile.ink .tile-lbl { color: rgba(255,255,255,0.45); }
+
+  .stacked { display:flex; flex-direction:column; gap: 6px; }
+  .stacked .nm {
+    font-family: var(--font-display); font-size: 44px; line-height: 0.9;
+    letter-spacing: -0.018em;
+  }
+  .stacked .nm .it { font-style: italic; }
+  .stacked .tag {
+    font-family: var(--font-mono); font-size: 8px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    padding-top: 8px;
+    border-top: 1px solid currentColor;
+    margin-top: 6px;
+  }
+  .tile.paper .stacked .nm { color: var(--ink-900); }
+  .tile.paper .stacked .nm .dot { color: var(--primary); }
+  .tile.paper .stacked .tag { color: var(--ink-500); border-top-color: var(--ink-300); }
+
+  .tile.amber .stacked .nm { color: #fff; }
+  .tile.amber .stacked .nm .dot { color: var(--ink-900); }
+  .tile.amber .stacked .tag { color: rgba(255,255,255,0.8); border-top-color: rgba(255,255,255,0.35); }
+
+  .tile.ink .stacked .nm { color: #fff; }
+  .tile.ink .stacked .nm .dot { color: var(--primary); }
+  .tile.ink .stacked .tag { color: rgba(255,255,255,0.55); border-top-color: rgba(255,255,255,0.2); }
+
+  /* ── Monogram seal row ── */
+  .seals {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding-top: 40px;
+    border-top: 1px solid var(--ink-300);
+    margin-bottom: 48px;
+  }
+  .seal-wrap {
+    display:flex; flex-direction:column; align-items:center; gap: 14px;
+  }
+  .seal-wrap .cap {
+    font-family: var(--font-mono); font-size: 8.5px; font-weight: 700;
+    color: var(--ink-500); letter-spacing: 0.22em; text-transform: uppercase;
+  }
+  .seal-wrap .sz {
+    font-family: var(--font-display); font-style: italic; font-size: 13px;
+    color: var(--ink-400);
+  }
+
+  .roundel {
+    display:flex; align-items:center; justify-content:center;
+    position: relative;
+  }
+  .roundel.lg { width: 132px; height: 132px; }
+  .roundel.md { width: 72px; height: 72px; }
+  .roundel.sm { width: 44px; height: 44px; }
+  .roundel.xs { width: 26px; height: 26px; }
+
+  /* ── Raptor Quill logomark — a single amber feather, the house mark ── */
+  .rf-mark { display: block; overflow: visible; }
+  .rf-mark .vane-l  { fill: var(--primary); opacity: 0.95; }
+  .rf-mark .vane-r  { fill: var(--primary-hover); }
+  .rf-mark .rachis  { stroke: var(--ink-900); fill: none; stroke-linecap: round; }
+  .rf-mark .barb    { stroke: var(--paper-100); fill: none; stroke-linecap: round; opacity: 0.55; }
+  .rf-mark .quill   { stroke: var(--ink-900); fill: none; stroke-linecap: round; }
+  .rf-mark .halo    { stroke: var(--ink-300); fill: none; }
+
+  /* Size-specific scales of the same mark */
+  .roundel.lg .rf-mark { width: 84px; height: 84px; }
+  .roundel.md .rf-mark { width: 46px; height: 46px; }
+  .roundel.sm .rf-mark { width: 28px; height: 28px; }
+  .roundel.xs .rf-mark { width: 16px; height: 16px; }
+
+  /* Inverted favicon variant: on ink chip, vanes stay amber, rachis goes white */
+  .roundel.xs .rf-mark .rachis,
+  .roundel.xs .rf-mark .quill { stroke: #fff; }
+  .roundel.xs .rf-mark .barb { stroke: var(--ink-900); opacity: 0.4; }
+
+  .roundel.lg { border: 1px solid var(--ink-300); border-radius: 50%; }
+  .roundel.lg::before {
+    content: ""; position: absolute; inset: 6px;
+    border: 0.5px solid var(--ink-300); border-radius: 50%;
+  }
+  .roundel.md { border: 0.75px solid var(--ink-400); border-radius: 50%; }
+  .roundel.sm { background: var(--paper-200); border-radius: 50%; }
+  .roundel.xs { background: var(--ink-900); border-radius: 8px; }
+
+  /* Inline Rf. for minimum-size row */
+  .mn-mark {
+    display: inline-flex; align-items: baseline; gap: 0;
+    font-family: var(--font-display); color: var(--ink-900); line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .mn-mark .r { font-style: normal; }
+  .mn-mark .f { font-style: italic; color: var(--primary); margin-left: -0.08em; }
+  .mn-mark .d { color: var(--primary); margin-left: 0.02em; }
+
+  /* Curved text around large seal */
+  .lg-seal-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .lg-seal-svg text {
+    font-family: var(--font-mono); font-size: 7px; font-weight: 700;
+    letter-spacing: 4px; fill: var(--ink-500); text-transform: uppercase;
+  }
+
+  /* ── Construction / clear space ── */
+  .rules {
+    padding-top: 32px;
+    border-top: 1px solid var(--ink-300);
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 36px;
+    align-items: stretch;
+  }
+  .rule-card {
+    background: var(--paper-50);
+    background-image: var(--paper-grain-soft);
+    background-size: 240px 240px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 28px 22px;
+  }
+  .rule-card h4 {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 22px; color: var(--ink-900); margin: 0 0 16px;
+    font-weight: 400;
+  }
+  .rule-card p {
+    font-family: var(--font-body); font-size: 13px; line-height: 1.6;
+    color: var(--ink-700); margin: 0;
+  }
+
+  /* Clear-space diagram */
+  .clear-diagram {
+    position: relative;
+    display:flex; align-items:center; justify-content:center;
+    padding: 36px 40px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-top: 18px;
+  }
+  .cd-wm {
+    font-family: var(--font-display); font-size: 56px; line-height: 0.9;
+    letter-spacing: -0.02em; color: var(--ink-900); position: relative; z-index: 2;
+  }
+  .cd-wm .dot { color: var(--primary); }
+  .cd-wm .it { font-style: italic; }
+  /* Guide dashes */
+  .clear-diagram::before, .clear-diagram::after,
+  .cd-top, .cd-bot {
+    content: ""; position: absolute;
+    border-style: dashed; border-color: var(--amber-stroke);
+    pointer-events: none;
+  }
+  .clear-diagram::before { left: 20px; top: 20px; bottom: 20px; border-left-width: 1px; }
+  .clear-diagram::after { right: 20px; top: 20px; bottom: 20px; border-right-width: 1px; }
+  .cd-top { left: 20px; right: 20px; top: 20px; border-top-width: 1px; }
+  .cd-bot { left: 20px; right: 20px; bottom: 20px; border-bottom-width: 1px; }
+  .cd-note {
+    position: absolute; bottom: -10px; right: 28px;
+    background: var(--paper-50); padding: 0 6px;
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+    color: var(--primary-hover); letter-spacing: 0.16em; text-transform: uppercase;
+  }
+
+  /* Min sizes row */
+  .min-row {
+    display:flex; align-items:baseline; gap: 32px;
+    margin-top: 18px;
+    padding: 20px 24px;
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  }
+  .min-row .mn {
+    font-family: var(--font-display); color: var(--ink-900);
+    line-height: 1;
+  }
+  .min-row .ln {
+    font-family: var(--font-mono); font-size: 8px; font-weight: 700;
+    color: var(--ink-400); letter-spacing: 0.18em; text-transform: uppercase;
+    display:block; margin-top: 6px;
+  }
+  .mn .dot { color: var(--primary); }
+
+  /* ── Footer colophon ── */
+  .colophon {
+    margin-top: 48px;
+    padding-top: 22px;
+    border-top: 1px solid var(--ink-300);
+    display:flex; justify-content:space-between; align-items:center;
+    font-family: var(--font-mono); font-size: 8.5px; font-weight: 700;
+    color: var(--ink-400); letter-spacing: 0.22em; text-transform: uppercase;
+  }
+</style>
+</head>
+<body class="paper-soft">
+  <div class="sheet">
+
+    <!-- MASTHEAD RULE -->
+    <div class="meta-row">
+      <span>IDENTITY · <b>THE WORDMARK</b></span>
+      <span>PLATE I · FIG. A–D</span>
+      <span>VOL. I · <b>№ 14</b> · MMXXVI</span>
+    </div>
+
+    <!-- HERO WORDMARK -->
+    <div class="hero">
+      <h1 class="wordmark">Raptor<span class="flow">flow</span><span class="dot">.</span></h1>
+      <div class="sub">A marketing firm of record</div>
+    </div>
+
+    <!-- SURFACE VARIANTS -->
+    <div class="grid">
+      <div class="tile paper">
+        <span class="tile-lbl">on paper · primary</span>
+        <div class="stacked">
+          <div class="nm">Raptor<span class="it">flow</span><span class="dot">.</span></div>
+          <div class="tag">EST. MCMLXXXIX · BANGALORE</div>
+        </div>
+      </div>
+      <div class="tile amber">
+        <span class="tile-lbl">on amber · reversed</span>
+        <div class="stacked">
+          <div class="nm">Raptor<span class="it">flow</span><span class="dot">.</span></div>
+          <div class="tag">MARKETING OS</div>
+        </div>
+      </div>
+      <div class="tile ink">
+        <span class="tile-lbl">on ink · nocturne</span>
+        <div class="stacked">
+          <div class="nm">Raptor<span class="it">flow</span><span class="dot">.</span></div>
+          <div class="tag">AFTER HOURS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MONOGRAM / SEAL SIZES -->
+    <div class="seals">
+      <!-- The Rf logomark, reusable SVG symbol -->
+      <svg width="0" height="0" style="position:absolute;">
+        <defs>
+          <symbol id="rf-logomark" viewBox="0 0 100 100" overflow="visible">
+            <!-- Flow swash: a single elegant pen-stroke curl that anchors at the foot of the R, sweeps left under the R and curls up, echoing the word 'flow' -->
+            <path class="flow-swash"
+                  d="M 62 82 Q 38 96 18 86 Q 8 80 16 70"
+                  stroke-width="2.2"/>
+            <!-- Upright R (ink) -->
+            <text class="r-char" x="4" y="80" font-size="92" letter-spacing="-4">R</text>
+            <!-- Italic f (amber) — tucked into the R's leg -->
+            <text class="f-char" x="44" y="80" font-size="92">f</text>
+            <!-- Amber terminal dot -->
+            <circle class="amber-dot" cx="82" cy="74" r="3"/>
+          </symbol>
+        </defs>
+      </svg>
+
+      <div class="seal-wrap">
+        <div class="roundel lg">
+          <svg class="lg-seal-svg" viewBox="0 0 132 132">
+            <defs>
+              <path id="seal-top" d="M 66 66 m -52 0 a 52 52 0 1 1 104 0"/>
+              <path id="seal-bot" d="M 66 66 m 52 0 a 52 52 0 1 1 -104 0"/>
+            </defs>
+            <text><textPath href="#seal-top" startOffset="50%" text-anchor="middle">RAPTORFLOW · MARKETING OS</textPath></text>
+            <text><textPath href="#seal-bot" startOffset="50%" text-anchor="middle">· EST. MCMLXXXIX · BANGALORE ·</textPath></text>
+          </svg>
+          <svg class="rf-mark"><use href="#rf-logomark"/></svg>
+        </div>
+        <div class="cap">Colophon seal</div>
+        <div class="sz">132px — footer, print</div>
+      </div>
+
+      <div class="seal-wrap">
+        <div class="roundel md"><svg class="rf-mark"><use href="#rf-logomark"/></svg></div>
+        <div class="cap">Monogram</div>
+        <div class="sz">72px — social avatar</div>
+      </div>
+
+      <div class="seal-wrap">
+        <div class="roundel sm"><svg class="rf-mark"><use href="#rf-logomark"/></svg></div>
+        <div class="cap">Mono, small</div>
+        <div class="sz">44px — app header</div>
+      </div>
+
+      <div class="seal-wrap">
+        <div class="roundel xs"><svg class="rf-mark"><use href="#rf-logomark"/></svg></div>
+        <div class="cap">Favicon</div>
+        <div class="sz">26px — tab &amp; chrome</div>
+      </div>
+    </div>
+
+    <!-- CONSTRUCTION -->
+    <div class="rules">
+      <div class="rule-card">
+        <h4>Clear space</h4>
+        <p>Maintain minimum clear space equal to the cap-height of the <span style="font-family:var(--font-display); font-style:italic;">R</span>. Never crowd the mark with type, rules, or imagery inside this field.</p>
+        <div class="clear-diagram">
+          <div class="cd-top"></div><div class="cd-bot"></div>
+          <div class="cd-wm">Raptor<span class="it">flow</span><span class="dot">.</span></div>
+          <span class="cd-note">= 1 R</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <h4>Minimum sizes</h4>
+        <p>Set in Instrument Serif. Below 14 px the wordmark loses its voice — use the monogram <span style="font-family:var(--font-display); font-style:italic;">Rf</span> instead.</p>
+        <div class="min-row">
+          <div>
+            <span class="mn-mark" style="font-size:34px;"><span class="r">R</span><span class="f">f</span><span class="d">.</span></span>
+            <span class="ln">34 px — preferred</span>
+          </div>
+          <div>
+            <span class="mn-mark" style="font-size:22px;"><span class="r">R</span><span class="f">f</span><span class="d">.</span></span>
+            <span class="ln">22 px — UI</span>
+          </div>
+          <div>
+            <span class="mn-mark" style="font-size:14px;"><span class="r">R</span><span class="f">f</span><span class="d">.</span></span>
+            <span class="ln">14 px — floor</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER COLOPHON -->
+    <div class="colophon">
+      <span>SET IN <span style="font-family:var(--font-display); font-style:italic; text-transform:none; letter-spacing:0; color:var(--ink-900);">Instrument Serif</span></span>
+      <span>PLATE I · FIG. A–D</span>
+      <span>FIN.</span>
+    </div>
+
+  </div>
+</body>
+</html>

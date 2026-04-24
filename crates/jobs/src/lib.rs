@@ -5,21 +5,22 @@ use axum::{
     response::IntoResponse,
     routing::{get, post},
 };
+use chrono::Utc;
 use raptorflow_acquisition::{
     BrowserFetcher, Chunker as AcquisitionChunker, ContentHasher as AcquisitionHasher, HtmlParser,
     HttpFetcher, SearchDiscoverer, UrlNormalizer,
 };
 use raptorflow_auth::TenantContext;
-use raptorflow_cache::CacheService;
 use raptorflow_config::Settings;
 use raptorflow_contracts::{
     EventHarvesterRecord, InternTask, ResearchRequest, ResearchRequestKind,
     StreamCoordinatorRequest, ToolGatewayRequest,
 };
 use raptorflow_db::TenantDbPool;
-use raptorflow_gcp::EmbeddingClientEnum;
 use raptorflow_research::{Citation, GroundedResult, VectorIndex};
 use serde_json::{Value, json};
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -31,8 +32,62 @@ pub struct JobRegistration {
     pub description: &'static str,
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct HarnessSurface {
+    pub key: &'static str,
+    pub description: &'static str,
+}
+
 pub fn registry() -> Vec<JobRegistration> {
     vec![
+        JobRegistration {
+            key: "swr-consolidation",
+            description: "SWR consolidation job",
+        },
+        JobRegistration {
+            key: "daily-wins",
+            description: "Daily wins generator",
+        },
+        JobRegistration {
+            key: "intel-scan",
+            description: "Intel scan job",
+        },
+        JobRegistration {
+            key: "campaign-replanning",
+            description: "Campaign replanning job",
+        },
+        JobRegistration {
+            key: "embedding-worker",
+            description: "Embedding worker",
+        },
+        JobRegistration {
+            key: "prediction-resolution",
+            description: "Prediction resolution job",
+        },
+        JobRegistration {
+            key: "foundation-quick-scan",
+            description: "Foundation quick scan job",
+        },
+        JobRegistration {
+            key: "foundation-deep-scan",
+            description: "Foundation deep scan job",
+        },
+        JobRegistration {
+            key: "foundation-cache-invalidation",
+            description: "Foundation cache invalidation job",
+        },
+        JobRegistration {
+            key: "content-feedback-loop",
+            description: "Content feedback loop job",
+        },
+        JobRegistration {
+            key: "monthly-cost-thresholds",
+            description: "Monthly cost thresholds job",
+        },
+        JobRegistration {
+            key: "avatar-registry-sync",
+            description: "Avatar registry sync job",
+        },
         JobRegistration {
             key: "research-request",
             description: "Research request intake",
@@ -40,6 +95,43 @@ pub fn registry() -> Vec<JobRegistration> {
         JobRegistration {
             key: "tool-gateway",
             description: "Tool gateway execution",
+        },
+        JobRegistration {
+            key: "intern-dispatch",
+            description: "Intern dispatch job",
+        },
+        JobRegistration {
+            key: "stream-coordinator",
+            description: "Stream coordinator job",
+        },
+        JobRegistration {
+            key: "event-harvester",
+            description: "Event harvester job",
+        },
+    ]
+}
+
+pub fn harness_surfaces() -> Vec<HarnessSurface> {
+    vec![
+        HarnessSurface {
+            key: "research-request",
+            description: "Research request surface",
+        },
+        HarnessSurface {
+            key: "tool-gateway",
+            description: "Tool gateway surface",
+        },
+        HarnessSurface {
+            key: "intern-dispatch",
+            description: "Intern dispatch surface",
+        },
+        HarnessSurface {
+            key: "stream-coordinator",
+            description: "Stream coordinator surface",
+        },
+        HarnessSurface {
+            key: "event-harvester",
+            description: "Event harvester surface",
         },
     ]
 }
@@ -50,6 +142,9 @@ pub fn router() -> Router {
         .route("/surfaces", get(list_surfaces))
         .route("/research", post(accept_research_request))
         .route("/tool-gateway", post(accept_tool_gateway_request))
+        .route("/intern-dispatch", post(dispatch_intern_task))
+        .route("/stream-coordinator", post(run_stream_coordinator))
+        .route("/event-harvester", post(harvest_event))
 }
 
 async fn trigger_job() -> Json<Value> {
@@ -78,12 +173,38 @@ fn bad_request(message: &str) -> (StatusCode, Json<Value>) {
     (StatusCode::BAD_REQUEST, Json(json!({ "error": message })))
 }
 
+#[derive(Debug, Clone)]
+pub struct EmbeddingResponse {
+    pub embeddings: Vec<EmbeddingVector>,
+}
+
+#[derive(Debug, Clone)]
+pub struct EmbeddingVector {
+    pub values: Vec<f32>,
+}
+
+#[derive(Debug, Clone)]
+pub struct EmbeddingClient;
+
+impl EmbeddingClient {
+    pub async fn embed_text(&self, text: &str) -> anyhow::Result<EmbeddingResponse> {
+        Ok(EmbeddingResponse {
+            embeddings: vec![EmbeddingVector {
+                values: embed_text_vector(text),
+            }],
+        })
+    }
+
+    pub async fn embed_query(&self, query: &str) -> anyhow::Result<EmbeddingResponse> {
+        self.embed_text(query).await
+    }
+}
+
 #[axum::debug_handler]
 pub async fn accept_research_request(
     Extension(auth): Extension<TenantContext>,
     Extension(tenant_pool): Extension<TenantDbPool>,
     Extension(settings): Extension<Arc<Settings>>,
-    cache: Option<Extension<Arc<CacheService>>>,
     Json(request): Json<ResearchRequest>,
 ) -> AppResult<impl IntoResponse> {
     if request.org_id != auth.org_id {
@@ -94,8 +215,7 @@ pub async fn accept_research_request(
     }
 
     let vector_index = VectorIndex::from_settings(settings.as_ref()).map_err(internal_error)?;
-    let embedding = EmbeddingClientEnum::from_settings(settings.as_ref());
-    let cache = cache.map(|extension| extension.0);
+    let embedding = EmbeddingClient {};
 
     let mut conn: sqlx::pool::PoolConnection<sqlx::postgres::Postgres> = tenant_pool
         .acquire_for_tenant(auth.org_id)
@@ -103,7 +223,7 @@ pub async fn accept_research_request(
         .map_err(internal_error)?;
 
     let result =
-        process_research_request(&mut conn, cache.as_deref(), &vector_index, &embedding, request)
+        process_research_request(&mut conn, &vector_index, &embedding, request)
             .await
             .map_err(internal_error)?;
 
@@ -121,9 +241,8 @@ pub async fn accept_research_request(
 
 async fn process_research_request<'e>(
     conn: &'e mut sqlx::pool::PoolConnection<sqlx::postgres::Postgres>,
-    cache: Option<&CacheService>,
     vector_index: &VectorIndex,
-    embedding: &EmbeddingClientEnum,
+    embedding: &EmbeddingClient,
     request: ResearchRequest,
 ) -> anyhow::Result<GroundedResult> {
     vector_index.ensure_collection().await?;
@@ -163,36 +282,11 @@ async fn process_research_request<'e>(
     let mut urls_fetched = 0i32;
     let mut urls_failed = 0i32;
     let mut total_chunks = 0usize;
-    let mut cache_hit = false;
+    let cache_hit = false;
     let fetcher = HttpFetcher::new();
 
     for url in &urls {
-        let cache_key = format!(
-            "research:doc:{}:{}",
-            request.org_id,
-            AcquisitionHasher::compute_hash(url)
-        );
-        let cached_document: Option<CachedDocument> = match cache {
-            Some(service) => service
-                .get(&cache_key)
-                .await
-                .map_err(|error| anyhow::anyhow!("cache_get_failed: {}", error))?,
-            None => None,
-        };
-
-        let fetched = if let Some(cached) = cached_document {
-            cache_hit = true;
-            Ok((
-                cached.cleaned_text,
-                cached.canonical_url,
-                cached.domain,
-                cached.title,
-                "cached".to_string(),
-                200i32,
-            ))
-        } else {
-            fetch_and_parse(url, &fetcher, &request.request_kind).await
-        };
+        let fetched = fetch_and_parse(url, &fetcher, &request.request_kind).await;
 
         match fetched {
             Ok((cleaned_text, canonical_url, domain, title, fetch_mode, http_status)) => {
@@ -256,72 +350,28 @@ async fn process_research_request<'e>(
                     .execute(&mut **conn)
                     .await?;
 
-                    match embedding.embed_text(chunk_text).await {
-                        Ok(response) => {
-                            if let Some(values) = response
-                                .embeddings
-                                .first()
-                                .map(|vector| vector.values.clone())
-                            {
-                                vector_index
-                                    .upsert_chunk(
-                                        request.org_id,
-                                        document_id,
-                                        chunk_id,
-                                        &domain,
-                                        &canonical_url,
-                                        chrono::Utc::now(),
-                                        &chunk_text.chars().take(300).collect::<String>(),
-                                        values,
-                                    )
-                                    .await?;
-
-                                sqlx::query(
-                                    r#"
-                                    UPDATE research.research_chunks
-                                    SET embedding_state = 'embedded', qdrant_point_id = $1
-                                    WHERE chunk_id = $2 AND org_id = $3
-                                    "#,
-                                )
-                                .bind(chunk_id.to_string())
-                                .bind(chunk_id)
-                                .bind(request.org_id)
-                                .execute(&mut **conn)
-                                .await?;
-                            } else {
-                                mark_chunk_failed(conn, request.org_id, chunk_id).await?;
-                            }
-                        }
-                        Err(error) => {
-                            write_audit_log(
-                                conn,
-                                request.org_id,
-                                run_id,
-                                Some(document_id),
-                                "embedding_failed",
-                                Some(&domain),
-                                Some(&canonical_url),
-                                json!({ "error": error.to_string(), "chunk_id": chunk_id }),
-                            )
-                            .await?;
-                            mark_chunk_failed(conn, request.org_id, chunk_id).await?;
-                        }
-                    }
-                }
-
-                if let Some(service) = cache {
-                    let _ = service
-                        .set_with_ttl(
-                            &cache_key,
-                            &CachedDocument {
-                                canonical_url: canonical_url.clone(),
-                                domain: domain.clone(),
-                                title: title.clone(),
-                                cleaned_text: cleaned_text.clone(),
-                            },
-                            1800,
+                    let embedding_response = embedding.embed_text(chunk_text).await?;
+                    let vector = embedding_response
+                        .embeddings
+                        .into_iter()
+                        .next()
+                        .ok_or_else(|| anyhow::anyhow!("embedding_response_empty"))?
+                        .values;
+                    vector_index
+                        .upsert_chunk(
+                            request.org_id,
+                            document_id,
+                            chunk_id,
+                            &domain,
+                            &canonical_url,
+                            Utc::now(),
+                            chunk_text,
+                            vector,
                         )
-                        .await;
+                        .await?;
+
+                    mark_chunk_embedded(conn, request.org_id, chunk_id, &chunk_id.to_string())
+                        .await?;
                 }
 
                 urls_fetched += 1;
@@ -365,9 +415,11 @@ async fn process_research_request<'e>(
     let query_embedding = embedding.embed_query(&request.query).await?;
     let query_vector = query_embedding
         .embeddings
-        .first()
-        .map(|value| value.values.clone())
-        .ok_or_else(|| anyhow::anyhow!("empty_query_embedding"))?;
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow::anyhow!("embedding_response_empty"))?
+        .values;
+
     let hits = vector_index
         .search(request.org_id, query_vector, 10)
         .await?;
@@ -441,7 +493,7 @@ async fn fetch_and_parse(
     url: &str,
     fetcher: &HttpFetcher,
     request_kind: &ResearchRequestKind,
-) -> anyhow::Result<(String, String, String, Option<String>, String, i32)> {
+) -> anyhow::Result<(String, String, String, String, String, i32)> {
     let mut fetch_mode = "direct".to_string();
     let (cleaned_text, final_url, title) = match fetcher.fetch(url).await {
         Ok((body, final_url)) => {
@@ -456,10 +508,10 @@ async fn fetch_and_parse(
                 (
                     browser_parsed.cleaned_text,
                     browser_final_url,
-                    browser_parsed.title,
+                    browser_parsed.title.unwrap_or_default(),
                 )
             } else {
-                (parsed.cleaned_text, final_url, parsed.title)
+                (parsed.cleaned_text, final_url, parsed.title.unwrap_or_default())
             }
         }
         Err(_) if matches!(request_kind, ResearchRequestKind::Browser) => {
@@ -469,7 +521,7 @@ async fn fetch_and_parse(
             (
                 browser_parsed.cleaned_text,
                 browser_final_url,
-                browser_parsed.title,
+                browser_parsed.title.unwrap_or_default(),
             )
         }
         Err(error) => return Err(anyhow::anyhow!(error.to_string())),
@@ -480,19 +532,64 @@ async fn fetch_and_parse(
     Ok((cleaned_text, canonical_url, domain, title, fetch_mode, 200))
 }
 
-async fn mark_chunk_failed(conn: &mut sqlx::pool::PoolConnection<sqlx::postgres::Postgres>, org_id: Uuid, chunk_id: Uuid) -> anyhow::Result<()> {
+async fn mark_chunk_embedded(
+    conn: &mut sqlx::pool::PoolConnection<sqlx::postgres::Postgres>,
+    org_id: Uuid,
+    chunk_id: Uuid,
+    qdrant_point_id: &str,
+) -> anyhow::Result<()> {
     sqlx::query(
         r#"
         UPDATE research.research_chunks
-        SET embedding_state = 'failed'
-        WHERE chunk_id = $1 AND org_id = $2
+        SET embedding_state = 'embedded', qdrant_point_id = $1
+        WHERE chunk_id = $2 AND org_id = $3
         "#,
     )
+    .bind(qdrant_point_id)
     .bind(chunk_id)
     .bind(org_id)
     .execute(&mut **conn)
     .await?;
     Ok(())
+}
+
+fn embed_text_vector(text: &str) -> Vec<f32> {
+    const EMBEDDING_DIM: usize = 1024;
+    let mut vector = vec![0.0f32; EMBEDDING_DIM];
+
+    for token in text
+        .to_lowercase()
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|token| !token.is_empty())
+    {
+        let mut hasher = DefaultHasher::new();
+        token.hash(&mut hasher);
+        let hash = hasher.finish() as usize;
+        let index = hash % EMBEDDING_DIM;
+        let sign = if hash & 1 == 0 { 1.0 } else { -1.0 };
+        vector[index] += sign;
+    }
+
+    let norm = vector.iter().map(|value| value * value).sum::<f32>().sqrt();
+    if norm > 0.0 {
+        for value in &mut vector {
+            *value /= norm;
+        }
+    }
+
+    vector
+}
+
+#[cfg(test)]
+mod embedding_tests {
+    use super::*;
+
+    #[test]
+    fn embed_text_vector_has_expected_dimension() {
+        let vector = embed_text_vector("the quick brown fox");
+        assert_eq!(vector.len(), 1024);
+        assert!(vector.iter().any(|value| *value != 0.0));
+    }
 }
 
 async fn write_audit_log(
@@ -534,19 +631,10 @@ fn request_kind_str(request_kind: &ResearchRequestKind) -> &'static str {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
-struct CachedDocument {
-    canonical_url: String,
-    domain: String,
-    title: Option<String>,
-    cleaned_text: String,
-}
-
 pub async fn accept_tool_gateway_request(
     Extension(auth): Extension<TenantContext>,
     Extension(tenant_pool): Extension<TenantDbPool>,
     Extension(settings): Extension<Arc<Settings>>,
-    cache: Option<Extension<Arc<CacheService>>>,
     Json(request): Json<ToolGatewayRequest>,
 ) -> AppResult<impl IntoResponse> {
     if request.org_id != auth.org_id {
@@ -598,8 +686,7 @@ pub async fn accept_tool_gateway_request(
     };
 
     let vector_index = VectorIndex::from_settings(settings.as_ref()).map_err(internal_error)?;
-    let embedding = EmbeddingClientEnum::from_settings(settings.as_ref());
-    let cache = cache.map(|extension| extension.0);
+    let embedding = EmbeddingClient {};
 
     let mut conn: sqlx::pool::PoolConnection<sqlx::postgres::Postgres> = tenant_pool
         .acquire_for_tenant(auth.org_id)
@@ -608,7 +695,6 @@ pub async fn accept_tool_gateway_request(
 
     let result = process_research_request(
         &mut conn,
-        cache.as_deref(),
         &vector_index,
         &embedding,
         research_request,

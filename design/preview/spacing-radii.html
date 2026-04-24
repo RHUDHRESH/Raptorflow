@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Spacing &amp; Radii</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 20px; display:flex; gap:24px; }
+  .col { flex:1; }
+  .eb { margin-bottom: 10px; }
+  .bar { background:var(--primary); height:14px; border-radius:9999px; margin-bottom:6px; }
+  .lbl { font-family:var(--font-mono); font-size:9px; font-weight:600; color:var(--ink-500); letter-spacing:0.1em; text-transform:uppercase; }
+  .rad { background:#fff; border:1px solid var(--border); height:50px; box-shadow:var(--shadow-xs); display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:10px; color:var(--ink-500); margin-bottom:8px; }
+</style></head>
+<body class="paper-soft">
+  <div class="col">
+    <div class="eyebrow eb">SPACING · 4PX BASE</div>
+    <div><div class="bar" style="width:4px"></div><span class="lbl">1 · 4px</span></div>
+    <div style="margin-top:6px"><div class="bar" style="width:16px"></div><span class="lbl">4 · 16px</span></div>
+    <div style="margin-top:6px"><div class="bar" style="width:32px"></div><span class="lbl">8 · 32px</span></div>
+    <div style="margin-top:6px"><div class="bar" style="width:64px"></div><span class="lbl">16 · 64px</span></div>
+    <div style="margin-top:6px"><div class="bar" style="width:128px"></div><span class="lbl">32 · 128px</span></div>
+  </div>
+  <div class="col">
+    <div class="eyebrow eb">RADII</div>
+    <div class="rad" style="border-radius:6px;">sm · 6</div>
+    <div class="rad" style="border-radius:10px;">default · 10</div>
+    <div class="rad" style="border-radius:16px;">lg · 16 (cards)</div>
+    <div class="rad" style="border-radius:20px;">xl · 20</div>
+    <div class="rad" style="border-radius:9999px;">pill · 9999</div>
+  </div>
+</body></html>

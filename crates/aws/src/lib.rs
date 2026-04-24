@@ -1,8 +1,9 @@
 //! AWS service integrations for RaptorFlow.
 //!
 //! Provides S3 presigned-URL generation for file uploads, downloads,
-//! screenshots, and exports. All operations go through presigned URLs so
-//! the API never handles raw file bytes — clients talk directly to S3.
+//! screenshots, and exports, plus AWS Bedrock inference helpers. All
+//! operations go through AWS SDK clients so the API never handles raw file
+//! bytes — clients talk directly to S3 or Bedrock.
 //!
 //! ## Managers
 //!
@@ -23,10 +24,14 @@
 //!
 //! All errors are typed ([`S3Error`]) with variants for config, presigning, and API failures.
 
+pub mod bedrock;
+pub use bedrock::{BedrockInferenceClient, InferenceError};
+
 use aws_config::BehaviorVersion;
 use aws_sdk_s3::config::Credentials;
 use aws_sdk_s3::presigning::PresigningConfig;
 use aws_sdk_s3::Client;
+use aws_smithy_http_client::{Builder, tls::{self, rustls_provider::CryptoMode}};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -44,9 +49,13 @@ impl S3Service {
         secret_access_key: String,
     ) -> Self {
         let credentials = Credentials::new(access_key_id, secret_access_key, None, None, "static");
+        let http_client = Builder::new()
+            .tls_provider(tls::Provider::Rustls(CryptoMode::Ring))
+            .build_https();
 
         let config = aws_config::ConfigLoader::default()
             .behavior_version(BehaviorVersion::latest())
+            .http_client(http_client)
             .region(aws_config::Region::new(region))
             .credentials_provider(credentials)
             .load()
@@ -60,9 +69,13 @@ impl S3Service {
     pub async fn from_settings(settings: &raptorflow_config::Settings) -> Self {
         let bucket = settings.s3_bucket.clone();
         let region = settings.aws_region.clone();
+        let http_client = Builder::new()
+            .tls_provider(tls::Provider::Rustls(CryptoMode::Ring))
+            .build_https();
 
         let config = aws_config::ConfigLoader::default()
             .behavior_version(BehaviorVersion::latest())
+            .http_client(http_client)
             .region(aws_config::Region::new(region))
             .load()
             .await;

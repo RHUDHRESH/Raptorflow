@@ -81,7 +81,13 @@ export function OfficeCanvas({ onAgentClick }: { onAgentClick?: (key: AgentKey) 
     init();
 
     return () => {
-      app.destroy(true, { children: true, texture: true });
+      try {
+        // Pixi v8 cleanup can throw in dev if the resize plugin is already torn down.
+        // Make unmount non-fatal so route transitions never trip the global error boundary.
+        app.destroy();
+      } catch {
+        // Ignore teardown errors from Pixi.
+      }
       appRef.current = null;
     };
   }, []);

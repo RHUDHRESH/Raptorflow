@@ -29,7 +29,10 @@
     "contracts:sync": "node scripts/sync-contracts.mjs",
     "contracts:check": "node scripts/check-contracts.mjs",
     "docs:check": "node scripts/check-docs.mjs",
-    "lint-staged": "pnpm lint && pnpm docs:check && pnpm scaffold:check"
+    "lint-staged": "pnpm lint && pnpm docs:check && pnpm scaffold:check",
+    "seed:avatars": "npx tsx src/lib/avatars/seed.ts",
+    "db:push": "cd packages/database && npx prisma db push",
+    "db:studio": "cd packages/database && npx prisma studio"
   },
   "devDependencies": {
     "@types/node": "24.0.0",

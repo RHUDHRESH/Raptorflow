@@ -15,15 +15,14 @@
 //!
 //! - `APP_ENV` / `AWS_REGION` — environment and region
 //! - `RAPTORFLOW_DATABASE_URL` / `RAPTORFLOW_DIRECT_DATABASE_URL` — PgBouncer (port 6432) and direct PG (5432)
-//! - `RAPTORFLOW_DRAGONFLY_URL` — DragonflyDB for cache
 //! - `RAPTORFLOW_QDRANT_URL` — Qdrant for vector search
+//! - `RAPTORFLOW_QDRANT_API_KEY` — Qdrant Cloud auth key when using hosted clusters
 //! - `RAPTORFLOW_S3_BUCKET` + SQS queues — storage and async jobs
-//! - `RAPTORFLOW_INFERENCE_PROVIDER` — AI inference provider (`bedrock` for AWS Bedrock, `groq` for Groq)
 //! - `RAPTORFLOW_BEDROCK_REGION` — AWS region for Bedrock (defaults to ap-south-1)
 //! - `RAPTORFLOW_BEDROCK_MODEL_STRATEGIST` — Bedrock model ID for strategist tasks (Mistral Large 3)
-//! - `RAPTORFLOW_BEDROCK_MODEL_FAST` — Bedrock model ID for fast/council tasks (Mistral 7B)
+//! - `RAPTORFLOW_BEDROCK_MODEL_FAST` — Bedrock model ID for fast/council tasks (Ministral 3 8B)
 //! - Clerk, Razorpay, Resend — auth, payments, email
-//! - `RAPTORFLOW_SENTRY_DSN` — error reporting
+//! - `RAPTORFLOW_SENTRY_DSN` / `SENTRY_DSN` — error reporting
 
 use anyhow::Result;
 use serde::Serialize;
@@ -37,13 +36,12 @@ pub struct Settings {
     pub aws_region: String,
     pub database_url: String,
     pub direct_database_url: String,
-    pub dragonfly_url: String,
     pub qdrant_url: String,
+    pub qdrant_api_key: Option<String>,
     pub s3_bucket: String,
     pub sqs_base_url: String,
     pub sqs_embedding_queue: String,
     pub sqs_content_queue: String,
-    pub gcp_api_key: String,
     pub bedrock_region: String,
     pub bedrock_model_strategist: String,
     pub bedrock_model_fast: String,
@@ -51,8 +49,6 @@ pub struct Settings {
     pub clerk_issuer: String,
     pub clerk_audience: Option<String>,
     pub clerk_webhook_secret: Option<String>,
-    pub allow_insecure_dev_auth: bool,
-    pub dev_bearer_token: String,
     pub razorpay_key_id: String,
     pub razorpay_key_secret: String,
     pub razorpay_webhook_secret: Option<String>,
@@ -61,9 +57,6 @@ pub struct Settings {
     pub resend_webhook_secret: Option<String>,
     pub webhook_timestamp_tolerance_seconds: u64,
     pub sentry_dsn: String,
-    pub ai_provider: String,
-    pub groq_api_url: String,
-    pub groq_api_key: String,
 }
 
 impl Settings {
@@ -81,8 +74,9 @@ impl Settings {
                 "RAPTORFLOW_DIRECT_DATABASE_URL",
                 "postgres://raptorflow:raptorflow@localhost:5432/raptorflow",
             ),
-            dragonfly_url: read("RAPTORFLOW_DRAGONFLY_URL", "redis://localhost:6379"),
             qdrant_url: read("RAPTORFLOW_QDRANT_URL", "http://localhost:6333"),
+            qdrant_api_key: optional("RAPTORFLOW_QDRANT_API_KEY")
+                .or_else(|| optional("QDRANT_API_KEY")),
             s3_bucket: read("RAPTORFLOW_S3_BUCKET", "raptorflow-dev"),
             sqs_base_url: read(
                 "RAPTORFLOW_SQS_BASE_URL",
@@ -93,10 +87,9 @@ impl Settings {
                 "RAPTORFLOW_SQS_CONTENT_QUEUE",
                 "raptorflow-dev-content-pregeneration",
             ),
-            gcp_api_key: read("RAPTORFLOW_GCP_API_KEY", ""),
             bedrock_region: read("RAPTORFLOW_BEDROCK_REGION", "ap-south-1"),
             bedrock_model_strategist: read("RAPTORFLOW_BEDROCK_MODEL_STRATEGIST", "mistral.mistral-large-3-675b-instruct"),
-            bedrock_model_fast: read("RAPTORFLOW_BEDROCK_MODEL_FAST", "mistral.mistral-7b-instruct-v0:2"),
+            bedrock_model_fast: read("RAPTORFLOW_BEDROCK_MODEL_FAST", "mistral.ministral-3-8b-instruct"),
             clerk_jwks_url: read(
                 "RAPTORFLOW_CLERK_JWKS_URL",
                 "https://example.clerk.accounts.dev/.well-known/jwks.json",
@@ -107,10 +100,6 @@ impl Settings {
             ),
             clerk_audience: optional("RAPTORFLOW_CLERK_AUDIENCE"),
             clerk_webhook_secret: optional("RAPTORFLOW_CLERK_WEBHOOK_SECRET"),
-            allow_insecure_dev_auth: read("RAPTORFLOW_ALLOW_INSECURE_DEV_AUTH", "true")
-                .parse()
-                .unwrap_or(true),
-            dev_bearer_token: read("RAPTORFLOW_DEV_BEARER_TOKEN", "raptorflow-dev-token"),
             razorpay_key_id: read("RAPTORFLOW_RAZORPAY_KEY_ID", ""),
             razorpay_key_secret: read("RAPTORFLOW_RAZORPAY_KEY_SECRET", ""),
             razorpay_webhook_secret: optional("RAPTORFLOW_RAZORPAY_WEBHOOK_SECRET"),
@@ -123,10 +112,9 @@ impl Settings {
             )
             .parse()
             .unwrap_or(300),
-            sentry_dsn: read("RAPTORFLOW_SENTRY_DSN", ""),
-            ai_provider: read("AI_PROVIDER", "groq"),
-            groq_api_url: read("GROQ_API_URL", "https://api.groq.com/openai/v1"),
-            groq_api_key: read("GROQ_API_KEY", ""),
+            sentry_dsn: optional("RAPTORFLOW_SENTRY_DSN")
+                .or_else(|| optional("SENTRY_DSN"))
+                .unwrap_or_default(),
         })
     }
 }

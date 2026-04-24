@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Buttons</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 24px; }
+  .grid { display:grid; grid-template-columns: repeat(4, auto); gap:14px; align-items:center; justify-content:start; }
+  .btn { font-family:var(--font-body); font-size:13px; font-weight:500; padding:10px 16px; border-radius:10px; border:1px solid transparent; cursor:pointer; transition:all 240ms var(--ease-soft); display:inline-flex; align-items:center; gap:8px; }
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-primary:hover { background:var(--primary-hover); box-shadow:var(--shadow-amber); }
+  .btn-secondary { background:#fff; color:var(--ink-900); border-color:var(--border); box-shadow:var(--shadow-xs); }
+  .btn-ghost { background:transparent; color:var(--ink-700); }
+  .btn-ghost:hover { background:var(--paper-150); }
+  .btn-mono { background:var(--ink-900); color:#fff; font-family:var(--font-mono); font-size:10px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; padding:11px 16px; }
+  .btn-sm { padding:6px 12px; font-size:12px; }
+  .btn-lg { padding:14px 22px; font-size:14px; }
+</style></head>
+<body class="paper-soft">
+  <div class="grid">
+    <button class="btn btn-primary">Summon council</button>
+    <button class="btn btn-secondary">New campaign</button>
+    <button class="btn btn-ghost">Cancel</button>
+    <button class="btn btn-mono">OPEN →</button>
+    <button class="btn btn-primary btn-sm">Approve</button>
+    <button class="btn btn-secondary btn-sm">Edit</button>
+    <button class="btn btn-primary btn-lg">Build your office</button>
+    <button class="btn btn-secondary" disabled style="opacity:.5;cursor:not-allowed;">Disabled</button>
+  </div>
+</body></html>

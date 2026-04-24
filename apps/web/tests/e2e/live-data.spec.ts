@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("campaigns page shows persisted campaign data", async ({ page }) => {
   await page.goto("/campaigns", { waitUntil: "domcontentloaded" });
+  console.log("campaigns url", page.url());
   await expect(page.getByText("Live Smoke Campaign")).toBeVisible();
 });
 
@@ -17,5 +18,5 @@ test("muse page shows persisted conversation list", async ({ page }) => {
 
 test("content page shows persisted generated content", async ({ page }) => {
   await page.goto("/content", { waitUntil: "domcontentloaded" });
-  await expect(page.getByText("Live Smoke Post")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Live Smoke Post" })).toBeVisible();
 });

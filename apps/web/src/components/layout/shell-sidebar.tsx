@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -17,9 +18,7 @@ import {
   CalendarIcon,
   FileTextIcon,
   GearIcon,
-  IdCardIcon,
   UploadIcon,
-  ChevronRightIcon,
   LightningBoltIcon,
   MixerHorizontalIcon,
 } from "@radix-ui/react-icons";
@@ -28,7 +27,6 @@ import { OfficeMiniStrip } from "@/components/office/office-mini-strip";
 import { NotificationPanel } from "@/components/layout/notification-panel";
 import { useOfficeStore } from "@/state/office-store";
 
-/* ─── Navigation Structure ─────────────────────────────────────── */
 type NavItem = {
   href: Route;
   label: string;
@@ -46,7 +44,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Workspace",
     items: [
-      { href: "/app" as Route, label: "Dashboard", icon: DashboardIcon },
+      { href: "/app/dashboard" as Route, label: "Dashboard", icon: DashboardIcon },
       { href: "/office" as Route, label: "The Office", icon: MagicWandIcon },
       { href: "/daily-wins" as Route, label: "Daily Wins", icon: CalendarIcon },
       { href: "/uploads" as Route, label: "Uploads", icon: UploadIcon },
@@ -73,79 +71,113 @@ const NAV_GROUPS: NavGroup[] = [
     label: "System",
     items: [
       { href: "/foundation" as Route, label: "Foundation", icon: HomeIcon },
-      { href: "/billing" as Route, label: "Billing", icon: IdCardIcon },
       { href: "/settings" as Route, label: "Settings", icon: GearIcon },
     ],
   },
 ];
 
-/* ─── Main Sidebar ─────────────────────────────────────────────── */
-export function ShellSidebar({
-  identity,
-}: {
-  identity: { userId: string; orgId: string };
-}) {
+function SidebarBadge({ queryKey, countPath }: { queryKey: unknown[]; countPath: string }) {
+  const { data } = useQuery({
+    queryKey,
+    staleTime: 30_000,
+  });
+  const count = countPath.split(".").reduce((acc: unknown, key: string) => {
+    if (acc && typeof acc === "object") return (acc as Record<string, unknown>)[key];
+    return 0;
+  }, data as unknown) as number;
+  if (!count) return null;
+  return (
+    <span className="ml-auto text-[10px] bg-[var(--primary)] text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 font-mono font-bold">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
+
+export function ShellSidebar({ identity }: { identity: { userId: string; orgId: string } }) {
   const pathname = usePathname();
   const [notifOpen, setNotifOpen] = useState(false);
   const eventLog = useOfficeStore((s) => s.eventLog);
-  const unreadCount = eventLog.filter(e => !e.processed).length;
+  const unreadCount = eventLog.filter((e) => !e.processed).length;
 
   return (
     <>
-      <aside className="flex h-screen w-64 flex-col fixed left-0 top-0 bg-[#FBF8F2] border-r border-[#E5DED4] z-40 overflow-hidden paper-soft">
-        {/* Brand Header */}
-        <div className="h-16 px-6 flex items-center justify-between border-b border-[#E5DED4]">
+      <aside className="flex h-screen w-64 flex-col fixed left-0 top-0 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] z-40 overflow-hidden paper-soft">
+        <div className="h-16 px-6 flex items-center justify-between border-b border-[var(--sidebar-border)]">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-[#D97757] flex items-center justify-center rounded-sm">
-              <LightningBoltIcon className="w-4 h-4 text-[#2A2622]" />
+            <div className="w-7 h-7 bg-[var(--primary)] flex items-center justify-center rounded-[var(--radius)] transition-transform duration-300 hover:scale-105">
+              <LightningBoltIcon className="w-4 h-4 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-[#2A2622] tracking-tight leading-none">RaptorFlow</span>
-              <span className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest mt-0.5">EST. 1989</span>
+              <span className="text-sm font-bold text-[var(--ink-900)] tracking-tight leading-none">
+                RaptorFlow
+              </span>
+              <span className="text-[9px] font-mono text-[var(--ink-400)] uppercase tracking-widest mt-0.5">
+                EST. 1989
+              </span>
             </div>
           </div>
 
-          <button 
+          <button
             onClick={() => setNotifOpen(true)}
-            className="p-2 hover:bg-[#F5F0E8] transition-colors relative"
+            className="p-2 rounded-[var(--radius)] hover:bg-[var(--paper-150)] transition-all duration-200 relative group"
           >
-            <BellIcon className={cn("w-4 h-4 transition-colors", unreadCount > 0 ? "text-[#D97757]" : "text-[#9A948C]")} />
+            <BellIcon
+              className={cn(
+                "w-4 h-4 transition-colors duration-200",
+                unreadCount > 0 ? "text-[var(--primary)]" : "text-[var(--ink-400)]",
+              )}
+            />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#D97757] rounded-full animate-pulse shadow-[0_0_8px_rgba(217,119,87,0.5)]" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[var(--primary)] rounded-full animate-pulse shadow-[0_0_8px_rgba(217,119,87,0.5)]" />
             )}
           </button>
         </div>
 
-        {/* Navigation Groups */}
-        <nav className="flex-1 overflow-y-auto pt-6 space-y-8 scrollbar-hide">
-          {NAV_GROUPS.map((group) => (
+        <nav className="flex-1 overflow-y-auto pt-6 space-y-8 scrollbar-thin">
+          {NAV_GROUPS.map((group, groupIndex) => (
             <div key={group.label} className="px-3">
-              <h2 className="px-3 mb-3 text-[9px] font-bold text-[#9A948C] uppercase tracking-[0.2em] font-mono">
+              <h2 className="px-3 mb-3 text-[9px] font-bold text-[var(--ink-400)] uppercase tracking-[0.2em] font-mono">
                 {group.label}
               </h2>
               <div className="space-y-1">
-                {group.items.map((item) => {
-                  const isActive = pathname === item.href || (item.href !== "/app" && pathname.startsWith(item.href + "/"));
+                {group.items.map((item, itemIndex) => {
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== "/app" && pathname.startsWith(item.href + "/"));
                   const Icon = item.icon;
-                  
+
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 text-[13px] transition-all duration-150 group",
+                        "flex items-center gap-3 px-3 py-2.5 text-[13px] transition-all duration-200 group relative rounded-[var(--radius)]",
                         isActive
-                          ? "text-[#2A2622] bg-white border-l-2 border-[#D97757]"
-                          : "text-[#6B655E] hover:text-[#2A2622] hover:bg-[#F5F0E8]"
+                          ? "text-[var(--ink-900)] bg-white shadow-sm"
+                          : "text-[var(--ink-500)] hover:text-[var(--ink-900)] hover:bg-[var(--paper-150)]",
                       )}
+                      style={{
+                        animationDelay: `${(groupIndex * 4 + itemIndex) * 50}ms`,
+                      }}
                     >
-                      <Icon className={cn(
-                        "w-4 h-4 transition-colors",
-                        isActive ? "text-[#D97757]" : "text-[#9A948C] group-hover:text-[#6B655E]"
-                      )} />
-                      <span className="font-medium">{item.label}</span>
                       {isActive && (
-                        <div className="ml-auto w-1 h-1 rounded-full bg-[#D97757] animate-pulse" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[var(--primary)] rounded-r-full" />
+                      )}
+                      <Icon
+                        className={cn(
+                          "w-4 h-4 transition-colors duration-200",
+                          isActive
+                            ? "text-[var(--primary)]"
+                            : "text-[var(--ink-400)] group-hover:text-[var(--ink-500)]",
+                        )}
+                      />
+                      <span className="font-medium">{item.label}</span>
+                      {isActive && <span className="ml-auto status-dot-live" />}
+                      {item.href === "/intel" && (
+                        <SidebarBadge queryKey={["intel"]} countPath="signals.length" />
+                      )}
+                      {item.href === "/nudges" && (
+                        <SidebarBadge queryKey={["nudges"]} countPath="totalCount" />
                       )}
                     </Link>
                   );
@@ -155,22 +187,22 @@ export function ShellSidebar({
           ))}
         </nav>
 
-        {/* Org Info */}
-        <div className="px-6 py-4 border-t border-[#E5DED4] bg-[#F5F0E8]/50">
-          <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-widest leading-relaxed">
-            UPLINK: ACTIVE<br/>
+        <div className="px-6 py-4 border-t border-[var(--sidebar-border)] bg-[var(--paper-150)]/50">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="status-dot-live" />
+            <p className="text-[9px] font-mono text-[var(--ink-500)] uppercase tracking-widest">
+              UPLINK: ACTIVE
+            </p>
+          </div>
+          <p className="text-[9px] font-mono text-[var(--ink-400)] uppercase tracking-widest leading-relaxed">
             ORG: {identity.orgId.slice(0, 12)}
           </p>
         </div>
 
-        {/* Office Mini-Strip (Passive View) */}
         <OfficeMiniStrip />
       </aside>
 
-      <NotificationPanel 
-        isOpen={notifOpen} 
-        onClose={() => setNotifOpen(false)} 
-      />
+      <NotificationPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
     </>
   );
 }

@@ -106,7 +106,7 @@ It intentionally excludes generated or cache artifacts:
 - `docker-compose.yml`
 
   - Purpose: local stack orchestration.
-  - What goes here: web, API, Postgres, PgBouncer, Qdrant, Dragonfly, volumes, network wiring.
+  - What goes here: web, API, Postgres, PgBouncer, Qdrant, volumes, network wiring.
   - Do not put here: production deployment assumptions that only belong in ECS/OpenTofu.
 
 - `package.json`
@@ -811,7 +811,7 @@ It intentionally excludes generated or cache artifacts:
 
 - `crates/integrations/src/lib.rs`
   - Purpose: external-service client shells.
-  - What goes here: GCP, Clerk, Razorpay, future scraping/browser client wrappers, tool gateway adapters.
+  - What goes here: AWS Bedrock, Clerk, Razorpay, future scraping/browser client wrappers, tool gateway adapters.
   - Do not put here: domain routing decisions.
 
 ### Intel
@@ -842,16 +842,10 @@ It intentionally excludes generated or cache artifacts:
 
 ### Muse
 
-- `crates/muse/Cargo.toml`
-
-  - Purpose: Muse crate manifest.
-  - What goes here: Muse-specific dependencies.
-  - Do not put here: Council-specific code.
-
-- `crates/muse/src/lib.rs`
-  - Purpose: Muse route scaffold.
-  - What goes here: conversation route shell, route classification stubs, content/tactical/strategic branching.
-  - Do not put here: Daily Wins generation.
+- `crates/http/src/routes/muse.rs`
+  - Purpose: Muse HTTP route implementation.
+  - What goes here: conversation persistence, Bedrock inference dispatch, route classification branching.
+  - Do not put here: Council orchestration or Office rendering.
 
 ### Office
 
@@ -979,7 +973,7 @@ It intentionally excludes generated or cache artifacts:
 - `docs/adrs/0003-data-and-caching.md`
 
   - Purpose: data/caching strategy decision.
-  - What goes here: Aurora/Qdrant/Dragonfly roles, cache boundaries, vector memory rationale.
+  - What goes here: Aurora/Qdrant roles, cache boundaries, vector memory rationale.
   - Do not put here: literal Terraform resources.
 
 - `docs/adrs/0004-office-rendering.md`
@@ -1451,7 +1445,7 @@ It intentionally excludes generated or cache artifacts:
 - `infra/tofu/modules/data/main.tf`
 
   - Purpose: data-plane resources.
-  - What goes here: Aurora, Qdrant persistence scaffolding, S3, Dragonfly-related resources, PgBouncer-related data resources.
+  - What goes here: Aurora, Qdrant persistence scaffolding, S3, PgBouncer-related data resources.
   - Do not put here: ALB or VPC resources.
 
 - `infra/tofu/modules/data/outputs.tf`

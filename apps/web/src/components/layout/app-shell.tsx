@@ -5,7 +5,7 @@ import { ShellSidebar } from "@/components/layout/shell-sidebar";
 
 export function AppShell({
   identity,
-  children
+  children,
 }: {
   identity: {
     userId: string;
@@ -16,7 +16,9 @@ export function AppShell({
   return (
     <div className="flex min-h-screen">
       <ShellSidebar identity={identity} />
-      <main className="flex-1 min-w-0 px-6 py-8 md:px-10 ml-64 bg-[#FBF8F2]">{children}</main>
+      <main className="flex-1 min-w-0 px-6 py-8 md:px-10 ml-64 bg-[var(--background)] paper-soft transition-all duration-500">
+        {children}
+      </main>
     </div>
   );
 }
@@ -24,7 +26,7 @@ export function AppShell({
 export function ShellTitle({
   title,
   subtitle,
-  href
+  href,
 }: {
   title: string;
   subtitle: string;
@@ -32,12 +34,16 @@ export function ShellTitle({
 }): React.ReactElement {
   const content = (
     <>
-      <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
-        {subtitle}
-      </p>
-      <h1 className="font-[family-name:var(--font-display)] text-4xl">{title}</h1>
+      <p className="eyebrow mb-2">{subtitle}</p>
+      <h1 className="display-md">{title}</h1>
     </>
   );
 
-  return href ? <Link href={href}>{content}</Link> : content;
+  return href ? (
+    <Link href={href} className="group">
+      {content}
+    </Link>
+  ) : (
+    content
+  );
 }

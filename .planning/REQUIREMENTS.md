@@ -93,8 +93,8 @@ All pages in `apps/web/src/app/`:
 - TanStack Query for all API calls
 - Zustand for office canvas state
 - WebSocket for real-time office events
-- GROQ API key server-side only (via /api/ai/chat proxy)
-- Offline mode: NEXT_PUBLIC_OFFLINE_MODE=true for mock data
+- AWS Bedrock API key/credentials server-side only
+- No offline mock mode in the active stack
 - APP_ENV production gate on debug page
 
 ## Non-Goals (Out of Scope)

@@ -6,6 +6,12 @@
   "installCommand": "cd ../.. && pnpm install",
   "devCommand": "pnpm --filter @raptorflow/web dev",
   "regions": ["sin1"],
+  "crons": [
+    { "path": "/api/prl/decay/cron", "schedule": "0 3 * * *" },
+    { "path": "/api/intel/brief/cron", "schedule": "0 8 * * 1" },
+    { "path": "/api/daily-wins/cron", "schedule": "30 1 * * *" },
+    { "path": "/api/nudges/cron", "schedule": "0 2 * * *" }
+  ],
   "headers": [
     {
       "source": "/api/health",

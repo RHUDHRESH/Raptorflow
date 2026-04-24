@@ -5,7 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 
 /**
  * Valid Foundation Section IDs — 21 screens mapped to Rust model fields
- * 
+ *
  * Screen → Backend Field Mapping:
  *  1. url              → company_url
  *  2. company_info     → company_info (name, legal_name, year_founded, etc.)
@@ -124,6 +124,7 @@ interface FoundationState {
   scanData: any | null;
   isAutoSaving: boolean;
   status: "initial" | "scanning" | "scanned" | "completing" | "ready" | "incomplete" | "complete";
+  foundationId: string | null;
 
   // Actions
   setStep: (step: number) => void;
@@ -139,6 +140,7 @@ interface FoundationState {
   isStepComplete: (step: number) => boolean;
   getProgress: () => { completed: number; total: number; percentage: number };
   reset: () => void;
+  setFoundationId: (id: string | null) => void;
 }
 
 // All 21 screens in order
@@ -181,40 +183,45 @@ export const useFoundationStore = create<FoundationState>()(
       scanData: null,
       isAutoSaving: false,
       status: "initial",
+      foundationId: null,
 
       setStep: (step) => set({ currentStep: Math.max(1, Math.min(step, 21)) }),
-      
-      nextStep: () => set((state) => ({
-        currentStep: Math.min(state.currentStep + 1, 21)
-      })),
-      
-      prevStep: () => set((state) => ({
-        currentStep: Math.max(state.currentStep - 1, 1)
-      })),
+
+      nextStep: () =>
+        set((state) => ({
+          currentStep: Math.min(state.currentStep + 1, 21),
+        })),
+
+      prevStep: () =>
+        set((state) => ({
+          currentStep: Math.max(state.currentStep - 1, 1),
+        })),
 
       setStatus: (status) => set({ status }),
 
-      setSectionData: (section, data) => set((state) => ({
-        sectionData: {
-          ...state.sectionData,
-          [section]: {
-            ...state.sectionData[section],
-            ...data,
-            _updatedAt: new Date().toISOString(),
+      setSectionData: (section, data) =>
+        set((state) => ({
+          sectionData: {
+            ...state.sectionData,
+            [section]: {
+              ...state.sectionData[section],
+              ...data,
+              _updatedAt: new Date().toISOString(),
+            },
           },
-        },
-      })),
+        })),
 
       setSectionDataByLegacy: (legacySection, data) => {
         const section = LEGACY_SECTION_MAP[legacySection];
         get().setSectionData(section, data);
       },
 
-      markStepComplete: (step) => set((state) => ({
-        completedSteps: state.completedSteps.includes(step)
-          ? state.completedSteps
-          : [...state.completedSteps, step],
-      })),
+      markStepComplete: (step) =>
+        set((state) => ({
+          completedSteps: state.completedSteps.includes(step)
+            ? state.completedSteps
+            : [...state.completedSteps, step],
+        })),
 
       setScanData: (data) => set({ scanData: data, status: "scanned" }),
 
@@ -235,14 +242,18 @@ export const useFoundationStore = create<FoundationState>()(
         };
       },
 
-      reset: () => set({
-        currentStep: 1,
-        completedSteps: [],
-        sectionData: {} as Record<FoundationSectionId, any>,
-        scanData: null,
-        isAutoSaving: false,
-        status: "initial",
-      }),
+      setFoundationId: (id) => set({ foundationId: id }),
+
+      reset: () =>
+        set({
+          currentStep: 1,
+          completedSteps: [],
+          sectionData: {} as Record<FoundationSectionId, any>,
+          scanData: null,
+          isAutoSaving: false,
+          status: "initial",
+          foundationId: null,
+        }),
     }),
     {
       name: "raptorflow-foundation-storage",
@@ -252,9 +263,10 @@ export const useFoundationStore = create<FoundationState>()(
         completedSteps: state.completedSteps,
         sectionData: state.sectionData,
         status: state.status,
+        foundationId: state.foundationId,
       }),
-    }
-  )
+    },
+  ),
 );
 
 /**
@@ -274,9 +286,9 @@ export function useFoundationAutoSave(sectionId: FoundationSectionId, data: any)
     try {
       setIsAutoSaving(true);
       const token = await getToken();
-      
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/section/${sectionId}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/foundation/section/${sectionId}`,
         {
           method: "PATCH",
           headers: {
@@ -284,7 +296,7 @@ export function useFoundationAutoSave(sectionId: FoundationSectionId, data: any)
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ data }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -293,7 +305,7 @@ export function useFoundationAutoSave(sectionId: FoundationSectionId, data: any)
       }
 
       // Mark current step as complete on successful save
-      const stepForSection = FOUNDATION_STEPS.find(s => s.section === sectionId)?.step;
+      const stepForSection = FOUNDATION_STEPS.find((s) => s.section === sectionId)?.step;
       if (stepForSection) {
         markStepComplete(stepForSection);
       }
@@ -342,7 +354,7 @@ export function useFoundationProgress() {
  * Get the section ID for a given step number
  */
 export function getSectionForStep(step: number): FoundationSectionId {
-  const stepInfo = FOUNDATION_STEPS.find(s => s.step === step);
+  const stepInfo = FOUNDATION_STEPS.find((s) => s.step === step);
   return stepInfo?.section ?? "company_url";
 }
 
@@ -351,6 +363,6 @@ export function getSectionForStep(step: number): FoundationSectionId {
  * Get the step number for a given section ID
  */
 export function getStepForSection(section: FoundationSectionId): number {
-  const stepInfo = FOUNDATION_STEPS.find(s => s.section === section);
+  const stepInfo = FOUNDATION_STEPS.find((s) => s.section === section);
   return stepInfo?.step ?? 1;
 }

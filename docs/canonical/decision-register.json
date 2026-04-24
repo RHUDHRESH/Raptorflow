@@ -15,8 +15,7 @@
     "audit_check": "scripts/check-docs.mjs"
   },
   "regions": {
-    "aws_primary": "ap-south-1",
-    "vertex_ai": "asia-south1"
+    "aws_primary": "ap-south-1"
   },
   "frontend": {
     "framework": "Next.js 15",
@@ -54,18 +53,20 @@
     "primary_db": "Aurora PostgreSQL 16 Serverless v2",
     "vector_secondary": "Qdrant",
     "pgvector": true,
-    "cache_pubsub": "DragonflyDB",
+    "cache_pubsub": "Prisma Accelerate (query acceleration), Prisma Pulse (realtime DB events)",
     "object_storage": "S3",
     "queueing": "AWS SQS"
   },
   "ai": {
-    "provider": "Vertex AI",
+    "provider": "AWS Bedrock",
+    "region": "ap-south-1",
     "tiers": {
-      "strategist_synthesis": "Gemini Pro",
-      "council_positions_and_reflections": "Gemini Flash-Lite Reasoning",
-      "default_generation": "Gemini Flash-Lite Normal"
+      "strategist_synthesis": "mistral.mistral-large-3-675b-instruct",
+      "council_positions": "mistral.mistral-large-3-675b-instruct",
+      "fast_classification": "mistral.ministral-3-8b-instruct",
+      "nudges_and_snark": "mistral.ministral-3-8b-instruct"
     },
-    "context_caching": "Foundation JSON cached via Vertex context cache"
+    "context_caching": "CORTEX PRL retrieval prepended to every prompt — no external context cache"
   },
   "auth": {
     "provider": "Clerk",
@@ -74,30 +75,8 @@
   "payments": {
     "provider": "Razorpay",
     "currency": "INR",
-    "plans": {
-      "ascend": {
-        "name": "Ascend",
-        "price_inr_monthly": 5000,
-        "description": "Perfect for small businesses starting with AI marketing"
-      },
-      "glide": {
-        "name": "Glide",
-        "price_inr_monthly": 7000,
-        "description": "For growing businesses needing advanced AI insights"
-      },
-      "soar": {
-        "name": "Soar",
-        "price_inr_monthly": 10000,
-        "description": "Enterprise-grade AI marketing for scaleups"
-      },
-      "enterprise": {
-        "name": "Enterprise",
-        "price_inr_monthly": "talk_to_us",
-        "description": "Custom solution for large organizations"
-      }
-    },
-    "grace_period_days": 2,
-    "note": "All prices in INR (Indian Rupees) - no USD pricing"
+    "billing_mode": "disabled_for_stage_1",
+    "note": "No paywall or plan gating is enforced for app access. Razorpay is reserved for later billing enablement."
   },
   "ops": {
     "monitoring": ["Sentry", "CloudWatch"],

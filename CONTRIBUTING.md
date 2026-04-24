@@ -15,11 +15,11 @@ See **[docs/LOCAL_SETUP.md](./docs/LOCAL_SETUP.md)** for the full local dev guid
 ```bash
 cp .env.example .env
 cp apps/web/.env.example apps/web/.env.local
-docker compose up postgres pgbouncer dragonfly qdrant -d
+docker compose up postgres pgbouncer qdrant -d
 pnpm dev
 ```
 
-To work **without the backend**, set `NEXT_PUBLIC_OFFLINE_MODE=true` in `apps/web/.env.local`. See [docs/LOCAL_SETUP.md](./docs/LOCAL_SETUP.md) for the full offline setup including GROQ and Ollama.
+To work locally, configure Clerk and the API/database URLs in `apps/web/.env.local`. See [docs/LOCAL_SETUP.md](./docs/LOCAL_SETUP.md) for the current local setup.
 
 ---
 

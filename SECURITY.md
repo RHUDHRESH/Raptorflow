@@ -21,9 +21,8 @@ ALB (TLS termination)
        └── /api/v1/*           ← JWT-verified, tenant-scoped
               │
               └── PostgreSQL RLS (org_id enforcement)
-              └── Dragonfly (org-scoped keys)
               └── S3 (org-prefixed paths)
-              └── GCP API (AI inference)
+              └── AWS Bedrock (AI inference)
 ```
 
 ---
@@ -32,7 +31,7 @@ ALB (TLS termination)
 
 ### Tenant isolation ✅
 
-Every database query includes `org_id` via PostgreSQL Row Level Security. The `app.current_org_id()` session variable is set from the JWT `org_id` claim before any query executes. Cache keys in Dragonfly follow `raptorflow:{org_id}:*`. S3 paths follow `{bucket}/{org_id}/`.
+Every database query includes `org_id` via PostgreSQL Row Level Security. The `app.current_org_id()` session variable is set from the JWT `org_id` claim before any query executes. S3 paths follow `{bucket}/{org_id}/`.
 
 ### JWT authentication ✅
 
@@ -76,7 +75,7 @@ These are known gaps in the scaffold. Each requires implementation work before p
 
 **Current status:** The handler logs and processes every valid webhook. Replaying the same payload results in duplicate user/membership upserts.
 
-**Remediation:** Before processing, check if `event_id` exists in a processed-events set (Dragonfly key `clerk:events:{event_id}`). After successful processing, set the key with a 24-hour TTL. Reject duplicates with `200 OK` (idempotent).
+**Remediation:** Before processing, check if `event_id` exists in a processed-events set (PostgreSQL table `clerk_processed_events`). After successful processing, insert the event_id. Reject duplicates with `200 OK` (idempotent).
 
 ### [HIGH] Public endpoints — no rate limiting
 
@@ -88,11 +87,11 @@ These are known gaps in the scaffold. Each requires implementation work before p
 
 ### [MEDIUM] Prompt injection — no input sanitisation on AI outputs
 
-**Finding:** User-provided strings (from `muse` prompts, `intel` scraped content, `office` snark messages) are passed directly into Gemini prompts via `crates/gcp/src/lib.rs`. No allowlist filtering on the output.
+**Finding:** User-provided strings (from `muse` prompts, `intel` scraped content, `office` snark messages) are passed directly into AWS Bedrock prompts. No allowlist filtering on the output.
 
-**Current status:** The `voice-compliance.md` prompt contract defines expected output shapes, but the GCP crate does not validate that model output conforms before storing or acting on it.
+**Current status:** The `voice-compliance.md` prompt contract defines expected output shapes, but the Bedrock client does not validate that model output conforms before storing or acting on it.
 
-**Remediation:** Implement output validation in `crates/gcp/src/lib.rs` — parse the model's response against the expected schema in `docs/prompt-contracts/`. Reject and retry if the output doesn't conform.
+**Remediation:** Implement output validation in `crates/aws/src/bedrock.rs` — parse the model's response against the expected schema in `docs/prompt-contracts/`. Reject and retry if the output doesn't conform.
 
 ### [MEDIUM] Razorpay — no idempotency on payment processing
 
@@ -101,14 +100,6 @@ These are known gaps in the scaffold. Each requires implementation work before p
 **Current status:** `razorpay_webhook` parses and logs events but doesn't persist payment state.
 
 **Remediation:** Add a `razorpay_events` table. Store processed `event_id + event` pairs. Skip processing if the event was already handled.
-
-### [LOW] Dev auth bypass — `allow_insecure_dev_auth`
-
-**Finding:** `Settings` has `allow_insecure_dev_auth: bool` and `dev_bearer_token`. These allow bypassing Clerk JWT validation in dev mode.
-
-**Current status:** Only active when `APP_ENV=dev`. The JWT middleware checks `allow_insecure_dev_auth` before requiring a real Clerk token.
-
-**Remediation:** Ensure `APP_ENV=prod` is enforced in production ECS task definitions. Add a startup check that fails the service if `allow_insecure_dev_auth=true` and `APP_ENV=prod`.
 
 ### [LOW] `Sentry` context not validated in all paths
 

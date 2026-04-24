@@ -59,13 +59,10 @@ check_service "PostgreSQL" "pg_isready -h localhost -p 5432 -U raptorflow -d rap
 check_service "PgBouncer" "nc -z localhost 6432" $max_attempts
 
 echo ""
-echo -e "${BLUE}Checking cache and vector services...${NC}"
-
-# Dragonfly (Redis)
-check_service "Dragonfly" "redis-cli -h localhost -p 6379 ping | grep -q PONG" $max_attempts
+echo -e "${BLUE}Checking vector services...${NC}"
 
 # Qdrant
-check_service "Qdrant" "curl -s http://localhost:6333/readyz | grep -q 'true'" $max_attempts
+check_service "Qdrant" "curl -s http://localhost:6333/healthz | grep -q 'healthz check passed'" $max_attempts
 
 echo ""
 echo -e "${GREEN}🎉 All infrastructure services are healthy!${NC}"

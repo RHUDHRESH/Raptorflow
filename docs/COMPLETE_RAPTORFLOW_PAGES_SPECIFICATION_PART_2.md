@@ -549,7 +549,7 @@ Each row shows:
 - **Full Content Preview** (scrollable)
 - **Generation Details:**
   - Generated at: [timestamp]
-  - Model used: [Gemini 1.5 Pro]
+  - Model used: [Mistral Large 3]
   - Temperature/settings used
   - Tokens used
 - **Performance** (if published):

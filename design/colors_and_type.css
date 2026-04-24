@@ -1,0 +1,277 @@
+/* =============================================================
+   RAPTORFLOW DESIGN SYSTEM — Colors + Type
+   "Claude meets Notion": warm paper, calm, GSAP-led motion.
+   Amber stays the singular accent.
+   ============================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap");
+
+:root {
+  color-scheme: light;
+
+  /* ── Paper surfaces ─────────────────────────────────────────── */
+  /* Background is a warm off-white (Claude paper, not Notion white). */
+  --paper-50: #FAF7F1;   /* deepest paper — sidebars, recessed surfaces */
+  --paper-100: #FBF8F2;  /* canvas / page bg */
+  --paper-150: #F5F1E8;  /* hover fills, muted bands */
+  --paper-200: #EFE9DC;  /* cards on canvas, raised surfaces */
+  --paper-300: #E6DFCE;  /* borders, dividers */
+  --paper-400: #C9C0AB;  /* secondary borders, muted lines */
+
+  --background: var(--paper-100);
+  --foreground: #2A2622;            /* warm near-black ink */
+  --card: #FFFFFF;                  /* clean white card on paper */
+  --card-foreground: var(--foreground);
+  --popover: #FFFFFF;
+  --popover-foreground: var(--foreground);
+
+  /* ── Ink scale ──────────────────────────────────────────────── */
+  --ink-900: #2A2622;
+  --ink-700: #4A433C;
+  --ink-500: #7A7268;               /* secondary text */
+  --ink-400: #9C9384;               /* muted captions */
+  --ink-300: #BAB0A0;               /* placeholder, faint */
+
+  /* ── Primary — Amber, warm and slightly muted on paper ─────── */
+  --primary: #D97757;               /* Claude's signature warm orange-amber */
+  --primary-hover: #C26645;
+  --primary-foreground: #FFFFFF;
+  --amber-war: #D97757;
+  --amber-wash: #FBE9DE;            /* tinted band */
+  --amber-stroke: #E89878;          /* light amber border */
+
+  /* ── Secondary neutrals ────────────────────────────────────── */
+  --secondary: var(--paper-200);
+  --secondary-foreground: var(--ink-700);
+  --muted: var(--paper-150);
+  --muted-foreground: var(--ink-500);
+  --accent: var(--paper-200);
+  --accent-foreground: var(--ink-900);
+
+  /* ── Semantic ──────────────────────────────────────────────── */
+  --destructive: #C44A3F;
+  --destructive-wash: #FBEAE7;
+  --destructive-foreground: #FFFFFF;
+
+  --leaf-confirm: #5C8A5A;          /* sage success, paper-friendly */
+  --leaf-wash: #E8F0E5;
+  --indigo-muse: #5B5FB8;           /* desaturated indigo for Muse */
+  --indigo-wash: #E8E9F4;
+
+  /* ── Lines / inputs / focus ────────────────────────────────── */
+  --border: var(--paper-300);
+  --border-strong: var(--paper-400);
+  --input: #FFFFFF;
+  --ring: var(--primary);
+
+  /* ── Sidebar (slightly deeper paper than canvas) ───────────── */
+  --sidebar-background: var(--paper-50);
+  --sidebar-foreground: var(--ink-700);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: var(--paper-150);
+  --sidebar-accent-foreground: var(--ink-900);
+  --sidebar-border: var(--paper-300);
+
+  /* ── Agent pod colors (muted on paper) ─────────────────────── */
+  --pod-creative: #8B6FC2;
+  --pod-digital: #4F87B8;
+  --pod-strategy: #B8556B;
+  --pod-support: #C26F4A;
+  --pod-strategist: #4A433C;
+
+  /* ============================================================= */
+  /* RADII — Notion-soft, not brutalist                            */
+  /* ============================================================= */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius: 10px;                   /* default — buttons, inputs */
+  --radius-md: 12px;
+  --radius-lg: 16px;                /* cards */
+  --radius-xl: 20px;                /* big surfaces */
+  --radius-pill: 9999px;
+
+  /* ============================================================= */
+  /* SPACING (4px base)                                            */
+  /* ============================================================= */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* ============================================================= */
+  /* ELEVATION — soft, paper-friendly, never harsh                 */
+  /* ============================================================= */
+  --shadow-xs: 0 1px 2px rgba(42, 38, 34, 0.04);
+  --shadow-sm: 0 1px 2px rgba(42, 38, 34, 0.05), 0 1px 3px rgba(42, 38, 34, 0.04);
+  --shadow-md: 0 2px 4px rgba(42, 38, 34, 0.04), 0 4px 12px rgba(42, 38, 34, 0.06);
+  --shadow-lg: 0 4px 8px rgba(42, 38, 34, 0.04), 0 12px 32px rgba(42, 38, 34, 0.08);
+  --shadow-amber: 0 0 0 3px rgba(217, 119, 87, 0.15), 0 6px 18px -6px rgba(217, 119, 87, 0.30);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  /* ============================================================= */
+  /* PAPER TEXTURE                                                 */
+  /* Subtle SVG noise, baked once, applied via background-image.   */
+  /* Use --paper-grain on body / large surfaces for the Claude feel.*/
+  /* ============================================================= */
+  --paper-grain:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.14  0 0 0 0 0.12  0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  --paper-grain-soft:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' seed='9' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.14  0 0 0 0 0.12  0 0 0 0.025 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+
+  /* ============================================================= */
+  /* TYPOGRAPHY                                                    */
+  /* Display: Instrument Serif (soft, calm, gently humanist)       */
+  /* Body:    DM Sans (calm, friendly geometric)                   */
+  /* Mono:    JetBrains Mono (eyebrows, meta, status)              */
+  /* ============================================================= */
+  --font-display: "Instrument Serif", "Fraunces", "Times New Roman", ui-serif, serif;
+  --font-body: "DM Sans", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-body);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --fs-display-xl: clamp(64px, 9vw, 112px);
+  --fs-display-lg: clamp(44px, 6vw, 76px);
+  --fs-display-md: 40px;
+  --fs-display-sm: 28px;
+  --fs-h1: 32px;
+  --fs-h2: 22px;
+  --fs-h3: 17px;
+  --fs-body: 14px;
+  --fs-body-sm: 13px;
+  --fs-caption: 12px;
+  --fs-eyebrow: 10px;
+  --fs-micro: 11px;
+
+  --lh-tight: 1.0;
+  --lh-snug: 1.25;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.65;
+
+  --ls-display: -0.012em;   /* Instrument Serif is delicate — looser tracking */
+  --ls-eyebrow: 0.18em;
+  --ls-mono: 0.10em;
+
+  /* ============================================================= */
+  /* MOTION — calm, GSAP-led                                       */
+  /* ============================================================= */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);     /* power3.out */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);     /* default UI */
+  --dur-fast: 150ms;
+  --dur-med: 240ms;
+  --dur-slow: 700ms;
+}
+
+/* ============================================================= */
+/* SEMANTIC TYPE CLASSES                                         */
+/* ============================================================= */
+.display-xl { font-family: var(--font-display); font-size: var(--fs-display-xl); line-height: var(--lh-tight); letter-spacing: var(--ls-display); color: var(--ink-900); }
+.display-lg { font-family: var(--font-display); font-size: var(--fs-display-lg); line-height: var(--lh-tight); letter-spacing: var(--ls-display); color: var(--ink-900); }
+.display-md, .h1 { font-family: var(--font-display); font-size: var(--fs-display-md); line-height: 1.1; color: var(--ink-900); margin: 0; letter-spacing: -0.015em; }
+.display-sm, .lede { font-family: var(--font-display); font-size: var(--fs-display-sm); line-height: 1.25; color: var(--ink-900); margin: 0; }
+
+.h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-snug); color: var(--ink-900); margin: 0; }
+.h3 { font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 600; line-height: var(--lh-snug); color: var(--ink-900); margin: 0; }
+
+.body { font-family: var(--font-body); font-size: var(--fs-body); line-height: var(--lh-relaxed); color: var(--ink-900); }
+.body-muted { font-family: var(--font-body); font-size: var(--fs-body-sm); line-height: var(--lh-relaxed); color: var(--ink-500); }
+.caption { font-family: var(--font-body); font-size: var(--fs-caption); line-height: var(--lh-normal); color: var(--ink-400); }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--ink-500);
+}
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-mono);
+  color: var(--ink-500);
+}
+.mono-value {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  color: var(--ink-900);
+}
+code, .code, kbd {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--paper-150);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  color: var(--ink-700);
+}
+
+/* ============================================================= */
+/* PAPER TEXTURE UTILITIES                                       */
+/* ============================================================= */
+.paper {
+  background-color: var(--background);
+  background-image: var(--paper-grain);
+  background-size: 240px 240px;
+  background-repeat: repeat;
+}
+.paper-soft {
+  background-color: var(--background);
+  background-image: var(--paper-grain-soft);
+  background-size: 240px 240px;
+  background-repeat: repeat;
+}
+.paper-card {
+  background-color: var(--card);
+  background-image: var(--paper-grain-soft);
+  background-size: 240px 240px;
+  background-blend-mode: multiply;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============================================================= */
+/* UTILITIES                                                     */
+/* ============================================================= */
+.status-dot-live {
+  display: inline-block; width: 7px; height: 7px;
+  border-radius: 9999px; background: var(--primary);
+  box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.18);
+  animation: amberPulse 2s var(--ease-soft) infinite;
+}
+@keyframes amberPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.92); } }
+@keyframes breathe    { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+@keyframes fadeInUp   { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes underline-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+.scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--paper-300); border-radius: 9999px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: var(--paper-400); }
+
+::selection { background: rgba(217, 119, 87, 0.22); color: var(--ink-900); }
+
+/* ============================================================= */
+/* RESET (for demo HTMLs)                                        */
+/* ============================================================= */
+html, body {
+  background: var(--background);
+  color: var(--ink-900);
+  font-family: var(--font-body);
+  margin: 0; padding: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+* { box-sizing: border-box; }
+a { color: inherit; text-decoration: none; }

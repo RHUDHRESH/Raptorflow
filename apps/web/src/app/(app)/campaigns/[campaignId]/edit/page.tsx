@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 
-import { billingApi, type Campaign } from "@/lib/api";
+import { type Campaign } from "@/lib/api";
 
 const STATUS_OPTIONS: Campaign["status"][] = [
   "draft", "pending_approval", "active", "paused", "completed", "archived"

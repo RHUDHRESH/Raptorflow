@@ -14,7 +14,6 @@ export const ROUTES = {
   nudges: "/nudges",
   foundation: "/foundation",
   uploads: "/uploads",
-  billing: "/billing",
   settings: "/settings",
   ripples: "/ripples",
   debug: "/internal/debug",

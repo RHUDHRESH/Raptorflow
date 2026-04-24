@@ -123,7 +123,11 @@ export type ResearchRequestKind =
 
 export type ResearchUrgency = "blocking" | "background";
 
-export type StreamCoordinatorPhase = "precheck" | "blocking_research" | "generation" | "post_processing";
+export type StreamCoordinatorPhase =
+  | "precheck"
+  | "blocking_research"
+  | "generation"
+  | "post_processing";
 
 export interface ToolGatewayRequest extends TenantScoped {
   requestId: Ulid;

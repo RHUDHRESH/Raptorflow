@@ -24,6 +24,37 @@ export const restNamespaces = [
   "/api/v1/internal/jobs/intern-dispatch",
   "/api/v1/internal/jobs/stream-coordinator",
   "/api/v1/internal/jobs/event-harvester",
+  "/api/v1/health",
 ] as const;
 
 export type RestNamespace = (typeof restNamespaces)[number];
+
+export interface HealthResponse {
+  status: "ok" | "degraded" | "error";
+  version: string;
+  db: "ok" | "unreachable";
+}
+
+export interface ApiError {
+  error: string;
+  detail?: string;
+  code?: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
+export interface OrgContext {
+  orgId: string;
+  planTier?: string;
+}
+
+export interface UserContext {
+  userId: string;
+  email?: string;
+}

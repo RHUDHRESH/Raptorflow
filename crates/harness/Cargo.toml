@@ -17,8 +17,6 @@ tracing.workspace = true
 ulid.workspace = true
 futures.workspace = true
 raptorflow-db = { path = "../db" }
-raptorflow-cache = { path = "../cache" }
-raptorflow-gcp = { path = "../gcp" }
 raptorflow-config = { path = "../config" }
 raptorflow-contracts = { path = "../contracts" }
 raptorflow-eel = { path = "../eel" }

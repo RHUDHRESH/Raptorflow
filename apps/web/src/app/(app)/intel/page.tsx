@@ -1,15 +1,12 @@
 "use client";
 
 import type * as React from "react";
-import { useState } from "react";
-import type { Route } from "next";
-import Link from "next/link";
+import { useState, useMemo } from "react";
 import { MagnifyingGlassIcon, GlobeIcon, Share2Icon, TargetIcon, ActivityLogIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
-import { useIntelSignals, useIntelOverview, useResearchRuns, useIntelDocuments } from "@/hooks/use-intel";
-import { type ResearchRun, type IntelDocument } from "@/lib/api";
+import { useIntelSignals, useIntelOverview } from "@/hooks/use-intel";
+import type { IntelSignal } from "@/hooks/use-intel";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDistanceToNow } from "date-fns";
 
 const CATEGORIES = [
   { name: "All Intelligence", value: "" },
@@ -21,15 +18,23 @@ const CATEGORIES = [
 
 export default function IntelPage(): React.ReactElement {
   const [activeCategory, setActiveCategory] = useState("");
-  const [activeView, setActiveView] = useState<"feed" | "runs" | "documents">("feed");
+  const [activeView] = useState<"feed">("feed");
   
-  const { data: signals, isLoading: isSignalsLoading } = useIntelSignals(activeCategory);
-  const { data: overview, isLoading: isOverviewLoading } = useIntelOverview();
-  const { data: runs, isLoading: isRunsLoading } = useResearchRuns();
-  const { data: documents, isLoading: isDocsLoading } = useIntelDocuments();
+  const { data: signalsData, isLoading: isSignalsLoading } = useIntelSignals(activeCategory);
+  const signals = signalsData?.signals;
+  const { data: overviewData, isLoading: isOverviewLoading } = useIntelOverview();
   
-  // Stats from overview
-  const stats = overview;
+  const stats = useMemo(() => {
+    if (!overviewData?.signals) return { total: 0, highPriority: 0, thisWeek: 0 };
+    const all = overviewData.signals;
+    const now = Date.now();
+    const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+    return {
+      total: all.length,
+      highPriority: all.filter(s => s.severity === "high" || s.severity === "critical").length,
+      thisWeek: all.filter(s => new Date(s.createdAt).getTime() > weekAgo).length,
+    };
+  }, [overviewData]);
   
   // Icon mapper
   const getIcon = (category: string) => {
@@ -76,15 +81,7 @@ export default function IntelPage(): React.ReactElement {
           <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
             <h1 className="font-[family-name:var(--font-display)] text-3xl">Intelligence</h1>
             <div className="flex gap-1 bg-[var(--card)] border border-[var(--border)] p-1">
-               {(["feed", "runs", "documents"] as const).map(v => (
-                 <button 
-                   key={v}
-                   onClick={() => setActiveView(v)}
-                   className={`px-4 py-1.5 text-[9px] font-mono uppercase tracking-widest transition-colors ${activeView === v ? "bg-[var(--foreground)] text-[var(--background)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}`}
-                 >
-                   {v}
-                 </button>
-               ))}
+               <button className="px-4 py-1.5 text-[9px] font-mono uppercase tracking-widest transition-colors bg-[var(--foreground)] text-[var(--background)]">feed</button>
             </div>
           </div>
           
@@ -101,21 +98,21 @@ export default function IntelPage(): React.ReactElement {
                   </div>
                 ) : (
                   signals?.map(item => {
-                    const Icon = getIcon(item.category);
+                    const Icon = getIcon(item.type);
                     return (
-                      <div key={item.signalId} className="gsap-reveal border border-[var(--border)] bg-[var(--card)] p-5 hover:border-[var(--primary)] transition-colors relative group cursor-pointer block">
-                        <div className={`absolute top-0 bottom-0 left-0 w-1 ${item.significance === 'high' || item.significance === 'critical' ? 'bg-[var(--destructive)]' : item.significance === 'medium' ? 'bg-[#c7772d]' : 'bg-[#5f8768]'}`} />
+                      <div key={item.id} className="gsap-reveal border border-[var(--border)] bg-[var(--card)] p-5 hover:border-[var(--primary)] transition-colors relative group cursor-pointer block">
+                        <div className={`absolute top-0 bottom-0 left-0 w-1 ${item.severity === 'high' || item.severity === 'critical' ? 'bg-[var(--destructive)]' : item.severity === 'medium' ? 'bg-[#c7772d]' : 'bg-[#5f8768]'}`} />
                         <div className="flex items-start gap-4">
                           <div className="h-10 w-10 border border-[var(--border)] flex items-center justify-center bg-[var(--background)] shrink-0">
                             <Icon className="h-4 w-4 text-[var(--muted-foreground)]" />
                           </div>
                           <div className="flex-1 space-y-2">
                              <div className="flex items-center justify-between">
-                                <span className="font-mono text-xs uppercase tracking-widest text-[var(--primary)] font-bold">{item.competitorName}</span>
-                                <ExclamationTriangleIcon className={`h-4 w-4 ${item.significance === 'high' || item.significance === 'critical' ? 'text-[var(--destructive)] opacity-100' : 'opacity-0'}`} />
+                                <span className="font-mono text-xs uppercase tracking-widest text-[var(--primary)] font-bold">{item.source}</span>
+                                <ExclamationTriangleIcon className={`h-4 w-4 ${item.severity === 'high' || item.severity === 'critical' ? 'text-[var(--destructive)] opacity-100' : 'opacity-0'}`} />
                              </div>
                              <h3 className="font-[family-name:var(--font-display)] text-xl leading-tight">{item.title}</h3>
-                             <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">{item.description}</p>
+                             <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">{item.summary}</p>
                           </div>
                         </div>
                       </div>
@@ -125,43 +122,6 @@ export default function IntelPage(): React.ReactElement {
               </>
             )}
 
-            {activeView === "runs" && (
-              <div className="space-y-4">
-                {isRunsLoading ? [1,2].map(i => <Skeleton key={i} className="h-20 w-full" />) :
-                 runs?.length === 0 ? <p className="text-center py-20 font-mono text-xs opacity-50">No research runs found.</p> :
-                 runs?.map((run: ResearchRun) => (
-                   <div key={run.run_id} className="p-5 border border-[var(--border)] bg-[var(--card)] flex items-center justify-between">
-                      <div>
-                        <h4 className="font-bold text-[#2A2622] tracking-tight">{run.title}</h4>
-                        <p className="text-[10px] font-mono text-[#9A948C] uppercase mt-1">{run.status} // {run.run_id}</p>
-                      </div>
-                      <div className="text-right">
-                         <div className="text-xs font-mono text-[#6B655E] mb-1">{run.progress}%</div>
-                         <div className="w-32 h-1 bg-[#E5DED4]"><div className="h-full bg-[#D97757]" style={{ width: `${run.progress}%` }} /></div>
-                      </div>
-                   </div>
-                 ))
-                }
-              </div>
-            )}
-
-            {activeView === "documents" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {isDocsLoading ? [1,2,3,4].map(i => <Skeleton key={i} className="h-32 w-full" />) :
-                 documents?.length === 0 ? <p className="text-center py-20 font-mono text-xs opacity-50 col-span-2">Archive empty.</p> :
-                 documents?.map((doc: IntelDocument) => (
-                   <div key={doc.document_id} className="p-6 border border-[var(--border)] bg-[var(--card)] space-y-3">
-                      <div className="flex justify-between items-start">
-                        <span className="text-[9px] font-mono text-[#D97757] uppercase tracking-widest">{doc.source_type}</span>
-                        <span className="text-[9px] font-mono text-[#9A948C] tracking-widest">{new Date(doc.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <h4 className="font-[family-name:var(--font-display)] text-lg text-[#2A2622] leading-tight">{doc.title}</h4>
-                      <p className="text-xs text-[#6B655E] line-clamp-2 leading-relaxed">{doc.content_preview}</p>
-                   </div>
-                 ))
-                }
-              </div>
-            )}
           </div>
         </main>
 
@@ -180,16 +140,16 @@ export default function IntelPage(): React.ReactElement {
             ) : (
               <div className="space-y-4">
                 <div className="flex justify-between items-end border-b border-[var(--border)] pb-2">
-                  <span className="text-sm text-[var(--muted-foreground)]">Competitors tracked</span>
-                  <span className="font-mono text-xl">{stats?.monitored_count || 0}</span>
+                  <span className="text-sm text-[var(--muted-foreground)]">Total signals</span>
+                  <span className="font-mono text-xl">{stats.total}</span>
                 </div>
                 <div className="flex justify-between items-end border-b border-[var(--border)] pb-2">
-                  <span className="text-sm text-[var(--muted-foreground)]">Items this week</span>
-                  <span className="font-mono text-xl">{stats?.signals_24h || 0}</span>
+                  <span className="text-sm text-[var(--muted-foreground)]">This week</span>
+                  <span className="font-mono text-xl">{stats.thisWeek}</span>
                 </div>
                 <div className="flex justify-between items-end border-b border-[var(--border)] pb-2">
                   <span className="text-sm text-[var(--muted-foreground)] text-[var(--destructive)]">High priority</span>
-                  <span className="font-mono text-xl text-[var(--destructive)]">{stats?.high_priority_count || 0}</span>
+                  <span className="font-mono text-xl text-[var(--destructive)]">{stats.highPriority}</span>
                 </div>
               </div>
             )}

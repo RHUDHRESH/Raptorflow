@@ -12,8 +12,8 @@ use crate::middleware::{
     AppState,
 };
 use crate::routes::{
-    auth, billing, campaigns, content, council, daily_wins, foundation, health, intel, jobs, muse,
-    nudges, office, prl, replan,
+    auth, campaigns, content, council, daily_wins, foundation, health, intel, jobs, muse, nudges,
+    office, prl, replan,
 };
 
 fn cors_layer(state: &AppState) -> CorsLayer {
@@ -56,26 +56,23 @@ fn public_router(_state: &AppState) -> Router {
         .route("/health/live", get(health::liveness))
         .route("/health/ready", get(health::readiness))
         .route("/api/v1/webhooks/clerk", post(auth::clerk_webhook))
-        .route("/api/v1/webhooks/razorpay", post(billing::razorpay_webhook))
         .layer(RateLimitLayer::per_ip(rate_limit_state))
 }
 
 fn protected_router(state: Arc<AppState>) -> Router {
     Router::new()
-        .route("/api/v1/billing", get(billing::billing_status))
-        .route("/api/v1/billing/orders", post(billing::create_order))
-        .route(
-            "/api/v1/billing/subscriptions/{id}",
-            get(billing::get_subscription),
-        )
-        .route(
-            "/api/v1/billing/subscriptions/{id}/cancel",
-            post(billing::cancel_subscription),
-        )
         .route("/api/v1/foundation", get(foundation::get_foundation))
         .route("/api/v1/foundation", post(foundation::create_foundation))
         .route(
             "/api/v1/foundation/scan/start",
+            post(foundation::start_scan),
+        )
+        .route(
+            "/api/v1/foundation/scan/quick",
+            post(foundation::start_scan),
+        )
+        .route(
+            "/api/v1/foundation/scan/deep",
             post(foundation::start_scan),
         )
         .route(
@@ -292,7 +289,8 @@ fn protected_router(state: Arc<AppState>) -> Router {
         )
         .route("/api/v1/office", get(office::get_office_state))
         .route("/api/v1/office/ws", get(office::ws_office))
-        .route_layer(axum::middleware::from_fn_with_state(state, auth_middleware))
+        .route("/api/v1/health", get(health::api_health))
+        .layer(axum::middleware::from_fn_with_state(state, auth_middleware))
 }
 
 pub fn create_router(state: AppState) -> Router {
@@ -312,10 +310,6 @@ pub fn create_router(state: AppState) -> Router {
 
     if let Some(ref tenant_pool) = shared_state.tenant_pool {
         app = app.layer(Extension(tenant_pool.clone()));
-    }
-
-    if let Some(cache_service) = shared_state.cache_service.clone() {
-        app = app.layer(Extension(cache_service));
     }
 
     app.layer(cors_layer(shared_state.as_ref()))

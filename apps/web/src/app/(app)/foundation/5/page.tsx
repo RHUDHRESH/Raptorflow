@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { Loader2, Sparkles, X, Check } from "lucide-react";
 import { useFoundationStore } from "@/state/foundation-store";
-import { cn } from "@/lib/utils";
 
 /**
  * Foundation Screen 5: The Customer Problem
@@ -18,8 +16,6 @@ export default function FoundationStep5() {
 
   const [problemStatement, setProblemStatement] = useState("");
   const [usedScanSuggestion, setUsedScanSuggestion] = useState(false);
-  const [isHelping, setIsHelping] = useState(false);
-  const [showHelperPanel, setShowHelperPanel] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,23 +29,12 @@ export default function FoundationStep5() {
   }, [setStep, sectionData]);
 
   const scanProblem = sectionData.scan_results?.problem_statement;
+  const scanPrompt = useMemo(() => scanProblem?.trim() ?? "", [scanProblem]);
 
-  /**
-   * Mock AI Articulation helper logic
-   */
-  const handleAiHelp = () => {
-    setIsHelping(true);
-    setError(null);
-    setTimeout(() => {
-      setIsHelping(false);
-      setShowHelperPanel(true);
-    }, 1500);
-  };
-
-  const useAiSuggestion = () => {
-    const suggestion = "Difficulty tracking inventory across multiple locations without real-time visibility, causing stock-outs and overstocking.";
-    setProblemStatement(suggestion);
-    setShowHelperPanel(false);
+  const useScanSuggestion = () => {
+    if (!scanPrompt) return;
+    setProblemStatement(scanPrompt);
+    setUsedScanSuggestion(true);
   };
 
   /**
@@ -132,8 +117,7 @@ export default function FoundationStep5() {
             onChange={(e) => setProblemStatement(e.target.value)}
           />
           
-          <div className="flex items-center justify-between min-h-[20px]">
-            {/* Char warning */}
+          <div className="flex items-center justify-between min-h-[20px] gap-3">
             <div className="text-[10px] font-mono">
               {problemStatement.length >= 480 && (
                 <span className="text-[#f59e0b]">
@@ -142,46 +126,17 @@ export default function FoundationStep5() {
               )}
             </div>
 
-            {/* AI HELPER BUTTON */}
-            {!showHelperPanel && (
+            {scanPrompt ? (
               <button
-                disabled={isHelping}
-                onClick={handleAiHelp}
+                onClick={useScanSuggestion}
                 className="flex items-center gap-2 text-sm text-[#f59e0b] hover:opacity-80 transition-opacity disabled:opacity-50"
               >
-                {isHelping ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                <span>Help me articulate this →</span>
+                <span>Use scan suggestion →</span>
               </button>
+            ) : (
+              <span className="text-xs text-[#9A948C]">Write the problem directly.</span>
             )}
           </div>
-
-          {/* AI SUGGESTION PANEL */}
-          {showHelperPanel && (
-            <div className="p-4 bg-[#262626] border border-[#D5CBC0] rounded-xl space-y-4 animate-in fade-in zoom-in-95 duration-300 shadow-2xl">
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold text-[#6B655E] uppercase tracking-widest">Suggested Framing:</p>
-                <p className="text-sm text-[#4A4540] leading-relaxed italic">
-                  &quot;Based on your product, you might be solving: difficulty tracking inventory across multiple locations without real-time visibility, causing stock-outs and overstocking.&quot;
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={useAiSuggestion}
-                  className="flex items-center gap-2 bg-[#f59e0b]/10 border border-[#f59e0b] text-[#f59e0b] px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#f59e0b]/20 transition-all"
-                >
-                  <Check className="w-3 h-3" />
-                  Use this
-                </button>
-                <button
-                  onClick={() => setShowHelperPanel(false)}
-                  className="flex items-center gap-2 text-[#6B655E] hover:text-[#2A2622] px-2 py-2 text-xs transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                  Not quite, dismiss
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ERROR & CTA */}

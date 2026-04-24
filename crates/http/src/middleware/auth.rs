@@ -32,11 +32,6 @@ pub async fn auth_middleware(
         return Ok(next.run(request).await);
     }
 
-    // Use dev bypass if enabled (for local development only)
-    if state.settings.allow_insecure_dev_auth {
-        return crate::middleware::dev_bypass::dev_auth_middleware(state, request, next).await;
-    }
-
     let auth_header = request
         .headers()
         .get(AUTHORIZATION)

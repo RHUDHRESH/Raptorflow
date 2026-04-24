@@ -3,32 +3,27 @@
 import * as React from "react";
 import { LandingNav } from "./landing-nav";
 import { LandingHero } from "./landing-hero";
-import { LandingProblem } from "./landing-problem";
-import { LandingGuide } from "./landing-guide";
-import { LandingStory } from "./landing-story";
+import { LandingSocialProof } from "./landing-social-proof";
+import { LandingFeatures } from "./landing-features";
 import { LandingHowItWorks } from "./landing-how-it-works";
-import { LandingPillars } from "./landing-pillars";
-import { LandingGuarantee } from "./landing-guarantee";
 import { LandingPricing } from "./landing-pricing";
-import { LandingFinalCTA } from "./landing-final-cta";
 import { LandingFooter } from "./landing-footer";
 import { WhatsAppFloat } from "./whatsapp-float";
+import { PageTransition } from "@/components/ui/gsap-bridge";
 
 export function LandingPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden">
-      <LandingNav />
-      <LandingHero />
-      <LandingProblem />
-      <LandingGuide />
-      <LandingStory />
-      <LandingHowItWorks />
-      <LandingPillars />
-      <LandingGuarantee />
-      <LandingPricing />
-      <LandingFinalCTA />
-      <LandingFooter />
-      <WhatsAppFloat />
-    </main>
+    <PageTransition>
+      <main className="min-h-screen paper-soft">
+        <LandingNav />
+        <LandingHero />
+        <LandingSocialProof />
+        <LandingFeatures />
+        <LandingHowItWorks />
+        <LandingPricing />
+        <LandingFooter />
+        <WhatsAppFloat />
+      </main>
+    </PageTransition>
   );
 }

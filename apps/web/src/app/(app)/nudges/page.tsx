@@ -1,18 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import {
   ExclamationTriangleIcon,
   InfoCircledIcon,
   CheckCircledIcon,
   CrossCircledIcon,
   Cross2Icon,
-  ReloadIcon,
   LightningBoltIcon,
   ActivityLogIcon,
 } from "@radix-ui/react-icons";
-import { useNudges } from "@/hooks/use-nudges";
+import { useNudges, useDismissNudge, type Nudge } from "@/hooks/use-nudges";
 import { useOfficeStore } from "@/state/office-store";
 import { AGENTS } from "@/lib/agents";
 import { AgentPill } from "@/components/ui/agent-portrait";
@@ -27,6 +26,14 @@ const SEVERITY_CONFIG = {
 } as const;
 
 type Severity = "high" | "medium" | "low" | "system";
+
+function priorityToSeverity(priority: number | undefined): Severity {
+  if (!priority) return "system";
+  if (priority >= 9) return "high";
+  if (priority >= 6) return "medium";
+  if (priority >= 4) return "low";
+  return "system";
+}
 
 /* ─── Radar sweep animation (CSS) ──────────────────────────────── */
 function RadarEmpty(): React.ReactElement {
@@ -78,20 +85,20 @@ function RadarEmpty(): React.ReactElement {
 }
 
 /* ─── Alert Card ────────────────────────────────────────────────── */
-function AlertCard({ nudge, onDismiss }: { nudge: any; onDismiss: () => void }): React.ReactElement {
-  const sevKey = (nudge.priority?.toLowerCase() as Severity) || "system";
-  const sev  = SEVERITY_CONFIG[sevKey] || SEVERITY_CONFIG.system;
+function AlertCard({ nudge, onDismiss }: { nudge: Nudge; onDismiss: () => void }): React.ReactElement {
+  const sevKey = priorityToSeverity(nudge.priority);
+  const sev  = SEVERITY_CONFIG[sevKey];
   const Icon = sev.icon;
-  const typeLabel = (nudge.nudge_type || "SYSTEM").toUpperCase();
-  const agentKey = nudge.action_data?.agent_key;
-  const agent = AGENTS.find((a) => a.key === agentKey);
+  const typeLabel = (nudge.type || "SYSTEM").toUpperCase();
 
-  const elapsed = Date.now() - new Date(nudge.created_at).getTime();
+  const elapsed = Date.now() - new Date(nudge.createdAt).getTime();
   const elapsedStr = elapsed < 60000
     ? "just now"
     : elapsed < 3600000
     ? `${Math.floor(elapsed / 60000)}m ago`
     : `${Math.floor(elapsed / 3600000)}h ago`;
+
+  const ctaHref = nudge.ctaHref ?? "#";
 
   return (
     <div
@@ -148,20 +155,18 @@ function AlertCard({ nudge, onDismiss }: { nudge: any; onDismiss: () => void }):
 
         {/* Footer */}
         <div className="flex items-center justify-between mt-3">
-          {agent ? (
-            <AgentPill agent={agent} size={14} />
-          ) : (
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)" }}>System</span>
-          )}
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)" }}>System</span>
           <div className="flex gap-1">
-            <Link
-              href={nudge.nudge_type === "intel" ? "/intel" : nudge.nudge_type === "performance" ? "/campaigns" : "/muse"}
-              className="flex items-center gap-1 px-2 py-1 border border-[var(--border)] hover:border-[var(--foreground)] transition-all"
-              style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted-foreground)" }}
-            >
-              <LightningBoltIcon className="h-2.5 w-2.5" />
-              Act
-            </Link>
+            {nudge.ctaHref && (
+              <Link
+                href={ctaHref}
+                className="flex items-center gap-1 px-2 py-1 border border-[var(--border)] hover:border-[var(--foreground)] transition-all"
+                style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted-foreground)" }}
+              >
+                <LightningBoltIcon className="h-2.5 w-2.5" />
+                {nudge.cta ?? "Act"}
+              </Link>
+            )}
             <button
               onClick={onDismiss}
               className="flex h-6 w-6 items-center justify-center border border-[var(--border)] hover:border-[var(--foreground)] transition-colors"
@@ -182,21 +187,24 @@ export default function NudgesPage(): React.ReactElement {
   const eventLog = useOfficeStore((s) => s.eventLog);
   const wsStatus = useOfficeStore((s) => s.connectionStatus);
   const { data: realNudges, isLoading, error } = useNudges();
+  const dismissNudge = useDismissNudge();
   const [sevFilter, setSevFilter] = useState<SevFilter>("all");
 
-  const alerts = realNudges || [];
+  const nudges = realNudges?.nudges ?? [];
   const handleDismiss = (id: string) => {
-    // Backend missing dismiss route, skipping for now to be TRUTHFUL
-    console.log("Dismiss not implemented on backend", id);
+    dismissNudge.mutate(id);
   };
 
   const wsSeverityColor = wsStatus === "connected" ? "var(--leaf-confirm)" : wsStatus === "connecting" ? "var(--amber-war)" : "var(--signal-red)";
-  const filtered = alerts.filter((a) => sevFilter === "all" || a.priority?.toLowerCase() === sevFilter);
+  const filtered = nudges.filter((nudge) => {
+    if (sevFilter === "all") return true;
+    return priorityToSeverity(nudge.priority) === sevFilter;
+  });
 
-  const highCount   = alerts.filter((a) => a.priority?.toLowerCase() === "high").length;
-  const medCount    = alerts.filter((a) => a.priority?.toLowerCase() === "medium").length;
-  const lowCount    = alerts.filter((a) => a.priority?.toLowerCase() === "low").length;
-  const sysCount    = alerts.filter((a) => a.priority?.toLowerCase() === "system").length;
+  const highCount = filtered.filter((nudge) => priorityToSeverity(nudge.priority) === "high").length;
+  const medCount  = filtered.filter((nudge) => priorityToSeverity(nudge.priority) === "medium").length;
+  const lowCount  = filtered.filter((nudge) => priorityToSeverity(nudge.priority) === "low").length;
+  const sysCount  = filtered.filter((nudge) => priorityToSeverity(nudge.priority) === "system").length;
 
   return (
     <div className="flex flex-col gap-8 py-2">
@@ -282,7 +290,7 @@ export default function NudgesPage(): React.ReactElement {
       ) : (
         <div className="flex flex-col gap-0 border border-[var(--border)]">
           {filtered.map((nudge) => (
-            <AlertCard key={nudge.nudge_id} nudge={nudge} onDismiss={() => handleDismiss(nudge.nudge_id)} />
+            <AlertCard key={nudge.id} nudge={nudge} onDismiss={() => handleDismiss(nudge.id)} />
           ))}
         </div>
       )}

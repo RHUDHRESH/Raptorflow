@@ -4,6 +4,34 @@ use uuid::Uuid;
 
 pub type PgPool = SqlxPgPool;
 
+/// Build the application database pool (goes through PgBouncer).
+/// Uses RAPTORFLOW_DATABASE_URL — port 6432 in production, 6432 locally.
+pub async fn create_app_pool(database_url: &str) -> Result<PgPool, sqlx::Error> {
+    PgPoolOptions::new()
+        .max_connections(20)
+        .min_connections(2)
+        .acquire_timeout(Duration::from_secs(5))
+        .connect(database_url)
+        .await
+}
+
+/// Build a direct pool for migrations only.
+/// Uses RAPTORFLOW_DIRECT_DATABASE_URL — port 5432 always.
+pub async fn create_migration_pool(direct_database_url: &str) -> Result<PgPool, sqlx::Error> {
+    PgPoolOptions::new()
+        .max_connections(2)
+        .connect(direct_database_url)
+        .await
+}
+
+/// Verify the pool is reachable. Used in health checks.
+pub async fn ping(pool: &PgPool) -> Result<(), sqlx::Error> {
+    sqlx::query("SELECT 1")
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
 pub async fn create_pool(database_url: &str) -> Result<PgPool, sqlx::Error> {
     PgPoolOptions::new()
         .max_connections(20)

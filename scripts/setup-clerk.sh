@@ -132,8 +132,6 @@ RAPTORFLOW_CLERK_ISSUER=$issuer_url
 RAPTORFLOW_CLERK_JWKS_URL=${issuer_url}/.well-known/jwks.json
 RAPTORFLOW_CLERK_WEBHOOK_SECRET=$webhook_secret
 
-# Development Settings
-RAPTORFLOW_ALLOW_INSECURE_DEV_AUTH=true
 APP_ENV=dev
 EOF
 
@@ -145,7 +143,6 @@ cat > apps/web/.env.local << EOF
 # Clerk Authentication
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$publishable_key
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
-NEXT_PUBLIC_OFFLINE_MODE=false
 EOF
 
 echo -e "${GREEN}✅ Environment files generated${NC}"
@@ -153,10 +150,10 @@ echo ""
 echo -e "${BLUE}📝 Next Steps:${NC}"
 echo -e "1. Review the generated .env.local files"
 echo -e "2. Add your Clerk secret key to .env.local:"
-echo -e "   RAPTORFLOW_CLERK_SECRET_KEY=sk_..."
+echo -e "   CLERK_SECRET_KEY=sk_..."
 echo -e "   (Get this from Clerk Dashboard → API Keys)"
 echo -e "3. Start the infrastructure:"
-echo -e "   docker compose up -d postgres pgbouncer dragonfly qdrant"
+echo -e "   docker compose up -d postgres pgbouncer qdrant"
 echo -e "4. Run the health check:"
 echo -e "   ./scripts/healthcheck.sh"
 echo -e "5. Start the API:"

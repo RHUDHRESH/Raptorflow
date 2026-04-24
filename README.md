@@ -15,9 +15,9 @@ The frontend is a Next.js app with a PixiJS-rendered office canvas where you can
 | **Frontend**  | Next.js 15, TypeScript, Clerk, Zustand, TanStack Query, Tailwind, PixiJS v8 | Fast iteration, great DX, real-time canvas               |
 | **Backend**   | Rust, Axum 0.8, Tokio, SQLx                                                 | Type safety, async performance, small memory footprint   |
 | **Database**  | Aurora PostgreSQL 16, pgvector, PgBouncer                                   | ACID transactions, vector similarity, connection pooling |
-| **Memory**    | Qdrant (vectors), DragonflyDB (cache)                                       | Fast retrieval, pub/sub, distributed locks               |
+| **Memory**    | Qdrant (vectors)                                                            | Fast retrieval and vector similarity                     |
 | **Queue**     | AWS SQS                                                                     | Background job processing without blocking requests      |
-| **Inference** | GCP Gemini (via `crates/gcp`)                                               | Context caching reduces inference cost                   |
+| **Inference** | AWS Bedrock Mistral (via `crates/aws`)                                      | Mistral Large 3 (large) / Ministral 3 8B (fast)          |
 | **Infra**     | ECS Fargate + Vercel                                                        | No servers to manage, scales automatically               |
 
 ---
@@ -26,7 +26,7 @@ The frontend is a Next.js app with a PixiJS-rendered office canvas where you can
 
 ```bash
 corepack enable && pnpm install --frozen-lockfile && pnpm setup:hooks
-docker compose up postgres pgbouncer dragonfly qdrant   # terminal 1
+docker compose up postgres pgbouncer qdrant   # terminal 1
 pnpm dev                                               # terminal 2
 ```
 
@@ -34,7 +34,7 @@ Open **http://localhost:3000**. The API runs at **http://localhost:8080**.
 
 Full setup guide: **[docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)**
 
-**Frontend-only or offline dev:** **[docs/LOCAL_SETUP.md](./docs/LOCAL_SETUP.md)** — `NEXT_PUBLIC_OFFLINE_MODE=true` to run without the backend.
+For local development, use **[docs/LOCAL_SETUP.md](./docs/LOCAL_SETUP.md)** and set the Clerk, database, Bedrock, and S3/SQS variables described there.
 
 ---
 
@@ -46,7 +46,7 @@ crates/                 27 Rust crates (API server + all services)
 packages/contracts/      TypeScript types (generated from schemas/)
 schemas/                JSON schemas — the API contract source of truth
 database/migrations/    PostgreSQL schema
-infra/docker/           Local dev stack (Postgres, PgBouncer, Dragonfly, Qdrant)
+infra/docker/           Local dev stack (Postgres, PgBouncer, Qdrant)
 infra/tofu/             Production AWS infrastructure (ECS, Aurora, S3)
 docs/                   Canonical specs, ADRs, runbooks, prompt contracts
 scripts/                Pre-commit hooks, contract sync, scaffold validation

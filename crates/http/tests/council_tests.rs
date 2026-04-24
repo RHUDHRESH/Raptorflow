@@ -7,13 +7,11 @@ use tower::ServiceExt;
 
 fn test_app_state() -> AppState {
     let mut settings = Settings::from_env().expect("settings");
-    settings.allow_insecure_dev_auth = true;
     settings.app_env = "dev".to_string();
     AppState::new(
         None,
         "example.clerk.accounts.dev".to_string(),
         Arc::new(settings),
-        None,
     )
 }
 

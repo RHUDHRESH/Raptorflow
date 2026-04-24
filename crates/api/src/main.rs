@@ -5,13 +5,14 @@
 //!
 //! - `Settings` from environment variables (via `raptorflow_config`)
 //! - PostgreSQL connection pool (via `raptorflow_db`)
-//! - Redis cache service (via `raptorflow_cache`) for replay protection
+//! - AWS Bedrock inference client (via `raptorflow_aws`)
 //! - Clerk JWT validation middleware (domain read from settings)
 //! - The main router built in the `http` crate
 //!
 //! The server binds to `0.0.0.0:8080` in all environments. Configure the port
 //! via the `APP_PORT` environment variable if needed.
 
+use raptorflow_aws::bedrock::BedrockInferenceClient;
 use raptorflow_config::Settings;
 use raptorflow_db::PgPool;
 use raptorflow_http::create_router;
@@ -29,6 +30,13 @@ async fn main() -> anyhow::Result<()> {
     let settings = Arc::new(Settings::from_env()?);
     eprintln!("[raptorflow-api] boot: settings loaded");
 
+    let _sentry_guard = raptorflow_telemetry::init(
+        "raptorflow-api",
+        Some(settings.sentry_dsn.as_str()),
+        Some(settings.app_env.as_str()),
+    )?;
+    eprintln!("[raptorflow-api] boot: sentry ready");
+
     let db_pool = if settings.database_url.starts_with("postgres") {
         eprintln!("[raptorflow-api] boot: connecting database");
         let pool = PgPool::connect(&settings.database_url).await?;
@@ -39,28 +47,24 @@ async fn main() -> anyhow::Result<()> {
         None
     };
 
-    // # FIXED: initialize cache service for Clerk webhook replay protection and other caching
-    let cache_service = if settings.dragonfly_url.trim().is_empty() {
-        eprintln!("[raptorflow-api] boot: cache skipped");
-        None
-    } else {
-        eprintln!("[raptorflow-api] boot: connecting cache");
-        match raptorflow_cache::CacheService::from_settings(&settings).await {
-            Ok(cache) => {
-                eprintln!("[raptorflow-api] boot: cache connected");
-                tracing::info!("Cache service initialized successfully");
-                Some(Arc::new(cache))
-            }
-            Err(e) => {
-                eprintln!("[raptorflow-api] boot: cache unavailable: {e}");
-                tracing::warn!(error = %e, "Failed to initialize cache service, running without caching");
-                None
-            }
+    let bedrock_client = match BedrockInferenceClient::new(&settings.bedrock_region).await {
+        Ok(client) => {
+            tracing::info!(
+                region = %settings.bedrock_region,
+                model_strategist = %settings.bedrock_model_strategist,
+                model_fast = %settings.bedrock_model_fast,
+                "Bedrock inference client ready"
+            );
+            Some(Arc::new(client))
+        }
+        Err(e) => {
+            tracing::warn!("Bedrock client init failed: {e} — running without AI inference");
+            None
         }
     };
 
     let clerk_domain = settings.clerk_issuer.clone();
-    let state = AppState::new(db_pool, clerk_domain, settings, cache_service);
+    let state = AppState::new(db_pool, bedrock_client, clerk_domain, settings);
     eprintln!("[raptorflow-api] boot: state ready");
 
     let app = create_router(state);

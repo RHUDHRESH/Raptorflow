@@ -21,12 +21,10 @@ scraper.workspace = true
 async-trait.workspace = true
 raptorflow-auth = { path = "../auth" }
 raptorflow-avatars = { path = "../avatars" }
-raptorflow-billing = { path = "../billing" }
-raptorflow-cache = { path = "../cache" }
+raptorflow-aws = { path = "../aws" }
 raptorflow-db = { path = "../db" }
 raptorflow-config = { path = "../config" }
 raptorflow-foundation = { path = "../foundation" }
-raptorflow-gcp = { path = "../gcp" }
 raptorflow-prl = { path = "../prl" }
 raptorflow-intel = { path = "../intel" }
 raptorflow-acquisition = { path = "../acquisition" }

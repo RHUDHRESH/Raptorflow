@@ -49,8 +49,8 @@ resource "aws_security_group" "db" {
   }
 }
 
-resource "aws_security_group" "dragonfly" {
-  name   = "${var.name}-dragonfly"
+resource "aws_security_group" "vector" {
+  name   = "${var.name}-vector"
   vpc_id = var.vpc_id
 
   ingress {
@@ -88,8 +88,8 @@ resource "aws_secretsmanager_secret" "clerk_jwt" {
   tags = var.tags
 }
 
-resource "aws_secretsmanager_secret" "gcp_api_key" {
-  name = "${var.name}/gcp/api-key"
+resource "aws_secretsmanager_secret" "bedrock_api_key" {
+  name = "${var.name}/bedrock/api-key"
   tags = var.tags
 }
 
@@ -108,3 +108,4 @@ resource "aws_iam_openid_connect_provider" "github" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = var.github_oidc_thumbprints
 }
+

@@ -4,11 +4,13 @@ use axum::{
     Json, Router,
     routing::{get, post},
 };
+use raptorflow_auth::TenantContext;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use std::sync::Arc;
 use ulid::Ulid;
 
-use raptorflow_auth::TenantContext;
+use crate::middleware::AppState;
 use raptorflow_db::{queries, TenantDbPool};
 use raptorflow_db::models::{MuseConversation, MuseMessage};
 
@@ -83,6 +85,7 @@ impl From<MuseMessage> for MessageResponse {
 pub async fn submit_prompt(
     Extension(tenant): Extension<TenantContext>,
     Extension(tenant_pool): Extension<TenantDbPool>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(req): Json<SubmitPromptRequest>,
 ) -> AppResult<Json<Value>> {
     if req.prompt.trim().is_empty() {
@@ -116,13 +119,33 @@ pub async fn submit_prompt(
     .await
     .map_err(internal_error)?;
 
+    let bedrock = state.bedrock.as_ref().ok_or_else(|| {
+        tracing::warn!("Bedrock client not configured");
+        internal_error("AI inference not configured")
+    })?;
+
+    let prompt_text = format!(
+        "You are the RaptorFlow {route} assistant. Reply directly and concisely.\n\nUser prompt:\n{}",
+        req.prompt
+    );
+
+    let assistant_response = match route {
+        "strategic" | "foundation_update" => {
+            bedrock.converse_large(&prompt_text, 512).await
+        }
+        _ => {
+            bedrock.converse_fast(&prompt_text, 512).await
+        }
+    }
+    .map_err(internal_error)?;
+
     queries::create_muse_message(
         &tenant_pool.pool(),
         &assistant_message_id,
         &conversation_id,
         org_id,
         "assistant",
-        "Response generation is asynchronous. Check messages for current state.",
+        &assistant_response,
     )
     .await
     .map_err(internal_error)?;
@@ -131,6 +154,7 @@ pub async fn submit_prompt(
         "conversation_id": conversation_id,
         "message_id": user_message_id,
         "assistant_message_id": assistant_message_id,
+        "assistant_response": assistant_response,
         "status": "submitted"
     })))
 }

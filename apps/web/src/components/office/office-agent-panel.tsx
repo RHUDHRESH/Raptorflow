@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { gsap } from "gsap";
 import {
   Cross2Icon,
@@ -11,23 +11,7 @@ import {
 } from "@radix-ui/react-icons";
 import { AGENT_MAP, AGENTS, type AgentConfig } from "@/lib/agents";
 import { AgentPortrait } from "@/components/ui/agent-portrait";
-
-/* ─── Mock PRL Ripple (until real API) ───────────────────────── */
-const MOCK_RIPPLES: Record<string, { date: string; text: string }[]> = {
-  ogilvy:   [
-    { date: "14 Apr", text: "Revised Diya Organics headline — tested 3 variants, variant B wins." },
-    { date: "12 Apr", text: "Flagged competitor Luminous Brands copy as derivative of 2019 playbook." },
-    { date: "09 Apr", text: "Recommended adding testimonials to landing page above fold." },
-  ],
-  bernbach: [
-    { date: "14 Apr", text: "Proposed 'ugly truth campaign' for Diya Organics authenticity positioning." },
-    { date: "11 Apr", text: "Disagreed with Hopkins on data-first approach for new reels brief." },
-  ],
-  vaynerchuk: [
-    { date: "14 Apr", text: "Instagram Reels outperforming static posts 3.2x — double down now." },
-    { date: "13 Apr", text: "Advised against boosting posts — organic reach window is open this week." },
-  ],
-};
+import { useOfficeStore } from "@/state/office-store";
 
 /* ─── Stance Chip ─────────────────────────────────────────────── */
 function StanceChip({ stance }: { stance: string }): React.ReactElement {
@@ -69,7 +53,37 @@ export function OfficeAgentPanel({
 }: AgentPanelProps): React.ReactElement {
   const panelRef = useRef<HTMLDivElement>(null);
   const config   = AGENT_MAP.get(agentKey);
-  const ripples  = MOCK_RIPPLES[agentKey] ?? [];
+  const eventLog = useOfficeStore((state) => state.eventLog);
+  const ripples = useMemo(() => {
+    return eventLog
+      .filter((event) => {
+        const payload = event.payload as Record<string, unknown> | undefined;
+        return (
+          event.agentKey === agentKey ||
+          payload?.agentKey === agentKey ||
+          payload?.sourceAgent === agentKey ||
+          typeof event.type === "string" && event.type.includes(agentKey)
+        );
+      })
+      .slice(-6)
+      .reverse()
+      .map((event) => {
+        const payload = event.payload as Record<string, unknown> | undefined;
+        const text =
+          (typeof payload?.summary === "string" && payload.summary) ||
+          (typeof payload?.message === "string" && payload.message) ||
+          (typeof payload?.text === "string" && payload.text) ||
+          (typeof payload?.content === "string" && payload.content) ||
+          event.type.replaceAll("_", " ");
+        return {
+          date: new Date(event.timestamp).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+          }),
+          text,
+        };
+      });
+  }, [agentKey, eventLog]);
 
   // Animate in
   useEffect(() => {

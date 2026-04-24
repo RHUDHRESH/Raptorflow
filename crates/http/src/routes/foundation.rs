@@ -6,10 +6,8 @@ use axum::{
 use chrono::Utc;
 use raptorflow_acquisition::{HtmlParser, HttpFetcher, UrlNormalizer};
 use raptorflow_avatars::seeding::seed_org_avatars;
-use raptorflow_cache::FoundationCache;
 use raptorflow_db::models::FoundationSnapshot;
 use raptorflow_foundation::{FoundationData, FoundationService};
-use raptorflow_gcp::GcpInferenceService;
 use raptorflow_db::queries as db;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
@@ -71,6 +69,26 @@ fn not_found(message: &str) -> (StatusCode, Json<serde_json::Value>) {
         StatusCode::NOT_FOUND,
         Json(serde_json::json!({ "error": message })),
     )
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PositioningTemplateComponents {
+    for_who: String,
+    who_problem: String,
+    brand: String,
+    category: String,
+    differentiation: String,
+    because: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PositioningDraftResponse {
+    statement: String,
+    template_components: PositioningTemplateComponents,
+    quality_score: f64,
+    quality_feedback: String,
 }
 
 fn db_pool(state: &Arc<AppState>) -> AppResult<&sqlx::PgPool> {
@@ -883,9 +901,8 @@ pub async fn complete_foundation(
     }
 
     let foundation_json = serde_json::json!({ "sections": sections });
-    let foundation_json_str = foundation_json.to_string();
 
-    let avatar_check = sqlx::query_as::<_, (i64,)>(
+    let avatar_check = sqlx::query_as::<_, (i64,)>( 
         "SELECT COUNT(*) FROM agent_essences WHERE org_id = $1",
     )
     .bind(org_id)
@@ -912,31 +929,6 @@ pub async fn complete_foundation(
         }
     }
 
-    if let Some(ref cache_svc) = state.cache_service {
-        let foundation_cache = FoundationCache::new(Arc::new((**cache_svc).clone()));
-        if let Err(e) = foundation_cache.set_cached_content(&org_id.to_string(), &foundation_json_str).await {
-            tracing::warn!(org_id = %org_id, error = %e, "dragonflydb cache set failed");
-        }
-    }
-
-    let gcp_inference = GcpInferenceService::from_settings(&state.settings);
-    let gcp_cache_result = gcp_inference
-        .create_foundation_cache(&foundation_json_str, 86400)
-        .await;
-
-    match gcp_cache_result {
-        Ok(cached) => {
-            tracing::info!(
-                org_id = %org_id,
-                cache_name = %cached.name,
-                "foundation GCP context cache created"
-            );
-        }
-        Err(e) => {
-            tracing::warn!(org_id = %org_id, error = %e, "foundation GCP cache creation failed");
-        }
-    }
-
     let company_name = foundation_json
         .get("sections")
         .and_then(|s| s.get("company_info"))
@@ -944,47 +936,14 @@ pub async fn complete_foundation(
         .and_then(|v| v.as_str())
         .unwrap_or("there");
 
-    let nudge_prompt = format!(
-        "The marketing team at {} just completed their foundation setup on RaptorFlow. \
-        Write a warm, professional welcome message (2-3 sentences) from their Strategist avatar. \
-        The message should: \
-        1. Welcome them to the platform by name \
-        2. Briefly introduce what the Strategist will help them with \
-        3. Invite them to visit their Office to get started. \
-        Keep it conversational and encouraging, under 100 words total.",
-        company_name
-    );
-
-    let (nudge_title, nudge_body) = match gcp_inference.generate_default(&nudge_prompt).await {
-        Ok(response) => {
-            let text = response
-                .candidates
-                .and_then(|c| c.first().cloned())
-                .and_then(|c| c.content)
-                .and_then(|content| {
-                    content.parts.iter().find_map(|p| {
-                        let t = p.text.trim();
-                        if t.is_empty() { None } else { Some(t.to_string()) }
-                    })
-                })
-                .unwrap_or_else(|| {
-                    format!(
-                        "Welcome {}! Your Strategist is now active and ready to help craft campaigns that truly resonate with your audience. Head to your Office to meet your team and get started!",
-                        company_name
-                    )
-                });
-            ("Your Strategist is ready!".to_string(), text)
-        }
-        Err(e) => {
-            tracing::warn!(org_id = %org_id, error = %e, "Gemini nudge generation failed, using fallback");
-            (
-                "Your Strategist is ready!".to_string(),
-                format!(
-                    "Welcome {}! Your Strategist is now active and ready to help craft campaigns that truly resonate with your audience. Head to your Office to meet your team and get started!",
-                    company_name
-                ),
-            )
-        }
+    let (nudge_title, nudge_body) = {
+        (
+            "Your Strategist is ready!".to_string(),
+            format!(
+                "Welcome {}! Your Strategist is now active and ready to help craft campaigns that truly resonate with your audience. Head to your Office to meet your team and get started!",
+                company_name
+            ),
+        )
     };
 
     let first_user = sqlx::query_as::<_, (Uuid,)>(
@@ -1112,7 +1071,6 @@ pub async fn content_strategy_generate_calendar(
 ) -> AppResult<Json<serde_json::Value>> {
     let pool = db_pool(&state)?;
 
-    // Get current strategy
     let strategy = raptorflow_db::queries::get_content_strategy(pool, auth.tenant.org_id)
         .await
         .map_err(internal_error)?
@@ -1123,33 +1081,8 @@ pub async fn content_strategy_generate_calendar(
     let pillar_pages: Vec<serde_json::Value> = serde_json::from_value(strategy.pillar_pages)
         .unwrap_or_default();
 
-    // Use AI to generate a 90-day calendar
-    let gcp_inference = GcpInferenceService::from_settings(&state.settings);
-    let calendar_prompt = format!(
-        "Generate a 90-day content marketing calendar. Return ONLY a JSON array (no markdown, no explanation) with objects containing: id, title, territory, date (YYYY-MM-DD for next 90 days), content_type (blog_post|social|email|video|podcast), status (draft|planned|published).\
-        \n\nTerritories: {}\nPillar Pages: {}\n\nDistribute content evenly. Use today's date as starting point.",
-        serde_json::to_string(&territories).unwrap_or_default(),
-        serde_json::to_string(&pillar_pages).unwrap_or_default()
-    );
+    let calendar = generate_fallback_calendar(&territories, &pillar_pages);
 
-    let calendar: Vec<serde_json::Value> = match gcp_inference.generate_default(&calendar_prompt).await {
-        Ok(response) => {
-            response.candidates
-                .as_ref()
-                .and_then(|c| c.first())
-                .and_then(|c| c.content.as_ref())
-                .and_then(|content| content.parts.first())
-                .and_then(|p| Some(&p.text))
-                .and_then(|t| serde_json::from_str::<Vec<serde_json::Value>>(t).ok())
-                .unwrap_or_else(|| generate_fallback_calendar(&territories, &pillar_pages))
-        }
-        Err(e) => {
-            tracing::warn!("AI calendar generation failed: {}", e);
-            generate_fallback_calendar(&territories, &pillar_pages)
-        }
-    };
-
-    // Store generated calendar
     raptorflow_db::queries::update_content_strategy_calendar(
         pool,
         auth.tenant.org_id,
@@ -1415,8 +1348,13 @@ pub async fn generate_positioning_draft(
     Extension(state): Extension<Arc<AppState>>,
 ) -> AppResult<Json<serde_json::Value>> {
     let pool = db_pool(&state)?;
+    let bedrock = state.bedrock.as_ref().ok_or_else(|| {
+        (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(serde_json::json!({ "error": "bedrock_unavailable" })),
+        )
+    })?;
 
-    // Get foundation data (ICP, competitors, differentiation, product, problem)
     let foundation_data = FoundationService::get_current(pool, auth.tenant.org_id)
         .await
         .map_err(internal_error)?
@@ -1424,86 +1362,99 @@ pub async fn generate_positioning_draft(
 
     let foundation_json: serde_json::Value = foundation_data.sections;
 
-    // Extract relevant data
     let icp = foundation_json.get("target_audience")
         .and_then(|ta| ta.get("primary_icp"));
-    let competitors = foundation_json.get("competitors");
+    let _competitors = foundation_json.get("competitors");
     let differentiation = foundation_json.get("differentiation");
-    let product = foundation_json.get("product_catalog")
+    let _product = foundation_json.get("product_catalog")
         .and_then(|pc| pc.get("primary_product"));
     let problem = foundation_json.get("problem_statement");
 
-    // Use GcpInferenceService to generate positioning
-    let gcp_inference = GcpInferenceService::from_settings(&state.settings);
+    let company_name = foundation_json.get("company_info").and_then(|ci| ci.get("name")).and_then(|n| n.as_str()).unwrap_or("our brand");
+    let category = foundation_json.get("company_info").and_then(|ci| ci.get("industry")).and_then(|n| n.as_str()).unwrap_or("solution provider");
+    let for_who = icp.and_then(|i| i.get("name")).and_then(|n| n.as_str()).unwrap_or("our target customers");
+    let who_problem = problem.and_then(|p| p.as_str()).unwrap_or("face challenges");
+    let differentiation_text = differentiation.and_then(|d| d.as_array()).and_then(|arr| arr.first()).and_then(|v| v.as_str()).unwrap_or("unique value");
+    let because = "we deliver proven results";
 
-    // Generate statement using template
-    let statement_prompt = format!(
-        "Generate a positioning statement using this template: 'For [ICP], who [problem], [brand] is a [category] that [differentiation], because [proof].'\n\n\
-        ICP: {}\n\
-        Problem: {}\n\
-        Brand: {}\n\
-        Product: {}\n\
-        Differentiation: {}\n\
-        Competitors: {}\n\n\
-        Make it compelling and specific. Return only the statement.",
-        icp.and_then(|i| i.get("name")).and_then(|n| n.as_str()).unwrap_or("target customers"),
-        problem.and_then(|p| p.as_str()).unwrap_or("face challenges"),
-        foundation_json.get("company_info").and_then(|ci| ci.get("name")).and_then(|n| n.as_str()).unwrap_or("our company"),
-        product.and_then(|p| p.as_str()).unwrap_or("our solution"),
-        differentiation.and_then(|d| d.as_array()).map(|arr| arr.iter().filter_map(|v| v.as_str()).collect::<Vec<_>>().join(", ")).unwrap_or("unique value".to_string()),
-        competitors.and_then(|c| c.get("direct")).and_then(|d| d.as_array()).map(|arr| arr.iter().filter_map(|v| v.get("name")).filter_map(|n| n.as_str()).collect::<Vec<_>>().join(", ")).unwrap_or("competitors".to_string())
+    let prompt = format!(
+        r#"You are RaptorFlow's positioning strategist.
+Return only valid JSON. No markdown, no code fences, no explanation.
+
+Use this exact schema:
+{{
+  "statement": string,
+  "templateComponents": {{
+    "forWho": string,
+    "whoProblem": string,
+    "brand": string,
+    "category": string,
+    "differentiation": string,
+    "because": string
+  }},
+  "qualityScore": number,
+  "qualityFeedback": string
+}}
+
+Requirements:
+- Write one concise positioning statement.
+- qualityScore must be a number from 0 to 1.
+- qualityFeedback must be one short sentence with the most important improvement.
+
+Context:
+- forWho: {for_who}
+- whoProblem: {who_problem}
+- brand: {company_name}
+- category: {category}
+- differentiation: {differentiation_text}
+- because: {because}
+"#
     );
 
-    match gcp_inference.generate_default(&statement_prompt).await {
-        Ok(response) => {
-            let statement = response.candidates
-                .as_ref()
-                .and_then(|c| c.first())
-                .and_then(|c| c.content.as_ref())
-                .and_then(|content| content.parts.first())
-                .and_then(|p| Some(&p.text))
-                .map(|s| s.clone())
-                .unwrap_or_else(|| "For our customers who face challenges, our brand provides unique value.".to_string());
+    let raw = bedrock
+        .converse_large(&prompt, 768)
+        .await
+        .map_err(internal_error)?;
 
-            // Extract template components (simplified - in reality would parse the statement)
-            let template_components = serde_json::json!({
-                "for_who": icp.and_then(|i| i.get("name")).and_then(|n| n.as_str()).unwrap_or("target customers"),
-                "who_problem": problem.and_then(|p| p.as_str()).unwrap_or("face challenges"),
-                "brand": foundation_json.get("company_info").and_then(|ci| ci.get("name")).and_then(|n| n.as_str()).unwrap_or("our brand"),
-                "category": foundation_json.get("company_info").and_then(|ci| ci.get("industry")).and_then(|n| n.as_str()).unwrap_or("solution provider"),
-                "differentiation": differentiation.and_then(|d| d.as_array()).and_then(|arr| arr.first()).and_then(|v| v.as_str()).unwrap_or("unique value"),
-                "because": "we deliver proven results"
-            });
+    let trimmed = raw.trim();
+    let json_text = if let Ok(value) = serde_json::from_str::<serde_json::Value>(trimmed) {
+        value
+    } else {
+        let start = trimmed.find('{').ok_or_else(|| {
+            (
+                StatusCode::BAD_GATEWAY,
+                Json(serde_json::json!({ "error": "bedrock_response_missing_json" })),
+            )
+        })?;
+        let end = trimmed.rfind('}').ok_or_else(|| {
+            (
+                StatusCode::BAD_GATEWAY,
+                Json(serde_json::json!({ "error": "bedrock_response_missing_json" })),
+            )
+        })?;
+        serde_json::from_str::<serde_json::Value>(&trimmed[start..=end])
+            .map_err(|e| {
+                (
+                    StatusCode::BAD_GATEWAY,
+                    Json(serde_json::json!({
+                        "error": "bedrock_response_invalid_json",
+                        "details": e.to_string()
+                    })),
+                )
+            })?
+    };
 
-            // Simple quality scoring (0-1)
-            let quality_score = 0.8; // In reality would analyze the statement
-            let quality_feedback = "Strong positioning with clear differentiation. Consider quantifying benefits with specific metrics.";
+    let response: PositioningDraftResponse = serde_json::from_value(json_text).map_err(|e| {
+        (
+            StatusCode::BAD_GATEWAY,
+            Json(serde_json::json!({
+                "error": "bedrock_positioning_schema_mismatch",
+                "details": e.to_string()
+            })),
+        )
+    })?;
 
-            Ok(Json(serde_json::json!({
-                "statement": statement,
-                "templateComponents": template_components,
-                "qualityScore": quality_score,
-                "qualityFeedback": quality_feedback
-            })))
-        }
-        Err(e) => {
-            tracing::warn!("GCP positioning generation failed: {}", e);
-            // Fallback
-            Ok(Json(serde_json::json!({
-                "statement": "For our customers who face challenges, our brand provides unique value that competitors cannot match.",
-                "templateComponents": {
-                    "for_who": "our customers",
-                    "who_problem": "face challenges",
-                    "brand": "our brand",
-                    "category": "solution provider",
-                    "differentiation": "unique value",
-                    "because": "competitors cannot match it"
-                },
-                "qualityScore": 0.6,
-                "qualityFeedback": "Basic positioning generated. Consider refining with specific customer details."
-            })))
-        }
-    }
+    Ok(Json(serde_json::to_value(response).map_err(internal_error)?))
 }
 
 pub async fn lock_positioning(

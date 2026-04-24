@@ -1,0 +1,16 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Shadows &amp; Paper Texture</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 24px; }
+  .row { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; }
+  .box { background:#fff; border-radius:14px; height:88px; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:10px; color:var(--ink-500); text-transform:uppercase; letter-spacing:0.1em; border:1px solid var(--border); }
+</style></head>
+<body class="paper-soft">
+  <div class="row">
+    <div class="box" style="box-shadow:var(--shadow-xs);">xs</div>
+    <div class="box" style="box-shadow:var(--shadow-sm);">sm · default</div>
+    <div class="box" style="box-shadow:var(--shadow-md);">md · hover</div>
+    <div class="box" style="box-shadow:var(--shadow-amber); border-color:var(--amber-stroke);">amber</div>
+  </div>
+</body></html>

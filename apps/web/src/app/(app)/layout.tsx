@@ -2,9 +2,10 @@ import type * as React from "react";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
+import { RealtimeProvider } from "@/components/providers/RealtimeProvider";
 
 export default async function ProtectedLayout({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }): Promise<React.ReactElement> {
@@ -19,13 +20,15 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <AppShell
-      identity={{
-        userId,
-        orgId
-      }}
-    >
-      {children}
-    </AppShell>
+    <RealtimeProvider>
+      <AppShell
+        identity={{
+          userId,
+          orgId,
+        }}
+      >
+        {children}
+      </AppShell>
+    </RealtimeProvider>
   );
 }

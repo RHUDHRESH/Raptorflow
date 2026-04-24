@@ -18,9 +18,8 @@ interface RouteShellProps {
 }
 
 /**
- * RouteShell — Upgraded to 100x Obsidian design system.
- * DM Serif Display h1, JetBrains Mono eyebrow/tags, brutalist divider.
- * Replaces old ShadCN card-wrapped version.
+ * RouteShell — "Claude meets Notion" design system.
+ * Instrument Serif h1, JetBrains Mono eyebrow/tags, soft paper styling.
  */
 export function RouteShell({
   eyebrow,
@@ -36,90 +35,39 @@ export function RouteShell({
   return (
     <div className="flex flex-col gap-8 py-2">
       {/* ── Header ─────────────────────────────────────────── */}
-      <header>
+      <header className="gsap-reveal">
         {/* Back nav */}
         {backHref && (
           <Link
             href={backHref}
-            className="mb-6 flex w-fit items-center gap-2 hover:underline"
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 9,
-              textTransform: "uppercase",
-              letterSpacing: "0.16em",
-              color: "var(--muted-foreground)",
-            }}
+            className="mb-6 flex w-fit items-center gap-2 link-underline mono-label hover:text-[var(--ink-900)] transition-colors"
           >
             <ArrowLeftIcon className="h-3 w-3" />
             {backLabel ?? "Back"}
           </Link>
         )}
 
-        <div className="flex items-end justify-between gap-6 border-b-2 border-[var(--foreground)] pb-6">
+        <div className="flex items-end justify-between gap-6 border-b border-[var(--border)] pb-6">
           <div>
             {/* Eyebrow */}
-            <p
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 9,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.22em",
-                color: "var(--muted-foreground)",
-                marginBottom: 8,
-              }}
-            >
-              {eyebrow}
-            </p>
+            <p className="eyebrow mb-2">{eyebrow}</p>
 
             {/* Title */}
-            <h1
-              style={{
-                fontFamily: "'DM Serif Display', serif",
-                fontSize: 40,
-                lineHeight: 1,
-                color: "var(--foreground)",
-                margin: 0,
-              }}
-            >
-              {title}
-            </h1>
+            <h1 className="display-md">{title}</h1>
 
             {/* Description */}
-            {description && (
-              <p
-                className="mt-3 max-w-2xl"
-                style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 13,
-                  lineHeight: 1.6,
-                  color: "var(--muted-foreground)",
-                }}
-              >
-                {description}
-              </p>
-            )}
+            {description && <p className="mt-3 max-w-2xl body-muted">{description}</p>}
           </div>
 
           {/* Right: tags + actions */}
           <div className="flex flex-col items-end gap-3 shrink-0">
             {actions}
             {tags && tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 justify-end">
+              <div className="flex flex-wrap gap-1.5 justify-end">
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 8,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.12em",
-                      border: "1px solid var(--border)",
-                      color: "var(--muted-foreground)",
-                      padding: "2px 6px",
-                      background: "var(--card)",
-                    }}
+                    className="mono-label px-2 py-1 border border-[var(--border)] bg-[var(--card)] rounded-[var(--radius-xs)]"
                   >
                     {tag}
                   </span>
@@ -140,7 +88,7 @@ export function RouteShell({
 }
 
 /**
- * RouteCard — Brutalist info card for rail/aside content.
+ * RouteCard — Soft paper card for rail/aside content.
  */
 export function RouteCard({
   title,
@@ -152,26 +100,9 @@ export function RouteCard({
   footer?: React.ReactNode;
 }): React.ReactElement {
   return (
-    <div
-      className="border border-[var(--border)] p-5"
-      style={{ background: "var(--card)" }}
-    >
-      <p
-        style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 9,
-          fontWeight: 700,
-          textTransform: "uppercase",
-          letterSpacing: "0.16em",
-          color: "var(--muted-foreground)",
-          marginBottom: 10,
-        }}
-      >
-        {title}
-      </p>
-      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, lineHeight: 1.6, color: "var(--foreground)" }}>
-        {body}
-      </p>
+    <div className="card-elevated p-5">
+      <p className="eyebrow mb-3">{title}</p>
+      <p className="body-muted">{body}</p>
       {footer && <div className="mt-4">{footer}</div>}
     </div>
   );

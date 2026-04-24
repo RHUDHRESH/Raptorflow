@@ -3,18 +3,17 @@
 //! This crate provides a single struct ([`IntegrationClients`]) that aggregates
 //! configuration for every external service from [`Settings`]. It is useful for
 //! generating documentation or bootstrapping service wiring — it does NOT
-//! create actual clients. Each actual client crate (`gcp`, `aws`, `cache`, etc.)
+//! create actual clients. Each actual client crate (`aws`, etc.)
 //! is instantiated separately in `raptorflow_api::main`.
 //!
 //! ## Clients aggregated
 //!
 //! | Client | Config struct | Actual crate |
 //! |---|---|---|
-//! | GCP/Gemini | [`GcpClients`] | `raptorflow_gcp` |
+//! | AWS Bedrock | [`BedrockClients`] | `aws-sdk-bedrockruntime` |
 //! | Clerk | [`ClerkClient`] | `raptorflow_auth` |
 //! | Razorpay | [`RazorpayClient`] | `raptorflow_billing` |
-//! | DragonflyDB | [`DragonflyClient`] | `raptorflow_cache` |
-//! | Qdrant | [`QdrantClient`] | (not yet wired) |
+//! | Qdrant | [`QdrantClient`] | `qdrant-client` |
 //! | AWS S3 | [`S3Client`] | `raptorflow_aws` |
 //! | AWS SQS | [`SqsClient`] | `raptorflow_sqs` |
 //! | Tool Gateway | [`ToolGatewayClient`] | (not implemented) |
@@ -24,11 +23,10 @@ use raptorflow_config::Settings;
 use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize)]
-pub struct GcpClients {
-    pub api_key: String,
+pub struct BedrockClients {
+    pub region: String,
     pub strategist_model: String,
-    pub council_reasoning_model: String,
-    pub default_model: String,
+    pub fast_model: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -42,14 +40,9 @@ pub struct RazorpayClient {
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct DragonflyClient {
-    pub url: String,
-    pub namespace_prefixes: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
 pub struct QdrantClient {
     pub url: String,
+    pub api_key: Option<String>,
     pub collection: String,
     pub vector_dimensions: usize,
     pub distance_metric: String,
@@ -84,10 +77,9 @@ pub struct ScrapingClient {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct IntegrationClients {
-    pub gcp: GcpClients,
+    pub bedrock: BedrockClients,
     pub clerk: ClerkClient,
     pub razorpay: RazorpayClient,
-    pub dragonfly: DragonflyClient,
     pub qdrant: QdrantClient,
     pub s3: S3Client,
     pub sqs: SqsClient,
@@ -98,11 +90,10 @@ pub struct IntegrationClients {
 impl IntegrationClients {
     pub fn from_settings(settings: &Settings) -> Self {
         Self {
-            gcp: GcpClients {
-                api_key: settings.gcp_api_key.clone(),
+            bedrock: BedrockClients {
+                region: settings.bedrock_region.clone(),
                 strategist_model: settings.bedrock_model_strategist.clone(),
-                council_reasoning_model: settings.bedrock_model_fast.clone(),
-                default_model: settings.bedrock_model_fast.clone(),
+                fast_model: settings.bedrock_model_fast.clone(),
             },
             clerk: ClerkClient {
                 jwks_url: settings.clerk_jwks_url.clone(),
@@ -110,21 +101,11 @@ impl IntegrationClients {
             razorpay: RazorpayClient {
                 key_id: settings.razorpay_key_id.clone(),
             },
-            dragonfly: DragonflyClient {
-                url: settings.dragonfly_url.clone(),
-                namespace_prefixes: vec![
-                    "wm".to_string(),
-                    "foundation".to_string(),
-                    "lock".to_string(),
-                    "stream".to_string(),
-                    "session".to_string(),
-                    "snark".to_string(),
-                ],
-            },
             qdrant: QdrantClient {
                 url: settings.qdrant_url.clone(),
-                collection: "ripples".to_string(),
-                vector_dimensions: 64,
+                api_key: settings.qdrant_api_key.clone(),
+                collection: "intel_chunks".to_string(),
+                vector_dimensions: 1024,
                 distance_metric: "cosine".to_string(),
                 quantization: "scalar".to_string(),
             },

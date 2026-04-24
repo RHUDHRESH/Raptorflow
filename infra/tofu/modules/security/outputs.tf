@@ -1,12 +1,13 @@
 output "alb_security_group_id" { value = aws_security_group.alb.id }
 output "api_security_group_id" { value = aws_security_group.api.id }
 output "db_security_group_id" { value = aws_security_group.db.id }
-output "dragonfly_security_group_id" { value = aws_security_group.dragonfly.id }
+output "vector_security_group_id" { value = aws_security_group.vector.id }
 output "qdrant_security_group_id" { value = aws_security_group.qdrant.id }
 output "database_app_secret_arn" { value = aws_secretsmanager_secret.database_app.arn }
 output "database_direct_secret_arn" { value = aws_secretsmanager_secret.database_direct.arn }
 output "clerk_jwt_secret_arn" { value = aws_secretsmanager_secret.clerk_jwt.arn }
-output "gcp_api_key_secret_arn" { value = aws_secretsmanager_secret.gcp_api_key.arn }
+output "bedrock_api_key_secret_arn" { value = aws_secretsmanager_secret.bedrock_api_key.arn }
 output "razorpay_api_secret_arn" { value = aws_secretsmanager_secret.razorpay_api.arn }
 output "resend_api_key_secret_arn" { value = aws_secretsmanager_secret.resend_api_key.arn }
 output "github_oidc_provider_arn" { value = aws_iam_openid_connect_provider.github.arn }
+

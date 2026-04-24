@@ -8,7 +8,8 @@ module "stack" {
   certificate_arn         = var.certificate_arn
   image_uri               = var.image_uri
   qdrant_image_uri        = var.qdrant_image_uri
-  dragonfly_ami_id        = var.dragonfly_ami_id
+  vector_node_ami_id        = var.vector_node_ami_id
   execution_role_arn      = var.execution_role_arn
   task_role_arn           = var.task_role_arn
 }
+

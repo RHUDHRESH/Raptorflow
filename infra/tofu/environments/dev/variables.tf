@@ -5,6 +5,8 @@ variable "github_oidc_thumbprints" { type = list(string) default = ["REPLACE_WIT
 variable "certificate_arn" { type = string default = "arn:aws:acm:ap-south-1:123456789012:certificate/dev" }
 variable "image_uri" { type = string default = "123456789012.dkr.ecr.ap-south-1.amazonaws.com/raptorflow-api:latest" }
 variable "qdrant_image_uri" { type = string default = "qdrant/qdrant:latest" }
-variable "dragonfly_ami_id" { type = string default = "ami-REPLACE_WITH_HARDENED_DRAGONFLY_AMI" }
+variable "vector_node_ami_id" { type = string default = "ami-REPLACE_WITH_HARDENED_VECTOR_AMI" }
 variable "execution_role_arn" { type = string default = "arn:aws:iam::123456789012:role/raptorflow-dev-execution" }
 variable "task_role_arn" { type = string default = "arn:aws:iam::123456789012:role/raptorflow-dev-task" }
+
+

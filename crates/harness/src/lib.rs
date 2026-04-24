@@ -12,15 +12,15 @@
 //! - `agents` — `HashMap<Uuid, AvatarState>` — per-agent working state
 //! - `foundation` — the org's current foundation snapshot
 //! - `avatar_registry` — 21 avatar entries for this org (from EEL)
-//! - `db_pool`, `cache`, `inference` — service references
+//! - `db_pool` — service references
 //!
 //! ### AvatarState
 //! Per-agent state including `AgentEssence` (loaded from DB), `working_memory`
-//! (loaded from cache), `context_pack` (assembled on demand), and `event_log`.
+//! (loaded from DB), `context_pack` (assembled on demand), and `event_log`.
 //!
 //! ### SessionManager
 //! Creates new sessions: loads foundation, validates required sections,
-//! loads agent essences from DB, fetches working memory from cache, applies
+//! loads agent essences from DB, loads working memory from DB, applies
 //! ego decay, and assembles the initial `SessionContext`.
 //!
 //! ### ContextAssember
@@ -38,9 +38,7 @@
 //! ```text
 //! harness ──► eel ──► avatars ──► contracts
 //!       │                          
-//!       ├──► db (pg pool + queries)
-//!       ├──► cache
-//!       └──► gcp
+//!       └──► db (pg pool + queries)
 //! ```
 //!
 //! No circular dependencies exist in this chain.
@@ -48,15 +46,12 @@
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use futures::future;
-use raptorflow_cache::CacheService;
 use raptorflow_contracts::{ContextPack, MemoryEvent, SessionTokenUsage};
 use raptorflow_db::PgPool;
 use raptorflow_db::models::{AgentEssence, FoundationSnapshot};
 use raptorflow_eel::AvatarRegistry;
-use raptorflow_gcp::GcpInferenceService;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::Arc;
 use ulid::Ulid;
 use uuid::Uuid;
 
@@ -84,8 +79,6 @@ pub struct SessionContext {
     pub foundation: FoundationSnapshot,
     pub foundation_cache_key: Option<String>,
     pub db_pool: PgPool,
-    pub cache: Arc<CacheService>,
-    pub inference: Arc<GcpInferenceService>,
     pub avatar_registry: AvatarRegistry,
     pub session_state: SessionState,
     pub created_at: DateTime<Utc>,
@@ -119,8 +112,6 @@ pub struct SessionManager;
 impl SessionManager {
     pub async fn create_session(
         db_pool: PgPool,
-        cache: Arc<CacheService>,
-        inference: Arc<GcpInferenceService>,
         org_id: Uuid,
         user_id: Uuid,
         agent_ids: Vec<Uuid>,
@@ -145,7 +136,7 @@ impl SessionManager {
         let agent_futures: Vec<_> = agent_ids
             .iter()
             .map(|agent_id| {
-                Self::load_agent_state(db_pool.clone(), cache.clone(), org_id, *agent_id)
+                Self::load_agent_state(db_pool.clone(), org_id, *agent_id)
             })
             .collect();
 
@@ -174,8 +165,6 @@ impl SessionManager {
             foundation,
             foundation_cache_key: None,
             db_pool,
-            cache,
-            inference,
             avatar_registry,
             session_state: SessionState::Initializing,
             created_at,
@@ -213,12 +202,11 @@ impl SessionManager {
 
     async fn load_agent_state(
         pool: PgPool,
-        cache: Arc<CacheService>,
         org_id: Uuid,
         agent_id: Uuid,
     ) -> Result<AvatarState> {
         let essence = Self::load_agent_essence(&pool, org_id, agent_id).await?;
-        let working_memory = Self::load_working_memory(&cache, org_id, agent_id).await?;
+        let working_memory = Self::load_working_memory(&pool, org_id, agent_id).await?;
         let avatar_state = Self::apply_ego_decay(essence, &working_memory);
 
         Ok(avatar_state)
@@ -238,13 +226,11 @@ impl SessionManager {
     }
 
     async fn load_working_memory(
-        cache: &CacheService,
-        org_id: Uuid,
-        agent_id: Uuid,
+        _pool: &PgPool,
+        _org_id: Uuid,
+        _agent_id: Uuid,
     ) -> Result<Vec<RippleSummary>> {
-        let key = format!("wm:{}:{}", org_id, agent_id);
-        let summaries: Vec<RippleSummary> = cache.get(&key).await?.unwrap_or_default();
-        Ok(summaries)
+        Ok(Vec::new())
     }
 
     fn apply_ego_decay(essence: AgentEssence, working_memory: &[RippleSummary]) -> AvatarState {

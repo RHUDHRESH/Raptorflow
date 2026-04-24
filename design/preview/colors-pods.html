@@ -1,0 +1,35 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Agent Pod Colors</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 20px; }
+  .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .pod { border-radius: 12px; padding: 14px; height: 110px; color: #fff; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); }
+  .mono { width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
+  .name { font-family: var(--font-mono); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; opacity: .9; }
+  .hex { font-family: var(--font-mono); font-size: 10px; font-weight: 600; opacity: .8; }
+</style></head>
+<body class="paper-soft">
+  <div class="row">
+    <div class="pod" style="background:var(--pod-creative)">
+      <div class="mono">OG</div>
+      <div><div class="name">Creative</div><div class="hex">#8B6FC2</div></div>
+    </div>
+    <div class="pod" style="background:var(--pod-digital)">
+      <div class="mono">GV</div>
+      <div><div class="name">Digital</div><div class="hex">#4F87B8</div></div>
+    </div>
+    <div class="pod" style="background:var(--pod-strategy)">
+      <div class="mono">AR</div>
+      <div><div class="name">Strategy</div><div class="hex">#B8556B</div></div>
+    </div>
+    <div class="pod" style="background:var(--pod-support)">
+      <div class="mono">QA</div>
+      <div><div class="name">Support</div><div class="hex">#C26F4A</div></div>
+    </div>
+    <div class="pod" style="background:var(--pod-strategist)">
+      <div class="mono">ST</div>
+      <div><div class="name">Strategist</div><div class="hex">#4A433C</div></div>
+    </div>
+  </div>
+</body></html>

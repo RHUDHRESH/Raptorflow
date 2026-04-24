@@ -8,7 +8,6 @@
 //! | Namespace | Module | Auth |
 //! |---|---|---|
 //! | `/health` | health | Public |
-//! | `/api/v1/billing` | billing | Required |
 //! | `/api/v1/uploads` | uploads | Required |
 //! | `/api/v1/foundation` | foundation | Required |
 //! | `/api/v1/intel` | intel | Required |
@@ -16,7 +15,6 @@
 //! | `/api/v1/prl/decay` | prl | Required |
 //! | `/api/v1/jobs/*` | jobs | Required |
 //! | `/api/v1/webhooks/clerk` | auth | Public |
-//! | `/api/v1/webhooks/razorpay` | billing | Public |
 //!
 //! ## Middleware
 //!

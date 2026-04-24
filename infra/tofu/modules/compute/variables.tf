@@ -12,7 +12,7 @@ variable "qdrant_efs_id" { type = string }
 variable "database_app_secret_arn" { type = string }
 variable "database_direct_secret_arn" { type = string }
 variable "clerk_jwt_secret_arn" { type = string }
-variable "gcp_api_key_secret_arn" { type = string }
+variable "bedrock_api_key_secret_arn" { type = string }
 variable "razorpay_api_secret_arn" { type = string }
 variable "resend_api_key_secret_arn" { type = string }
 variable "execution_role_arn" { type = string }
@@ -58,3 +58,5 @@ variable "qdrant_grpc_port" {
   default = 6334
 }
 variable "tags" { type = map(string) }
+
+

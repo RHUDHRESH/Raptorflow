@@ -6,7 +6,7 @@
 
 ## Key requirements
 
-- Rust + Axum, Next.js 15 + Vercel, Aurora, Qdrant, DragonflyDB, GCP API, Clerk, Razorpay, S3, SQS, ECS Fargate, and CloudWatch/Sentry form the production platform.
+- Rust + Axum, Next.js 15 + Vercel, Aurora, Qdrant, Clerk, Razorpay, S3, SQS, ECS Fargate, and CloudWatch/Sentry form the production platform.
 - Multi-AZ VPC shape and deployment sequencing are core architecture.
 - Security and operations are part of build scope from day one.
 

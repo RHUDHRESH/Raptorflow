@@ -9,7 +9,7 @@ How to run, debug, and fix the RaptorFlow stack on your machine.
 ### Databases only (recommended for most development)
 
 ```bash
-docker compose up postgres pgbouncer dragonfly qdrant
+docker compose up postgres pgbouncer qdrant
 ```
 
 ### Full stack (includes API and web containers — useful for CI-like environments)
@@ -41,9 +41,6 @@ docker compose exec postgres pg_isready -U raptorflow
 
 # Check Qdrant is up
 curl http://localhost:6333/collections
-
-# Check Dragonfly is up
-docker compose exec dragonfly dragonfly --admin_port 6379 ping
 ```
 
 ---
@@ -89,9 +86,6 @@ docker compose logs -f api
 ```bash
 # PostgreSQL (for migrations and direct debugging)
 psql "postgres://raptorflow:raptorflow@localhost:5432/raptorflow"
-
-# Dragonfly (Redis-compatible)
-docker compose exec dragonfly dragonfly --admin_port 6379
 
 # Qdrant (vector search)
 # Open http://localhost:6333/dashboard in your browser
@@ -162,6 +156,5 @@ This also resets Qdrant data (`raptorflow_qdrant-data` volume).
 | -------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
 | `RAPTORFLOW_DATABASE_URL`        | `postgres://raptorflow@localhost:6432/raptorflow` | App DB connection (through PgBouncer)          |
 | `RAPTORFLOW_DIRECT_DATABASE_URL` | `postgres://raptorflow@localhost:5432/raptorflow` | Migration connection (direct)                  |
-| `RAPTORFLOW_DRAGONFLY_URL`       | `redis://localhost:6379`                          | Cache connection                               |
 | `RAPTORFLOW_QDRANT_URL`          | `http://localhost:6333`                           | Vector search                                  |
 | `APP_ENV`                        | `dev`                                             | Controls logging level, stub vs real behaviour |

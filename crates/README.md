@@ -2,7 +2,7 @@
 
 The RaptorFlow backend is a single Rust workspace. This document explains what each crate does and how they fit together.
 
-**The short version:** The API binary (`api/`) starts an Axum HTTP server. Every request passes through `auth/` (JWT validation) and `http/` (routing). Routes delegate to domain crates (`campaigns/`, `council/`, `foundation/`, etc.), which use `db/` for data access, `cache/` for caching, and `gcp/` for AI inference. `contracts/` holds the shared domain types that everything agrees on.
+**The short version:** The API binary (`api/`) starts an Axum HTTP server. Every request passes through `auth/` (JWT validation) and `http/` (routing). Routes delegate to domain crates (`campaigns/`, `council/`, `foundation/`, etc.), which use `db/` for data access, `aws/` for AI inference via AWS Bedrock, and `contracts/` for shared domain types. `contracts/` holds the shared domain types that everything agrees on.
 
 ---
 
@@ -12,18 +12,17 @@ The workspace has a clear dependency direction. No cycles:
 
 ```
 contracts (leaf — all domain types)
-    ↑
-    │
+     ↑
+     │
 avatars ──────────────► (uses contracts)
 eel ──────────────────► avatars ──► contracts
 harness ─────────────► eel ───────► avatars ──► contracts
-                  └─► db
-                  └─► cache
-                  └─► gcp
-                  └─► contracts
+                   └─► db
+                   └─► aws
+                   └─► contracts
 foundation ─────────► avatars ──► contracts
-                  └─► db
-                  └─► config
+                   └─► db
+                   └─► config
 db ─────────────────► config
 ```
 
@@ -113,13 +112,9 @@ The PixiJS canvas backend. Defines the WebSocket event vocabulary (`office.event
 
 ### Integration crates (external services)
 
-**`gcp/`** — GCP API (Gemini) inference
-
-Single model invocation against Gemini. Handles retries, error classification, and response parsing. Called by `harness/` and `muse/` for AI inference.
-
 **`aws/`** — AWS SDK helpers
 
-S3 presigned URL generation, region configuration, client construction. Used by the `uploads` API and by `jobs/` for SQS.
+S3 presigned URL generation, AWS Bedrock inference client, region configuration, client construction. Used by the `uploads` API, by `jobs/` for SQS, and by `harness/` and `muse/` for AI inference via AWS Bedrock Mistral models.
 
 **`sqs/`** — AWS SQS job queue
 
@@ -128,10 +123,6 @@ S3 presigned URL generation, region configuration, client construction. Used by 
 **`resend/`** — Email delivery
 
 `resend` crate client for transactional email. Template rendering, delivery tracking, webhook handling for delivery events.
-
-**`cache/`** — DragonflyDB (Redis-compatible) wrapper
-
-`CacheClient` with TTL support, key prefixing by namespace, and typed get/set operations. Used by `harness/` for working memory and by `prl/` for ripple hot-path caching.
 
 **`billing/`** — Razorpay integration
 

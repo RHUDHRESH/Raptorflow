@@ -4,24 +4,45 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 
 export interface Nudge {
-  nudge_id: string;
-  nudge_type: string;
-  priority: "high" | "medium" | "low" | "system" | string;
+  id: string;
+  userId: string;
+  type: string;
   title: string;
   body: string;
-  action_type?: string;
-  action_data?: any;
-  created_at: string;
-  dismissed_at?: string | null;
+  cta: string | null;
+  ctaHref: string | null;
+  priority: number;
+  isDismissed: boolean;
+  isActioned: boolean;
+  expiresAt: string | null;
+  trigger: string;
+  createdAt: string;
+}
+
+interface NudgesResponse {
+  nudges: Nudge[];
+  totalCount: number;
 }
 
 export function useNudges() {
   return useQuery({
     queryKey: ["nudges"],
-    queryFn: () => apiFetch<Nudge[]>("/api/v1/nudges", { auth: true }),
+    queryFn: () => apiFetch<NudgesResponse>("/api/nudges", { auth: true }),
+    staleTime: 30_000,
   });
 }
 
-// NOTE: dismissing is not currently in the backend router. 
-// We will use standard update or a filtered list on the frontend for now if needed.
-// But we should stay TRUTHFUL.
+export function useDismissNudge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (nudgeId: string) =>
+      apiFetch(`/api/nudges/${nudgeId}`, {
+        method: "PATCH",
+        body: { isDismissed: true },
+        auth: true,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["nudges"] });
+    },
+  });
+}

@@ -28,24 +28,15 @@ export default function FoundationStep12() {
 
   useEffect(() => {
     setStep(12);
-    
-    // Initial data hydration
     const existing = sectionData.keywords;
     if (existing?.keywords) {
       setKeywords(existing.keywords);
     } else {
-      // Pre-populate with scan data or mock
-      const suggestions = sectionData.scan_results?.keyword_suggestions || [
-        "best logistics software india", "inventory management for retail",
-        "supply chain visibility tools", "warehouse automation system",
-        "ecommerce shipping api", "real-time stock tracking",
-        "kirana store inventory app", "last mile delivery software"
-      ];
-
+      const suggestions = sectionData.scan_results?.keyword_suggestions ?? [];
       const initial = suggestions.map((text: string, i: number) => ({
         text,
         competition: i % 3 === 0 ? "high" : i % 3 === 1 ? "medium" : "low",
-        userAdded: false
+        userAdded: false,
       }));
       setKeywords(initial);
     }

@@ -54,7 +54,7 @@
       "upload_name": "RedTeam_Audit.md",
       "upload_path": "Uploads/RedTeam_Audit.md",
       "digest_file": "docs/source-digests/05-red-team-audit.md",
-      "checksum_sha256": "7d89cd69c36f323f5dd13fd373a7c89208f61e00b411e2d4f6265dc4569afd8f",
+      "checksum_sha256": "ba5e6864c3246532aa5cb1bcc0410b0984e1523e90a331f656fa9e866bf3d3e9",
       "checks": [
         "scripts/check-docs.mjs"
       ]
@@ -175,7 +175,7 @@
       "upload_name": "Vol12_Architecture.md",
       "upload_path": "Uploads/Vol12_Architecture.md",
       "digest_file": "docs/source-digests/18-vol12-architecture.md",
-      "checksum_sha256": "1ad0c2e14aeda64eca42af3f26433676a3e27ee8617a332ed77ff38b58c118e7",
+      "checksum_sha256": "30d5b44e60042fa852b87fefa4422de53fb204364f74bf47d95ffd1ff0b86abd",
       "checks": [
         "scripts/check-docs.mjs"
       ]

@@ -4,5 +4,11 @@
   "buildCommand": "cd apps/web && npx next build",
   "outputDirectory": "apps/web/.next",
   "installCommand": "pnpm install",
-  "regions": ["sin1"]
+  "regions": ["sin1"],
+  "crons": [
+    {
+      "path": "/api/prl/decay/cron",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }

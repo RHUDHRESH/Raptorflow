@@ -1,5 +1,6 @@
 use crate::error::AuthError;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
+use sha2::{Digest, Sha256};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -16,13 +17,27 @@ pub struct Claims {
     pub org_role: Option<String>,
     pub user_id: Option<String>,
     pub email: Option<String>,
+    #[serde(rename = "o")]
+    pub organization: Option<ClerkOrganizationClaim>,
 }
 
 #[derive(Debug, Clone)]
 pub struct TenantContext {
     pub org_id: Uuid,
-    pub user_id: Uuid,
+    pub clerk_org_id: String,
+    pub user_id: String,
     pub role: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClerkOrganizationClaim {
+    pub id: String,
+    #[serde(default)]
+    pub slg: Option<String>,
+    #[serde(default)]
+    pub rol: Option<String>,
+    #[serde(default)]
+    pub per: Option<Vec<String>>,
 }
 
 pub struct JwtValidator {
@@ -79,6 +94,19 @@ impl JwtValidator {
 
         keys.get(kid).cloned().ok_or(AuthError::InvalidToken)
     }
+}
+
+pub fn derive_internal_org_id(clerk_org_id: &str) -> Uuid {
+    let mut hasher = Sha256::new();
+    hasher.update(b"raptorflow-clerk-org:");
+    hasher.update(clerk_org_id.as_bytes());
+    let digest = hasher.finalize();
+
+    let mut bytes = [0u8; 16];
+    bytes.copy_from_slice(&digest[..16]);
+    bytes[6] = (bytes[6] & 0x0f) | 0x50;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    Uuid::from_bytes(bytes)
 }
 
 #[derive(Debug, Deserialize)]
