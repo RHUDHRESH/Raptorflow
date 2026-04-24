@@ -193,3 +193,7 @@ The `generate_campaign_moves` endpoint is now:
 - DB integration-tested (pending `TEST_DATABASE_URL` in CI)
 
 The remaining patches listed in previous reports (tombstoning, polling, etc.) are all merged. The Campaign AI endpoint is operationally safe to build on.
+
+### CI Proof
+
+See `fix/ci-db-transaction-proof` branch for the CI workflow that proves the rollback test works with a real PostgreSQL service container.

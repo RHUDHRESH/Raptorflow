@@ -166,31 +166,24 @@ async fn generated_moves_transaction_commits_all_rows() {
         return;
     };
 
-    let pool = match setup_test_pool(&database_url).await {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("Failed to connect to test DB: {}; skipping test", e);
-            return;
-        }
-    };
+    let pool = setup_test_pool(&database_url)
+        .await
+        .expect("TEST_DATABASE_URL is set but connection failed - CI should fail here, not skip");
 
-    if let Err(e) = apply_migrations(&pool).await {
-        eprintln!("Failed to apply migrations: {}; skipping test", e);
-        return;
-    }
+    apply_migrations(&pool)
+        .await
+        .expect("TEST_DATABASE_URL is set but migrations failed - CI should fail here, not skip");
 
     let org_id = Uuid::new_v4();
     let campaign_id = format!("test-campaign-tx-{}", Uuid::new_v4());
 
-    if let Err(e) = create_org_fixture(&pool, org_id).await {
-        eprintln!("Failed to create org fixture: {}; skipping test", e);
-        return;
-    }
+    create_org_fixture(&pool, org_id)
+        .await
+        .expect("TEST_DATABASE_URL is set but org fixture failed - CI should fail here, not skip");
 
     if let Err(e) = create_campaign_fixture(&pool, org_id, &campaign_id).await {
-        eprintln!("Failed to create campaign fixture: {}; skipping test", e);
         let _ = cleanup_org(&pool, org_id).await;
-        return;
+        panic!("TEST_DATABASE_URL is set but campaign fixture failed: {e}");
     }
 
     let moves = vec![
@@ -233,31 +226,24 @@ async fn generated_moves_transaction_rolls_back_on_failure() {
         return;
     };
 
-    let pool = match setup_test_pool(&database_url).await {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("Failed to connect to test DB: {}; skipping test", e);
-            return;
-        }
-    };
+    let pool = setup_test_pool(&database_url)
+        .await
+        .expect("TEST_DATABASE_URL is set but connection failed - CI should fail here, not skip");
 
-    if let Err(e) = apply_migrations(&pool).await {
-        eprintln!("Failed to apply migrations: {}; skipping test", e);
-        return;
-    }
+    apply_migrations(&pool)
+        .await
+        .expect("TEST_DATABASE_URL is set but migrations failed - CI should fail here, not skip");
 
     let org_id = Uuid::new_v4();
     let campaign_id = format!("test-campaign-rb-{}", Uuid::new_v4());
 
-    if let Err(e) = create_org_fixture(&pool, org_id).await {
-        eprintln!("Failed to create org fixture: {}; skipping test", e);
-        return;
-    }
+    create_org_fixture(&pool, org_id)
+        .await
+        .expect("TEST_DATABASE_URL is set but org fixture failed - CI should fail here, not skip");
 
     if let Err(e) = create_campaign_fixture(&pool, org_id, &campaign_id).await {
-        eprintln!("Failed to create campaign fixture: {}; skipping test", e);
         let _ = cleanup_org(&pool, org_id).await;
-        return;
+        panic!("TEST_DATABASE_URL is set but campaign fixture failed: {e}");
     }
 
     let duplicate_content_id = "ct-shared";

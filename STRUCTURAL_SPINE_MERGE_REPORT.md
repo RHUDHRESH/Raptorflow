@@ -190,6 +190,7 @@ Unit tests in `crates/http/src/routes/campaigns.rs` compile but linking fails du
 - [x] `SET LOCAL` correctly placed in helper's own transaction
 - [x] Report SHA placeholders updated
 - [x] Pre-existing failures documented (`cargo fmt`, `cargo test` linking)
+- [ ] **CI DB proof passes** (see `fix/ci-db-transaction-proof` branch)
 
 ---
 
@@ -204,6 +205,15 @@ Unit tests in `crates/http/src/routes/campaigns.rs` compile but linking fails du
 | `cargo check --workspace`                                        | Linux/Windows      | No DB required                                     |
 | `cargo fmt --all`                                                | Linux/Windows      | Pre-existing failures exist                        |
 | `cargo test -p raptorflow-db --test generated_moves_transaction` | Linux + PostgreSQL | Requires `TEST_DATABASE_URL`; skip on Windows/MSVC |
+
+### CI Workflow Added
+
+See `.github/workflows/structural-spine.yml` for the GitHub Actions workflow that runs:
+
+1. `structural-checks` job - all pnpm checks + cargo check
+2. `db-transaction-test` job - PostgreSQL service + DB transaction rollback proof
+
+The DB test job uses `TEST_DATABASE_URL` only in CI (not production). It will fail loudly if migrations or rollback proof fails when `TEST_DATABASE_URL` is present.
 
 ---
 

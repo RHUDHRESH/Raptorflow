@@ -155,35 +155,19 @@ If a test panics/fails before cleanup, unique IDs prevent collisions with subseq
 
 ## CI Integration
 
-In CI, ensure:
+In CI, a GitHub Actions workflow runs the DB transaction tests. See `.github/workflows/structural-spine.yml`.
 
-1. A PostgreSQL service container is started
-2. Migrations are applied before tests run
-3. `TEST_DATABASE_URL` is passed to the test container
-4. Tests run with `--test-threads=1` to avoid connection pool conflicts
+The workflow:
 
-Example GitHub Actions:
+1. Starts a `postgres:16` service container
+2. Waits for `pg_isready` to confirm DB is ready
+3. Sets `TEST_DATABASE_URL` environment variable
+4. Runs `cargo test -p raptorflow-db --test generated_moves_transaction -- --nocapture --test-threads=1`
 
-```yaml
-services:
-  postgres:
-    image: postgres:16
-    env:
-      POSTGRES_DB: raptorflow_test
-      POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpass
-    ports:
-      - 5432:5432
-    options: >-
-      --health-cmd pg_isready
-      --health-interval 10s
-      --health-timeout 5s
-      --health-retries 5
+### Test Behavior in CI
 
-steps:
-  - name: Run DB integration tests
-    env:
-      TEST_DATABASE_URL: postgres://testuser:testpass@localhost:5432/raptorflow_test
-    run: |
-      cargo test -p raptorflow-db --test generated_moves_transaction -- --nocapture
-```
+**If `TEST_DATABASE_URL` is absent** (local dev without DB): test skips gracefully.
+
+**If `TEST_DATABASE_URL` is present but connection/migration/fixtures fail** (broken CI setup): test **fails loudly** (panics), not silently skips.
+
+This ensures CI catches broken test infrastructure immediately.

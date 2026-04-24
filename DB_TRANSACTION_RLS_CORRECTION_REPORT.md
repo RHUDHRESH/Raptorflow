@@ -212,3 +212,7 @@ The full workstream is complete:
 5. `fix/generate-moves-transaction-corrections` - validation bugs fixed
 6. `fix/db-test-infrastructure-for-transactions` - test infra added
 7. `fix/db-transaction-test-rls-correction` - RLS bug in helper + test design fixed
+
+### CI Proof
+
+See `fix/ci-db-transaction-proof` branch for the CI workflow that proves the rollback test works with a real PostgreSQL service container.
