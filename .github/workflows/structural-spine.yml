@@ -33,12 +33,12 @@ jobs:
 
       - name: Generate Prisma client
         env:
-          DATABASE_URL: postgres://testuser:testpass@localhost:5432/raptorflow_test
+          DATABASE_URL: postgres://testuser:testpass@localhost:5432/postgres
         run: pnpm --filter @raptorflow/database generate
 
       - name: Build database package (emit dist/index.d.ts for typecheck)
         env:
-          DATABASE_URL: postgres://testuser:testpass@localhost:5432/raptorflow_test
+          DATABASE_URL: postgres://testuser:testpass@localhost:5432/postgres
         run: pnpm --filter @raptorflow/database build
 
       - name: Structural check - no Prisma in product runtime
@@ -62,7 +62,7 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_DB: raptorflow_test
+          POSTGRES_DB: postgres
           POSTGRES_USER: testuser
           POSTGRES_PASSWORD: testpass
         ports:
@@ -72,6 +72,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --shm-size=128mb
 
     steps:
       - uses: actions/checkout@v4
@@ -83,7 +84,12 @@ jobs:
       - name: Wait for PostgreSQL to be ready
         run: pg_isready -h localhost -p 5432 -U testuser
 
+      - name: Grant CREATEDB to testuser
+        run: |
+          CONTAINER_ID=$(docker ps -q --filter "ancestor=pgvector/pgvector:pg16")
+          docker exec $CONTAINER_ID psql -U testuser -c "ALTER USER testuser CREATEDB;"
+
       - name: Run DB transaction integration tests
         env:
-          TEST_DATABASE_URL: postgres://testuser:testpass@localhost:5432/raptorflow_test
+          TEST_DATABASE_URL: postgres://testuser:testpass@localhost:5432/postgres
         run: cargo test -p raptorflow-db --test generated_moves_transaction -- --nocapture --test-threads=1
