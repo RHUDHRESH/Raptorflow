@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
+import { councilApi } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 
 interface Position {
   id: string;
@@ -24,6 +26,17 @@ interface Synthesis {
   confidence?: number;
 }
 
+const POLLING_INTERVAL_MS = 2000;
+
+const TERMINAL_STATUSES = new Set([
+  "positions_ready",
+  "synthesized",
+  "failed",
+  "partial",
+  "complete",
+  "completed",
+]);
+
 export default function CouncilSessionPage(): React.ReactElement {
   const params = useParams<{ sessionId: string }>();
   const sessionId = params.sessionId;
@@ -31,55 +44,105 @@ export default function CouncilSessionPage(): React.ReactElement {
   const [status, setStatus] = React.useState<string>("pending");
   const [positions, setPositions] = React.useState<Position[]>([]);
   const [synthesis, setSynthesis] = React.useState<Synthesis | null>(null);
-  const [connectionState, setConnectionState] = React.useState<"connecting" | "live" | "complete" | "error">("connecting");
+  const [connectionState, setConnectionState] = React.useState<"connecting" | "polling" | "complete" | "error">("connecting");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-  const eventSourceRef = React.useRef<EventSource | null>(null);
+
+  const pollingRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const isPollingRef = React.useRef<boolean>(false);
+  const synthesisCalledRef = React.useRef<boolean>(false);
+
+  const clearPolling = React.useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    isPollingRef.current = false;
+  }, []);
+
+  const fetchSessionAndMessages = React.useCallback(async () => {
+    if (!sessionId || isPollingRef.current) return;
+    
+    try {
+      isPollingRef.current = true;
+      
+      const [sessionData, messagesData] = await Promise.all([
+        councilApi.getSession(sessionId),
+        councilApi.getMessages(sessionId),
+      ]);
+      
+      setStatus(sessionData.status);
+      
+      const normalizedPositions: Position[] = (messagesData as unknown as Array<{
+        position_id: string;
+        avatar_key: string;
+        round_number: number;
+        content: string;
+        created_at: string;
+      }>).map((msg) => ({
+        id: msg.position_id,
+        avatarKey: msg.avatar_key,
+        avatarName: msg.avatar_key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        avatarRole: msg.avatar_key,
+        position: msg.content,
+        confidence: 0.5,
+        createdAt: msg.created_at,
+      }));
+      
+      setPositions(normalizedPositions);
+      
+      const isTerminal = TERMINAL_STATUSES.has(sessionData.status);
+      if (isTerminal) {
+        setConnectionState("complete");
+        clearPolling();
+        
+        if (sessionData.status !== "failed" && !synthesisCalledRef.current) {
+          synthesisCalledRef.current = true;
+          try {
+            const synthRes = await councilApi.synthesizeSession(sessionId);
+            if (synthRes.synthesis) {
+              setSynthesis({
+                verdict: synthRes.synthesis.decision,
+                rationale: synthRes.synthesis.rationale,
+                immediate_actions: synthRes.synthesis.next_actions,
+                watch_outs: synthRes.synthesis.risks,
+                dissenting_view: "",
+              });
+            }
+          } catch (synthErr) {
+            console.error("Failed to fetch synthesis:", synthErr);
+          }
+        }
+      } else {
+        setConnectionState("polling");
+      }
+      
+      setErrorMessage(null);
+    } catch (err) {
+      console.error("Polling error:", err);
+      setConnectionState("error");
+      setErrorMessage(err instanceof ApiError ? err.message : "Failed to load session");
+      clearPolling();
+    } finally {
+      isPollingRef.current = false;
+    }
+  }, [sessionId, clearPolling]);
+
+  const startPolling = React.useCallback(() => {
+    clearPolling();
+    setConnectionState("polling");
+    pollingRef.current = setInterval(fetchSessionAndMessages, POLLING_INTERVAL_MS);
+  }, [clearPolling, fetchSessionAndMessages]);
 
   React.useEffect(() => {
     if (!sessionId) return;
-
-    const es = new EventSource(`/api/council/${sessionId}/stream`);
-    eventSourceRef.current = es;
-
-    es.onopen = () => setConnectionState("live");
-    es.onerror = () => setConnectionState("error");
-
-    es.addEventListener("session", (e) => {
-      const data = JSON.parse(e.data);
-      setStatus(data.status);
-      setPositions(data.positions ?? []);
-      if (data.synthesisResult) setSynthesis(data.synthesisResult);
-    });
-
-    es.addEventListener("position", (e) => {
-      const position: Position = JSON.parse(e.data);
-      setPositions((prev) => {
-        if (prev.find((p) => p.id === position.id)) return prev;
-        return [...prev, position];
-      });
-    });
-
-    es.addEventListener("status", (e) => {
-      const data = JSON.parse(e.data);
-      setStatus(data.status);
-    });
-
-    es.addEventListener("synthesis", (e) => {
-      const data = JSON.parse(e.data);
-      setSynthesis(data.synthesisResult);
-    });
-
-    es.addEventListener("done", (e) => {
-      const data = JSON.parse(e.data);
-      setStatus(data.status);
-      setConnectionState("complete");
-      es.close();
-    });
-
+    
+    fetchSessionAndMessages();
+    startPolling();
+    
     return () => {
-      es.close();
+      clearPolling();
     };
-  }, [sessionId]);
+  }, [sessionId, fetchSessionAndMessages, startPolling, clearPolling]);
 
   const statusLabel = {
     pending: "Waiting…",
@@ -87,9 +150,16 @@ export default function CouncilSessionPage(): React.ReactElement {
     synthesizing: "Strategist synthesizing…",
     complete: "Complete",
     failed: "Failed",
+    running: "Council deliberating…",
+    positions_ready: "Positions ready",
+    synthesized: "Synthesized",
   }[status] ?? status;
 
-  const progressPct = status === "generating" ? (positions.length / 12) * 100 : status === "synthesizing" ? 90 : status === "complete" ? 100 : 0;
+  const progressPct = status === "generating" || status === "running" 
+    ? Math.min((positions.length / 6) * 100, 100) 
+    : status === "synthesizing" ? 90 
+    : status === "positions_ready" || status === "synthesized" || status === "complete" ? 100 
+    : 0;
 
   return (
     <div className="flex flex-col gap-8 py-2">
@@ -106,13 +176,13 @@ export default function CouncilSessionPage(): React.ReactElement {
         <div
           className="h-2 w-2 rounded-full"
           style={{
-            background: connectionState === "live" ? "var(--leaf-confirm)" : connectionState === "complete" ? "var(--muted-foreground)" : connectionState === "error" ? "var(--destructive)" : "var(--amber-war)",
-            animation: connectionState === "live" || connectionState === "connecting" ? "pulse 1.5s infinite" : undefined,
+            background: connectionState === "polling" ? "var(--leaf-confirm)" : connectionState === "complete" ? "var(--muted-foreground)" : connectionState === "error" ? "var(--destructive)" : "var(--amber-war)",
+            animation: connectionState === "polling" || connectionState === "connecting" ? "pulse 1.5s infinite" : undefined,
           }}
         />
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--muted-foreground)" }}>
-          {connectionState === "connecting" && "Connecting…"}
-          {connectionState === "live" && `Live — ${positions.length}/12 positions`}
+          {connectionState === "connecting" && "Loading…"}
+          {connectionState === "polling" && `Polling — ${positions.length} positions`}
           {connectionState === "complete" && "Session complete"}
           {connectionState === "error" && "Connection lost — refresh to reconnect"}
         </span>
@@ -120,11 +190,11 @@ export default function CouncilSessionPage(): React.ReactElement {
 
       <div className="border border-[var(--border)] bg-[var(--card)]">
         <div className="border-b border-[var(--border)] p-6">
-          {status === "generating" && (
+          {(status === "generating" || status === "running") && (
             <div>
               <div className="mb-2 flex justify-between text-sm" style={{ color: "var(--muted-foreground)", fontFamily: "'JetBrains Mono', monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.12em" }}>
                 <span>Council deliberating…</span>
-                <span>{positions.length}/12</span>
+                <span>{positions.length}/6</span>
               </div>
               <div className="h-2 w-full rounded-full" style={{ background: "var(--border)" }}>
                 <div
@@ -139,7 +209,7 @@ export default function CouncilSessionPage(): React.ReactElement {
               Strategist is synthesizing all positions…
             </div>
           )}
-          {status === "complete" && (
+          {(status === "complete" || status === "positions_ready" || status === "synthesized") && (
             <div style={{ color: "var(--leaf-confirm)", fontFamily: "'JetBrains Mono', monospace", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.14em", fontWeight: 700 }}>
               Council complete — {positions.length} positions + synthesis ready
             </div>
@@ -189,7 +259,7 @@ export default function CouncilSessionPage(): React.ReactElement {
             </div>
           ))}
 
-          {status === "generating" && Array.from({ length: Math.max(0, 12 - positions.length) }).map((_, i) => (
+          {(status === "generating" || status === "running") && Array.from({ length: Math.max(0, 6 - positions.length) }).map((_, i) => (
             <div key={`ghost-${i}`} className="border border-dashed p-4" style={{ borderColor: "var(--border)", animation: "pulse 1.5s infinite" }}>
               <div className="mb-2 h-4 w-1/2 rounded" style={{ background: "var(--border)" }} />
               <div className="mb-4 h-3 w-1/3 rounded" style={{ background: "var(--border)" }} />
