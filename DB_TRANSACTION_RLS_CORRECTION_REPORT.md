@@ -1,7 +1,7 @@
 # DB Transaction RLS Correction Report
 
 **Branch:** `fix/db-transaction-test-rls-correction`
-**Commit SHA:** (pending - not yet committed)
+**Commit SHA:** `fd186e495705f6e2cc1370a5c1c094bc6a7264b0`
 **Date:** 2026-04-24
 
 ---

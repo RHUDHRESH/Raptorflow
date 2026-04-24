@@ -1,7 +1,7 @@
 # Generate Moves Transaction Corrections Report
 
 **Branch:** `fix/generate-moves-transaction-corrections`
-**Commit SHA:** (pending - not yet committed)
+**Commit SHA:** `a6bb2dbdedf04e141885b867f2705771cdaf56b1`
 **Date:** 2026-04-24
 
 ---

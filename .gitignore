@@ -31,6 +31,9 @@ Thumbs.db
 .idea/
 .vscode/
 
+# TypeScript build info (machine-specific compiler cache)
+*.tsbuildinfo
+
 # Runtime
 tmp/
 .cache/
