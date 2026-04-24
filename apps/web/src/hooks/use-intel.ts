@@ -27,9 +27,9 @@ export function useIntelSignals(category?: string) {
     queryKey: ["intel", category ?? "all"],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (category) params.set("type", category);
+      if (category) params.set("type_", category);
       const query = params.toString();
-      return apiFetch<IntelSignalsResponse>(`/api/v1/intel${query ? `?${query}` : ""}`, {
+      return apiFetch<IntelSignalsResponse>(`/api/v1/intel/signals${query ? `?${query}` : ""}`, {
         auth: true,
       });
     },
@@ -40,9 +40,7 @@ export function useIntelSignals(category?: string) {
 export function useCompetitorSnapshots() {
   return useQuery({
     queryKey: ["intel", "competitors"],
-    queryFn: () => {
-      throw new ApiError(501, "intel_competitors_endpoint_not_implemented");
-    },
+    queryFn: () => apiFetch<{ snapshots: unknown[] }>("/api/v1/intel/competitors", { auth: true }),
   });
 }
 

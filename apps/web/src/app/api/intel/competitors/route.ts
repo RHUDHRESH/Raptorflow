@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@raptorflow/database";
 import { analyzeCompetitor } from "@/lib/intel/analyzeCompetitor";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const authObj = await auth();
-  const { userId } = authObj;
-  if (!userId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
-  const snapshots = await prisma.competitorSnapshot.findMany({
-    where: { userId },
-    orderBy: { lastAnalyzedAt: "desc" },
-  });
-
-  return NextResponse.json({ snapshots });
+  return NextResponse.json(
+    { error: "migrated_to_rust_api", use: "/api/v1/intel/competitors" },
+    { status: 410 },
+  );
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

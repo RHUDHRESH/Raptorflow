@@ -5,10 +5,9 @@ export const dynamic = "force-dynamic";
 export async function POST() {
   return NextResponse.json(
     {
-      error: "Scan routes are served by the backend API in this build.",
-      mode: "quick",
+      error: "migrated_to_rust_api",
+      use: "/api/v1/foundation/scan/quick",
     },
-    { status: 501 },
+    { status: 410 },
   );
 }
-
