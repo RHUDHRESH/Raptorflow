@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ApiError, apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export interface CampaignListItem {
   id: string;
@@ -100,17 +100,63 @@ export function useCreateCampaign() {
 }
 
 export function useEvaluateCampaign() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (_campaignId: string) => {
-      throw new ApiError(501, "campaign_evaluate_not_implemented_in_rust");
+    mutationFn: ({ campaignId, focus }: { campaignId: string; focus?: string }) => {
+      return apiFetch<{
+        campaign_id: string;
+        evaluation: {
+          overall_score: number;
+          strengths: string[];
+          weaknesses: string[];
+          opportunities: string[];
+          threats: string[];
+          recommendations: string[];
+        };
+      }>(`/api/v1/campaigns/${campaignId}/evaluate`, {
+        method: "POST",
+        body: { focus },
+        auth: true,
+      });
+    },
+    onSuccess: (_, { campaignId }) => {
+      queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId] });
     },
   });
 }
 
 export function useGenerateMoves() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (_campaignId: string) => {
-      throw new ApiError(501, "campaign_generate_moves_not_implemented_in_rust");
+    mutationFn: ({
+      campaignId,
+      context,
+      maxMoves,
+    }: {
+      campaignId: string;
+      context?: string;
+      maxMoves?: number;
+    }) => {
+      return apiFetch<{
+        campaign_id: string;
+        generated_moves: Array<{
+          move_id: string;
+          move_type: string;
+          description: string;
+          expected_impact: string;
+          confidence: number;
+          sequence_number: number;
+        }>;
+        total: number;
+      }>(`/api/v1/campaigns/${campaignId}/moves/generate`, {
+        method: "POST",
+        body: { context, max_moves: maxMoves },
+        auth: true,
+      });
+    },
+    onSuccess: (_, { campaignId }) => {
+      queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId] });
+      queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId, "moves"] });
     },
   });
 }

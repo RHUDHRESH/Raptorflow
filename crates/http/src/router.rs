@@ -231,6 +231,14 @@ fn protected_router(state: Arc<AppState>) -> Router {
             patch(campaigns::update_brief_status),
         )
         .route(
+            "/api/v1/campaigns/{id}/evaluate",
+            post(campaigns::evaluate_campaign),
+        )
+        .route(
+            "/api/v1/campaigns/{id}/moves/generate",
+            post(campaigns::generate_campaign_moves),
+        )
+        .route(
             "/api/v1/campaigns/{id}/replan",
             get(replan::list_replans).post(replan::trigger_replan),
         )
@@ -278,6 +286,18 @@ fn protected_router(state: Arc<AppState>) -> Router {
         .route(
             "/api/v1/council/{session_id}/messages",
             get(council::get_session_messages),
+        )
+        .route(
+            "/api/v1/council/{session_id}/start",
+            post(council::start_council_session),
+        )
+        .route(
+            "/api/v1/council/{session_id}/stream",
+            get(council::stream_council_session),
+        )
+        .route(
+            "/api/v1/council/{session_id}/synthesize",
+            post(council::synthesize_council_session),
         )
         .route(
             "/api/v1/muse",

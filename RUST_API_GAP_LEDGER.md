@@ -12,25 +12,25 @@
 
 ## Gap Summary
 
-| Category   | Route                                          | Status | Risk   |
-| ---------- | ---------------------------------------------- | ------ | ------ |
-| Auth       | `auth/forgot-password`                         | Gap    | Low    |
-| Auth       | `auth/reset-password`                          | Gap    | Low    |
-| Avatars    | `avatars`                                      | Gap    | Medium |
-| Dashboard  | `dashboard`                                    | Gap    | Medium |
-| Foundation | `foundation/scan/quick`                        | Gap    | Medium |
-| Campaign   | `campaigns/[id]/evaluate`                      | Gap    | Medium |
-| Campaign   | `campaigns/[id]/moves/generate`                | Gap    | High   |
-| Campaign   | `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | Gap    | Low    |
-| Council    | `council/[sessionId]/start`                    | Gap    | High   |
-| Council    | `council/[sessionId]/stream`                   | Gap    | High   |
-| Council    | `council/[sessionId]/synthesize`               | Gap    | High   |
-| Daily-wins | `daily-wins/cron`                              | Gap    | Low    |
-| Intel      | `intel/[signalId]`                             | Gap    | Low    |
-| Intel      | `intel/brief/cron`                             | Gap    | Medium |
-| Intel      | `intel/competitors`                            | Gap    | High   |
-| Nudges     | `nudges/cron`                                  | Gap    | Low    |
-| PRL        | `prl/decay/cron`                               | Gap    | Low    |
+| Category   | Route                                          | Status                       | Risk       |
+| ---------- | ---------------------------------------------- | ---------------------------- | ---------- |
+| Auth       | `auth/forgot-password`                         | Gap                          | Low        |
+| Auth       | `auth/reset-password`                          | Gap                          | Low        |
+| Avatars    | `avatars`                                      | Gap                          | Medium     |
+| Dashboard  | `dashboard`                                    | Gap                          | Medium     |
+| Foundation | `foundation/scan/quick`                        | Gap                          | Medium     |
+| Campaign   | `campaigns/[id]/evaluate`                      | **Implemented + Red-teamed** | ~~Medium~~ |
+| Campaign   | `campaigns/[id]/moves/generate`                | **Implemented + Red-teamed** | ~~High~~   |
+| Campaign   | `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | Gap                          | Low        |
+| Council    | `council/[sessionId]/start`                    | **Implemented + Red-teamed** | ~~High~~   |
+| Council    | `council/[sessionId]/stream`                   | **Implemented + Red-teamed** | ~~High~~   |
+| Council    | `council/[sessionId]/synthesize`               | **Implemented + Red-teamed** | ~~High~~   |
+| Daily-wins | `daily-wins/cron`                              | Gap                          | Low        |
+| Intel      | `intel/[signalId]`                             | Gap                          | Low        |
+| Intel      | `intel/brief/cron`                             | Gap                          | Medium     |
+| Intel      | `intel/competitors`                            | Gap                          | High       |
+| Nudges     | `nudges/cron`                                  | Gap                          | Low        |
+| PRL        | `prl/decay/cron`                               | Gap                          | Low        |
 
 ---
 
@@ -71,23 +71,23 @@
 
 ### 5. Campaign Sub-Routes
 
-| Next Route                                     | Current Behavior                | Why No Rust Equivalent                                   | Proposed Rust Route                   | Risk |
-| ---------------------------------------------- | ------------------------------- | -------------------------------------------------------- | ------------------------------------- | ---- |
-| `campaigns/[id]/evaluate`                      | AI evaluation of campaign brief | Requires Bedrock + complex prompt chaining               | `POST /campaigns/{id}/evaluate`       | High |
-| `campaigns/[id]/moves/generate`                | AI generation of move ladder    | Requires Bedrock + complex logic                         | `POST /campaigns/{id}/moves/generate` | High |
-| `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | PATCH task status               | Rust uses `PATCH /campaigns/{id}/tasks/{task_id}/status` | Rename to match Rust                  | Low  |
+| Next Route                                     | Current Behavior                | Why No Rust Equivalent                                   | Proposed Rust Route                   | Risk     |
+| ---------------------------------------------- | ------------------------------- | -------------------------------------------------------- | ------------------------------------- | -------- |
+| `campaigns/[id]/evaluate`                      | AI evaluation of campaign brief | **IMPLEMENTED** - Rust endpoint exists with validation   | `POST /campaigns/{id}/evaluate`       | ~~High~~ |
+| `campaigns/[id]/moves/generate`                | AI generation of move ladder    | **IMPLEMENTED** - Rust endpoint exists with validation   | `POST /campaigns/{id}/moves/generate` | ~~High~~ |
+| `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | PATCH task status               | Rust uses `PATCH /campaigns/{id}/tasks/{task_id}/status` | Rename to match Rust                  | Low      |
 
-**Recommended Patch Bucket:** Campaign AI features (evaluate, generate)
+**Recommended Patch Bucket:** ~~Campaign AI features~~ - NOW DONE (see red-team patch)
 
 ### 6. Council Sub-Routes
 
-| Next Route                       | Current Behavior                   | Why No Rust Equivalent              | Proposed Rust Route             | Risk |
-| -------------------------------- | ---------------------------------- | ----------------------------------- | ------------------------------- | ---- |
-| `council/[sessionId]/start`      | Triggers async position generation | Requires SSE streaming + async jobs | `POST /council/{id}/start`      | High |
-| `council/[sessionId]/stream`     | SSE stream for council progress    | Requires SSE endpoint               | `GET /council/{id}/stream`      | High |
-| `council/[sessionId]/synthesize` | Triggers async synthesis           | Requires async job queue            | `POST /council/{id}/synthesize` | High |
+| Next Route                       | Current Behavior                   | Why No Rust Equivalent                                     | Proposed Rust Route             | Risk     |
+| -------------------------------- | ---------------------------------- | ---------------------------------------------------------- | ------------------------------- | -------- |
+| `council/[sessionId]/start`      | Triggers async position generation | **IMPLEMENTED** - Rust endpoint exists                     | `POST /council/{id}/start`      | ~~High~~ |
+| `council/[sessionId]/stream`     | SSE stream for council progress    | **IMPLEMENTED** - SSE endpoint exists (see red-team notes) | `GET /council/{id}/stream`      | ~~High~~ |
+| `council/[sessionId]/synthesize` | Triggers async synthesis           | **IMPLEMENTED** - Rust endpoint exists                     | `POST /council/{id}/synthesize` | ~~High~~ |
 
-**Recommended Patch Bucket:** Council streaming (complex, requires async job infrastructure)
+**Recommended Patch Bucket:** ~~Council streaming~~ - NOW DONE (see red-team patch)
 
 ### 7. Daily-Wins Cron
 
@@ -127,19 +127,19 @@
 
 ## Implementation Priority
 
-### High Risk (Blocking)
+### DONE (High Risk - Completed)
 
-1. **Council streaming** (`/council/{id}/start`, `/stream`, `/synthesize`) - These are core product features
-2. **Campaign AI features** (`/campaigns/{id}/evaluate`, `/moves/generate`) - These are core product features
+1. ~~**Council streaming**~~ - `POST /council/{id}/start`, `GET /stream`, `POST /synthesize` - **IMPLEMENTED + RED-TEAMED**
+2. ~~**Campaign AI features**~~ - `POST /campaigns/{id}/evaluate`, `POST /moves/generate` - **IMPLEMENTED + RED-TEAMED**
 
-### Medium Risk
+### Medium Risk (Remaining)
 
 3. **Avatars** - Needed for Council to work properly
 4. **Dashboard** - Office summary endpoint
 5. **Intel competitors** - Competitor analysis feature
 6. **Intel brief cron** - Internal cron job
 
-### Low Risk
+### Low Risk (Remaining)
 
 7. **Auth flows** - Using Clerk, low risk
 8. **Foundation scan** - Minor route difference
@@ -151,5 +151,6 @@
 ## Notes
 
 - Gap routes that are cron jobs (`daily-wins/cron`, `nudges/cron`, `prl/decay/cron`, `intel/brief/cron`) should be handled separately as infrastructure/ops patches
-- Campaign evaluate and generate moves are AI-heavy features that may need significant Rust/Bedrock integration work
-- Council streaming requires SSE support which may need async job infrastructure in Rust
+- ~~Campaign evaluate and generate moves are AI-heavy features that may need significant Rust/Bedrock integration work~~ - **NOW IMPLEMENTED**
+- ~~Council streaming requires SSE support which may need async job infrastructure in Rust~~ - **NOW IMPLEMENTED (see AI_RUNTIME_REDTEAM_REPORT.md for SSE auth notes)**
+- See `AI_RUNTIME_REDTEAM_REPORT.md` for security hardening details on implemented AI endpoints

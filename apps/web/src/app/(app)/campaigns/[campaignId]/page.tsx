@@ -208,11 +208,11 @@ export default function CampaignDetailPage(): React.ReactElement {
       return;
     }
     setConfirmRegenerate(false);
-    await generateMoves.mutateAsync(campaignId);
+    await generateMoves.mutateAsync({ campaignId });
   }
 
   async function handleEvaluate() {
-    await evaluate.mutateAsync(campaignId);
+    await evaluate.mutateAsync({ campaignId });
   }
 
   if (isLoading) {
@@ -450,7 +450,7 @@ export default function CampaignDetailPage(): React.ReactElement {
               </p>
               <Button
                 className="h-11 px-8 bg-[#D97757] text-white font-bold uppercase tracking-[0.14em] text-[10px] rounded-none hover:bg-[#c4684a] disabled:opacity-50"
-                onClick={() => generateMoves.mutate(campaignId)}
+                onClick={() => generateMoves.mutate({ campaignId })}
                 disabled={!evalResult || generateMoves.isPending}
               >
                 {generateMoves.isPending ? "Generating…" : "Generate Move Ladder"}

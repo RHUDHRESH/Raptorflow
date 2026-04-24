@@ -335,6 +335,47 @@ export const campaignsApi = {
       body: { status },
       auth: true,
     }),
+  evaluate: async (id: string, focus?: string) => {
+    const res = await apiFetch<{
+      campaign_id: string;
+      evaluation: {
+        overall_score: number;
+        strengths: string[];
+        weaknesses: string[];
+        opportunities: string[];
+        threats: string[];
+        recommendations: string[];
+      };
+    }>(`/api/v1/campaigns/${id}/evaluate`, {
+      method: "POST",
+      body: { focus },
+      auth: true,
+    });
+    return {
+      campaign_id: res.campaign_id,
+      evaluation: res.evaluation,
+      evaluated_at: new Date().toISOString(),
+    };
+  },
+  generateMoves: async (id: string, context?: string, maxMoves?: number) => {
+    const res = await apiFetch<{
+      campaign_id: string;
+      generated_moves: Array<{
+        move_id: string;
+        move_type: string;
+        description: string;
+        expected_impact: string;
+        confidence: number;
+        sequence_number: number;
+      }>;
+      total: number;
+    }>(`/api/v1/campaigns/${id}/moves/generate`, {
+      method: "POST",
+      body: { context, max_moves: maxMoves },
+      auth: true,
+    });
+    return res;
+  },
 };
 
 export const councilApi = {
@@ -372,6 +413,45 @@ export const councilApi = {
   getMessages: async (id: string) => {
     const res = await apiFetch<unknown>(`/api/v1/council/${id}/messages`, { auth: true });
     return unwrapList<BackendCouncilPosition>(res, ["positions"]).map(normalizeCouncilMessage);
+  },
+  startCouncilGeneration: async (sessionId: string, agentRoster?: string[], maxAgents?: number) => {
+    const res = await apiFetch<{
+      session_id: string;
+      status: string;
+      positions: BackendCouncilPosition[];
+    }>(`/api/v1/council/${sessionId}/start`, {
+      method: "POST",
+      body: {
+        agent_roster: agentRoster ?? [],
+        max_agents: maxAgents ?? 5,
+      },
+      auth: true,
+    });
+    return res;
+  },
+  synthesizeSession: async (sessionId: string, focus?: string) => {
+    const res = await apiFetch<{
+      session_id: string;
+      status: string;
+      synthesis: {
+        decision: string;
+        rationale: string;
+        risks: string[];
+        next_actions: string[];
+        participating_agents: string[];
+      };
+    }>(`/api/v1/council/${sessionId}/synthesize`, {
+      method: "POST",
+      body: { focus },
+      auth: true,
+    });
+    return res;
+  },
+  pollSession: async (sessionId: string) => {
+    return councilApi.getSession(sessionId);
+  },
+  pollMessages: async (sessionId: string) => {
+    return councilApi.getMessages(sessionId);
   },
 };
 

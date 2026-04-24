@@ -2,16 +2,19 @@ use axum::{
     extract::{Extension, Path},
     http::StatusCode,
     Json, Router,
-    routing::{get, patch},
+    routing::{get, patch, post},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use std::sync::Arc;
 use ulid::Ulid;
 
 use raptorflow_auth::TenantContext;
+use raptorflow_aws::bedrock::BedrockInferenceClient;
 use raptorflow_db::{queries, TenantDbPool};
 use raptorflow_db::models::{Campaign, CampaignMove, CampaignTask, CampaignBrief};
 use crate::routes::office::handlers::emit_office_event;
+use crate::routes::ai_helpers::{json_error, parse_ai_json, truncate_context};
 
 pub fn router() -> Router {
     Router::new()
@@ -24,6 +27,8 @@ pub fn router() -> Router {
         .route("/{id}/tasks/{task_id}/status", patch(update_task_status))
         .route("/{id}/brief", get(get_brief).post(create_brief))
         .route("/{id}/brief/status", patch(update_brief_status))
+        .route("/{id}/evaluate", post(evaluate_campaign))
+        .route("/{id}/moves/generate", post(generate_campaign_moves))
 }
 
 type AppResult<T> = Result<T, (StatusCode, Json<Value>)>;
@@ -531,4 +536,288 @@ pub async fn update_brief_status(
         .map_err(internal_error)?;
 
     Ok(Json(json!({ "status": "updated" })))
+}
+
+fn service_unavailable() -> (StatusCode, Json<Value>) {
+    (StatusCode::SERVICE_UNAVAILABLE, Json(json_error("ai_inference_unavailable")))
+}
+
+const VALID_MOVE_TYPES: &[&str] = &[
+    "positioning",
+    "content",
+    "proof",
+    "distribution",
+    "offer",
+    "analysis",
+];
+
+#[derive(Debug, Deserialize)]
+pub struct EvaluateCampaignRequest {
+    pub focus: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GenerateMovesRequest {
+    pub context: Option<String>,
+    pub max_moves: Option<i32>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AiCampaignEvaluation {
+    overall_score: f64,
+    strengths: Vec<String>,
+    weaknesses: Vec<String>,
+    opportunities: Vec<String>,
+    threats: Vec<String>,
+    recommendations: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AiGeneratedMove {
+    move_type: String,
+    description: String,
+    expected_impact: String,
+    confidence: f64,
+}
+
+pub async fn evaluate_campaign(
+    Extension(tenant): Extension<TenantContext>,
+    Extension(tenant_pool): Extension<TenantDbPool>,
+    Extension(bedrock): Extension<Option<Arc<BedrockInferenceClient>>>,
+    Path(campaign_id): Path<String>,
+    Json(req): Json<EvaluateCampaignRequest>,
+) -> AppResult<Json<Value>> {
+    let bedrock = bedrock.ok_or_else(service_unavailable)?;
+    let org_id = tenant.org_id;
+
+    let campaign = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+        .await
+        .map_err(internal_error)?;
+    let campaign = campaign.ok_or_else(|| not_found("campaign_not_found"))?;
+
+    let moves = queries::list_campaign_moves(&tenant_pool.pool(), &campaign_id, org_id)
+        .await
+        .map_err(internal_error)?;
+    let tasks = queries::list_campaign_tasks(&tenant_pool.pool(), &campaign_id, org_id)
+        .await
+        .map_err(internal_error)?;
+
+    let moves_text: String = moves
+        .iter()
+        .map(|m| format!("- {} ({}): {}", m.move_type, m.status, m.sequence_number))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let tasks_text: String = tasks
+        .iter()
+        .map(|t| format!("- {} ({})", t.title, t.status))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let prompt = format!(
+        "Evaluate this campaign:\nName: {}\nGoal: {}\n\nMoves:\n{}\n\nTasks:\n{}\n\n\
+        Provide your evaluation as JSON:\n{{\"overall_score\": 0.0-1.0, \"strengths\": [\"s1\", \"s2\"], \
+        \"weaknesses\": [\"w1\", \"w2\"], \"opportunities\": [\"o1\", \"o2\"], \
+        \"threats\": [\"t1\", \"t2\"], \"recommendations\": [\"r1\", \"r2\"]}}\n\
+        Return ONLY valid JSON.",
+        campaign.name,
+        truncate_context(&campaign.goal, 500),
+        truncate_context(&moves_text, 1000),
+        truncate_context(&tasks_text, 1000)
+    );
+
+    let output = bedrock.converse_large(&prompt, 600).await.map_err(|e| {
+        tracing::error!("Campaign evaluation Bedrock call failed: {}", e);
+        (StatusCode::BAD_GATEWAY, Json(json_error("ai_inference_failed")))
+    })?;
+
+    let evaluation: AiCampaignEvaluation = parse_ai_json(&output).map_err(|e| {
+        tracing::error!("Campaign evaluation parse failed: {}", e);
+        (StatusCode::BAD_GATEWAY, Json(json_error("invalid_ai_output")))
+    })?;
+
+    if evaluation.overall_score < 0.0 || evaluation.overall_score > 1.0 {
+        return Err((StatusCode::BAD_GATEWAY, Json(json_error("invalid_ai_output"))));
+    }
+
+    let eval_body = serde_json::json!({
+        "campaign_id": campaign_id,
+        "overall_score": evaluation.overall_score.clamp(0.0, 1.0),
+        "strengths": evaluation.strengths,
+        "weaknesses": evaluation.weaknesses,
+        "opportunities": evaluation.opportunities,
+        "threats": evaluation.threats,
+        "recommendations": evaluation.recommendations,
+        "focus": req.focus,
+    });
+
+    let content_id = Ulid::new().to_string();
+    queries::create_generated_content(
+        &tenant_pool.pool(),
+        &content_id,
+        org_id,
+        Some(&campaign_id),
+        None,
+        "campaign_evaluation",
+        "generated",
+        &eval_body,
+    )
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(json!({
+        "campaign_id": campaign_id,
+        "evaluation": {
+            "overall_score": evaluation.overall_score.clamp(0.0, 1.0),
+            "strengths": evaluation.strengths,
+            "weaknesses": evaluation.weaknesses,
+            "opportunities": evaluation.opportunities,
+            "threats": evaluation.threats,
+            "recommendations": evaluation.recommendations,
+        }
+    })))
+}
+
+pub async fn generate_campaign_moves(
+    Extension(tenant): Extension<TenantContext>,
+    Extension(tenant_pool): Extension<TenantDbPool>,
+    Extension(bedrock): Extension<Option<Arc<BedrockInferenceClient>>>,
+    Path(campaign_id): Path<String>,
+    Json(req): Json<GenerateMovesRequest>,
+) -> AppResult<Json<Value>> {
+    let bedrock = bedrock.ok_or_else(service_unavailable)?;
+    let org_id = tenant.org_id;
+
+    let campaign = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+        .await
+        .map_err(internal_error)?;
+    let campaign = campaign.ok_or_else(|| not_found("campaign_not_found"))?;
+
+    let existing_moves = queries::list_campaign_moves(&tenant_pool.pool(), &campaign_id, org_id)
+        .await
+        .map_err(internal_error)?;
+
+    let max_moves = req.max_moves.unwrap_or(3).min(5).max(1);
+
+    let existing_moves_text: String = existing_moves
+        .iter()
+        .map(|m| format!("- {} ({})", m.move_type, m.status))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let prompt = format!(
+        "Generate strategic moves for this campaign:\nName: {}\nGoal: {}\n\nExisting moves:\n{}\n\n\
+        Context: {}\n\n\
+        Generate {} move(s) as JSON array:\n[{{\"move_type\": \"type\", \"description\": \"desc\", \"expected_impact\": \"impact\", \"confidence\": 0.0-1.0}}]\n\
+        Return ONLY valid JSON array, no markdown fences.",
+        campaign.name,
+        truncate_context(&campaign.goal, 300),
+        truncate_context(&existing_moves_text, 500),
+        truncate_context(req.context.as_deref().unwrap_or("general strategic expansion"), 200),
+        max_moves
+    );
+
+    let output = bedrock.converse_large(&prompt, 600).await.map_err(|e| {
+        tracing::error!("Move generation Bedrock call failed: {}", e);
+        (StatusCode::BAD_GATEWAY, Json(json_error("ai_inference_failed")))
+    })?;
+
+    let generated_moves: Vec<AiGeneratedMove> = parse_ai_json(&output).map_err(|e| {
+        tracing::error!("Move generation parse failed: {}", e);
+        (StatusCode::BAD_GATEWAY, Json(json_error("invalid_ai_output")))
+    })?;
+
+    let validated_moves: Vec<AiGeneratedMove> = generated_moves
+        .into_iter()
+        .take(max_moves as usize)
+        .filter(|m| {
+            if !VALID_MOVE_TYPES.contains(&m.move_type.as_str()) {
+                tracing::warn!("Invalid move_type rejected: {}", m.move_type);
+                return false;
+            }
+            if m.description.len() < 5 {
+                tracing::warn!("Description too short rejected: {}", m.description.len());
+                return false;
+            }
+            if m.expected_impact.len() < 10 {
+                tracing::warn!("expected_impact too short rejected: {}", m.expected_impact.len());
+                return false;
+            }
+            if m.confidence < 0.0 || m.confidence > 1.0 {
+                tracing::warn!("confidence out of range rejected: {}", m.confidence);
+                return false;
+            }
+            true
+        })
+        .collect();
+
+    if validated_moves.is_empty() {
+        return Err((StatusCode::BAD_GATEWAY, Json(json_error("no_valid_moves_generated"))));
+    }
+
+    let mut results = Vec::new();
+    let mut next_seq = existing_moves.len() as i32 + 1;
+    let mut has_failure = false;
+
+    for gen_move in validated_moves {
+        let move_id = Ulid::new().to_string();
+        if let Err(e) = queries::create_campaign_move(
+            &tenant_pool.pool(),
+            &move_id,
+            &campaign_id,
+            org_id,
+            &gen_move.move_type,
+            next_seq,
+        )
+        .await
+        {
+            tracing::error!("Failed to store generated move: {}", e);
+            has_failure = true;
+            continue;
+        }
+
+        let move_body = serde_json::json!({
+            "description": gen_move.description,
+            "expected_impact": gen_move.expected_impact,
+            "confidence": gen_move.confidence.clamp(0.0, 1.0),
+        });
+
+        let content_id = Ulid::new().to_string();
+        if let Err(e) = queries::create_generated_content(
+            &tenant_pool.pool(),
+            &content_id,
+            org_id,
+            Some(&campaign_id),
+            Some(&move_id),
+            "move_generation",
+            "generated",
+            &move_body,
+        )
+        .await
+        {
+            tracing::error!("Failed to store move content: {}", e);
+        }
+
+        results.push(json!({
+            "move_id": move_id,
+            "move_type": gen_move.move_type,
+            "description": gen_move.description,
+            "expected_impact": gen_move.expected_impact,
+            "confidence": gen_move.confidence.clamp(0.0, 1.0),
+            "sequence_number": next_seq,
+        }));
+
+        next_seq += 1;
+    }
+
+    if has_failure && results.is_empty() {
+        return Err((StatusCode::INTERNAL_SERVER_ERROR, Json(json_error("move_insertion_failed"))));
+    }
+
+    Ok(Json(json!({
+        "campaign_id": campaign_id,
+        "generated_moves": results,
+        "total": results.len(),
+        "atomicity_note": "No DB transaction - partial failures possible in edge cases"
+    })))
 }
