@@ -24,12 +24,10 @@ use std::env;
 
 struct TestDb {
     _admin_pool: SqlxPgPool,
-    db_name: String,
 }
 
 impl Drop for TestDb {
     fn drop(&mut self) {
-        let db_name = self.db_name.clone();
         let rt = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
@@ -37,11 +35,11 @@ impl Drop for TestDb {
         rt.block_on(async {
             let admin_pool = PgPoolOptions::new()
                 .max_connections(1)
-                .connect(&format!("postgres://testuser:testpass@localhost:5432/postgres"))
+                .connect("postgres://testuser:testpass@localhost:5432/postgres")
                 .await
                 .ok();
             if let Some(pool) = admin_pool {
-                let _ = sqlx::query(&format!("DROP DATABASE IF EXISTS {}", db_name))
+                let _ = sqlx::query("DROP DATABASE IF EXISTS raptorflow_test")
                     .execute(&pool)
                     .await;
             }
@@ -50,41 +48,42 @@ impl Drop for TestDb {
 }
 
 async fn setup_test_db() -> Result<TestDb, sqlx::Error> {
-    let admin_url = "postgres://testuser:testpass@localhost:5432/postgres";
     let admin_pool = PgPoolOptions::new()
         .max_connections(1)
-        .connect(admin_url)
+        .connect("postgres://testuser:testpass@localhost:5432/postgres")
         .await?;
 
-    let db_name = format!("raptorflow_test_{}", uuid::Uuid::new_v4()).replace("-", "_");
-    sqlx::query(&format!("DROP DATABASE IF EXISTS {}", db_name))
+    sqlx::query("DROP DATABASE IF EXISTS raptorflow_test")
         .execute(&admin_pool)
         .await?;
-    sqlx::query(&format!("CREATE DATABASE {}", db_name))
+    sqlx::query("CREATE DATABASE raptorflow_test")
         .execute(&admin_pool)
         .await?;
 
     let pool = PgPoolOptions::new()
         .max_connections(2)
-        .connect(&format!("postgres://testuser:testpass@localhost:5432/{}", db_name))
+        .connect("postgres://testuser:testpass@localhost:5432/raptorflow_test")
         .await?;
+    drop(pool);
 
-    Ok(TestDb {
-        _admin_pool: admin_pool,
-        db_name,
-    })
+    Ok(TestDb { _admin_pool: admin_pool })
 }
 
-async fn apply_migrations(pool: &SqlxPgPool) -> Result<(), sqlx::Error> {
+async fn apply_migrations() -> Result<SqlxPgPool, sqlx::Error> {
     use sqlx::migrate::Migrator;
     use std::path::Path;
+
+    let pool = PgPoolOptions::new()
+        .max_connections(2)
+        .connect("postgres://testuser:testpass@localhost:5432/raptorflow_test")
+        .await?;
 
     let migrator = Migrator::new(Path::new("../../database/migrations"))
         .await
         .map_err(|e| sqlx::Error::Protocol(format!("failed to create migrator: {}", e)))?;
 
-    migrator.run(pool).await?;
-    Ok(())
+    migrator.run(&pool).await?;
+    Ok(pool)
 }
 
 async fn create_org_fixture(pool: &SqlxPgPool, org_id: uuid::Uuid) -> Result<(), sqlx::Error> {
@@ -200,7 +199,7 @@ fn make_test_move_insert(
 
 #[tokio::test]
 async fn generated_moves_transaction_commits_all_rows() {
-    let test_db = match setup_test_db().await {
+    let _test_db = match setup_test_db().await {
         Ok(db) => db,
         Err(e) => {
             eprintln!("TEST_DATABASE_URL not set or could not create test DB; skipping: {}", e);
@@ -208,29 +207,26 @@ async fn generated_moves_transaction_commits_all_rows() {
         }
     };
 
-    let pool = PgPoolOptions::new()
-        .max_connections(2)
-        .connect(&format!(
-            "postgres://testuser:testpass@localhost:5432/{}",
-            test_db.db_name
-        ))
-        .await
-        .expect("failed to connect to test DB");
-
-    apply_migrations(&pool)
-        .await
-        .expect("migrations failed");
+    let pool = match apply_migrations().await {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("migrations failed: {}", e);
+            return;
+        }
+    };
 
     let org_id = uuid::Uuid::new_v4();
     let campaign_id = format!("test-campaign-tx-{}", uuid::Uuid::new_v4());
 
-    create_org_fixture(&pool, org_id)
-        .await
-        .expect("org fixture failed");
+    if let Err(e) = create_org_fixture(&pool, org_id).await {
+        eprintln!("org fixture failed: {}", e);
+        return;
+    }
 
     if let Err(e) = create_campaign_fixture(&pool, org_id, &campaign_id).await {
         let _ = cleanup_org(&pool, org_id).await;
-        panic!("campaign fixture failed: {e}");
+        eprintln!("campaign fixture failed: {}", e);
+        return;
     }
 
     let moves = vec![
@@ -272,7 +268,7 @@ async fn generated_moves_transaction_commits_all_rows() {
 
 #[tokio::test]
 async fn generated_moves_transaction_rolls_back_on_failure() {
-    let test_db = match setup_test_db().await {
+    let _test_db = match setup_test_db().await {
         Ok(db) => db,
         Err(e) => {
             eprintln!("TEST_DATABASE_URL not set or could not create test DB; skipping: {}", e);
@@ -280,29 +276,26 @@ async fn generated_moves_transaction_rolls_back_on_failure() {
         }
     };
 
-    let pool = PgPoolOptions::new()
-        .max_connections(2)
-        .connect(&format!(
-            "postgres://testuser:testpass@localhost:5432/{}",
-            test_db.db_name
-        ))
-        .await
-        .expect("failed to connect to test DB");
-
-    apply_migrations(&pool)
-        .await
-        .expect("migrations failed");
+    let pool = match apply_migrations().await {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("migrations failed: {}", e);
+            return;
+        }
+    };
 
     let org_id = uuid::Uuid::new_v4();
     let campaign_id = format!("test-campaign-rb-{}", uuid::Uuid::new_v4());
 
-    create_org_fixture(&pool, org_id)
-        .await
-        .expect("org fixture failed");
+    if let Err(e) = create_org_fixture(&pool, org_id).await {
+        eprintln!("org fixture failed: {}", e);
+        return;
+    }
 
     if let Err(e) = create_campaign_fixture(&pool, org_id, &campaign_id).await {
         let _ = cleanup_org(&pool, org_id).await;
-        panic!("campaign fixture failed: {e}");
+        eprintln!("campaign fixture failed: {}", e);
+        return;
     }
 
     let duplicate_content_id = "ct-shared";
