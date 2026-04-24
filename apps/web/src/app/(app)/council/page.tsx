@@ -13,7 +13,10 @@ import {
 } from "@radix-ui/react-icons";
 import { useCouncilSessions, useStartCouncilSession } from "@/hooks/use-council";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
+import { Users } from "lucide-react";
 
 /* ─── Session Type → Intensity Bars ──────────────────────────── */
 const SESSION_TYPE_INTENSITY: Record<string, number> = {
@@ -137,8 +140,15 @@ export default function CouncilPage(): React.ReactElement {
         {/* ── Loading ──────────────────────────────────────── */}
         {isLoading && (
           <div className="grid md:grid-cols-2 gap-5">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-48 card-elevated animate-pulse opacity-40" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-48 card-elevated space-y-4 p-6">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
             ))}
           </div>
         )}
@@ -152,78 +162,77 @@ export default function CouncilPage(): React.ReactElement {
           </div>
         )}
 
-        {/* ── Session Grid ─────────────────────────────────── */}
-        <div className="gsap-reveal grid md:grid-cols-2 gap-5">
-          {displaySessions.map((session: any, index: number) => {
-            const isLive = session.status === "running" || session.status === "streaming" || session.status === "active";
-            const dateStr = new Date(session.createdAt).toLocaleDateString("en-IN", {
-              day: "numeric", month: "short", year: "numeric",
-            });
-
-            return (
-              <Link
-                key={session.sessionId}
-                href={`/council/${session.sessionId}` as Route}
-                className="group block card-elevated hover:border-[var(--ink-900)]/20 transition-all duration-300"
-                style={{ animationDelay: `${index * 80}ms` }}
-              >
-                {/* Session header */}
-                <div className="p-6 border-b border-[var(--border)]">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <IntensityBars sessionType={session.sessionType} />
-                      <StatusBadge status={session.status} />
-                    </div>
-                    <div className="h-9 w-9 border border-[var(--border)] rounded-[var(--radius)] flex items-center justify-center group-hover:bg-[var(--ink-900)] group-hover:text-white group-hover:border-[var(--ink-900)] transition-all duration-300">
-                      <ArrowTopRightIcon className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
-
-                  {/* Campaign / Session Name */}
-                  <h3 className="h2">
-                    {session.campaignId || "Unassigned Campaign"}
-                  </h3>
-                  <p className="mono-label mt-1">
-                    {session.sessionType.replace(/_/g, " ")}
-                  </p>
-                  <p className="mono-label mt-2">
-                    ID {session.sessionId}
-                  </p>
-                </div>
-
-                {/* Meta footer */}
-                <div className="flex items-center justify-between px-6 py-3">
-                  <div className="flex items-center gap-5">
-                    <span className="flex items-center gap-1.5 mono-label">
-                      <AvatarIcon className="h-3 w-3" />
-                      {session.agentCount ?? 12} Agents
-                    </span>
-                    <span className={cn(
-                      "flex items-center gap-1.5 mono-label",
-                      isLive && "text-[var(--primary)]"
-                    )}>
-                      <ClockIcon className="h-3 w-3" />
-                      {session.duration ?? "—"}
-                    </span>
-                  </div>
-                  <span className="mono-label">{dateStr}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* ── Empty State ──────────────────────────────────── */}
+        {/* ── Empty ────────────────────────────────────────── */}
         {!isLoading && !error && displaySessions.length === 0 && (
-          <div className="gsap-reveal flex flex-col items-center justify-center py-24 card-elevated border-dashed">
-            <AvatarIcon className="h-10 w-10 text-[var(--ink-400)] mb-6 opacity-30" />
-            <p className="display-sm mb-2">The Chamber is Empty</p>
-            <p className="mono-label">
-              Summon a session to begin deliberation.
-            </p>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="No council sessions yet"
+            description="Ask your council a strategic question to begin."
+          />
         )}
 
+        {/* ── Session Grid ─────────────────────────────────── */}
+        {!isLoading && !error && displaySessions.length > 0 && (
+          <div className="gsap-reveal grid md:grid-cols-2 gap-5">
+            {displaySessions.map((session: any, index: number) => {
+              const isLive = session.status === "running" || session.status === "streaming" || session.status === "active";
+              const dateStr = new Date(session.createdAt).toLocaleDateString("en-IN", {
+                day: "numeric", month: "short", year: "numeric",
+              });
+
+              return (
+                <Link
+                  key={session.sessionId}
+                  href={`/council/${session.sessionId}` as Route}
+                  className="group block card-elevated hover:border-[var(--ink-900)]/20 transition-all duration-300"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  {/* Session header */}
+                  <div className="p-6 border-b border-[var(--border)]">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <IntensityBars sessionType={session.sessionType} />
+                        <StatusBadge status={session.status} />
+                      </div>
+                      <div className="h-9 w-9 border border-[var(--border)] rounded-[var(--radius)] flex items-center justify-center group-hover:bg-[var(--ink-900)] group-hover:text-white group-hover:border-[var(--ink-900)] transition-all duration-300">
+                        <ArrowTopRightIcon className="h-3.5 w-3.5" />
+                      </div>
+                    </div>
+
+                    {/* Campaign / Session Name */}
+                    <h3 className="h2">
+                      {session.campaignId || "Unassigned Campaign"}
+                    </h3>
+                    <p className="mono-label mt-1">
+                      {session.sessionType.replace(/_/g, " ")}
+                    </p>
+                    <p className="mono-label mt-2">
+                      ID {session.sessionId}
+                    </p>
+                  </div>
+
+                  {/* Meta footer */}
+                  <div className="flex items-center justify-between px-6 py-3">
+                    <div className="flex items-center gap-5">
+                      <span className="flex items-center gap-1.5 mono-label">
+                        <AvatarIcon className="h-3 w-3" />
+                        {session.agentCount ?? 12} Agents
+                      </span>
+                      <span className={cn(
+                        "flex items-center gap-1.5 mono-label",
+                        isLive && "text-[var(--primary)]"
+                      )}>
+                        <ClockIcon className="h-3 w-3" />
+                        {session.duration ?? "—"}
+                      </span>
+                    </div>
+                    <span className="mono-label">{dateStr}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </GsapBridge>
     </div>
   );

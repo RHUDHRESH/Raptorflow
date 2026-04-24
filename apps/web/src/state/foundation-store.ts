@@ -4,7 +4,7 @@ import { useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 
 /**
- * Valid Foundation Section IDs — 21 screens mapped to Rust model fields
+ * Valid Foundation Section IDs — 22 screens mapped to Rust model fields
  *
  * Screen → Backend Field Mapping:
  *  1. url              → company_url
@@ -177,7 +177,7 @@ export const useFoundationStore = create<FoundationState>()(
   persist(
     (set, get) => ({
       currentStep: 1,
-      totalSteps: 21,
+      totalSteps: 22,
       completedSteps: [],
       sectionData: {} as Record<FoundationSectionId, any>,
       scanData: null,
@@ -185,11 +185,11 @@ export const useFoundationStore = create<FoundationState>()(
       status: "initial",
       foundationId: null,
 
-      setStep: (step) => set({ currentStep: Math.max(1, Math.min(step, 21)) }),
+      setStep: (step) => set({ currentStep: Math.max(1, Math.min(step, 22)) }),
 
       nextStep: () =>
         set((state) => ({
-          currentStep: Math.min(state.currentStep + 1, 21),
+          currentStep: Math.min(state.currentStep + 1, 22),
         })),
 
       prevStep: () =>

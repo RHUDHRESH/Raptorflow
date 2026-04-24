@@ -147,7 +147,7 @@ export default function CampaignMoveDetailPage({
               )}
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-[#E5DED4]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-[#E5DED4]">
               <div>
                 <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Timeline</p>
                 <p className="text-sm font-medium">{move.start_date} → {move.end_date}</p>

@@ -12,6 +12,9 @@ import {
   TrashIcon,
   ReloadIcon,
 } from "@radix-ui/react-icons";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Activity } from "lucide-react";
 
 /* ─── Protection band config ────────────────────────────────────── */
 const BAND_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -341,7 +344,7 @@ export default function RipplesPage(): React.ReactElement {
       {isLoading && (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-48 border border-[var(--border)] animate-pulse" style={{ background: "var(--card)" }} />
+            <Skeleton key={i} className="h-48 w-full" />
           ))}
         </div>
       )}
@@ -355,14 +358,11 @@ export default function RipplesPage(): React.ReactElement {
       )}
 
       {!isLoading && filtered.length === 0 && !error && (
-        <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-[var(--border)]">
-          <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--foreground)", marginBottom: 8 }}>
-            No ripples in this band
-          </p>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--muted-foreground)" }}>
-            {filter === "all" ? "Create your first ripple to begin tracking" : `No ${filter} ripples`}
-          </p>
-        </div>
+        <EmptyState
+          icon={Activity}
+          title={filter === "all" ? "No ripples yet" : `No ${filter} ripples`}
+          description={filter === "all" ? "Create your first ripple to begin tracking." : `No ripples in the ${filter} band.`}
+        />
       )}
 
       {!isLoading && filtered.length > 0 && (

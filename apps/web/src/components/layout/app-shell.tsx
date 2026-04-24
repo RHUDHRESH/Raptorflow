@@ -2,6 +2,7 @@ import type * as React from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { ShellSidebar } from "@/components/layout/shell-sidebar";
+import { AnimatedMain } from "@/components/layout/AnimatedMain";
 
 export function AppShell({
   identity,
@@ -16,8 +17,8 @@ export function AppShell({
   return (
     <div className="flex min-h-screen">
       <ShellSidebar identity={identity} />
-      <main className="flex-1 min-w-0 px-6 py-8 md:px-10 ml-64 bg-[var(--background)] paper-soft transition-all duration-500">
-        {children}
+      <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-8 md:px-10 ml-0 lg:ml-64 bg-[var(--background)] paper-soft transition-all duration-500">
+        <AnimatedMain>{children}</AnimatedMain>
       </main>
     </div>
   );

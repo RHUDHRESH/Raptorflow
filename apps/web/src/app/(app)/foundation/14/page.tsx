@@ -115,7 +115,7 @@ export default function FoundationStep14() {
         </div>
 
         {/* CONTENT TYPE GRID */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {CONTENT_TYPES.map((type) => {
             const isSelected = selectedTypes.includes(type.id);
             return (

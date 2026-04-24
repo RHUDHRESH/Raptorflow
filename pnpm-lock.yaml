@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      bcryptjs:
+        specifier: 3.0.3
+        version: 3.0.3
     devDependencies:
       '@types/node':
         specifier: 24.0.0
@@ -87,7 +91,7 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3(pixi.js@8.18.1)
       pixi.js:
-        specifier: ^8.18.1
+        specifier: '8'
         version: 8.18.1
       pusher:
         specifier: 5.3.3
@@ -2219,6 +2223,10 @@ packages:
   baseline-browser-mapping@2.10.19:
     resolution: {integrity: sha512-qCkNLi2sfBOn8XhZQ0FXsT1Ki/Yo5P90hrkRamVFRS7/KV9hpfA4HkoWNU152+8w0zPjnxo5psx5NL3PSGgv5g==}
     engines: {node: '>=6.0.0'}
+    hasBin: true
+
+  bcryptjs@3.0.3:
+    resolution: {integrity: sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g==}
     hasBin: true
 
   better-result@2.8.2:
@@ -6025,6 +6033,8 @@ snapshots:
   balanced-match@4.0.4: {}
 
   baseline-browser-mapping@2.10.19: {}
+
+  bcryptjs@3.0.3: {}
 
   better-result@2.8.2: {}
 

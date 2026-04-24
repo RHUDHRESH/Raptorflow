@@ -15,7 +15,10 @@ import {
 import { useCampaigns, useCreateCampaign, useEvaluateCampaign, type CampaignListItem } from "@/features/campaigns/hooks";
 import { Button } from "@/components/ui/button";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
+import { Rocket } from "lucide-react";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
   draft: { bg: "bg-[var(--paper-150)]", text: "text-[var(--ink-400)]", border: "border-[var(--border)]", dot: "bg-[var(--ink-400)]" },
@@ -111,7 +114,7 @@ function NewCampaignModal({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="eyebrow mb-2 block">Goal</label>
               <select
@@ -238,19 +241,31 @@ export default function CampaignsPage(): React.ReactElement {
 
           <div className="card-elevated divide-y divide-[var(--border)] overflow-hidden">
             {isLoading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="p-12 animate-pulse bg-[var(--paper-150)]/50" />
-              ))
-            ) : campaignList.length === 0 ? (
-              <div className="p-20 text-center space-y-6">
-                <TargetIcon className="w-10 h-10 text-[var(--border)] mx-auto" />
-                <div className="space-y-1">
-                  <p className="display-sm">No campaigns yet.</p>
-                  <p className="mono-label">
-                    Create your first campaign to get a strategic evaluation.
-                  </p>
-                </div>
+              <div className="divide-y divide-[var(--border)]">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="p-6 space-y-3">
+                    <div className="flex items-center gap-5">
+                      <Skeleton className="h-10 w-10 rounded-[var(--radius)]" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-5 w-48" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : campaignList.length === 0 ? (
+              <EmptyState
+                icon={Rocket}
+                title="No campaigns yet"
+                description="Create your first campaign and let the council evaluate it."
+                action={
+                  <Button onClick={() => setModalOpen(true)}>
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    New Campaign
+                  </Button>
+                }
+              />
             ) : (
               campaignList.map((c, index) => (
                 <Link

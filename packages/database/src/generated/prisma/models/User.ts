@@ -34,6 +34,7 @@ export type UserMinAggregateOutputType = {
   referralAppliedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  password: string | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -46,6 +47,7 @@ export type UserMaxAggregateOutputType = {
   referralAppliedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  password: string | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -58,6 +60,7 @@ export type UserCountAggregateOutputType = {
   referralAppliedAt: number
   createdAt: number
   updatedAt: number
+  password: number
   _all: number
 }
 
@@ -72,6 +75,7 @@ export type UserMinAggregateInputType = {
   referralAppliedAt?: true
   createdAt?: true
   updatedAt?: true
+  password?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -84,6 +88,7 @@ export type UserMaxAggregateInputType = {
   referralAppliedAt?: true
   createdAt?: true
   updatedAt?: true
+  password?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -96,6 +101,7 @@ export type UserCountAggregateInputType = {
   referralAppliedAt?: true
   createdAt?: true
   updatedAt?: true
+  password?: true
   _all?: true
 }
 
@@ -181,6 +187,7 @@ export type UserGroupByOutputType = {
   referralAppliedAt: Date | null
   createdAt: Date
   updatedAt: Date
+  password: string | null
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
@@ -214,6 +221,7 @@ export type UserWhereInput = {
   referralAppliedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   memberships?: Prisma.OrgMemberListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
   conversations?: Prisma.MuseConversationListRelationFilter
@@ -223,6 +231,7 @@ export type UserWhereInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotListRelationFilter
   dailyWins?: Prisma.DailyWinListRelationFilter
   nudges?: Prisma.NudgeListRelationFilter
+  passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -235,6 +244,7 @@ export type UserOrderByWithRelationInput = {
   referralAppliedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   memberships?: Prisma.OrgMemberOrderByRelationAggregateInput
   campaigns?: Prisma.CampaignOrderByRelationAggregateInput
   conversations?: Prisma.MuseConversationOrderByRelationAggregateInput
@@ -244,6 +254,7 @@ export type UserOrderByWithRelationInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotOrderByRelationAggregateInput
   dailyWins?: Prisma.DailyWinOrderByRelationAggregateInput
   nudges?: Prisma.NudgeOrderByRelationAggregateInput
+  passwordResetTokens?: Prisma.PasswordResetTokenOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -259,6 +270,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   referralAppliedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   memberships?: Prisma.OrgMemberListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
   conversations?: Prisma.MuseConversationListRelationFilter
@@ -268,6 +280,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   competitorSnapshots?: Prisma.CompetitorSnapshotListRelationFilter
   dailyWins?: Prisma.DailyWinListRelationFilter
   nudges?: Prisma.NudgeListRelationFilter
+  passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
 }, "clerkUserId" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -280,6 +293,7 @@ export type UserOrderByWithAggregationInput = {
   referralAppliedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
@@ -298,6 +312,7 @@ export type UserScalarWhereWithAggregatesInput = {
   referralAppliedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+  password?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
 }
 
 export type UserCreateInput = {
@@ -310,6 +325,7 @@ export type UserCreateInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
@@ -319,6 +335,7 @@ export type UserCreateInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -331,6 +348,7 @@ export type UserUncheckedCreateInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
@@ -340,6 +358,7 @@ export type UserUncheckedCreateInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -352,6 +371,7 @@ export type UserUpdateInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
@@ -361,6 +381,7 @@ export type UserUpdateInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -373,6 +394,7 @@ export type UserUncheckedUpdateInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
@@ -382,6 +404,7 @@ export type UserUncheckedUpdateInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -394,6 +417,7 @@ export type UserCreateManyInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -406,6 +430,7 @@ export type UserUpdateManyMutationInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -418,6 +443,7 @@ export type UserUncheckedUpdateManyInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -430,6 +456,7 @@ export type UserCountOrderByAggregateInput = {
   referralAppliedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  password?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -442,6 +469,7 @@ export type UserMaxOrderByAggregateInput = {
   referralAppliedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  password?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -454,6 +482,7 @@ export type UserMinOrderByAggregateInput = {
   referralAppliedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  password?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -463,6 +492,20 @@ export type UserScalarRelationFilter = {
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
+}
+
+export type UserCreateNestedOneWithoutPasswordResetTokensInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPasswordResetTokensInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPasswordResetTokensNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPasswordResetTokensInput
+  upsert?: Prisma.UserUpsertWithoutPasswordResetTokensInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPasswordResetTokensInput, Prisma.UserUpdateWithoutPasswordResetTokensInput>, Prisma.UserUncheckedUpdateWithoutPasswordResetTokensInput>
 }
 
 export type UserCreateNestedOneWithoutMembershipsInput = {
@@ -591,6 +634,110 @@ export type UserUpdateOneRequiredWithoutNudgesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNudgesInput, Prisma.UserUpdateWithoutNudgesInput>, Prisma.UserUncheckedUpdateWithoutNudgesInput>
 }
 
+export type UserCreateWithoutPasswordResetTokensInput = {
+  clerkUserId: string
+  email: string
+  firstName?: string | null
+  lastName?: string | null
+  avatarUrl?: string | null
+  referralCode?: string | null
+  referralAppliedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  password?: string | null
+  memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
+  conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
+  ripples?: Prisma.RippleCreateNestedManyWithoutUserInput
+  egoStates?: Prisma.AvatarEgoStateCreateNestedManyWithoutUserInput
+  intelSignals?: Prisma.IntelSignalCreateNestedManyWithoutUserInput
+  competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
+  dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
+  nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
+  clerkUserId: string
+  email: string
+  firstName?: string | null
+  lastName?: string | null
+  avatarUrl?: string | null
+  referralCode?: string | null
+  referralAppliedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  password?: string | null
+  memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
+  conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
+  ripples?: Prisma.RippleUncheckedCreateNestedManyWithoutUserInput
+  egoStates?: Prisma.AvatarEgoStateUncheckedCreateNestedManyWithoutUserInput
+  intelSignals?: Prisma.IntelSignalUncheckedCreateNestedManyWithoutUserInput
+  competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
+  dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
+  nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutPasswordResetTokensInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
+}
+
+export type UserUpsertWithoutPasswordResetTokensInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPasswordResetTokensInput, Prisma.UserUncheckedUpdateWithoutPasswordResetTokensInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPasswordResetTokensInput, Prisma.UserUncheckedCreateWithoutPasswordResetTokensInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPasswordResetTokensInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPasswordResetTokensInput, Prisma.UserUncheckedUpdateWithoutPasswordResetTokensInput>
+}
+
+export type UserUpdateWithoutPasswordResetTokensInput = {
+  clerkUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
+  conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
+  ripples?: Prisma.RippleUpdateManyWithoutUserNestedInput
+  egoStates?: Prisma.AvatarEgoStateUpdateManyWithoutUserNestedInput
+  intelSignals?: Prisma.IntelSignalUpdateManyWithoutUserNestedInput
+  competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
+  dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
+  nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
+  clerkUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
+  conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
+  ripples?: Prisma.RippleUncheckedUpdateManyWithoutUserNestedInput
+  egoStates?: Prisma.AvatarEgoStateUncheckedUpdateManyWithoutUserNestedInput
+  intelSignals?: Prisma.IntelSignalUncheckedUpdateManyWithoutUserNestedInput
+  competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
+  dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
+  nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+}
+
 export type UserCreateWithoutMembershipsInput = {
   clerkUserId: string
   email: string
@@ -601,6 +748,7 @@ export type UserCreateWithoutMembershipsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
   ripples?: Prisma.RippleCreateNestedManyWithoutUserInput
@@ -609,6 +757,7 @@ export type UserCreateWithoutMembershipsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -621,6 +770,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
   ripples?: Prisma.RippleUncheckedCreateNestedManyWithoutUserInput
@@ -629,6 +779,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -657,6 +808,7 @@ export type UserUpdateWithoutMembershipsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
   ripples?: Prisma.RippleUpdateManyWithoutUserNestedInput
@@ -665,6 +817,7 @@ export type UserUpdateWithoutMembershipsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -677,6 +830,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
   ripples?: Prisma.RippleUncheckedUpdateManyWithoutUserNestedInput
@@ -685,6 +839,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCampaignsInput = {
@@ -697,6 +852,7 @@ export type UserCreateWithoutCampaignsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
   ripples?: Prisma.RippleCreateNestedManyWithoutUserInput
@@ -705,6 +861,7 @@ export type UserCreateWithoutCampaignsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCampaignsInput = {
@@ -717,6 +874,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
   ripples?: Prisma.RippleUncheckedCreateNestedManyWithoutUserInput
@@ -725,6 +883,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCampaignsInput = {
@@ -753,6 +912,7 @@ export type UserUpdateWithoutCampaignsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
   ripples?: Prisma.RippleUpdateManyWithoutUserNestedInput
@@ -761,6 +921,7 @@ export type UserUpdateWithoutCampaignsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampaignsInput = {
@@ -773,6 +934,7 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
   ripples?: Prisma.RippleUncheckedUpdateManyWithoutUserNestedInput
@@ -781,6 +943,7 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutConversationsInput = {
@@ -793,6 +956,7 @@ export type UserCreateWithoutConversationsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
   ripples?: Prisma.RippleCreateNestedManyWithoutUserInput
@@ -801,6 +965,7 @@ export type UserCreateWithoutConversationsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutConversationsInput = {
@@ -813,6 +978,7 @@ export type UserUncheckedCreateWithoutConversationsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
   ripples?: Prisma.RippleUncheckedCreateNestedManyWithoutUserInput
@@ -821,6 +987,7 @@ export type UserUncheckedCreateWithoutConversationsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutConversationsInput = {
@@ -849,6 +1016,7 @@ export type UserUpdateWithoutConversationsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
   ripples?: Prisma.RippleUpdateManyWithoutUserNestedInput
@@ -857,6 +1025,7 @@ export type UserUpdateWithoutConversationsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConversationsInput = {
@@ -869,6 +1038,7 @@ export type UserUncheckedUpdateWithoutConversationsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
   ripples?: Prisma.RippleUncheckedUpdateManyWithoutUserNestedInput
@@ -877,6 +1047,7 @@ export type UserUncheckedUpdateWithoutConversationsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRipplesInput = {
@@ -889,6 +1060,7 @@ export type UserCreateWithoutRipplesInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
@@ -897,6 +1069,7 @@ export type UserCreateWithoutRipplesInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRipplesInput = {
@@ -909,6 +1082,7 @@ export type UserUncheckedCreateWithoutRipplesInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
@@ -917,6 +1091,7 @@ export type UserUncheckedCreateWithoutRipplesInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRipplesInput = {
@@ -945,6 +1120,7 @@ export type UserUpdateWithoutRipplesInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
@@ -953,6 +1129,7 @@ export type UserUpdateWithoutRipplesInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRipplesInput = {
@@ -965,6 +1142,7 @@ export type UserUncheckedUpdateWithoutRipplesInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
@@ -973,6 +1151,7 @@ export type UserUncheckedUpdateWithoutRipplesInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEgoStatesInput = {
@@ -985,6 +1164,7 @@ export type UserCreateWithoutEgoStatesInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
@@ -993,6 +1173,7 @@ export type UserCreateWithoutEgoStatesInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEgoStatesInput = {
@@ -1005,6 +1186,7 @@ export type UserUncheckedCreateWithoutEgoStatesInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
@@ -1013,6 +1195,7 @@ export type UserUncheckedCreateWithoutEgoStatesInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEgoStatesInput = {
@@ -1041,6 +1224,7 @@ export type UserUpdateWithoutEgoStatesInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
@@ -1049,6 +1233,7 @@ export type UserUpdateWithoutEgoStatesInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEgoStatesInput = {
@@ -1061,6 +1246,7 @@ export type UserUncheckedUpdateWithoutEgoStatesInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
@@ -1069,6 +1255,7 @@ export type UserUncheckedUpdateWithoutEgoStatesInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutIntelSignalsInput = {
@@ -1081,6 +1268,7 @@ export type UserCreateWithoutIntelSignalsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
@@ -1089,6 +1277,7 @@ export type UserCreateWithoutIntelSignalsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutIntelSignalsInput = {
@@ -1101,6 +1290,7 @@ export type UserUncheckedCreateWithoutIntelSignalsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
@@ -1109,6 +1299,7 @@ export type UserUncheckedCreateWithoutIntelSignalsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutIntelSignalsInput = {
@@ -1137,6 +1328,7 @@ export type UserUpdateWithoutIntelSignalsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
@@ -1145,6 +1337,7 @@ export type UserUpdateWithoutIntelSignalsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutIntelSignalsInput = {
@@ -1157,6 +1350,7 @@ export type UserUncheckedUpdateWithoutIntelSignalsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
@@ -1165,6 +1359,7 @@ export type UserUncheckedUpdateWithoutIntelSignalsInput = {
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCompetitorSnapshotsInput = {
@@ -1177,6 +1372,7 @@ export type UserCreateWithoutCompetitorSnapshotsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
@@ -1185,6 +1381,7 @@ export type UserCreateWithoutCompetitorSnapshotsInput = {
   intelSignals?: Prisma.IntelSignalCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCompetitorSnapshotsInput = {
@@ -1197,6 +1394,7 @@ export type UserUncheckedCreateWithoutCompetitorSnapshotsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
@@ -1205,6 +1403,7 @@ export type UserUncheckedCreateWithoutCompetitorSnapshotsInput = {
   intelSignals?: Prisma.IntelSignalUncheckedCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCompetitorSnapshotsInput = {
@@ -1233,6 +1432,7 @@ export type UserUpdateWithoutCompetitorSnapshotsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
@@ -1241,6 +1441,7 @@ export type UserUpdateWithoutCompetitorSnapshotsInput = {
   intelSignals?: Prisma.IntelSignalUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCompetitorSnapshotsInput = {
@@ -1253,6 +1454,7 @@ export type UserUncheckedUpdateWithoutCompetitorSnapshotsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
@@ -1261,6 +1463,7 @@ export type UserUncheckedUpdateWithoutCompetitorSnapshotsInput = {
   intelSignals?: Prisma.IntelSignalUncheckedUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutDailyWinsInput = {
@@ -1273,6 +1476,7 @@ export type UserCreateWithoutDailyWinsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
@@ -1281,6 +1485,7 @@ export type UserCreateWithoutDailyWinsInput = {
   intelSignals?: Prisma.IntelSignalCreateNestedManyWithoutUserInput
   competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDailyWinsInput = {
@@ -1293,6 +1498,7 @@ export type UserUncheckedCreateWithoutDailyWinsInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
@@ -1301,6 +1507,7 @@ export type UserUncheckedCreateWithoutDailyWinsInput = {
   intelSignals?: Prisma.IntelSignalUncheckedCreateNestedManyWithoutUserInput
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
   nudges?: Prisma.NudgeUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDailyWinsInput = {
@@ -1329,6 +1536,7 @@ export type UserUpdateWithoutDailyWinsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
@@ -1337,6 +1545,7 @@ export type UserUpdateWithoutDailyWinsInput = {
   intelSignals?: Prisma.IntelSignalUpdateManyWithoutUserNestedInput
   competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDailyWinsInput = {
@@ -1349,6 +1558,7 @@ export type UserUncheckedUpdateWithoutDailyWinsInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
@@ -1357,6 +1567,7 @@ export type UserUncheckedUpdateWithoutDailyWinsInput = {
   intelSignals?: Prisma.IntelSignalUncheckedUpdateManyWithoutUserNestedInput
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
   nudges?: Prisma.NudgeUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNudgesInput = {
@@ -1369,6 +1580,7 @@ export type UserCreateWithoutNudgesInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationCreateNestedManyWithoutUserInput
@@ -1377,6 +1589,7 @@ export type UserCreateWithoutNudgesInput = {
   intelSignals?: Prisma.IntelSignalCreateNestedManyWithoutUserInput
   competitorSnapshots?: Prisma.CompetitorSnapshotCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNudgesInput = {
@@ -1389,6 +1602,7 @@ export type UserUncheckedCreateWithoutNudgesInput = {
   referralAppliedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  password?: string | null
   memberships?: Prisma.OrgMemberUncheckedCreateNestedManyWithoutUserInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
   conversations?: Prisma.MuseConversationUncheckedCreateNestedManyWithoutUserInput
@@ -1397,6 +1611,7 @@ export type UserUncheckedCreateWithoutNudgesInput = {
   intelSignals?: Prisma.IntelSignalUncheckedCreateNestedManyWithoutUserInput
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedCreateNestedManyWithoutUserInput
   dailyWins?: Prisma.DailyWinUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNudgesInput = {
@@ -1425,6 +1640,7 @@ export type UserUpdateWithoutNudgesInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUpdateManyWithoutUserNestedInput
@@ -1433,6 +1649,7 @@ export type UserUpdateWithoutNudgesInput = {
   intelSignals?: Prisma.IntelSignalUpdateManyWithoutUserNestedInput
   competitorSnapshots?: Prisma.CompetitorSnapshotUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNudgesInput = {
@@ -1445,6 +1662,7 @@ export type UserUncheckedUpdateWithoutNudgesInput = {
   referralAppliedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memberships?: Prisma.OrgMemberUncheckedUpdateManyWithoutUserNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
   conversations?: Prisma.MuseConversationUncheckedUpdateManyWithoutUserNestedInput
@@ -1453,6 +1671,7 @@ export type UserUncheckedUpdateWithoutNudgesInput = {
   intelSignals?: Prisma.IntelSignalUncheckedUpdateManyWithoutUserNestedInput
   competitorSnapshots?: Prisma.CompetitorSnapshotUncheckedUpdateManyWithoutUserNestedInput
   dailyWins?: Prisma.DailyWinUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1470,6 +1689,7 @@ export type UserCountOutputType = {
   competitorSnapshots: number
   dailyWins: number
   nudges: number
+  passwordResetTokens: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1482,6 +1702,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   competitorSnapshots?: boolean | UserCountOutputTypeCountCompetitorSnapshotsArgs
   dailyWins?: boolean | UserCountOutputTypeCountDailyWinsArgs
   nudges?: boolean | UserCountOutputTypeCountNudgesArgs
+  passwordResetTokens?: boolean | UserCountOutputTypeCountPasswordResetTokensArgs
 }
 
 /**
@@ -1557,6 +1778,13 @@ export type UserCountOutputTypeCountNudgesArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.NudgeWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPasswordResetTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PasswordResetTokenWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   clerkUserId?: boolean
@@ -1568,6 +1796,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   referralAppliedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  password?: boolean
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   campaigns?: boolean | Prisma.User$campaignsArgs<ExtArgs>
   conversations?: boolean | Prisma.User$conversationsArgs<ExtArgs>
@@ -1577,6 +1806,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   competitorSnapshots?: boolean | Prisma.User$competitorSnapshotsArgs<ExtArgs>
   dailyWins?: boolean | Prisma.User$dailyWinsArgs<ExtArgs>
   nudges?: boolean | Prisma.User$nudgesArgs<ExtArgs>
+  passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1590,6 +1820,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   referralAppliedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  password?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1602,6 +1833,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   referralAppliedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  password?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -1614,9 +1846,10 @@ export type UserSelectScalar = {
   referralAppliedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  password?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"clerkUserId" | "email" | "firstName" | "lastName" | "avatarUrl" | "referralCode" | "referralAppliedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"clerkUserId" | "email" | "firstName" | "lastName" | "avatarUrl" | "referralCode" | "referralAppliedAt" | "createdAt" | "updatedAt" | "password", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   campaigns?: boolean | Prisma.User$campaignsArgs<ExtArgs>
@@ -1627,6 +1860,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   competitorSnapshots?: boolean | Prisma.User$competitorSnapshotsArgs<ExtArgs>
   dailyWins?: boolean | Prisma.User$dailyWinsArgs<ExtArgs>
   nudges?: boolean | Prisma.User$nudgesArgs<ExtArgs>
+  passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1644,6 +1878,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     competitorSnapshots: Prisma.$CompetitorSnapshotPayload<ExtArgs>[]
     dailyWins: Prisma.$DailyWinPayload<ExtArgs>[]
     nudges: Prisma.$NudgePayload<ExtArgs>[]
+    passwordResetTokens: Prisma.$PasswordResetTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     clerkUserId: string
@@ -1655,6 +1890,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     referralAppliedAt: Date | null
     createdAt: Date
     updatedAt: Date
+    password: string | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -2058,6 +2294,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   competitorSnapshots<T extends Prisma.User$competitorSnapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$competitorSnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompetitorSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailyWins<T extends Prisma.User$dailyWinsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$dailyWinsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyWinPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   nudges<T extends Prisma.User$nudgesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$nudgesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NudgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  passwordResetTokens<T extends Prisma.User$passwordResetTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordResetTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2096,6 +2333,7 @@ export interface UserFieldRefs {
   readonly referralAppliedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly password: Prisma.FieldRef<"User", 'String'>
 }
     
 
@@ -2702,6 +2940,30 @@ export type User$nudgesArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.NudgeScalarFieldEnum | Prisma.NudgeScalarFieldEnum[]
+}
+
+/**
+ * User.passwordResetTokens
+ */
+export type User$passwordResetTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PasswordResetToken
+   */
+  select?: Prisma.PasswordResetTokenSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PasswordResetToken
+   */
+  omit?: Prisma.PasswordResetTokenOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PasswordResetTokenInclude<ExtArgs> | null
+  where?: Prisma.PasswordResetTokenWhereInput
+  orderBy?: Prisma.PasswordResetTokenOrderByWithRelationInput | Prisma.PasswordResetTokenOrderByWithRelationInput[]
+  cursor?: Prisma.PasswordResetTokenWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PasswordResetTokenScalarFieldEnum | Prisma.PasswordResetTokenScalarFieldEnum[]
 }
 
 /**

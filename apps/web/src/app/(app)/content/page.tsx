@@ -6,6 +6,8 @@ import { GsapBridge } from "@/components/ui/gsap-bridge";
 import { DownloadIcon, MixerHorizontalIcon, ViewGridIcon } from "@radix-ui/react-icons";
 import { contentApi } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FileText } from "lucide-react";
 
 export default function ContentPage(): React.ReactElement {
   const { data, isLoading } = useQuery({
@@ -45,14 +47,11 @@ export default function ContentPage(): React.ReactElement {
               <Skeleton className="h-28 w-full rounded-none" />
             </>
           ) : (data?.length ?? 0) === 0 ? (
-            <div className="border border-[var(--border)] p-8">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] mb-4">
-                Content Archive Empty
-              </p>
-              <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
-                No generated content has been persisted for this tenant yet. This page now reflects the real backend content archive rather than a placeholder demo state.
-              </p>
-            </div>
+            <EmptyState
+              icon={FileText}
+              title="Content Archive Empty"
+              description="No generated content has been persisted yet. Generate content from campaigns or the council."
+            />
           ) : (
             data?.map((item) => (
               <div key={item.contentId} className="border border-[var(--border)] bg-[var(--card)] p-6">

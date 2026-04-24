@@ -26,6 +26,7 @@ import { cn } from "@/lib/cn";
 import { OfficeMiniStrip } from "@/components/office/office-mini-strip";
 import { NotificationPanel } from "@/components/layout/notification-panel";
 import { useOfficeStore } from "@/state/office-store";
+import { Menu, X } from "lucide-react";
 
 type NavItem = {
   href: Route;
@@ -96,13 +97,42 @@ function SidebarBadge({ queryKey, countPath }: { queryKey: unknown[]; countPath:
 export function ShellSidebar({ identity }: { identity: { userId: string; orgId: string } }) {
   const pathname = usePathname();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const eventLog = useOfficeStore((s) => s.eventLog);
   const unreadCount = eventLog.filter((e) => !e.processed).length;
 
+  React.useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
   return (
     <>
-      <aside className="flex h-screen w-64 flex-col fixed left-0 top-0 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] z-40 overflow-hidden paper-soft">
-        <div className="h-16 px-6 flex items-center justify-between border-b border-[var(--sidebar-border)]">
+      {/* Mobile hamburger */}
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-[var(--sidebar-background)] border border-[var(--sidebar-border)] text-[var(--ink-400)] hover:text-[var(--ink-900)]"
+        aria-label="Open sidebar"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={cn(
+          "flex h-screen w-64 flex-col fixed left-0 top-0 bg-[var(--sidebar-background)] border-r border-[var(--sidebar-border)] z-40 overflow-hidden paper-soft",
+          "transition-transform duration-200 ease-out",
+          "lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <div className="h-16 px-6 flex items-center justify-between border-b border-[var(--sidebar-border)] relative">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-[var(--primary)] flex items-center justify-center rounded-[var(--radius)] transition-transform duration-300 hover:scale-105">
               <LightningBoltIcon className="w-4 h-4 text-white" />
@@ -117,6 +147,13 @@ export function ShellSidebar({ identity }: { identity: { userId: string; orgId: 
             </div>
           </div>
 
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden absolute -right-2 top-1/2 -translate-y-1/2 p-2 text-[var(--ink-400)] hover:text-[var(--ink-900)]"
+            aria-label="Close sidebar"
+          >
+            <X className="w-4 h-4" />
+          </button>
           <button
             onClick={() => setNotifOpen(true)}
             className="p-2 rounded-[var(--radius)] hover:bg-[var(--paper-150)] transition-all duration-200 relative group"
@@ -141,9 +178,12 @@ export function ShellSidebar({ identity }: { identity: { userId: string; orgId: 
               </h2>
               <div className="space-y-1">
                 {group.items.map((item, itemIndex) => {
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== "/app" && pathname.startsWith(item.href + "/"));
+                  const isExact = pathname === item.href;
+                  const isNested =
+                    item.href !== "/office" &&
+                    item.href !== "/app/dashboard" &&
+                    pathname.startsWith(item.href + "/");
+                  const isActive = isExact || isNested;
                   const Icon = item.icon;
 
                   return (
@@ -151,24 +191,24 @@ export function ShellSidebar({ identity }: { identity: { userId: string; orgId: 
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 text-[13px] transition-all duration-200 group relative rounded-[var(--radius)]",
+                        "flex items-center gap-3 px-3 py-2.5 text-[13px] transition-all duration-150 group relative rounded-[var(--radius)]",
                         isActive
-                          ? "text-[var(--ink-900)] bg-white shadow-sm"
-                          : "text-[var(--ink-500)] hover:text-[var(--ink-900)] hover:bg-[var(--paper-150)]",
+                          ? "text-white bg-[rgba(139,92,246,0.08)] shadow-sm"
+                          : "text-slate-400 hover:text-slate-300 hover:bg-white/[0.04]",
                       )}
                       style={{
                         animationDelay: `${(groupIndex * 4 + itemIndex) * 50}ms`,
                       }}
                     >
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[var(--primary)] rounded-r-full" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 bg-[#8b5cf6] rounded-r-full" />
                       )}
                       <Icon
                         className={cn(
                           "w-4 h-4 transition-colors duration-200",
                           isActive
-                            ? "text-[var(--primary)]"
-                            : "text-[var(--ink-400)] group-hover:text-[var(--ink-500)]",
+                            ? "text-violet-400"
+                            : "text-slate-500 group-hover:text-slate-400",
                         )}
                       />
                       <span className="font-medium">{item.label}</span>

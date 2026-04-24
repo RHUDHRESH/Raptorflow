@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { converseStrategist } from "@/lib/bedrock";
 
 export const dynamic = "force-dynamic";
 
 interface LiveExampleRequest {
   sliders: {
-    formality: number; // 0-1: Casual ↔ Formal
-    technicality: number; // 0-1: Accessible ↔ Technical
-    tone: number; // 0-1: Serious ↔ Playful
-    stance: number; // 0-1: Authoritative ↔ Collaborative
-    register: number; // 0-1: Conservative ↔ Bold
+    formality: number;
+    technicality: number;
+    tone: number;
+    stance: number;
+    register: number;
   };
-}
-
-interface LiveExampleResponse {
-  example: string;
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -24,7 +21,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "sliders object is required" }, { status: 400 });
     }
 
-    // Generate AI example based on slider positions
     const example = await generateVoiceExample(sliders);
 
     return NextResponse.json({ example });
@@ -41,13 +37,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 async function generateVoiceExample(sliders: LiveExampleRequest["sliders"]): Promise<string> {
-  return generateFallbackExample(sliders);
+  const { formality, technicality, tone, stance, register } = sliders;
+
+  const prompt = `Generate ONE short brand voice example (2-3 sentences, punchy and realistic) based on these voice sliders:
+
+- Formality: ${formality} (${formality > 0.7 ? "highly formal" : formality > 0.4 ? "moderately formal" : "casual"})
+- Technicality: ${technicality} (${technicality > 0.7 ? "highly technical" : technicality > 0.4 ? "balanced" : "accessible"})
+- Tone: ${tone} (${tone > 0.7 ? "very playful" : tone > 0.4 ? "balanced" : "serious"})
+- Stance: ${stance} (${stance > 0.7 ? "highly collaborative" : stance > 0.4 ? "balanced" : "authoritative"})
+- Register: ${register} (${register > 0.7 ? "very bold" : register > 0.4 ? "balanced" : "conservative"})
+
+Write it as a real marketing sentence a real brand would use. Be specific and vivid. No meta-commentary.`;
+
+  try {
+    return await converseStrategist(prompt, 150);
+  } catch {
+    return generateFallbackExample(sliders);
+  }
 }
 
 function generateFallbackExample(sliders: LiveExampleRequest["sliders"]): string {
   const { formality, technicality, tone, stance, register } = sliders;
 
-  // Simple fallback logic based on extreme slider positions
   if (formality > 0.8 && technicality > 0.8) {
     return "Our proprietary algorithms leverage machine learning architectures to optimize conversion pathways at enterprise scale.";
   }
@@ -64,6 +75,5 @@ function generateFallbackExample(sliders: LiveExampleRequest["sliders"]): string
     return "We're not afraid to challenge the status quo and redefine what's possible.";
   }
 
-  // Default balanced example
   return "We create solutions that drive real business results for our clients.";
 }

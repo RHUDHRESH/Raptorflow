@@ -112,7 +112,7 @@ function ScanResultCard({
       </div>
 
       {/* Strengths + Gaps */}
-      <div className="grid grid-cols-2 divide-x divide-[var(--border)]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
         <div className="px-6 py-4">
           <h4 className="text-xs font-mono uppercase tracking-widest text-green-700 mb-3 flex items-center gap-1.5">
             <CheckCircle2 className="w-3 h-3" /> Strengths

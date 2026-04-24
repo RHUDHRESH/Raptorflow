@@ -5,7 +5,7 @@ import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
 import { formatDistanceToNow } from "date-fns";
-import { PlusIcon, Send, MessageSquare, ArrowRightIcon } from "lucide-react";
+import { PlusIcon, Send, MessageSquare, ArrowRightIcon, Zap } from "lucide-react";
 import {
   useMuseConversations,
   useCreateConversation,
@@ -16,6 +16,8 @@ import {
 } from "@/features/muse/hooks";
 import { Button } from "@/components/ui/button";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 
 const ROUTE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -207,13 +209,15 @@ export default function MusePage(): React.ReactElement {
           {convQuery.isLoading ? (
             <div className="p-2 space-y-2">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-12 rounded-[var(--radius)] bg-[var(--paper-200)] animate-pulse" />
+                <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
           ) : conversations.length === 0 ? (
-            <p className="px-4 py-8 text-center mono-label">
-              No conversations yet
-            </p>
+            <EmptyState
+              icon={Zap}
+              title="No conversations yet"
+              description="Start a new conversation to get strategic advice."
+            />
           ) : (
             <div className="p-1">
               {conversations.map((conv) => (

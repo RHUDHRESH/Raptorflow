@@ -15,6 +15,9 @@ import { useNudges, useDismissNudge, type Nudge } from "@/hooks/use-nudges";
 import { useOfficeStore } from "@/state/office-store";
 import { AGENTS } from "@/lib/agents";
 import { AgentPill } from "@/components/ui/agent-portrait";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Bell } from "lucide-react";
 import Link from "next/link";
 
 /* ─── Alert severity config ─────────────────────────────────────── */
@@ -279,14 +282,14 @@ export default function NudgesPage(): React.ReactElement {
       {/* ── Alert List ─────────────────────────────────────── */}
       {isLoading ? (
         <div className="flex flex-col gap-2">
-           {[1,2,3].map(i => <div key={i} className="h-24 border border-[var(--border)] animate-pulse bg-[#F5F0E8]/10" />)}
+           {[1,2,3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
         </div>
       ) : error ? (
         <div className="p-12 border border-[var(--signal-red)] bg-[#F5F0E8]/10 text-center">
            <p className="font-mono text-xs text-[var(--signal-red)] uppercase tracking-widest">Telemetry Error: Failed to fetch nudges from command core.</p>
         </div>
       ) : filtered.length === 0 ? (
-        <RadarEmpty />
+        <EmptyState icon={Bell} title="All clear" description="No nudges right now. Keep executing." />
       ) : (
         <div className="flex flex-col gap-0 border border-[var(--border)]">
           {filtered.map((nudge) => (

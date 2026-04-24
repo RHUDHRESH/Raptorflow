@@ -535,10 +535,6 @@ export type IntelSignalUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.IntelSignalScalarWhereInput | Prisma.IntelSignalScalarWhereInput[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type IntelSignalCreateWithoutUserInput = {
   id?: string
   type: string

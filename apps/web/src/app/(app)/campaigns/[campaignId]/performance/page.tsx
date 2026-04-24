@@ -267,7 +267,7 @@ export default function CampaignPerformancePage({
       </header>
 
       {/* ── Primary KPIs ─────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-[var(--border)] divide-x divide-[var(--border)]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-0 border border-[var(--border)] divide-x divide-[var(--border)]">
         <KpiCard label="Impressions"  value={totImp}                  delta={12.4} />
         <KpiCard label="Clicks"       value={totClk}                  delta={8.1} />
         <KpiCard label="Conversions"  value={totConv}                 delta={-2.3} />
@@ -275,7 +275,7 @@ export default function CampaignPerformancePage({
       </div>
 
       {/* ── Efficiency KPIs ──────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-[var(--border)] border-t-0 divide-x divide-[var(--border)]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-0 border border-[var(--border)] border-t-0 divide-x divide-[var(--border)]">
         <KpiCard label="CTR"          value={`${ctr.toFixed(2)}%`}           delta={0.3} />
         <KpiCard label="Conv. Rate"   value={`${cnvRate.toFixed(2)}%`}       delta={-0.8} />
         <KpiCard label="CPC"          value={`₹${cpc.toFixed(2)}`}           delta={-4.2} />

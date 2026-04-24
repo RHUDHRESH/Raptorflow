@@ -14,13 +14,15 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
-  LayoutDashboard
+  LayoutDashboard,
+  Trophy
 } from "lucide-react";
 import { dailyWinsApi } from "@/lib/api";
 import type { DailyWin } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/cn";
 import Link from "next/link";
 
@@ -73,22 +75,18 @@ export default function DailyWinsPage() {
   // Not Started State
   if (!win) {
     return (
-      <div className="flex flex-col items-center justify-center pt-32 px-6">
-        <div className="w-20 h-20 bg-[#FBE9DE] border border-[#D97757]/20 rounded-full flex items-center justify-center text-4xl text-[#D97757] font-serif mb-6">
-          S
-        </div>
-        <h1 className="text-2xl text-[#2A2622] font-bold mb-2 tracking-tight">
-          No briefing generated yet.
-        </h1>
-        <p className="text-[#6B655E] text-center max-w-sm mb-8 leading-relaxed">
-          Create or progress a campaign to generate your first persisted daily briefing.
-        </p>
-        <Link href="/campaigns">
-          <Button className="bg-[#D97757] hover:bg-amber-400 text-black font-bold uppercase tracking-widest px-8">
-            Create your first campaign <ChevronRight className="ml-2 w-4 h-4" />
-          </Button>
-        </Link>
-      </div>
+      <EmptyState
+        icon={Trophy}
+        title="No briefing generated yet"
+        description="Your daily win briefing generates each morning. Create a campaign to get started."
+        action={
+          <Link href="/campaigns">
+            <Button className="bg-[#D97757] hover:bg-amber-400 text-black font-bold uppercase tracking-widest px-8">
+              Create your first campaign <ChevronRight className="ml-2 w-4 h-4" />
+            </Button>
+          </Link>
+        }
+      />
     );
   }
 
@@ -159,7 +157,7 @@ export default function DailyWinsPage() {
 
       {/* ── Section 2: Context Items ────────────────────────────── */}
       {win.context && win.context.length > 0 && (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {win.context.map((item, i) => (
             <div key={i} className="bg-[#262626] rounded-2xl p-6 border border-[#E5DED4] flex flex-col justify-between h-40">
               <div className="space-y-3">
@@ -283,7 +281,7 @@ function DailyWinsSkeleton() {
         <Skeleton className="h-12 w-32 rounded-full" />
       </header>
       <Skeleton className="h-64 w-full rounded-2xl" />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Skeleton className="h-40 w-full rounded-2xl" />
         <Skeleton className="h-40 w-full rounded-2xl" />
       </div>

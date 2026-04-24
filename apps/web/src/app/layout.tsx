@@ -4,6 +4,7 @@ import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton } from "@cl
 import Link from "next/link";
 import { DM_Sans, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
+import { RouteProgress } from "@/components/layout/RouteProgress";
 import "./globals.css";
 
 const bodyFont = DM_Sans({
@@ -81,7 +82,10 @@ export default function RootLayout({
               </div>
             </div>
           </header>
-          <AppProviders>{children}</AppProviders>
+          <AppProviders>
+            <RouteProgress />
+            {children}
+          </AppProviders>
         </ClerkProvider>
       </body>
     </html>

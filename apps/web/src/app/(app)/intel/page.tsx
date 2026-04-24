@@ -7,6 +7,8 @@ import { GsapBridge } from "@/components/ui/gsap-bridge";
 import { useIntelSignals, useIntelOverview } from "@/hooks/use-intel";
 import type { IntelSignal } from "@/hooks/use-intel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Radar } from "lucide-react";
 
 const CATEGORIES = [
   { name: "All Intelligence", value: "" },
@@ -89,13 +91,15 @@ export default function IntelPage(): React.ReactElement {
             {activeView === "feed" && (
               <>
                 {isSignalsLoading ? (
-                  [1, 2, 3].map(i => <Skeleton key={i} className="h-40 w-full rounded-none" />)
-                ) : (signals?.length ?? 0) === 0 ? (
-                  <div className="text-center py-20 opacity-50">
-                    <ActivityLogIcon className="w-10 h-10 mx-auto mb-4 text-[var(--muted-foreground)]" />
-                    <p className="font-mono text-sm uppercase tracking-widest">Signal feed is not yet derived from the backend.</p>
-                    <p className="mt-3 text-xs text-[var(--muted-foreground)]">Use Overview, Runs, and Documents for truthful intelligence until signal derivation is implemented.</p>
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 w-full rounded-none" />)}
                   </div>
+                ) : (signals?.length ?? 0) === 0 ? (
+                  <EmptyState
+                    icon={Radar}
+                    title="No signals detected"
+                    description="Run a sweep to scan for competitive intelligence."
+                  />
                 ) : (
                   signals?.map(item => {
                     const Icon = getIcon(item.type);

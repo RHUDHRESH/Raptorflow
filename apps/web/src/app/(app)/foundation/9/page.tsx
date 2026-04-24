@@ -95,7 +95,7 @@ export default function FoundationStep9() {
         </h1>
 
         {/* MODEL SELECTOR */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {MODELS.map((model) => {
             const isSelected = selectedModels.includes(model.id);
             return (

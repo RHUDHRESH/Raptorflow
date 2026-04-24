@@ -105,7 +105,7 @@ export default function DashboardPage(): React.ReactElement {
       )}
 
       {/* ── Stats Grid ───────────────────────────────────────── */}
-      <div className="gsap-reveal grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="gsap-reveal grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           label="Active campaigns"
           value={data?.stats.activeCampaigns ?? 0}
@@ -151,7 +151,7 @@ export default function DashboardPage(): React.ReactElement {
         />
       </div>
 
-      <div className="gsap-reveal grid grid-cols-2 gap-4">
+      <div className="gsap-reveal grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard
           label="Intel signals"
           value={data?.stats.intelUnread ?? 0}
@@ -243,7 +243,7 @@ export default function DashboardPage(): React.ReactElement {
       {/* ── Quick Actions ────────────────────────────────────── */}
       <div className="gsap-reveal">
         <p className="eyebrow mb-4">Quick actions</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <QuickAction href="/council" icon={LightningBoltIcon} label="Start Council session" />
           <QuickAction href="/campaigns" icon={BackpackIcon} label="New campaign" />
           <QuickAction href="/muse" icon={ChatBubbleIcon} label="Ask Muse" />
@@ -335,8 +335,8 @@ function DashboardSkeleton() {
           <div key={i} className="h-24 bg-[var(--paper-200)] rounded-[var(--radius-lg)]" />
         ))}
       </div>
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 h-64 bg-[var(--paper-200)] rounded-[var(--radius-lg)]" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 h-64 bg-[var(--paper-200)] rounded-[var(--radius-lg)]" />
         <div className="h-64 bg-[var(--paper-200)] rounded-[var(--radius-lg)]" />
       </div>
     </div>
