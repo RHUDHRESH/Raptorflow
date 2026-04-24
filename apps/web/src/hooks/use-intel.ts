@@ -5,17 +5,17 @@ import { ApiError, apiFetch } from "@/lib/api";
 
 export interface IntelSignal {
   id: string;
-  userId: string;
+  user_id: string;
   type: string;
   source: string;
   title: string;
   summary: string;
   detail: string | null;
   severity: string;
-  isRead: boolean;
-  isArchived: boolean;
-  relatedTo: string | null;
-  createdAt: string;
+  is_read: boolean;
+  is_archived: boolean;
+  related_to: string | null;
+  created_at: string;
 }
 
 interface IntelSignalsResponse {
@@ -29,7 +29,7 @@ export function useIntelSignals(category?: string) {
       const params = new URLSearchParams();
       if (category) params.set("type", category);
       const query = params.toString();
-      return apiFetch<IntelSignalsResponse>(`/api/v1/intel${query ? `?${query}` : ""}`, {
+      return apiFetch<IntelSignalsResponse>(`/api/v1/intel/signals${query ? `?${query}` : ""}`, {
         auth: true,
       });
     },
@@ -37,12 +37,26 @@ export function useIntelSignals(category?: string) {
   });
 }
 
+interface CompetitorSnapshotsResponse {
+  competitor_snapshots: CompetitorSnapshot[];
+}
+
+export interface CompetitorSnapshot {
+  id: string;
+  user_id: string;
+  competitor_name: string;
+  website: string | null;
+  snapshot: unknown;
+  last_analyzed_at: string;
+  created_at: string;
+}
+
 export function useCompetitorSnapshots() {
   return useQuery({
     queryKey: ["intel", "competitors"],
-    queryFn: () => {
-      throw new ApiError(501, "intel_competitors_endpoint_not_implemented");
-    },
+    queryFn: () =>
+      apiFetch<CompetitorSnapshotsResponse>("/api/v1/intel/competitors", { auth: true }),
+    staleTime: 30_000,
   });
 }
 

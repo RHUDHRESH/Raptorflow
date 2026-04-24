@@ -530,15 +530,27 @@ export const prlApi = {
 };
 
 export const intelApi = {
-  getSignals: async (_params?: {
-    category?: string;
-    competitorId?: string;
-  }): Promise<IntelSignal[]> => {
-    const overview = await intelApi.getOverview();
-    return overview.latest_signals ?? [];
+  getSignals: async (params?: { category?: string }): Promise<IntelSignal[]> => {
+    const queryParams = new URLSearchParams();
+    if (params?.category) queryParams.set("type", params.category);
+    const query = queryParams.toString();
+    const res = await apiFetch<{ signals: IntelSignal[] }>(
+      `/api/v1/intel/signals${query ? `?${query}` : ""}`,
+      { auth: true },
+    );
+    return res.signals ?? [];
   },
   getCompetitors: async (): Promise<Competitor[]> => {
-    throw new ApiError(501, "intel_competitors_endpoint_not_implemented");
+    const res = await apiFetch<{
+      competitor_snapshots: { id: string; competitor_name: string; website: string | null }[];
+    }>("/api/v1/intel/competitors", { auth: true });
+    return (res.competitor_snapshots ?? []).map((s) => ({
+      id: s.id,
+      name: s.competitor_name,
+      websiteUrl: s.website ?? undefined,
+      monitors: [],
+      lastSeenAt: "",
+    }));
   },
   getSignalStats: async (): Promise<IntelStats> => {
     const overview = await intelApi.getOverview();

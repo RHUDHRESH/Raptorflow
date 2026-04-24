@@ -431,6 +431,36 @@ pub struct ScanStartRequest {
     pub url: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ScanStatus {
+    Queued,
+    Running,
+    Completed,
+    Failed,
+}
+
+impl ScanStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ScanStatus::Queued => "queued",
+            ScanStatus::Running => "running",
+            ScanStatus::Completed => "completed",
+            ScanStatus::Failed => "failed",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            "queued" => ScanStatus::Queued,
+            "running" => ScanStatus::Running,
+            "completed" | "complete" => ScanStatus::Completed,
+            "failed" => ScanStatus::Failed,
+            _ => ScanStatus::Running,
+        }
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub struct ScanStartResponse {
     pub scan_id: String,
@@ -471,6 +501,100 @@ async fn resolve_scan_url(
     }))
 }
 
+enum ScanMode {
+    Quick,
+    Deep,
+}
+
+impl ScanMode {
+    fn as_str(&self) -> &'static str {
+        match self {
+            ScanMode::Quick => "quick",
+            ScanMode::Deep => "deep",
+        }
+    }
+}
+
+async fn launch_scan(
+    scan_id: String,
+    url: String,
+    pool: sqlx::PgPool,
+    mode: ScanMode,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let scan_id_clone = scan_id.clone();
+    let pool_clone = pool.clone();
+
+    let data = match mode {
+        ScanMode::Quick => quick_scan(&url).await,
+        ScanMode::Deep => deep_scan(&url).await,
+    };
+
+    let final_status = match &data {
+        Ok(d) => {
+            let is_failed = d
+                .get("confidence")
+                .and_then(|c: &serde_json::Value| c.as_str())
+                .map(|s| s == "failed")
+                .unwrap_or(false);
+            if is_failed { "failed" } else { "completed" }
+        }
+        Err(_) => "failed",
+    };
+
+    let error_msg = match &data {
+        Ok(d) => {
+            let is_failed = d
+                .get("confidence")
+                .and_then(|c: &serde_json::Value| c.as_str())
+                .map(|s| s == "failed")
+                .unwrap_or(false);
+            if is_failed {
+                d.get("error").and_then(|e: &serde_json::Value| e.as_str()).map(String::from)
+            } else {
+                None
+            }
+        }
+        Err(e) => Some(e.to_string()),
+    };
+
+    let scan_data_json = data.as_ref().unwrap_or(&serde_json::Value::Null);
+
+    match mode {
+        ScanMode::Quick => {
+            let _ = sqlx::query(
+                r#"
+                UPDATE foundation_scans
+                SET status = $1, quick_scan_data = $2, completed_at = now(), error_message = $3
+                WHERE scan_id = $4
+                "#,
+            )
+            .bind(final_status)
+            .bind(scan_data_json)
+            .bind(&error_msg)
+            .bind(&scan_id_clone)
+            .execute(&pool_clone)
+            .await;
+        }
+        ScanMode::Deep => {
+            let _ = sqlx::query(
+                r#"
+                UPDATE foundation_scans
+                SET status = $1, deep_scan_data = $2, completed_at = now(), error_message = $3
+                WHERE scan_id = $4
+                "#,
+            )
+            .bind(final_status)
+            .bind(scan_data_json)
+            .bind(&error_msg)
+            .bind(&scan_id_clone)
+            .execute(&pool_clone)
+            .await;
+        }
+    }
+
+    Ok(())
+}
+
 pub async fn start_scan(
     Extension(auth): Extension<AuthContext>,
     Extension(state): Extension<Arc<AppState>>,
@@ -508,68 +632,14 @@ pub async fn start_scan(
     let scan_id_clone = scan_id.clone();
 
     tokio::spawn(async move {
-        let _scan_data = match quick_scan(&url).await {
-            Ok(data) => {
-                let is_failed = data
-                    .get("confidence")
-                    .and_then(|c: &serde_json::Value| c.as_str())
-                    .map(|s| s == "failed")
-                    .unwrap_or(false);
-
-                let final_status = if is_failed { "failed" } else { "completed" };
-
-                let error_msg = if is_failed {
-                    data.get("error")
-                        .and_then(|e: &serde_json::Value| e.as_str())
-                        .map(String::from)
-                } else {
-                    None
-                };
-
-                if let Err(e) = sqlx::query(
-                    r#"
-                    UPDATE foundation_scans
-                    SET status = $1, quick_scan_data = $2, completed_at = now(),
-                        error_message = $3
-                    WHERE scan_id = $4
-                    "#,
-                )
-                .bind(final_status)
-                .bind(&data)
-                .bind(&error_msg)
-                .bind(&scan_id_clone)
-                .execute(&pool_clone)
-                .await
-                {
-                    tracing::error!("Failed to update scan status: {}", e);
-                }
-                data
-            }
-            Err(e) => {
-                let err_msg = e.to_string();
-                tracing::error!("Quick scan failed for {}: {}", scan_id_clone, err_msg);
-                if let Err(e) = sqlx::query(
-                    r#"
-                    UPDATE foundation_scans
-                    SET status = 'failed', error_message = $1, completed_at = now()
-                    WHERE scan_id = $2
-                    "#,
-                )
-                .bind(&err_msg)
-                .bind(&scan_id_clone)
-                .execute(&pool_clone)
-                .await
-                {
-                    tracing::error!("Failed to update scan failed status: {}", e);
-                }
-                serde_json::json!({ "error": err_msg, "confidence": "failed" })
-            }
-        };
+        if let Err(e) = launch_scan(scan_id_clone, url, pool_clone, ScanMode::Quick).await {
+            tracing::error!("Scan failed: {}", e);
+        }
     });
 
     Ok(Json(ScanStartResponse {
         scan_id,
-        status: "queued".to_string(),
+        status: ScanStatus::Queued.as_str().to_string(),
     }))
 }
 
@@ -610,68 +680,14 @@ pub async fn start_quick_scan(
     let scan_id_clone = scan_id.clone();
 
     tokio::spawn(async move {
-        let _scan_data = match quick_scan(&url).await {
-            Ok(data) => {
-                let is_failed = data
-                    .get("confidence")
-                    .and_then(|c: &serde_json::Value| c.as_str())
-                    .map(|s| s == "failed")
-                    .unwrap_or(false);
-
-                let final_status = if is_failed { "failed" } else { "completed" };
-
-                let error_msg = if is_failed {
-                    data.get("error")
-                        .and_then(|e: &serde_json::Value| e.as_str())
-                        .map(String::from)
-                } else {
-                    None
-                };
-
-                if let Err(e) = sqlx::query(
-                    r#"
-                    UPDATE foundation_scans
-                    SET status = $1, quick_scan_data = $2, completed_at = now(),
-                        error_message = $3
-                    WHERE scan_id = $4
-                    "#,
-                )
-                .bind(final_status)
-                .bind(&data)
-                .bind(&error_msg)
-                .bind(&scan_id_clone)
-                .execute(&pool_clone)
-                .await
-                {
-                    tracing::error!("Failed to update scan status: {}", e);
-                }
-                data
-            }
-            Err(e) => {
-                let err_msg = e.to_string();
-                tracing::error!("Quick scan failed for {}: {}", scan_id_clone, err_msg);
-                if let Err(e) = sqlx::query(
-                    r#"
-                    UPDATE foundation_scans
-                    SET status = 'failed', error_message = $1, completed_at = now()
-                    WHERE scan_id = $2
-                    "#,
-                )
-                .bind(&err_msg)
-                .bind(&scan_id_clone)
-                .execute(&pool_clone)
-                .await
-                {
-                    tracing::error!("Failed to update scan failed status: {}", e);
-                }
-                serde_json::json!({ "error": err_msg, "confidence": "failed" })
-            }
-        };
+        if let Err(e) = launch_scan(scan_id_clone, url, pool_clone, ScanMode::Quick).await {
+            tracing::error!("Quick scan failed: {}", e);
+        }
     });
 
     Ok(Json(ScanStartResponse {
         scan_id,
-        status: "queued".to_string(),
+        status: ScanStatus::Queued.as_str().to_string(),
     }))
 }
 
@@ -712,68 +728,14 @@ pub async fn start_deep_scan(
     let scan_id_clone = scan_id.clone();
 
     tokio::spawn(async move {
-        let _scan_data = match deep_scan(&url).await {
-            Ok(data) => {
-                let is_failed = data
-                    .get("confidence")
-                    .and_then(|c: &serde_json::Value| c.as_str())
-                    .map(|s| s == "failed")
-                    .unwrap_or(false);
-
-                let final_status = if is_failed { "failed" } else { "completed" };
-
-                let error_msg = if is_failed {
-                    data.get("error")
-                        .and_then(|e: &serde_json::Value| e.as_str())
-                        .map(String::from)
-                } else {
-                    None
-                };
-
-                if let Err(e) = sqlx::query(
-                    r#"
-                    UPDATE foundation_scans
-                    SET status = $1, deep_scan_data = $2, completed_at = now(),
-                        error_message = $3
-                    WHERE scan_id = $4
-                    "#,
-                )
-                .bind(final_status)
-                .bind(&data)
-                .bind(&error_msg)
-                .bind(&scan_id_clone)
-                .execute(&pool_clone)
-                .await
-                {
-                    tracing::error!("Failed to update scan status: {}", e);
-                }
-                data
-            }
-            Err(e) => {
-                let err_msg = e.to_string();
-                tracing::error!("Deep scan failed for {}: {}", scan_id_clone, err_msg);
-                if let Err(e) = sqlx::query(
-                    r#"
-                    UPDATE foundation_scans
-                    SET status = 'failed', error_message = $1, completed_at = now()
-                    WHERE scan_id = $2
-                    "#,
-                )
-                .bind(&err_msg)
-                .bind(&scan_id_clone)
-                .execute(&pool_clone)
-                .await
-                {
-                    tracing::error!("Failed to update scan failed status: {}", e);
-                }
-                serde_json::json!({ "error": err_msg, "confidence": "failed" })
-            }
-        };
+        if let Err(e) = launch_scan(scan_id_clone, url, pool_clone, ScanMode::Deep).await {
+            tracing::error!("Deep scan failed: {}", e);
+        }
     });
 
     Ok(Json(ScanStartResponse {
         scan_id,
-        status: "queued".to_string(),
+        status: ScanStatus::Queued.as_str().to_string(),
     }))
 }
 
@@ -837,7 +799,8 @@ pub async fn get_scan_by_id(
 
     match row {
         Some((status, quick_data, deep_data, error_message)) => {
-            let data = if status == "completed" {
+            let normalized_status = ScanStatus::from_str(&status).as_str().to_string();
+            let data = if status == "completed" || status == "complete" {
                 if deep_data.is_some() {
                     deep_data
                 } else {
@@ -848,7 +811,7 @@ pub async fn get_scan_by_id(
             };
             Ok(Json(ScanStatusResponse {
                 scan_id: Some(scan_id),
-                status,
+                status: normalized_status,
                 data,
                 error_message,
             }))

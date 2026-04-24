@@ -37,7 +37,7 @@ export default function IntelOverviewPage(): React.ReactElement {
     return {
       total: signals.length,
       highPriority: signals.filter((signal) => signal.severity === "high" || signal.severity === "critical").length,
-      thisWeek: signals.filter((signal) => new Date(signal.createdAt).getTime() > weekAgo).length,
+      thisWeek: signals.filter((signal) => new Date(signal.created_at).getTime() > weekAgo).length,
     };
   }, [signals]);
 
