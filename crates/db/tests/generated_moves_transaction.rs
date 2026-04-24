@@ -56,7 +56,7 @@ async fn setup_test_db() -> Result<TestDb, sqlx::Error> {
         .connect(admin_url)
         .await?;
 
-    let db_name = format!("raptorflow_test_{}", uuid::Uuid::new_v4());
+    let db_name = format!("raptorflow_test_{}", uuid::Uuid::new_v4()).replace("-", "_");
     sqlx::query(&format!("DROP DATABASE IF EXISTS {}", db_name))
         .execute(&admin_pool)
         .await?;
