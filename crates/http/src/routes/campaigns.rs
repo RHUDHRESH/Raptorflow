@@ -551,6 +551,31 @@ const VALID_MOVE_TYPES: &[&str] = &[
     "analysis",
 ];
 
+fn validate_generated_moves(moves: &[AiGeneratedMove]) -> Result<(), Vec<String>> {
+    let mut errors = Vec::new();
+
+    for (idx, m) in moves.iter().enumerate() {
+        if !VALID_MOVE_TYPES.contains(&m.move_type.as_str()) {
+            errors.push(format!("move[{}]: invalid move_type '{}'", idx, m.move_type));
+        }
+        if m.description.trim().len() < 5 {
+            errors.push(format!("move[{}]: description too short (min 5 chars)", idx));
+        }
+        if m.expected_impact.trim().len() < 10 {
+            errors.push(format!("move[{}]: expected_impact too short (min 10 chars)", idx));
+        }
+        if m.confidence < 0.0 || m.confidence > 1.0 {
+            errors.push(format!("move[{}]: confidence out of range (0.0-1.0)", idx));
+        }
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors)
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct EvaluateCampaignRequest {
     pub focus: Option<String>,
@@ -727,97 +752,169 @@ pub async fn generate_campaign_moves(
         (StatusCode::BAD_GATEWAY, Json(json_error("invalid_ai_output")))
     })?;
 
-    let validated_moves: Vec<AiGeneratedMove> = generated_moves
-        .into_iter()
-        .take(max_moves as usize)
-        .filter(|m| {
-            if !VALID_MOVE_TYPES.contains(&m.move_type.as_str()) {
-                tracing::warn!("Invalid move_type rejected: {}", m.move_type);
-                return false;
-            }
-            if m.description.len() < 5 {
-                tracing::warn!("Description too short rejected: {}", m.description.len());
-                return false;
-            }
-            if m.expected_impact.len() < 10 {
-                tracing::warn!("expected_impact too short rejected: {}", m.expected_impact.len());
-                return false;
-            }
-            if m.confidence < 0.0 || m.confidence > 1.0 {
-                tracing::warn!("confidence out of range rejected: {}", m.confidence);
-                return false;
-            }
-            true
-        })
-        .collect();
+    let generated_moves = generated_moves.into_iter().take(max_moves as usize).collect::<Vec<_>>();
 
-    if validated_moves.is_empty() {
+    if generated_moves.is_empty() {
         return Err((StatusCode::BAD_GATEWAY, Json(json_error("no_valid_moves_generated"))));
     }
 
-    let mut results = Vec::new();
-    let mut next_seq = existing_moves.len() as i32 + 1;
-    let mut has_failure = false;
-
-    for gen_move in validated_moves {
-        let move_id = Ulid::new().to_string();
-        if let Err(e) = queries::create_campaign_move(
-            &tenant_pool.pool(),
-            &move_id,
-            &campaign_id,
-            org_id,
-            &gen_move.move_type,
-            next_seq,
-        )
-        .await
-        {
-            tracing::error!("Failed to store generated move: {}", e);
-            has_failure = true;
-            continue;
-        }
-
-        let move_body = serde_json::json!({
-            "description": gen_move.description,
-            "expected_impact": gen_move.expected_impact,
-            "confidence": gen_move.confidence.clamp(0.0, 1.0),
-        });
-
-        let content_id = Ulid::new().to_string();
-        if let Err(e) = queries::create_generated_content(
-            &tenant_pool.pool(),
-            &content_id,
-            org_id,
-            Some(&campaign_id),
-            Some(&move_id),
-            "move_generation",
-            "generated",
-            &move_body,
-        )
-        .await
-        {
-            tracing::error!("Failed to store move content: {}", e);
-        }
-
-        results.push(json!({
-            "move_id": move_id,
-            "move_type": gen_move.move_type,
-            "description": gen_move.description,
-            "expected_impact": gen_move.expected_impact,
-            "confidence": gen_move.confidence.clamp(0.0, 1.0),
-            "sequence_number": next_seq,
-        }));
-
-        next_seq += 1;
+    if let Err(validation_errors) = validate_generated_moves(&generated_moves) {
+        tracing::warn!("Move generation validation failed: {} errors: {:?}", validation_errors.len(), validation_errors);
+        return Err((StatusCode::BAD_GATEWAY, Json(json!({
+            "error": "invalid_ai_output",
+            "validation_errors": validation_errors.len()
+        }))));
     }
 
-    if has_failure && results.is_empty() {
-        return Err((StatusCode::INTERNAL_SERVER_ERROR, Json(json_error("move_insertion_failed"))));
-    }
+    let next_seq = existing_moves.len() as i32 + 1;
+    let inserts: Vec<queries::GeneratedCampaignMoveInsert> = generated_moves
+        .into_iter()
+        .map(|m| {
+            let move_id = Ulid::new().to_string();
+            let content_id = Ulid::new().to_string();
+            let move_body = serde_json::json!({
+                "description": m.description.trim(),
+                "expected_impact": m.expected_impact.trim(),
+                "confidence": m.confidence.clamp(0.0, 1.0),
+            });
+            queries::GeneratedCampaignMoveInsert {
+                move_id,
+                content_id,
+                move_type: m.move_type,
+                sequence_number: next_seq,
+                content_body: move_body,
+            }
+        })
+        .collect();
+
+    let created = queries::create_generated_campaign_moves_transactional(
+        &tenant_pool.pool(),
+        org_id,
+        &campaign_id,
+        inserts,
+    )
+    .await
+    .map_err(|e| {
+        tracing::error!("Transaction failed for move generation: {}", e);
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(json_error("move_generation_transaction_failed")))
+    })?;
+
+    let results: Vec<serde_json::Value> = created
+        .into_iter()
+        .map(|c| {
+            json!({
+                "move_id": c.move_id,
+                "move_type": c.move_type,
+                "description": c.content_body.get("description").and_then(|v| v.as_str()).unwrap_or(""),
+                "expected_impact": c.content_body.get("expected_impact").and_then(|v| v.as_str()).unwrap_or(""),
+                "confidence": c.content_body.get("confidence").and_then(|v| v.as_f64()).unwrap_or(0.0),
+                "sequence_number": c.sequence_number,
+            })
+        })
+        .collect();
 
     Ok(Json(json!({
         "campaign_id": campaign_id,
         "generated_moves": results,
         "total": results.len(),
-        "atomicity_note": "No DB transaction - partial failures possible in edge cases"
+        "status": "created"
     })))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_move(move_type: &str, description: &str, expected_impact: &str, confidence: f64) -> AiGeneratedMove {
+        AiGeneratedMove {
+            move_type: move_type.to_string(),
+            description: description.to_string(),
+            expected_impact: expected_impact.to_string(),
+            confidence,
+        }
+    }
+
+    #[test]
+    fn test_validate_generated_moves_valid() {
+        let moves = vec![
+            make_move("positioning", "A good description here", "This is a long expected impact string", 0.85),
+            make_move("content", "Another valid description", "Another long expected impact string", 0.72),
+        ];
+        assert!(validate_generated_moves(&moves).is_ok());
+    }
+
+    #[test]
+    fn test_validate_generated_moves_empty_rejects() {
+        let moves: Vec<AiGeneratedMove> = vec![];
+        assert!(validate_generated_moves(&moves).is_err());
+    }
+
+    #[test]
+    fn test_validate_generated_moves_invalid_move_type_rejects() {
+        let moves = vec![
+            make_move("positioning", "Valid description here", "Valid expected impact string", 0.8),
+            make_move("invalid_type", "Valid description here", "Valid expected impact string", 0.8),
+        ];
+        let result = validate_generated_moves(&moves);
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert!(errors.iter().any(|e| e.contains("invalid move_type")));
+    }
+
+    #[test]
+    fn test_validate_generated_moves_short_description_rejects() {
+        let moves = vec![
+            make_move("positioning", "hi", "Valid expected impact string", 0.8),
+        ];
+        let result = validate_generated_moves(&moves);
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert!(errors.iter().any(|e| e.contains("description too short")));
+    }
+
+    #[test]
+    fn test_validate_generated_moves_short_expected_impact_rejects() {
+        let moves = vec![
+            make_move("positioning", "Valid description here", "short", 0.8),
+        ];
+        let result = validate_generated_moves(&moves);
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert!(errors.iter().any(|e| e.contains("expected_impact too short")));
+    }
+
+    #[test]
+    fn test_validate_generated_moves_confidence_low_rejects() {
+        let moves = vec![
+            make_move("positioning", "Valid description here", "Valid expected impact string", -0.1),
+        ];
+        let result = validate_generated_moves(&moves);
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert!(errors.iter().any(|e| e.contains("confidence out of range")));
+    }
+
+    #[test]
+    fn test_validate_generated_moves_confidence_high_rejects() {
+        let moves = vec![
+            make_move("positioning", "Valid description here", "Valid expected impact string", 1.5),
+        ];
+        let result = validate_generated_moves(&moves);
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert!(errors.iter().any(|e| e.contains("confidence out of range")));
+    }
+
+    #[test]
+    fn test_validate_generated_moves_mixed_valid_invalid_rejects_all() {
+        let moves = vec![
+            make_move("positioning", "Valid description here", "Valid expected impact string", 0.8),
+            make_move("invalid_type", "Valid description here", "Valid expected impact string", 0.8),
+        ];
+        let result = validate_generated_moves(&moves);
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert!(errors.len() == 1);
+        assert!(errors[0].contains("invalid_type"));
+    }
 }

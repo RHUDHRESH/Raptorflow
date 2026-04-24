@@ -135,9 +135,11 @@ The prompt asks for `overall_score`, `strengths`, `weaknesses`, `opportunities`,
 
 ## 8. Generate Moves Atomicity
 
-### Critical Issue
+### ~~Critical Issue~~ FIXED
 
 **No DB transaction** - if insert fails partway, partial rows may exist.
+
+→ **FIXED in `fix/generate-moves-db-transaction`** - see `GENERATE_MOVES_TRANSACTION_REPORT.md`
 
 ### Validations Added
 
@@ -151,17 +153,16 @@ The prompt asks for `overall_score`, `strengths`, `weaknesses`, `opportunities`,
 | If ALL moves invalid → return 502 `no_valid_moves_generated`                  | Applied             |
 | If insert fails and results empty → return 500                                | Applied             |
 
-### Response includes
+### Transaction Implementation
 
-```json
-{
-  "atomicity_note": "No DB transaction - partial failures possible in edge cases"
-}
-```
+New helper: `create_generated_campaign_moves_transactional` in `crates/db/src/queries.rs`
 
-### Next Hardening Item
+- Uses `pool.begin().await` for transaction
+- All moves + content inserted in same transaction
+- Automatic rollback on any failure
+- Commits only after all succeed
 
-Add proper DB transaction in `crates/db/src/queries.rs`
+### Response (no more `atomicity_note`)
 
 ---
 
@@ -217,13 +218,13 @@ Add proper DB transaction in `crates/db/src/queries.rs`
 
 ## 12. Remaining Risks
 
-| Risk                                                      | Severity | Mitigation                                      |
-| --------------------------------------------------------- | -------- | ----------------------------------------------- |
-| SSE auth cannot use EventSource headers                   | Medium   | Polling fallback added                          |
-| No DB transaction for generate_moves                      | Medium   | Validated before insert, note in response       |
-| ~~Frontend council page still uses old EventSource path~~ | ~~High~~ | ~~Needs separate fix~~ **FIXED in `43f64e44c`** |
-| Campaign brief not loaded before evaluation               | Low      | Returns 400 if no brief                         |
-| Evaluate doesn't check if moves/tasks exist               | Low      | Returns empty arrays, AI handles gracefully     |
+| Risk                                                      | Severity   | Mitigation                                                                                     |
+| --------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------- |
+| SSE auth cannot use EventSource headers                   | Medium     | Polling fallback added                                                                         |
+| ~~No DB transaction for generate_moves~~                  | ~~Medium~~ | ~~Validated before insert, note in response~~ **FIXED in `fix/generate-moves-db-transaction`** |
+| ~~Frontend council page still uses old EventSource path~~ | ~~High~~   | ~~Needs separate fix~~ **FIXED in `43f64e44c`**                                                |
+| Campaign brief not loaded before evaluation               | Low        | Returns 400 if no brief                                                                        |
+| Evaluate doesn't check if moves/tasks exist               | Low        | Returns empty arrays, AI handles gracefully                                                    |
 
 ---
 
@@ -239,7 +240,7 @@ The council page at `apps/web/src/app/(app)/council/[sessionId]/page.tsx`:
 ### After That
 
 1. ~~Tombstone the old Next.js routes for council start/stream/synthesize~~ - **DONE in `fix/council-route-tombstones-and-poll-contract`**
-2. Add DB transaction for `generate_campaign_moves`
+2. ~~Add DB transaction for `generate_campaign_moves`~~ - **DONE in `fix/generate-moves-db-transaction`**
 
 ---
 
