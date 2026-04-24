@@ -17,7 +17,7 @@
 //! Setup and verification use separate transactions with their own `SET LOCAL` calls.
 
 use raptorflow_db::queries::{
-    create_generated_campaign_moves_transactional, GeneratedCampaignMoveInsert,
+    GeneratedCampaignMoveInsert, create_generated_campaign_moves_transactional,
 };
 use sqlx::postgres::{PgPool as SqlxPgPool, PgPoolOptions};
 use std::env;
@@ -40,9 +40,7 @@ async fn apply_migrations(pool: &SqlxPgPool) -> Result<(), sqlx::Error> {
 
     let migrator = Migrator::new(Path::new("../../database/migrations"))
         .await
-        .map_err(|e| {
-            sqlx::Error::Protocol(format!("failed to create migrator: {}", e))
-        })?;
+        .map_err(|e| sqlx::Error::Protocol(format!("failed to create migrator: {}", e)))?;
 
     migrator.run(pool).await?;
     Ok(())
@@ -191,10 +189,14 @@ async fn generated_moves_transaction_commits_all_rows() {
         make_test_move_insert("mv-002", "ct-002", "content", 2),
     ];
 
-    let result = create_generated_campaign_moves_transactional(&pool, org_id, &campaign_id, moves).await;
+    let result =
+        create_generated_campaign_moves_transactional(&pool, org_id, &campaign_id, moves).await;
 
     if let Err(e) = result {
-        eprintln!("Transaction helper returned error (unexpected): {}; FAIL", e);
+        eprintln!(
+            "Transaction helper returned error (unexpected): {}; FAIL",
+            e
+        );
         let _ = cleanup_org(&pool, org_id).await;
         panic!("expected Ok but got Err: {}", e);
     }
@@ -252,9 +254,13 @@ async fn generated_moves_transaction_rolls_back_on_failure() {
         make_test_move_insert("mv-d2", duplicate_content_id, "content", 2),
     ];
 
-    let result = create_generated_campaign_moves_transactional(&pool, org_id, &campaign_id, moves).await;
+    let result =
+        create_generated_campaign_moves_transactional(&pool, org_id, &campaign_id, moves).await;
 
-    assert!(result.is_err(), "expected Err due to duplicate content_id, got Ok");
+    assert!(
+        result.is_err(),
+        "expected Err due to duplicate content_id, got Ok"
+    );
 
     let (move_count, content_count) = match count_rows(&pool, org_id, &campaign_id).await {
         Ok((m, c)) => (m, c),
@@ -265,8 +271,14 @@ async fn generated_moves_transaction_rolls_back_on_failure() {
         }
     };
 
-    assert_eq!(move_count, 0, "expected ZERO campaign_moves rows after rollback");
-    assert_eq!(content_count, 0, "expected ZERO generated_content rows after rollback");
+    assert_eq!(
+        move_count, 0,
+        "expected ZERO campaign_moves rows after rollback"
+    );
+    assert_eq!(
+        content_count, 0,
+        "expected ZERO generated_content rows after rollback"
+    );
 
     let _ = cleanup_org(&pool, org_id).await;
 }

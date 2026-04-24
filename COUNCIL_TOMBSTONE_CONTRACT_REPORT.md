@@ -1,7 +1,7 @@
 # Council Tombstone & Poll Contract Report
 
 **Branch:** `fix/council-route-tombstones-and-poll-contract`
-**Commit SHA:** (pending - not yet committed)
+**Commit SHA:** `95901dd74a57a1ae97deb495e5ee7273286d4d76`
 **Date:** 2026-04-24
 
 ---

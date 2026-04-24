@@ -263,8 +263,8 @@ async fn generate_moves_transaction_rollback_on_validation_failure() {
     use raptorflow_db::queries;
     use sqlx::PgPoolOptions;
 
-    let database_url = std::env::var("TEST_DATABASE_URL")
-        .expect("TEST_DATABASE_URL must be set for this test");
+    let database_url =
+        std::env::var("TEST_DATABASE_URL").expect("TEST_DATABASE_URL must be set for this test");
 
     let pool = PgPoolOptions::new()
         .max_connections(1)
@@ -272,8 +272,7 @@ async fn generate_moves_transaction_rollback_on_validation_failure() {
         .await
         .expect("failed to connect to test database");
 
-    let org_id = uuid::Uuid::parse_str("00000000-0000-0000-0000-000000000099")
-        .expect("valid UUID");
+    let org_id = uuid::Uuid::parse_str("00000000-0000-0000-0000-000000000099").expect("valid UUID");
     let campaign_id = "test-rollback-campaign";
 
     sqlx::query("SET LOCAL app.current_org_id = $1")
@@ -282,8 +281,8 @@ async fn generate_moves_transaction_rollback_on_validation_failure() {
         .await
         .expect("failed to set org_id");
 
-    let create_err = queries::create_campaign(&pool, campaign_id, org_id, "Test", "Rollback test")
-        .await;
+    let create_err =
+        queries::create_campaign(&pool, campaign_id, org_id, "Test", "Rollback test").await;
     if create_err.is_err() {
         return;
     }
@@ -309,15 +308,18 @@ async fn generate_moves_transaction_rollback_on_validation_failure() {
         },
     ];
 
-    let result = queries::create_generated_campaign_moves_transactional(&pool, org_id, campaign_id, moves).await;
+    let result =
+        queries::create_generated_campaign_moves_transactional(&pool, org_id, campaign_id, moves)
+            .await;
 
     assert!(result.is_err(), "Should reject due to invalid move_type");
 
-    let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM campaign_moves WHERE campaign_id = $1")
-        .bind(campaign_id)
-        .fetch_one(&pool)
-        .await
-        .expect("query should succeed");
+    let count: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM campaign_moves WHERE campaign_id = $1")
+            .bind(campaign_id)
+            .fetch_one(&pool)
+            .await
+            .expect("query should succeed");
     assert_eq!(count.0, 0, "Zero moves should be inserted after rollback");
 
     sqlx::query("DELETE FROM campaign_moves WHERE campaign_id = $1")

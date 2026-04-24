@@ -7,8 +7,8 @@ use chrono::Utc;
 use raptorflow_acquisition::{HtmlParser, HttpFetcher, UrlNormalizer};
 use raptorflow_avatars::seeding::seed_org_avatars;
 use raptorflow_db::models::FoundationSnapshot;
-use raptorflow_foundation::{FoundationData, FoundationService};
 use raptorflow_db::queries as db;
+use raptorflow_foundation::{FoundationData, FoundationService};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::sync::Arc;
@@ -272,23 +272,24 @@ pub async fn update_section(
     Json(payload): Json<UpdateSectionRequest>,
 ) -> AppResult<Json<FoundationResponse>> {
     let pool = db_pool(&state)?;
-    
+
     let previous_value = FoundationService::get_section(pool, auth.tenant.org_id, &section)
         .await
         .map_err(internal_error)?;
-    
+
     let version =
         FoundationService::update_section(pool, auth.tenant.org_id, &section, payload.data)
             .await
             .map_err(internal_error)?;
-    
+
     if let Some(prev) = previous_value {
-        let latest = raptorflow_db::queries::get_latest_foundation_version(pool, auth.tenant.org_id)
-            .await
-            .map_err(internal_error)?;
-        
+        let latest =
+            raptorflow_db::queries::get_latest_foundation_version(pool, auth.tenant.org_id)
+                .await
+                .map_err(internal_error)?;
+
         let next_version = latest.map(|v| v.foundation_version + 1).unwrap_or(1);
-        
+
         let _ = raptorflow_db::queries::create_foundation_version(
             pool,
             &format!("fv-{}-{}", auth.tenant.org_id, ulid::Ulid::new()),
@@ -298,9 +299,10 @@ pub async fn update_section(
             &serde_json::json!([section]),
             &prev,
             None,
-        ).await;
+        )
+        .await;
     }
-    
+
     update_org_foundation_version(pool, auth.tenant.org_id, version)
         .await
         .map_err(internal_error)?;
@@ -321,19 +323,22 @@ pub async fn list_foundation_versions(
     let versions = raptorflow_db::queries::get_foundation_versions(pool, auth.tenant.org_id)
         .await
         .map_err(internal_error)?;
-    
-    let response: Vec<serde_json::Value> = versions.iter().map(|v| {
-        serde_json::json!({
-            "version_id": v.version_id,
-            "version": v.foundation_version,
-            "change_description": v.change_description,
-            "changed_fields": v.changed_fields,
-            "previous_values": v.previous_values,
-            "impact_assessment": v.impact_assessment,
-            "created_at": v.created_at.to_rfc3339(),
+
+    let response: Vec<serde_json::Value> = versions
+        .iter()
+        .map(|v| {
+            serde_json::json!({
+                "version_id": v.version_id,
+                "version": v.foundation_version,
+                "change_description": v.change_description,
+                "changed_fields": v.changed_fields,
+                "previous_values": v.previous_values,
+                "impact_assessment": v.impact_assessment,
+                "created_at": v.created_at.to_rfc3339(),
+            })
         })
-    }).collect();
-    
+        .collect();
+
     Ok(Json(response))
 }
 
@@ -440,7 +445,10 @@ pub struct ScanStatusResponse {
     pub error_message: Option<String>,
 }
 
-async fn resolve_scan_url(pool: &sqlx::PgPool, org_id: Uuid) -> Result<Option<String>, sqlx::Error> {
+async fn resolve_scan_url(
+    pool: &sqlx::PgPool,
+    org_id: Uuid,
+) -> Result<Option<String>, sqlx::Error> {
     let row = sqlx::query_as::<_, (Option<String>,)>(
         r#"
         SELECT value::text as url
@@ -454,7 +462,13 @@ async fn resolve_scan_url(pool: &sqlx::PgPool, org_id: Uuid) -> Result<Option<St
     .fetch_optional(pool)
     .await?;
 
-    Ok(row.and_then(|(url,)| if url.as_ref().is_some_and(|u| !u.is_empty()) { url } else { None }))
+    Ok(row.and_then(|(url,)| {
+        if url.as_ref().is_some_and(|u| !u.is_empty()) {
+            url
+        } else {
+            None
+        }
+    }))
 }
 
 pub async fn start_scan(
@@ -505,7 +519,9 @@ pub async fn start_scan(
                 let final_status = if is_failed { "failed" } else { "completed" };
 
                 let error_msg = if is_failed {
-                    data.get("error").and_then(|e: &serde_json::Value| e.as_str()).map(String::from)
+                    data.get("error")
+                        .and_then(|e: &serde_json::Value| e.as_str())
+                        .map(String::from)
                 } else {
                     None
                 };
@@ -523,7 +539,8 @@ pub async fn start_scan(
                 .bind(&error_msg)
                 .bind(&scan_id_clone)
                 .execute(&pool_clone)
-                .await {
+                .await
+                {
                     tracing::error!("Failed to update scan status: {}", e);
                 }
                 data
@@ -541,7 +558,8 @@ pub async fn start_scan(
                 .bind(&err_msg)
                 .bind(&scan_id_clone)
                 .execute(&pool_clone)
-                .await {
+                .await
+                {
                     tracing::error!("Failed to update scan failed status: {}", e);
                 }
                 serde_json::json!({ "error": err_msg, "confidence": "failed" })
@@ -603,7 +621,9 @@ pub async fn start_quick_scan(
                 let final_status = if is_failed { "failed" } else { "completed" };
 
                 let error_msg = if is_failed {
-                    data.get("error").and_then(|e: &serde_json::Value| e.as_str()).map(String::from)
+                    data.get("error")
+                        .and_then(|e: &serde_json::Value| e.as_str())
+                        .map(String::from)
                 } else {
                     None
                 };
@@ -621,7 +641,8 @@ pub async fn start_quick_scan(
                 .bind(&error_msg)
                 .bind(&scan_id_clone)
                 .execute(&pool_clone)
-                .await {
+                .await
+                {
                     tracing::error!("Failed to update scan status: {}", e);
                 }
                 data
@@ -639,7 +660,8 @@ pub async fn start_quick_scan(
                 .bind(&err_msg)
                 .bind(&scan_id_clone)
                 .execute(&pool_clone)
-                .await {
+                .await
+                {
                     tracing::error!("Failed to update scan failed status: {}", e);
                 }
                 serde_json::json!({ "error": err_msg, "confidence": "failed" })
@@ -701,7 +723,9 @@ pub async fn start_deep_scan(
                 let final_status = if is_failed { "failed" } else { "completed" };
 
                 let error_msg = if is_failed {
-                    data.get("error").and_then(|e: &serde_json::Value| e.as_str()).map(String::from)
+                    data.get("error")
+                        .and_then(|e: &serde_json::Value| e.as_str())
+                        .map(String::from)
                 } else {
                     None
                 };
@@ -719,7 +743,8 @@ pub async fn start_deep_scan(
                 .bind(&error_msg)
                 .bind(&scan_id_clone)
                 .execute(&pool_clone)
-                .await {
+                .await
+                {
                     tracing::error!("Failed to update scan status: {}", e);
                 }
                 data
@@ -737,7 +762,8 @@ pub async fn start_deep_scan(
                 .bind(&err_msg)
                 .bind(&scan_id_clone)
                 .execute(&pool_clone)
-                .await {
+                .await
+                {
                     tracing::error!("Failed to update scan failed status: {}", e);
                 }
                 serde_json::json!({ "error": err_msg, "confidence": "failed" })
@@ -788,7 +814,15 @@ pub async fn get_scan_by_id(
 ) -> AppResult<Json<ScanStatusResponse>> {
     let pool = db_pool(&state)?;
 
-    let row = sqlx::query_as::<_, (String, Option<serde_json::Value>, Option<serde_json::Value>, Option<String>)>(
+    let row = sqlx::query_as::<
+        _,
+        (
+            String,
+            Option<serde_json::Value>,
+            Option<serde_json::Value>,
+            Option<String>,
+        ),
+    >(
         r#"
         SELECT status, quick_scan_data, deep_scan_data, error_message
         FROM foundation_scans
@@ -920,7 +954,15 @@ pub async fn get_scan_status(
 ) -> AppResult<Json<ScanStatusResponse>> {
     let pool = db_pool(&state)?;
 
-    let row = sqlx::query_as::<_, (String, Option<serde_json::Value>, Option<serde_json::Value>, Option<String>)>(
+    let row = sqlx::query_as::<
+        _,
+        (
+            String,
+            Option<serde_json::Value>,
+            Option<serde_json::Value>,
+            Option<String>,
+        ),
+    >(
         r#"
         SELECT status, quick_scan_data, deep_scan_data, error_message
         FROM foundation_scans
@@ -1045,8 +1087,10 @@ pub async fn get_snapshot_full(
     }
 
     let mut sections_map = serde_json::Map::new();
-    let mut latest_by_section: std::collections::HashMap<String, (serde_json::Value, chrono::DateTime<chrono::Utc>)> =
-        std::collections::HashMap::new();
+    let mut latest_by_section: std::collections::HashMap<
+        String,
+        (serde_json::Value, chrono::DateTime<chrono::Utc>),
+    > = std::collections::HashMap::new();
     let mut last_updated = None;
     let mut last_updated_at =
         chrono::DateTime::<chrono::Utc>::from_timestamp(0, 0).unwrap_or_else(Utc::now);
@@ -1135,17 +1179,14 @@ pub async fn complete_foundation(
 
     let foundation_json = serde_json::json!({ "sections": sections });
 
-    let avatar_check = sqlx::query_as::<_, (i64,)>( 
-        "SELECT COUNT(*) FROM agent_essences WHERE org_id = $1",
-    )
-    .bind(org_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(internal_error)?;
+    let avatar_check =
+        sqlx::query_as::<_, (i64,)>("SELECT COUNT(*) FROM agent_essences WHERE org_id = $1")
+            .bind(org_id)
+            .fetch_optional(pool)
+            .await
+            .map_err(internal_error)?;
 
-    let needs_seeding = avatar_check
-        .map(|row| row.0 == 0)
-        .unwrap_or(true);
+    let needs_seeding = avatar_check.map(|row| row.0 == 0).unwrap_or(true);
 
     if needs_seeding {
         let foundation_snapshot = FoundationSnapshot {
@@ -1231,7 +1272,11 @@ pub async fn content_strategy_create(
     Extension(state): Extension<Arc<AppState>>,
 ) -> AppResult<Json<serde_json::Value>> {
     let pool = db_pool(&state)?;
-    let strategy_id = format!("content-strategy-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
+    let strategy_id = format!(
+        "content-strategy-{}-{}",
+        auth.tenant.org_id,
+        ulid::Ulid::new()
+    );
 
     raptorflow_db::queries::create_content_strategy(pool, &strategy_id, auth.tenant.org_id)
         .await
@@ -1265,7 +1310,7 @@ pub async fn content_strategy_get(
             "territories": [],
             "pillar_pages": [],
             "editorial_calendar": []
-        })))
+        }))),
     }
 }
 
@@ -1284,16 +1329,24 @@ pub async fn content_strategy_update_territories(
     if existing.is_none() {
         raptorflow_db::queries::create_content_strategy(
             pool,
-            &format!("content-strategy-{}-{}", auth.tenant.org_id, ulid::Ulid::new()),
-            auth.tenant.org_id
+            &format!(
+                "content-strategy-{}-{}",
+                auth.tenant.org_id,
+                ulid::Ulid::new()
+            ),
+            auth.tenant.org_id,
         )
         .await
         .map_err(internal_error)?;
     }
 
-    raptorflow_db::queries::update_content_strategy_territories(pool, auth.tenant.org_id, &territories)
-        .await
-        .map_err(internal_error)?;
+    raptorflow_db::queries::update_content_strategy_territories(
+        pool,
+        auth.tenant.org_id,
+        &territories,
+    )
+    .await
+    .map_err(internal_error)?;
 
     Ok(Json(serde_json::json!({ "success": true })))
 }
@@ -1309,10 +1362,10 @@ pub async fn content_strategy_generate_calendar(
         .map_err(internal_error)?
         .ok_or_else(|| not_found("content_strategy_not_found"))?;
 
-    let territories: Vec<serde_json::Value> = serde_json::from_value(strategy.territories)
-        .unwrap_or_default();
-    let pillar_pages: Vec<serde_json::Value> = serde_json::from_value(strategy.pillar_pages)
-        .unwrap_or_default();
+    let territories: Vec<serde_json::Value> =
+        serde_json::from_value(strategy.territories).unwrap_or_default();
+    let pillar_pages: Vec<serde_json::Value> =
+        serde_json::from_value(strategy.pillar_pages).unwrap_or_default();
 
     let calendar = generate_fallback_calendar(&territories, &pillar_pages);
 
@@ -1327,7 +1380,10 @@ pub async fn content_strategy_generate_calendar(
     Ok(Json(serde_json::json!({ "calendar": calendar })))
 }
 
-fn generate_fallback_calendar(territories: &[serde_json::Value], pillar_pages: &[serde_json::Value]) -> Vec<serde_json::Value> {
+fn generate_fallback_calendar(
+    territories: &[serde_json::Value],
+    pillar_pages: &[serde_json::Value],
+) -> Vec<serde_json::Value> {
     let mut calendar = Vec::new();
     let mut content_id = 1;
     let today = chrono::Utc::now();
@@ -1377,19 +1433,38 @@ pub async fn add_secondary_icp(
 ) -> AppResult<Json<serde_json::Value>> {
     let pool = db_pool(&state)?;
 
-    let mode = payload.get("mode").and_then(|v| v.as_str())
+    let mode = payload
+        .get("mode")
+        .and_then(|v| v.as_str())
         .ok_or_else(|| bad_request("mode is required (b2b or b2c)"))?;
-    let icp_data = payload.get("icp").ok_or_else(|| bad_request("icp data is required"))?;
+    let icp_data = payload
+        .get("icp")
+        .ok_or_else(|| bad_request("icp data is required"))?;
 
     // Validate B2B structure
     fn validate_b2b_icp(icp: &serde_json::Value) -> Result<(), &'static str> {
-        if icp.get("name").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+        if icp
+            .get("name")
+            .and_then(|v| v.as_str())
+            .map(|s| !s.is_empty())
+            .unwrap_or(false)
+        {
             return Err("B2B ICP requires non-empty name");
         }
-        if icp.get("persona_name").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+        if icp
+            .get("persona_name")
+            .and_then(|v| v.as_str())
+            .map(|s| !s.is_empty())
+            .unwrap_or(false)
+        {
             return Err("B2B ICP requires non-empty persona_name");
         }
-        if icp.get("role_identity").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+        if icp
+            .get("role_identity")
+            .and_then(|v| v.as_str())
+            .map(|s| !s.is_empty())
+            .unwrap_or(false)
+        {
             return Err("B2B ICP requires non-empty role_identity");
         }
         Ok(())
@@ -1397,13 +1472,28 @@ pub async fn add_secondary_icp(
 
     // Validate B2C structure
     fn validate_b2c_icp(icp: &serde_json::Value) -> Result<(), &'static str> {
-        if icp.get("name").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+        if icp
+            .get("name")
+            .and_then(|v| v.as_str())
+            .map(|s| !s.is_empty())
+            .unwrap_or(false)
+        {
             return Err("B2C ICP requires non-empty name");
         }
-        if icp.get("persona_name").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+        if icp
+            .get("persona_name")
+            .and_then(|v| v.as_str())
+            .map(|s| !s.is_empty())
+            .unwrap_or(false)
+        {
             return Err("B2C ICP requires non-empty persona_name");
         }
-        if icp.get("life_situation").and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
+        if icp
+            .get("life_situation")
+            .and_then(|v| v.as_str())
+            .map(|s| !s.is_empty())
+            .unwrap_or(false)
+        {
             return Err("B2C ICP requires non-empty life_situation");
         }
         Ok(())
@@ -1449,7 +1539,7 @@ pub async fn add_secondary_icp(
         pool,
         auth.tenant.org_id,
         &foundation_json,
-        "add_secondary_icp"
+        "add_secondary_icp",
     )
     .await
     .map_err(internal_error)?;
@@ -1470,9 +1560,13 @@ pub async fn update_secondary_icp(
     let pool = db_pool(&state)?;
 
     // Validate payload has mode and icp data
-    let mode = payload.get("mode").and_then(|v| v.as_str())
+    let mode = payload
+        .get("mode")
+        .and_then(|v| v.as_str())
         .ok_or_else(|| bad_request("mode is required (b2b or b2c)"))?;
-    let icp_data = payload.get("icp").ok_or_else(|| bad_request("icp data is required"))?;
+    let icp_data = payload
+        .get("icp")
+        .ok_or_else(|| bad_request("icp data is required"))?;
 
     // Get current foundation
     let foundation_data = FoundationService::get_current(pool, auth.tenant.org_id)
@@ -1511,7 +1605,7 @@ pub async fn update_secondary_icp(
         pool,
         auth.tenant.org_id,
         &foundation_json,
-        "update_secondary_icp"
+        "update_secondary_icp",
     )
     .await
     .map_err(internal_error)?;
@@ -1563,7 +1657,7 @@ pub async fn delete_secondary_icp(
         pool,
         auth.tenant.org_id,
         &foundation_json,
-        "delete_secondary_icp"
+        "delete_secondary_icp",
     )
     .await
     .map_err(internal_error)?;
@@ -1595,19 +1689,38 @@ pub async fn generate_positioning_draft(
 
     let foundation_json: serde_json::Value = foundation_data.sections;
 
-    let icp = foundation_json.get("target_audience")
+    let icp = foundation_json
+        .get("target_audience")
         .and_then(|ta| ta.get("primary_icp"));
     let _competitors = foundation_json.get("competitors");
     let differentiation = foundation_json.get("differentiation");
-    let _product = foundation_json.get("product_catalog")
+    let _product = foundation_json
+        .get("product_catalog")
         .and_then(|pc| pc.get("primary_product"));
     let problem = foundation_json.get("problem_statement");
 
-    let company_name = foundation_json.get("company_info").and_then(|ci| ci.get("name")).and_then(|n| n.as_str()).unwrap_or("our brand");
-    let category = foundation_json.get("company_info").and_then(|ci| ci.get("industry")).and_then(|n| n.as_str()).unwrap_or("solution provider");
-    let for_who = icp.and_then(|i| i.get("name")).and_then(|n| n.as_str()).unwrap_or("our target customers");
-    let who_problem = problem.and_then(|p| p.as_str()).unwrap_or("face challenges");
-    let differentiation_text = differentiation.and_then(|d| d.as_array()).and_then(|arr| arr.first()).and_then(|v| v.as_str()).unwrap_or("unique value");
+    let company_name = foundation_json
+        .get("company_info")
+        .and_then(|ci| ci.get("name"))
+        .and_then(|n| n.as_str())
+        .unwrap_or("our brand");
+    let category = foundation_json
+        .get("company_info")
+        .and_then(|ci| ci.get("industry"))
+        .and_then(|n| n.as_str())
+        .unwrap_or("solution provider");
+    let for_who = icp
+        .and_then(|i| i.get("name"))
+        .and_then(|n| n.as_str())
+        .unwrap_or("our target customers");
+    let who_problem = problem
+        .and_then(|p| p.as_str())
+        .unwrap_or("face challenges");
+    let differentiation_text = differentiation
+        .and_then(|d| d.as_array())
+        .and_then(|arr| arr.first())
+        .and_then(|v| v.as_str())
+        .unwrap_or("unique value");
     let because = "we deliver proven results";
 
     let prompt = format!(
@@ -1665,16 +1778,15 @@ Context:
                 Json(serde_json::json!({ "error": "bedrock_response_missing_json" })),
             )
         })?;
-        serde_json::from_str::<serde_json::Value>(&trimmed[start..=end])
-            .map_err(|e| {
-                (
-                    StatusCode::BAD_GATEWAY,
-                    Json(serde_json::json!({
-                        "error": "bedrock_response_invalid_json",
-                        "details": e.to_string()
-                    })),
-                )
-            })?
+        serde_json::from_str::<serde_json::Value>(&trimmed[start..=end]).map_err(|e| {
+            (
+                StatusCode::BAD_GATEWAY,
+                Json(serde_json::json!({
+                    "error": "bedrock_response_invalid_json",
+                    "details": e.to_string()
+                })),
+            )
+        })?
     };
 
     let response: PositioningDraftResponse = serde_json::from_value(json_text).map_err(|e| {
@@ -1687,7 +1799,9 @@ Context:
         )
     })?;
 
-    Ok(Json(serde_json::to_value(response).map_err(internal_error)?))
+    Ok(Json(
+        serde_json::to_value(response).map_err(internal_error)?,
+    ))
 }
 
 pub async fn lock_positioning(
@@ -1700,22 +1814,24 @@ pub async fn lock_positioning(
     // Get active campaigns that might be affected
     // Note: This assumes there's a campaigns table and API to get active campaigns
     // For now, we'll return a placeholder impact assessment
-    let downstream_impact = vec![
-        serde_json::json!({
-            "campaignId": "placeholder-campaign-1",
-            "campaignName": "Q1 Growth Campaign",
-            "impactDescription": "Campaign messaging may need alignment with new positioning statement."
-        })
-    ];
+    let downstream_impact = vec![serde_json::json!({
+        "campaignId": "placeholder-campaign-1",
+        "campaignName": "Q1 Growth Campaign",
+        "impactDescription": "Campaign messaging may need alignment with new positioning statement."
+    })];
 
     // Update foundation positioning with isLocked: true
-    let positioning_data = payload.get("positioning")
+    let positioning_data = payload
+        .get("positioning")
         .ok_or_else(|| bad_request("positioning data required"))?;
 
     let mut locked_positioning = positioning_data.clone();
     if let Some(obj) = locked_positioning.as_object_mut() {
         obj.insert("is_locked".to_string(), serde_json::json!(true));
-        obj.insert("locked_at".to_string(), serde_json::json!(chrono::Utc::now().to_rfc3339()));
+        obj.insert(
+            "locked_at".to_string(),
+            serde_json::json!(chrono::Utc::now().to_rfc3339()),
+        );
     }
 
     // Update foundation section
@@ -1769,7 +1885,11 @@ async fn deep_scan(url: &str) -> Result<serde_json::Value, String> {
     let description = parsed.language.clone();
 
     let json_ld: Option<serde_json::Value> = scraper::Html::parse_document(&html)
-        .select(&scraper::Selector::parse("script[type=\"application/ld+json\"]").ok().unwrap())
+        .select(
+            &scraper::Selector::parse("script[type=\"application/ld+json\"]")
+                .ok()
+                .unwrap(),
+        )
         .next()
         .map(|el| el.text().collect::<String>())
         .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok());
@@ -1788,13 +1908,19 @@ async fn deep_scan(url: &str) -> Result<serde_json::Value, String> {
         .as_ref()
         .and_then(|j| j.get("logo").and_then(|l| l.as_str()).map(String::from));
 
-    let primary_offering = json_ld
-        .as_ref()
-        .and_then(|j| j.get("description").and_then(|d| d.as_str()).map(String::from));
+    let primary_offering = json_ld.as_ref().and_then(|j| {
+        j.get("description")
+            .and_then(|d| d.as_str())
+            .map(String::from)
+    });
 
     let industry = infer_industry(title.as_ref().or(description.as_ref()));
 
-    let confidence = if business_name.is_some() { "medium" } else { "low" };
+    let confidence = if business_name.is_some() {
+        "medium"
+    } else {
+        "low"
+    };
 
     Ok(serde_json::json!({
         "business_name": business_name,
@@ -1829,13 +1955,21 @@ async fn quick_scan(url: &str) -> Result<serde_json::Value, String> {
     let title = parsed.title;
     let description = parsed.language.clone();
     let og_image = scraper::Html::parse_document(&html)
-        .select(&scraper::Selector::parse("meta[property=\"og:image\"]").ok().unwrap())
+        .select(
+            &scraper::Selector::parse("meta[property=\"og:image\"]")
+                .ok()
+                .unwrap(),
+        )
         .next()
         .and_then(|el| el.value().attr("content"))
         .map(String::from);
 
     let json_ld: Option<serde_json::Value> = scraper::Html::parse_document(&html)
-        .select(&scraper::Selector::parse("script[type=\"application/ld+json\"]").ok().unwrap())
+        .select(
+            &scraper::Selector::parse("script[type=\"application/ld+json\"]")
+                .ok()
+                .unwrap(),
+        )
         .next()
         .map(|el| el.text().collect::<String>())
         .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok());
@@ -1855,13 +1989,19 @@ async fn quick_scan(url: &str) -> Result<serde_json::Value, String> {
         .and_then(|j| j.get("logo").and_then(|l| l.as_str()).map(String::from))
         .or_else(|| og_image);
 
-    let primary_offering = json_ld
-        .as_ref()
-        .and_then(|j| j.get("description").and_then(|d| d.as_str()).map(String::from));
+    let primary_offering = json_ld.as_ref().and_then(|j| {
+        j.get("description")
+            .and_then(|d| d.as_str())
+            .map(String::from)
+    });
 
     let industry = infer_industry(title.as_ref().or(description.as_ref()));
 
-    let confidence = if business_name.is_some() { "medium" } else { "low" };
+    let confidence = if business_name.is_some() {
+        "medium"
+    } else {
+        "low"
+    };
 
     Ok(serde_json::json!({
         "business_name": business_name,
@@ -1885,7 +2025,14 @@ async fn quick_scan(url: &str) -> Result<serde_json::Value, String> {
 
 fn extract_social_links(html: &str) -> Vec<String> {
     let mut links = Vec::new();
-    let domains = ["twitter.com", "linkedin.com", "facebook.com", "instagram.com", "youtube.com", "github.com"];
+    let domains = [
+        "twitter.com",
+        "linkedin.com",
+        "facebook.com",
+        "instagram.com",
+        "youtube.com",
+        "github.com",
+    ];
 
     let document = scraper::Html::parse_document(html);
 
@@ -1906,21 +2053,44 @@ fn extract_social_links(html: &str) -> Vec<String> {
 
 fn infer_industry(text: Option<&String>) -> Option<String> {
     let desc = text?.to_lowercase();
-    if desc.contains("software") || desc.contains("tech") || desc.contains("saas") || desc.contains("cloud") {
+    if desc.contains("software")
+        || desc.contains("tech")
+        || desc.contains("saas")
+        || desc.contains("cloud")
+    {
         Some("SaaS / Technology".to_string())
-    } else if desc.contains("finance") || desc.contains("bank") || desc.contains("payment") || desc.contains("fintech") {
+    } else if desc.contains("finance")
+        || desc.contains("bank")
+        || desc.contains("payment")
+        || desc.contains("fintech")
+    {
         Some("Financial Services".to_string())
-    } else if desc.contains("health") || desc.contains("medical") || desc.contains("wellness") || desc.contains("healthcare") {
+    } else if desc.contains("health")
+        || desc.contains("medical")
+        || desc.contains("wellness")
+        || desc.contains("healthcare")
+    {
         Some("Healthcare & Wellness".to_string())
-    } else if desc.contains("retail") || desc.contains("ecommerce") || desc.contains("e-commerce") || desc.contains("shop") {
+    } else if desc.contains("retail")
+        || desc.contains("ecommerce")
+        || desc.contains("e-commerce")
+        || desc.contains("shop")
+    {
         Some("D2C / E-commerce".to_string())
-    } else if desc.contains("education") || desc.contains("learning") || desc.contains("training") || desc.contains("course") {
+    } else if desc.contains("education")
+        || desc.contains("learning")
+        || desc.contains("training")
+        || desc.contains("course")
+    {
         Some("Education & Training".to_string())
     } else if desc.contains("real estate") || desc.contains("property") {
         Some("Real Estate".to_string())
     } else if desc.contains("food") || desc.contains("restaurant") || desc.contains("beverage") {
         Some("Food & Beverage".to_string())
-    } else if desc.contains("logistics") || desc.contains("supply chain") || desc.contains("shipping") {
+    } else if desc.contains("logistics")
+        || desc.contains("supply chain")
+        || desc.contains("shipping")
+    {
         Some("Logistics & Supply Chain".to_string())
     } else {
         None

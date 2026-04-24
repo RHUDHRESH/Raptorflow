@@ -1,15 +1,15 @@
 use axum::{
+    Router,
     extract::Extension,
     routing::{delete, get, patch, post, put},
-    Router,
 };
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
 use crate::middleware::{
+    AppState,
     auth::auth_middleware,
     rate_limit::{RateLimitConfig, RateLimitLayer, RateLimitState},
-    AppState,
 };
 use crate::routes::{
     auth, billing, campaigns, content, council, daily_wins, foundation, health, intel, jobs, muse,
@@ -56,10 +56,7 @@ fn public_router(_state: &AppState) -> Router {
         .route("/health/live", get(health::liveness))
         .route("/health/ready", get(health::readiness))
         .route("/api/v1/webhooks/clerk", post(auth::clerk_webhook))
-        .route(
-            "/api/v1/webhooks/razorpay",
-            post(billing::razorpay_webhook),
-        )
+        .route("/api/v1/webhooks/razorpay", post(billing::razorpay_webhook))
         .layer(RateLimitLayer::per_ip(rate_limit_state))
 }
 

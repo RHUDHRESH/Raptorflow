@@ -1,7 +1,7 @@
 # CI DB Transaction Proof Report
 
 **Branch:** `fix/ci-db-transaction-proof`
-**Commit SHA:** (pending - not yet committed)
+**Commit SHA:** (to be committed with this branch)
 **Date:** 2026-04-24
 
 ---

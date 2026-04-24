@@ -23,12 +23,12 @@ pub fn strip_json_fence(input: &str) -> &str {
 
 pub fn extract_json_object(input: &str) -> Result<&str, String> {
     let trimmed = input.trim();
-    
+
     let start = match trimmed.find('{') {
         Some(idx) => idx,
         None => return Err("no_json_object".to_string()),
     };
-    
+
     let mut brace_count = 0;
     for (i, c) in trimmed[start..].chars().enumerate() {
         match c {
@@ -42,7 +42,7 @@ pub fn extract_json_object(input: &str) -> Result<&str, String> {
             _ => {}
         }
     }
-    
+
     Err("unclosed_json_object".to_string())
 }
 
@@ -56,7 +56,11 @@ pub fn truncate_context(text: &str, max_chars: usize) -> String {
     if text.len() <= max_chars {
         text.to_string()
     } else {
-        format!("{}...[truncated {} chars]", &text[..max_chars], text.len() - max_chars)
+        format!(
+            "{}...[truncated {} chars]",
+            &text[..max_chars],
+            text.len() - max_chars
+        )
     }
 }
 
@@ -69,12 +73,12 @@ pub fn validate_ai_output_not_just_prose(input: &str) -> Result<(), String> {
     let trimmed = input.trim();
     let json_count = trimmed.matches('{').count();
     let comma_count = trimmed.matches(',').count();
-    
+
     if json_count < 2 && comma_count < 2 {
         if trimmed.len() > 50 && !trimmed.starts_with('{') && !trimmed.starts_with('[') {
             return Err("appears_to_be_prose_not_structured_json".to_string());
         }
     }
-    
+
     Ok(())
 }

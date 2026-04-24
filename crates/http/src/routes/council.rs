@@ -1,8 +1,8 @@
 use axum::{
+    Json, Router,
     extract::{Extension, Path},
     http::StatusCode,
     response::sse::{Event, Sse},
-    Json, Router,
     routing::{get, post},
 };
 use futures_util::stream;
@@ -13,8 +13,8 @@ use ulid::Ulid;
 
 use raptorflow_auth::TenantContext;
 use raptorflow_aws::bedrock::BedrockInferenceClient;
-use raptorflow_db::{queries, TenantDbPool};
-use raptorflow_db::models::{CouncilSession, CouncilAgentPosition};
+use raptorflow_db::models::{CouncilAgentPosition, CouncilSession};
+use raptorflow_db::{TenantDbPool, queries};
 
 use super::ai_helpers::{json_error, parse_ai_json, truncate_context};
 
@@ -26,7 +26,8 @@ pub fn router() -> Router {
 }
 
 type AppResult<T> = Result<T, (StatusCode, Json<Value>)>;
-type CouncilSseResponse = Sse<stream::Iter<std::vec::IntoIter<Result<Event, std::convert::Infallible>>>>;
+type CouncilSseResponse =
+    Sse<stream::Iter<std::vec::IntoIter<Result<Event, std::convert::Infallible>>>>;
 
 fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, Json<Value>) {
     tracing::error!("Council route error: {e}");
@@ -212,7 +213,10 @@ pub async fn get_session_messages(
 }
 
 fn service_unavailable() -> (StatusCode, Json<Value>) {
-    (StatusCode::SERVICE_UNAVAILABLE, Json(json_error("ai_inference_unavailable")))
+    (
+        StatusCode::SERVICE_UNAVAILABLE,
+        Json(json_error("ai_inference_unavailable")),
+    )
 }
 
 #[derive(Debug, Deserialize)]
@@ -372,10 +376,17 @@ pub async fn start_council_session(
         queries::update_council_session_status(&tenant_pool.pool(), &session_id, org_id, "failed")
             .await
             .map_err(internal_error)?;
-        return Err((StatusCode::BAD_GATEWAY, Json(json_error("all_avatar_generation_failed"))));
+        return Err((
+            StatusCode::BAD_GATEWAY,
+            Json(json_error("all_avatar_generation_failed")),
+        ));
     }
 
-    let final_status = if has_failure { "partial" } else { "positions_ready" };
+    let final_status = if has_failure {
+        "partial"
+    } else {
+        "positions_ready"
+    };
     queries::update_council_session_status(&tenant_pool.pool(), &session_id, org_id, final_status)
         .await
         .map_err(internal_error)?;
@@ -409,29 +420,32 @@ pub async fn stream_council_session(
 
     let mut events: Vec<Result<Event, std::convert::Infallible>> = Vec::new();
 
-    events.push(Ok(Event::default()
-        .event("session")
-        .data(serde_json::to_string(&json!({
+    events.push(Ok(Event::default().event("session").data(
+        serde_json::to_string(&json!({
             "session_id": session_id,
             "status": session.status,
-        })).unwrap_or_default())));
+        }))
+        .unwrap_or_default(),
+    )));
 
     for pos in &positions {
-        events.push(Ok(Event::default()
-            .event("position")
-            .data(serde_json::to_string(&json!({
+        events.push(Ok(Event::default().event("position").data(
+            serde_json::to_string(&json!({
                 "position_id": pos.position_id,
                 "avatar_key": pos.avatar_key,
                 "content": pos.content,
-            })).unwrap_or_default())));
+            }))
+            .unwrap_or_default(),
+        )));
     }
 
-    events.push(Ok(Event::default()
-        .event("done")
-        .data(serde_json::to_string(&json!({
+    events.push(Ok(Event::default().event("done").data(
+        serde_json::to_string(&json!({
             "session_id": session_id,
             "status": session.status,
-        })).unwrap_or_default())));
+        }))
+        .unwrap_or_default(),
+    )));
 
     Ok(Sse::new(stream::iter(events)))
 }
@@ -482,11 +496,13 @@ pub async fn synthesize_council_session(
                 p.avatar_key,
                 p.round_number,
                 p.content,
-                p.extracted_ripple_data.get("key_risks")
+                p.extracted_ripple_data
+                    .get("key_risks")
                     .and_then(|v| v.as_array())
                     .map(|arr| arr.iter().filter_map(|x| x.as_str()).collect::<Vec<_>>())
                     .unwrap_or_default(),
-                p.extracted_ripple_data.get("recommended_next_move")
+                p.extracted_ripple_data
+                    .get("recommended_next_move")
                     .and_then(|v| v.as_str())
                     .unwrap_or("N/A")
             )
@@ -507,31 +523,52 @@ pub async fn synthesize_council_session(
 
     let output = bedrock.converse_large(&prompt, 800).await.map_err(|e| {
         tracing::error!("Synthesis Bedrock call failed: {}", e);
-        (StatusCode::BAD_GATEWAY, Json(json_error("ai_inference_failed")))
+        (
+            StatusCode::BAD_GATEWAY,
+            Json(json_error("ai_inference_failed")),
+        )
     })?;
 
     let ai_synth: AiSynthesis = parse_ai_json(&output).map_err(|e| {
         tracing::error!("Synthesis parse failed: {}", e);
-        (StatusCode::BAD_GATEWAY, Json(json_error("invalid_ai_output")))
+        (
+            StatusCode::BAD_GATEWAY,
+            Json(json_error("invalid_ai_output")),
+        )
     })?;
 
     if ai_synth.decision.len() < 10 || ai_synth.rationale.len() < 20 {
-        return Err((StatusCode::BAD_GATEWAY, Json(json_error("invalid_ai_output"))));
+        return Err((
+            StatusCode::BAD_GATEWAY,
+            Json(json_error("invalid_ai_output")),
+        ));
     }
 
     if ai_synth.risks.len() > 10 {
         tracing::warn!("Synthesis has too many risks: {}", ai_synth.risks.len());
-        return Err((StatusCode::BAD_GATEWAY, Json(json_error("invalid_ai_output"))));
+        return Err((
+            StatusCode::BAD_GATEWAY,
+            Json(json_error("invalid_ai_output")),
+        ));
     }
 
     if ai_synth.next_actions.len() > 10 {
-        tracing::warn!("Synthesis has too many next_actions: {}", ai_synth.next_actions.len());
-        return Err((StatusCode::BAD_GATEWAY, Json(json_error("invalid_ai_output"))));
+        tracing::warn!(
+            "Synthesis has too many next_actions: {}",
+            ai_synth.next_actions.len()
+        );
+        return Err((
+            StatusCode::BAD_GATEWAY,
+            Json(json_error("invalid_ai_output")),
+        ));
     }
 
     if ai_synth.confidence < 0.0 || ai_synth.confidence > 1.0 {
         tracing::warn!("Synthesis confidence out of range: {}", ai_synth.confidence);
-        return Err((StatusCode::BAD_GATEWAY, Json(json_error("invalid_ai_output"))));
+        return Err((
+            StatusCode::BAD_GATEWAY,
+            Json(json_error("invalid_ai_output")),
+        ));
     }
 
     let synthesis_body = serde_json::json!({
