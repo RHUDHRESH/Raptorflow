@@ -30,119 +30,99 @@ Call log:
 ```yaml
 - generic [active] [ref=e1]:
   - banner [ref=e2]:
-    - generic [ref=e3]:
-      - link "RAPTORFLOW" [ref=e4] [cursor=pointer]:
-        - /url: /
-      - button "Open user menu" [ref=e7] [cursor=pointer]:
-        - img "Live Smoke's logo" [ref=e10]
-  - generic [ref=e12]:
-    - complementary [ref=e13]:
-      - generic [ref=e14]:
-        - generic [ref=e15]:
-          - img [ref=e17]
-          - generic [ref=e19]:
-            - generic [ref=e20]: RaptorFlow
-            - generic [ref=e21]: EST. 1989
-        - button [ref=e22]:
-          - img [ref=e23]
-      - navigation [ref=e25]:
-        - generic [ref=e26]:
-          - heading "Workspace" [level=2] [ref=e27]
-          - generic [ref=e28]:
-            - link "Dashboard" [ref=e29] [cursor=pointer]:
+    - link "RAPTORFLOW" [ref=e4] [cursor=pointer]:
+      - /url: /
+  - generic [ref=e5]:
+    - complementary [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e10]
+          - generic [ref=e12]:
+            - generic [ref=e13]: RaptorFlow
+            - generic [ref=e14]: EST. 1989
+        - button [ref=e15]:
+          - img [ref=e16]
+      - navigation [ref=e18]:
+        - generic [ref=e19]:
+          - heading "Workspace" [level=2] [ref=e20]
+          - generic [ref=e21]:
+            - link "Dashboard" [ref=e22] [cursor=pointer]:
               - /url: /app/dashboard
-              - img [ref=e30]
-              - generic [ref=e32]: Dashboard
-            - link "The Office" [ref=e33] [cursor=pointer]:
+              - img [ref=e23]
+              - generic [ref=e25]: Dashboard
+            - link "The Office" [ref=e26] [cursor=pointer]:
               - /url: /office
-              - img [ref=e34]
-              - generic [ref=e36]: The Office
-            - link "Daily Wins" [ref=e37] [cursor=pointer]:
+              - img [ref=e27]
+              - generic [ref=e29]: The Office
+            - link "Daily Wins" [ref=e30] [cursor=pointer]:
               - /url: /daily-wins
-              - img [ref=e38]
-              - generic [ref=e40]: Daily Wins
-            - link "Uploads" [ref=e41] [cursor=pointer]:
+              - img [ref=e31]
+              - generic [ref=e33]: Daily Wins
+            - link "Uploads" [ref=e34] [cursor=pointer]:
               - /url: /uploads
-              - img [ref=e42]
-              - generic [ref=e44]: Uploads
-        - generic [ref=e45]:
-          - heading "Intelligence" [level=2] [ref=e46]
-          - generic [ref=e47]:
-            - link "Intel" [ref=e48] [cursor=pointer]:
+              - img [ref=e35]
+              - generic [ref=e37]: Uploads
+        - generic [ref=e38]:
+          - heading "Intelligence" [level=2] [ref=e39]
+          - generic [ref=e40]:
+            - link "Intel" [ref=e41] [cursor=pointer]:
               - /url: /intel
-              - img [ref=e49]
-              - generic [ref=e51]: Intel
-            - link "Nudges" [ref=e52] [cursor=pointer]:
+              - img [ref=e42]
+              - generic [ref=e44]: Intel
+            - link "Nudges" [ref=e45] [cursor=pointer]:
               - /url: /nudges
-              - img [ref=e53]
-              - generic [ref=e55]: Nudges
-            - link "Ripples" [ref=e56] [cursor=pointer]:
+              - img [ref=e46]
+              - generic [ref=e48]: Nudges
+            - link "Ripples" [ref=e49] [cursor=pointer]:
               - /url: /ripples
-              - img [ref=e57]
-              - generic [ref=e59]: Ripples
-        - generic [ref=e60]:
-          - heading "Strategy" [level=2] [ref=e61]
-          - generic [ref=e62]:
-            - link "Campaigns" [ref=e63] [cursor=pointer]:
+              - img [ref=e50]
+              - generic [ref=e52]: Ripples
+        - generic [ref=e53]:
+          - heading "Strategy" [level=2] [ref=e54]
+          - generic [ref=e55]:
+            - link "Campaigns" [ref=e56] [cursor=pointer]:
               - /url: /campaigns
-              - img [ref=e64]
-              - generic [ref=e66]: Campaigns
-            - link "Council" [ref=e67] [cursor=pointer]:
+              - img [ref=e57]
+              - generic [ref=e59]: Campaigns
+            - link "Council" [ref=e60] [cursor=pointer]:
               - /url: /council
-              - img [ref=e68]
-              - generic [ref=e70]: Council
-            - link "Muse" [ref=e71] [cursor=pointer]:
+              - img [ref=e61]
+              - generic [ref=e63]: Council
+            - link "Muse" [ref=e64] [cursor=pointer]:
               - /url: /muse
-              - img [ref=e72]
-              - generic [ref=e74]: Muse
-            - link "Content" [ref=e75] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e67]: Muse
+            - link "Content" [ref=e68] [cursor=pointer]:
               - /url: /content
-              - img [ref=e77]
-              - generic [ref=e79]: Content
-        - generic [ref=e81]:
-          - heading "System" [level=2] [ref=e82]
-          - generic [ref=e83]:
-            - link "Foundation" [ref=e84] [cursor=pointer]:
+              - img [ref=e70]
+              - generic [ref=e72]: Content
+        - generic [ref=e74]:
+          - heading "System" [level=2] [ref=e75]
+          - generic [ref=e76]:
+            - link "Foundation" [ref=e77] [cursor=pointer]:
               - /url: /foundation
-              - img [ref=e85]
-              - generic [ref=e87]: Foundation
-            - link "Settings" [ref=e88] [cursor=pointer]:
+              - img [ref=e78]
+              - generic [ref=e80]: Foundation
+            - link "Settings" [ref=e81] [cursor=pointer]:
               - /url: /settings
-              - img [ref=e89]
-              - generic [ref=e91]: Settings
-      - generic [ref=e92]:
-        - paragraph [ref=e95]: "UPLINK: ACTIVE"
-        - paragraph [ref=e96]: "ORG: org_3ClZOP8E"
-      - generic [ref=e97]:
-        - generic [ref=e98]:
-          - generic [ref=e99]: Passive_HQ_View
-          - generic [ref=e100]: 21 agents
-        - generic [ref=e101]:
-          - generic [ref=e102]: RECEPTIO
-          - generic [ref=e103]: STRATEGI
-          - generic [ref=e104]: THE COUN
-          - generic [ref=e105]: CONTENT
-          - generic [ref=e106]: INTEL LA
-          - generic [ref=e107]: RESEARCH
-          - generic [ref=e108]: SERVER R
-    - main [ref=e109]:
-      - generic [ref=e112]:
-        - generic [ref=e113]:
-          - paragraph [ref=e114]: Content Engine
-          - heading "Content" [level=1] [ref=e115]
-        - generic [ref=e116]:
-          - button "Filter" [disabled] [ref=e117]:
-            - img [ref=e118]
-            - text: Filter
-          - button "Grid" [disabled] [ref=e120]:
-            - img [ref=e121]
-            - text: Grid
-          - button "Export All" [disabled] [ref=e123]:
-            - img [ref=e124]
-            - text: Export All
-  - button "Open Next.js Dev Tools" [ref=e135] [cursor=pointer]:
-    - img [ref=e136]
-  - alert [ref=e139]
+              - img [ref=e82]
+              - generic [ref=e84]: Settings
+      - generic [ref=e85]:
+        - paragraph [ref=e88]: "UPLINK: ACTIVE"
+        - paragraph [ref=e89]: "ORG: org_3ClZOP8E"
+      - generic [ref=e90]:
+        - generic [ref=e91]:
+          - generic [ref=e92]: Passive_HQ_View
+          - generic [ref=e93]: 21 agents
+        - generic [ref=e94]:
+          - generic [ref=e95]: RECEPTIO
+          - generic [ref=e96]: STRATEGI
+          - generic [ref=e97]: THE COUN
+          - generic [ref=e98]: CONTENT
+          - generic [ref=e99]: INTEL LA
+          - generic [ref=e100]: RESEARCH
+          - generic [ref=e101]: SERVER R
+    - main [ref=e102]
 ```
 
 # Test source

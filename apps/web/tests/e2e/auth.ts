@@ -1,5 +1,6 @@
 import { createClerkClient } from "@clerk/backend";
 import { clerk } from "@clerk/testing/playwright";
+import { existsSync, readFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 
@@ -128,6 +129,30 @@ export async function signInLiveSmokeUser(page: Page): Promise<void> {
     return;
   }
 
+  if (existsSync(E2E_AUTH_STATE_PATH)) {
+    try {
+      const storageState = JSON.parse(readFileSync(E2E_AUTH_STATE_PATH, "utf8")) as {
+        cookies?: Array<{
+          name: string;
+          value: string;
+          domain: string;
+          path: string;
+          expires?: number;
+          httpOnly?: boolean;
+          secure?: boolean;
+          sameSite?: "Lax" | "None" | "Strict";
+        }>;
+      };
+
+      if (storageState.cookies?.length) {
+        await page.context().addCookies(storageState.cookies);
+        return;
+      }
+    } catch (error) {
+      console.warn("[auth] Failed to reuse saved Clerk auth state, falling back to UI sign-in:", error);
+    }
+  }
+
   try {
     await page.goto("/", { waitUntil: "domcontentloaded" });
   } catch (error) {
@@ -173,6 +198,20 @@ export async function activateLiveSmokeOrganization(
   page: Page,
   orgId: string,
 ): Promise<void> {
+  const cookies = await page.context().cookies();
+  if (
+    cookies.some(
+      (cookie) =>
+        cookie.name === "__session" ||
+        cookie.name.startsWith("__session_") ||
+        cookie.name === "clerk_active_context" ||
+        cookie.name === "__clerk_db_jwt" ||
+        cookie.name.startsWith("__clerk_db_jwt_"),
+    )
+  ) {
+    return;
+  }
+
   await page.waitForFunction(() => {
     const clerk = (window as Window & {
       Clerk?: {
@@ -249,11 +288,22 @@ export async function readSessionToken(page: Page): Promise<string> {
     return clerk?.session?.getToken ? clerk.session.getToken() : null;
   });
 
-  if (!token) {
-    throw new Error("Clerk session token was not available after sign-in");
+  if (token) {
+    return token;
   }
 
-  return token;
+  const cookies = await page.context().cookies();
+  const sessionCookie = cookies.find(
+    (cookie) =>
+      cookie.name === "__session" ||
+      cookie.name.startsWith("__session_"),
+  )?.value;
+
+  if (sessionCookie) {
+    return sessionCookie;
+  }
+
+  throw new Error("Clerk session token was not available after sign-in");
 }
 
 export function decodeJwtPayload(token: string): Record<string, unknown> {

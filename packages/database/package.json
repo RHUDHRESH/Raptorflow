@@ -17,8 +17,8 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "migrate:status": "prisma migrate status",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "build": "tsc -p tsconfig.build.json"
+    "typecheck": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
+    "build": "node ../../node_modules/typescript/bin/tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.8.0",

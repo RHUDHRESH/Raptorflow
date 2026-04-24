@@ -12,8 +12,8 @@ use crate::middleware::{
     AppState,
 };
 use crate::routes::{
-    auth, campaigns, content, council, daily_wins, foundation, health, intel, jobs, muse, nudges,
-    office, prl, replan,
+    auth, billing, campaigns, content, council, daily_wins, foundation, health, intel, jobs, muse,
+    nudges, office, prl, replan,
 };
 
 fn cors_layer(state: &AppState) -> CorsLayer {
@@ -56,6 +56,10 @@ fn public_router(_state: &AppState) -> Router {
         .route("/health/live", get(health::liveness))
         .route("/health/ready", get(health::readiness))
         .route("/api/v1/webhooks/clerk", post(auth::clerk_webhook))
+        .route(
+            "/api/v1/webhooks/razorpay",
+            post(billing::razorpay_webhook),
+        )
         .layer(RateLimitLayer::per_ip(rate_limit_state))
 }
 

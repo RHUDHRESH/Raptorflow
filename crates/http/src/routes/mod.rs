@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod billing;
 pub mod campaigns;
 pub mod content;
 pub mod council;

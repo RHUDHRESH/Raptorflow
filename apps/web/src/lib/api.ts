@@ -25,18 +25,28 @@ export async function getAuthToken(): Promise<string | null> {
       }
     ).Clerk;
 
-    for (let attempt = 0; attempt < 20; attempt += 1) {
+    for (let attempt = 0; attempt < 100; attempt += 1) {
       if (clerk?.loaded && clerk.session?.getToken) {
-        const token =
-          (await clerk.session.getToken({ template: "backend" } as never)) ??
-          (await clerk.session.getToken());
+        const token = await Promise.race([
+          clerk.session.getToken({ template: "backend" } as never).catch(() => null),
+          clerk.session.getToken().catch(() => null),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000)),
+        ]);
         if (token) return token;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 150));
     }
   } catch {
     // Clerk not loaded yet or session expired
+  }
+
+  const sessionCookie = document.cookie
+    .split("; ")
+    .find((cookie) => cookie.startsWith("__session=") || cookie.startsWith("__session_"));
+  if (sessionCookie) {
+    const token = sessionCookie.split("=").slice(1).join("=");
+    if (token) return token;
   }
 
   return null;
@@ -94,7 +104,7 @@ export async function appFetch<T>(
     auth?: boolean;
   } = {},
 ): Promise<T> {
-  const token = options.auth ? (options.token ?? (await getAuthToken())) : null;
+  const token = options.auth ? (options.token ?? null) : null;
 
   const res = await fetch(path, {
     method: options.method ?? "GET",

@@ -191,15 +191,22 @@ async function seedRustDb({ userId, email, orgId, orgRole, clerkSessionId }) {
 
   await withPg(
     requireEnv(
-      "RAPTORFLOW_LOCAL_DATABASE_URL",
-      "postgres://raptorflow:raptorflow@localhost:6432/raptorflow",
+      "RAPTORFLOW_DIRECT_DATABASE_URL",
+      process.env.DIRECT_DATABASE_URL ??
+        process.env.DATABASE_URL ??
+        process.env.RAPTORFLOW_DATABASE_URL ??
+        process.env.RAPTORFLOW_LOCAL_DATABASE_URL ??
+        "postgres://raptorflow:raptorflow@localhost:5432/raptorflow",
     ),
     async (client) => {
       await client.query(
-        `INSERT INTO organizations (org_id, name, subscription_status, foundation_version, created_at, updated_at)
-         VALUES ($1::uuid, $2, 'none', 0, NOW(), NOW())
-         ON CONFLICT (org_id) DO UPDATE SET name = EXCLUDED.name, updated_at = EXCLUDED.updated_at`,
-        [orgId, "Live Smoke Org"],
+        `INSERT INTO organizations ("orgId", name, slug, created_at, updated_at)
+         VALUES ($1::uuid, $2, $3, NOW(), NOW())
+         ON CONFLICT ("orgId") DO UPDATE SET
+           name = EXCLUDED.name,
+           slug = EXCLUDED.slug,
+           updated_at = EXCLUDED.updated_at`,
+        [orgId, "Live Smoke Org", "live-smoke-org"],
       );
 
       await client.query(
@@ -210,91 +217,24 @@ async function seedRustDb({ userId, email, orgId, orgRole, clerkSessionId }) {
       );
 
       await client.query(
-        `INSERT INTO org_users (org_user_id, org_id, clerk_user_id, email, role, created_at)
-         VALUES ($1::uuid, $2::uuid, $3, $4, $5, NOW())
-         ON CONFLICT (org_id, clerk_user_id) DO UPDATE SET email = EXCLUDED.email, role = EXCLUDED.role`,
-        [randomUUID(), orgId, userId, email, normalizedRole],
-      );
-
-      await client.query(
-        `INSERT INTO org_members (member_id, org_id, user_id, role, created_at, updated_at)
+        `INSERT INTO org_members ("orgMemberId", org_id, clerk_user_id, role, created_at, updated_at)
          VALUES ($1::uuid, $2::uuid, $3, $4, NOW(), NOW())
-         ON CONFLICT (org_id, user_id) DO UPDATE SET role = EXCLUDED.role, updated_at = EXCLUDED.updated_at`,
+         ON CONFLICT (org_id, clerk_user_id) DO UPDATE SET
+           role = EXCLUDED.role,
+           updated_at = EXCLUDED.updated_at`,
         [randomUUID(), orgId, userId, normalizedRole],
       );
 
       await client.query(
-        `INSERT INTO sessions (session_id, org_id, user_id, socket_id, status, metadata, last_seen_at, created_at, updated_at)
-         VALUES ($1::uuid, $2::uuid, $3, $4, 'active', '{}'::jsonb, NOW(), NOW(), NOW())
+        `INSERT INTO sessions (session_id, org_id, clerk_user_id, clerk_session_id, transport, connected_at, created_at, updated_at)
+         VALUES ($1::uuid, $2::uuid, $3, $4, 'e2e', NOW(), NOW(), NOW())
          ON CONFLICT (session_id) DO UPDATE SET
-           user_id = EXCLUDED.user_id,
-           socket_id = EXCLUDED.socket_id,
-           status = EXCLUDED.status,
-           metadata = EXCLUDED.metadata,
-           last_seen_at = EXCLUDED.last_seen_at,
+           org_id = EXCLUDED.org_id,
+           clerk_user_id = EXCLUDED.clerk_user_id,
+           clerk_session_id = EXCLUDED.clerk_session_id,
+           transport = EXCLUDED.transport,
            updated_at = EXCLUDED.updated_at`,
         [randomUUID(), orgId, userId, clerkSessionId || null],
-      );
-
-      await client.query(
-        `INSERT INTO campaigns (campaign_id, org_id, name, goal, status, active_move_id, created_at, updated_at)
-         VALUES ($1, $2::uuid, $3, $4, $5, $6, NOW(), NOW())
-         ON CONFLICT (campaign_id) DO UPDATE SET name = EXCLUDED.name, goal = EXCLUDED.goal, status = EXCLUDED.status, active_move_id = EXCLUDED.active_move_id, updated_at = EXCLUDED.updated_at`,
-        [
-          "live-smoke-campaign",
-          orgId,
-          "Live Smoke Campaign",
-          "re_engagement",
-          "active",
-          "live-smoke-campaign-move",
-        ],
-      );
-
-      await client.query(
-        `INSERT INTO campaign_moves (move_id, campaign_id, org_id, move_type, sequence_number, status, created_at)
-         VALUES ($1, $2, $3::uuid, $4, 1, 'planned', NOW())
-         ON CONFLICT (move_id) DO UPDATE SET status = EXCLUDED.status`,
-        ["live-smoke-campaign-move", "live-smoke-campaign", orgId, "strategic"],
-      );
-
-      await client.query(
-        `INSERT INTO campaign_tasks (task_id, move_id, campaign_id, org_id, title, status, scheduled_date, created_at)
-         VALUES ($1, $2, $3, $4::uuid, $5, 'pending', CURRENT_DATE, NOW())
-         ON CONFLICT (task_id) DO UPDATE SET title = EXCLUDED.title`,
-        ["live-smoke-campaign-task", "live-smoke-campaign-move", "live-smoke-campaign", orgId, "Smoke Task"],
-      );
-
-      await client.query(
-        `INSERT INTO council_sessions (session_id, org_id, campaign_id, session_type, status, question, total_cost_usd, created_at)
-         VALUES ($1, $2::uuid, $3, $4, 'completed', $5, 0, NOW())
-         ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, question = EXCLUDED.question`,
-        [
-          "01KPB8VE4DE9XJEBNRYQ15J8TV",
-          orgId,
-          "live-smoke-campaign",
-          "strategic_review",
-          "Review the live smoke campaign and confirm it is healthy.",
-        ],
-      );
-
-      await client.query(
-        `INSERT INTO muse_conversations (conversation_id, org_id, route, created_at)
-         VALUES ($1, $2::uuid, $3, NOW())
-         ON CONFLICT (conversation_id) DO UPDATE SET route = EXCLUDED.route`,
-        ["live-smoke-muse-conversation", orgId, "strategic"],
-      );
-
-      await client.query(
-        `INSERT INTO muse_messages (message_id, conversation_id, org_id, role, body, created_at)
-         VALUES ($1, $2, $3::uuid, $4, $5, NOW())
-         ON CONFLICT (message_id) DO UPDATE SET body = EXCLUDED.body, role = EXCLUDED.role`,
-        [
-          "live-smoke-muse-message",
-          "live-smoke-muse-conversation",
-          orgId,
-          "assistant",
-          "strategic",
-        ],
       );
 
       await client.query(

@@ -72,6 +72,7 @@ pub async fn create_organization(pool: &PgPool, org_id: uuid::Uuid, name: &str) 
     .bind(name)
     .execute(pool)
     .await?;
+
     Ok(())
 }
 
@@ -97,6 +98,23 @@ pub async fn create_org_user(
     .bind(role)
     .execute(pool)
     .await?;
+
+    sqlx::query(
+        r#"
+        INSERT INTO org_members (member_id, org_id, user_id, role)
+        VALUES ($1, $2, $3, $4::org_member_role)
+        ON CONFLICT (org_id, user_id) DO UPDATE SET
+            role = EXCLUDED.role,
+            updated_at = NOW()
+        "#,
+    )
+    .bind(uuid::Uuid::new_v4())
+    .bind(org_id)
+    .bind(clerk_user_id)
+    .bind(role)
+    .execute(pool)
+    .await?;
+
     Ok(())
 }
 

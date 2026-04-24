@@ -8,6 +8,10 @@ use aws_sdk_bedrockruntime::types::{
     ContentBlock, ConversationRole, InferenceConfiguration, Message,
 };
 use aws_sdk_bedrockruntime::Client;
+use serde::de::DeserializeOwned;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::sync::Semaphore;
 use tracing::{debug, instrument, warn};
 
 /// Confirmed AWS Bedrock model IDs for Mistral in ap-south-1.
@@ -30,17 +34,55 @@ pub enum InferenceError {
 
     #[error("max_tokens must be between 1 and 8192, got {0}")]
     InvalidMaxTokens(i32),
+
+    #[error("Bedrock request timed out after {0} seconds")]
+    Timeout(u64),
+
+    #[error("Bedrock output failed schema validation: {0}")]
+    InvalidOutput(String),
 }
 
 #[derive(Clone, Debug)]
 pub struct BedrockInferenceClient {
     client: Client,
     region: String,
+    model_strategist: String,
+    model_fast: String,
+    request_timeout: Duration,
+    semaphore: Arc<Semaphore>,
 }
 
 impl BedrockInferenceClient {
     /// Initialise from the environment (IAM role in production, env vars for local dev).
     pub async fn new(region: impl Into<String>) -> anyhow::Result<Self> {
+        Self::new_with_models(
+            region,
+            MODEL_MISTRAL_LARGE,
+            MODEL_MISTRAL_SMALL,
+            8,
+            Duration::from_secs(60),
+        )
+        .await
+    }
+
+    pub async fn from_settings(settings: &raptorflow_config::Settings) -> anyhow::Result<Self> {
+        Self::new_with_models(
+            settings.bedrock_region.clone(),
+            settings.bedrock_model_strategist.clone(),
+            settings.bedrock_model_fast.clone(),
+            8,
+            Duration::from_secs(60),
+        )
+        .await
+    }
+
+    pub async fn new_with_models(
+        region: impl Into<String>,
+        model_strategist: impl Into<String>,
+        model_fast: impl Into<String>,
+        max_concurrent_requests: usize,
+        request_timeout: Duration,
+    ) -> anyhow::Result<Self> {
         let region_str = region.into();
         let sdk_config = aws_config::defaults(BehaviorVersion::latest())
             .region(Region::new(region_str.clone()))
@@ -48,14 +90,38 @@ impl BedrockInferenceClient {
             .await;
 
         let client = Client::new(&sdk_config);
+        let model_strategist = model_strategist.into();
+        let model_fast = model_fast.into();
+        let max_concurrent_requests = max_concurrent_requests.max(1);
 
-        tracing::info!(region = %region_str, "BedrockInferenceClient initialised");
+        tracing::info!(
+            region = %region_str,
+            strategist_model = %model_strategist,
+            fast_model = %model_fast,
+            max_concurrent_requests,
+            "BedrockInferenceClient initialised"
+        );
 
-        Ok(Self { client, region: region_str })
+        Ok(Self {
+            client,
+            region: region_str,
+            model_strategist,
+            model_fast,
+            request_timeout,
+            semaphore: Arc::new(Semaphore::new(max_concurrent_requests)),
+        })
     }
 
     pub fn region(&self) -> &str {
         &self.region
+    }
+
+    pub fn strategist_model(&self) -> &str {
+        &self.model_strategist
+    }
+
+    pub fn fast_model(&self) -> &str {
+        &self.model_fast
     }
 
     #[instrument(skip(self, prompt), fields(model_id, prompt_len = prompt.len()))]
@@ -73,6 +139,11 @@ impl BedrockInferenceClient {
         }
 
         debug!(model_id = %model_id, prompt_chars = prompt.len(), max_tokens, "Calling Bedrock Converse API");
+        let _permit = self
+            .semaphore
+            .acquire()
+            .await
+            .map_err(|e| InferenceError::Sdk(e.to_string()))?;
 
         let user_message = Message::builder()
             .role(ConversationRole::User)
@@ -84,14 +155,17 @@ impl BedrockInferenceClient {
             .max_tokens(max_tokens)
             .build();
 
-        let response = self
+        let request = self
             .client
             .converse()
             .model_id(model_id)
             .messages(user_message)
             .inference_config(inference_config)
-            .send()
+            .send();
+
+        let response = tokio::time::timeout(self.request_timeout, request)
             .await
+            .map_err(|_| InferenceError::Timeout(self.request_timeout.as_secs()))?
             .map_err(|e| InferenceError::Sdk(e.to_string()))?;
 
         let output = response.output.ok_or(InferenceError::NoOutput)?;
@@ -120,7 +194,7 @@ impl BedrockInferenceClient {
         prompt: &str,
         max_tokens: i32,
     ) -> Result<String, InferenceError> {
-        self.converse(MODEL_MISTRAL_LARGE, prompt, max_tokens).await
+        self.converse(&self.model_strategist, prompt, max_tokens).await
     }
 
     /// Convenience for fast inference (classification, nudges, snark, voice compliance).
@@ -129,7 +203,21 @@ impl BedrockInferenceClient {
         prompt: &str,
         max_tokens: i32,
     ) -> Result<String, InferenceError> {
-        self.converse(MODEL_MISTRAL_SMALL, prompt, max_tokens).await
+        self.converse(&self.model_fast, prompt, max_tokens).await
+    }
+
+    pub async fn converse_json<T>(
+        &self,
+        model_id: &str,
+        prompt: &str,
+        max_tokens: i32,
+    ) -> Result<T, InferenceError>
+    where
+        T: DeserializeOwned,
+    {
+        let output = self.converse(model_id, prompt, max_tokens).await?;
+        serde_json::from_str::<T>(&output)
+            .map_err(|error| InferenceError::InvalidOutput(error.to_string()))
     }
 }
 

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@raptorflow/database";
 
@@ -13,9 +13,27 @@ async function resolveOrgId(userId: string): Promise<string | null> {
   return membership?.orgId ?? null;
 }
 
-export async function GET(): Promise<NextResponse> {
+function readUserIdFromSessionCookie(request: NextRequest): string | null {
+  const sessionCookie = request.cookies.get("__session")?.value;
+  if (!sessionCookie) return null;
+
+  const parts = sessionCookie.split(".");
+  if (parts.length < 2) return null;
+
+  try {
+    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8")) as {
+      sub?: string;
+      user_id?: string;
+    };
+    return payload.user_id ?? payload.sub ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const authObj = await auth();
-  const { userId } = authObj;
+  const userId = authObj.userId ?? readUserIdFromSessionCookie(request);
   if (!userId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const orgId = await resolveOrgId(userId);

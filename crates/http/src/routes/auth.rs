@@ -75,42 +75,73 @@ pub async fn clerk_webhook(
         StatusCode::BAD_REQUEST
     })?;
 
-    tracing::info!(event_type = %event.event_type, "Processing Clerk webhook");
+    if message_id.trim().is_empty() {
+        tracing::warn!("Clerk webhook missing svix-id header");
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    tracing::info!(
+        event_id = %message_id,
+        event_type = %event.event_type,
+        "Processing Clerk webhook"
+    );
 
     if let Some(ref pool) = state.db_pool {
+        match begin_clerk_event(pool, &message_id, &event).await {
+            Ok(true) => {}
+            Ok(false) => {
+                tracing::info!(
+                    event_id = %message_id,
+                    event_type = %event.event_type,
+                    "Skipping duplicate Clerk webhook"
+                );
+                return Ok(Json(WebhookResponse {
+                    received: true,
+                    processed: false,
+                    message: "Duplicate event skipped".to_string(),
+                }));
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "Failed to record Clerk webhook event");
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        let processing_result: Result<(), String> = async {
         match event.event_type.as_str() {
             "user.created" | "user.updated" => {
-                if let Err(e) = upsert_user(pool, &event).await {
-                    tracing::error!(error = %e, "Failed to upsert user");
-                    return Ok(Json(WebhookResponse {
-                        received: true,
-                        processed: false,
-                        message: format!("Failed to process user: {}", e),
-                    }));
-                }
+                upsert_user(pool, &event).await?;
             }
             "organization_membership.created" | "organization_membership.updated" => {
-                if let Err(e) = upsert_membership(pool, &event).await {
-                    tracing::error!(error = %e, "Failed to upsert membership");
-                    return Ok(Json(WebhookResponse {
-                        received: true,
-                        processed: false,
-                        message: format!("Failed to process membership: {}", e),
-                    }));
-                }
+                upsert_membership(pool, &event).await?;
             }
             "organization.created" => {
-                if let Err(e) = handle_org_created(pool, &event).await {
-                    tracing::error!(error = %e, "Failed to create organization");
-                    return Ok(Json(WebhookResponse {
-                        received: true,
-                        processed: false,
-                        message: format!("Failed to process org: {}", e),
-                    }));
-                }
+                handle_org_created(pool, &event).await?;
             }
             _ => {
                 tracing::debug!(event_type = %event.event_type, "Unhandled webhook event type");
+            }
+        }
+
+            Ok(())
+        }
+        .await;
+
+        match processing_result {
+            Ok(()) => {
+                if let Err(e) = mark_clerk_event_processed(pool, &message_id).await {
+                    tracing::error!(error = %e, "Failed to mark Clerk webhook processed");
+                    return Err(StatusCode::INTERNAL_SERVER_ERROR);
+                }
+            }
+            Err(e) => {
+                let _ = mark_clerk_event_failed(pool, &message_id, &e).await;
+                tracing::error!(error = %e, "Failed to process Clerk webhook");
+                return Ok(Json(WebhookResponse {
+                    received: true,
+                    processed: false,
+                    message: format!("Failed to process event: {}", e),
+                }));
             }
         }
     }
@@ -120,6 +151,63 @@ pub async fn clerk_webhook(
         processed: true,
         message: "Event processed successfully".to_string(),
     }))
+}
+
+async fn begin_clerk_event(
+    pool: &sqlx::PgPool,
+    event_id: &str,
+    event: &ClerkWebhookEvent,
+) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query(
+        r#"
+        INSERT INTO clerk_processed_events (event_id, event_type, payload)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (event_id) DO NOTHING
+        "#,
+    )
+    .bind(event_id)
+    .bind(&event.event_type)
+    .bind(&event.data)
+    .execute(pool)
+    .await?;
+
+    Ok(result.rows_affected() == 1)
+}
+
+async fn mark_clerk_event_processed(
+    pool: &sqlx::PgPool,
+    event_id: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE clerk_processed_events
+        SET processed = true, processed_at = NOW(), error = NULL
+        WHERE event_id = $1
+        "#,
+    )
+    .bind(event_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+async fn mark_clerk_event_failed(
+    pool: &sqlx::PgPool,
+    event_id: &str,
+    error: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE clerk_processed_events
+        SET processed = false, error = $2
+        WHERE event_id = $1
+        "#,
+    )
+    .bind(event_id)
+    .bind(error)
+    .execute(pool)
+    .await?;
+    Ok(())
 }
 
 async fn upsert_user(pool: &sqlx::PgPool, event: &ClerkWebhookEvent) -> Result<(), String> {
@@ -235,7 +323,7 @@ fn normalize_clerk_role(clerk_role: &str) -> &'static str {
     } else if lower.contains("member") {
         "member"
     } else if lower.contains("guest") || lower.contains("restricted") {
-        "guest"
+        "viewer"
     } else {
         "member"
     }
