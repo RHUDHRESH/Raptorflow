@@ -1,11 +1,11 @@
 //! DB integration tests for `create_generated_campaign_moves_transactional`.
 //!
-//! Each test uses a unique database created via the postgres superuser connection.
-//! The TEST_DATABASE_URL should point to the postgres database (the default admin DB).
+//! Each test connects to a pre-created test database. The CI workflow ensures
+//! the database is fresh by dropping and recreating it before the test process starts.
 //!
 //! Run with:
 //! ```text
-//! TEST_DATABASE_URL=postgres://user:pass@localhost:5432/postgres \
+//! TEST_DATABASE_URL=postgres://user:pass@localhost:5432/raptorflow_test \
 //!   cargo test -p raptorflow-db --test generated_moves_transaction -- --nocapture --test-threads=1
 //! ```
 //!
@@ -13,8 +13,6 @@
 //! Tenant-scoped tables use `app.current_org_id()` via RLS WITH CHECK policies.
 //! The helper (`create_generated_campaign_moves_transactional`) sets `SET LOCAL app.current_org_id`
 //! at the start of its own transaction before performing tenant-scoped inserts.
-//!
-//! Setup and verification use separate transactions with their own `SET LOCAL` calls.
 
 use raptorflow_db::queries::{
     GeneratedCampaignMoveInsert, create_generated_campaign_moves_transactional,
@@ -22,68 +20,24 @@ use raptorflow_db::queries::{
 use sqlx::postgres::{PgPool as SqlxPgPool, PgPoolOptions};
 use std::env;
 
-struct TestDb {
-    _admin_pool: SqlxPgPool,
+fn get_test_db_url() -> Option<String> {
+    env::var("TEST_DATABASE_URL").ok()
 }
 
-impl Drop for TestDb {
-    fn drop(&mut self) {
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .expect("runtime");
-        rt.block_on(async {
-            let admin_pool = PgPoolOptions::new()
-                .max_connections(1)
-                .connect("postgres://testuser:testpass@localhost:5432/postgres")
-                .await
-                .ok();
-            if let Some(pool) = admin_pool {
-                let _ = sqlx::query("DROP DATABASE IF EXISTS raptorflow_test")
-                    .execute(&pool)
-                    .await;
-            }
-        });
-    }
-}
-
-async fn setup_test_db() -> Result<TestDb, sqlx::Error> {
-    let admin_pool = PgPoolOptions::new()
-        .max_connections(1)
-        .connect("postgres://testuser:testpass@localhost:5432/postgres")
-        .await?;
-
-    sqlx::query("DROP DATABASE IF EXISTS raptorflow_test")
-        .execute(&admin_pool)
-        .await?;
-    sqlx::query("CREATE DATABASE raptorflow_test")
-        .execute(&admin_pool)
-        .await?;
-
-    let pool = PgPoolOptions::new()
-        .max_connections(2)
-        .connect("postgres://testuser:testpass@localhost:5432/raptorflow_test")
-        .await?;
-    drop(pool);
-
-    Ok(TestDb { _admin_pool: admin_pool })
-}
-
-async fn apply_migrations() -> Result<SqlxPgPool, sqlx::Error> {
+async fn apply_migrations(pool: &SqlxPgPool) -> Result<(), sqlx::Error> {
     use sqlx::migrate::Migrator;
     use std::path::Path;
 
-    let pool = PgPoolOptions::new()
-        .max_connections(2)
-        .connect("postgres://testuser:testpass@localhost:5432/raptorflow_test")
-        .await?;
+    let _ = sqlx::query("DELETE FROM _sqlx_migrations")
+        .execute(pool)
+        .await;
 
     let migrator = Migrator::new(Path::new("../../database/migrations"))
         .await
         .map_err(|e| sqlx::Error::Protocol(format!("failed to create migrator: {}", e)))?;
 
-    migrator.run(&pool).await?;
-    Ok(pool)
+    migrator.run(pool).await?;
+    Ok(())
 }
 
 async fn create_org_fixture(pool: &SqlxPgPool, org_id: uuid::Uuid) -> Result<(), sqlx::Error> {
@@ -199,21 +153,27 @@ fn make_test_move_insert(
 
 #[tokio::test]
 async fn generated_moves_transaction_commits_all_rows() {
-    let _test_db = match setup_test_db().await {
-        Ok(db) => db,
+    let Some(database_url) = get_test_db_url() else {
+        eprintln!("TEST_DATABASE_URL not set; skipping DB integration test");
+        return;
+    };
+
+    let pool = match PgPoolOptions::new()
+        .max_connections(2)
+        .connect(&database_url)
+        .await
+    {
+        Ok(p) => p,
         Err(e) => {
-            eprintln!("TEST_DATABASE_URL not set or could not create test DB; skipping: {}", e);
+            eprintln!("TEST_DATABASE_URL is set but connection failed: {}", e);
             return;
         }
     };
 
-    let pool = match apply_migrations().await {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("migrations failed: {}", e);
-            return;
-        }
-    };
+    if let Err(e) = apply_migrations(&pool).await {
+        eprintln!("migrations failed: {}", e);
+        return;
+    }
 
     let org_id = uuid::Uuid::new_v4();
     let campaign_id = format!("test-campaign-tx-{}", uuid::Uuid::new_v4());
@@ -268,21 +228,27 @@ async fn generated_moves_transaction_commits_all_rows() {
 
 #[tokio::test]
 async fn generated_moves_transaction_rolls_back_on_failure() {
-    let _test_db = match setup_test_db().await {
-        Ok(db) => db,
+    let Some(database_url) = get_test_db_url() else {
+        eprintln!("TEST_DATABASE_URL not set; skipping DB integration test");
+        return;
+    };
+
+    let pool = match PgPoolOptions::new()
+        .max_connections(2)
+        .connect(&database_url)
+        .await
+    {
+        Ok(p) => p,
         Err(e) => {
-            eprintln!("TEST_DATABASE_URL not set or could not create test DB; skipping: {}", e);
+            eprintln!("TEST_DATABASE_URL is set but connection failed: {}", e);
             return;
         }
     };
 
-    let pool = match apply_migrations().await {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("migrations failed: {}", e);
-            return;
-        }
-    };
+    if let Err(e) = apply_migrations(&pool).await {
+        eprintln!("migrations failed: {}", e);
+        return;
+    }
 
     let org_id = uuid::Uuid::new_v4();
     let campaign_id = format!("test-campaign-rb-{}", uuid::Uuid::new_v4());
