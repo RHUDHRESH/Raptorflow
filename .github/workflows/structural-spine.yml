@@ -32,6 +32,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
+        env:
+          DATABASE_URL: postgres://testuser:testpass@localhost:5432/raptorflow_test
         run: pnpm --filter @raptorflow/database generate
 
       - name: Structural check - no Prisma in product runtime
