@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ApiError, appFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 
 export interface CampaignListItem {
   id: string;
@@ -55,11 +55,11 @@ export interface EvaluateResponse {
 }
 
 async function fetchCampaigns(): Promise<CampaignListItem[]> {
-  return appFetch<CampaignListItem[]>("/api/campaigns", { auth: true });
+  return apiFetch<CampaignListItem[]>("/api/v1/campaigns", { auth: true });
 }
 
 async function fetchCampaign(id: string): Promise<CampaignDetail> {
-  return appFetch<CampaignDetail>(`/api/campaigns/${id}`, { auth: true });
+  return apiFetch<CampaignDetail>(`/api/v1/campaigns/${id}`, { auth: true });
 }
 
 export function useCampaigns() {
@@ -87,7 +87,7 @@ export function useCreateCampaign() {
       budget?: string;
       timeframe?: string;
     }) => {
-      return appFetch<{ id: string }>("/api/campaigns", {
+      return apiFetch<{ id: string }>("/api/v1/campaigns", {
         method: "POST",
         body,
         auth: true,
@@ -100,29 +100,17 @@ export function useCreateCampaign() {
 }
 
 export function useEvaluateCampaign() {
-  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (campaignId: string) =>
-      appFetch<EvaluateResponse>(`/api/campaigns/${campaignId}/evaluate`, {
-        method: "POST",
-        auth: true,
-      }),
-    onSuccess: (_, campaignId) => {
-      queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId] });
+    mutationFn: (_campaignId: string) => {
+      throw new ApiError(501, "campaign_evaluate_not_implemented_in_rust");
     },
   });
 }
 
 export function useGenerateMoves() {
-  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (campaignId: string) =>
-      appFetch<{ moves: CampaignMove[] }>(`/api/campaigns/${campaignId}/moves/generate`, {
-        method: "POST",
-        auth: true,
-      }),
-    onSuccess: (_, campaignId) => {
-      queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId] });
+    mutationFn: (_campaignId: string) => {
+      throw new ApiError(501, "campaign_generate_moves_not_implemented_in_rust");
     },
   });
 }
@@ -132,20 +120,22 @@ export function useUpdateTask() {
   return useMutation({
     mutationFn: ({
       campaignId,
-      moveId,
       taskId,
       status,
     }: {
       campaignId: string;
-      moveId: string;
       taskId: string;
       status: string;
+      moveId?: string;
     }) =>
-      appFetch<{ id: string; status: string }>(`/api/campaigns/${campaignId}/moves/${moveId}/tasks/${taskId}`, {
-        method: "PATCH",
-        body: { status },
-        auth: true,
-      }),
+      apiFetch<{ id: string; status: string }>(
+        `/api/v1/campaigns/${campaignId}/tasks/${taskId}/status`,
+        {
+          method: "PATCH",
+          body: { status },
+          auth: true,
+        },
+      ),
     onSuccess: (_, { campaignId }) => {
       queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId] });
     },
@@ -155,21 +145,10 @@ export function useUpdateTask() {
 export function usePatchCampaign() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      ...body
-    }: {
-      id: string;
-      title?: string;
-      brief?: string;
-      status?: string;
-      goal?: string;
-      budget?: string;
-      timeframe?: string;
-    }) =>
-      appFetch<Record<string, unknown>>(`/api/campaigns/${id}`, {
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiFetch<Record<string, unknown>>(`/api/v1/campaigns/${id}/status`, {
         method: "PATCH",
-        body,
+        body: { status },
         auth: true,
       }),
     onSuccess: (_, { id }) => {

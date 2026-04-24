@@ -3,11 +3,14 @@
  * scripts/check-no-prisma-product-runtime.mjs
  *
  * Scans apps/web/src/app/api/** and apps/web/src/lib/** for product runtime
- * Prisma usage. Fails the build if @raptorflow/database or prisma. is found
- * outside of allowed exceptions.
+ * Prisma usage.
  *
- * Allowlist: routes that pre-exist this patch and have no Rust API equivalent.
- * These are documented gaps to be migrated in a follow-up patch.
+ * Rules:
+ * - FAIL: Prisma in routes WITH Rust equivalents -> exit 1
+ * - WARN: Prisma in routes WITHOUT Rust equivalents -> exit 0 (unless ALLOW_PRISMA_GAPS=0)
+ *
+ * RUST_EQUIVALENTS maps API route prefixes to their specific sub-routes that have
+ * Rust equivalents. Any sub-route NOT listed is a documented gap.
  */
 
 import { readdir, readFile } from "fs/promises";
@@ -26,16 +29,32 @@ const ALLOWED_PATHS = [
   /mock/,
 ];
 
-const RUST_EQUIVALENTS = new Set([
-  "apps/web/src/app/api/council",
-  "apps/web/src/app/api/content",
-  "apps/web/src/app/api/campaigns",
-  "apps/web/src/app/api/daily-wins",
-  "apps/web/src/app/api/nudges",
-  "apps/web/src/app/api/intel",
-  "apps/web/src/app/api/muse",
-  "apps/web/src/app/api/prl",
-]);
+const RUST_EQUIVALENTS = {
+  "apps/web/src/app/api/campaigns": new Set([
+    "apps/web/src/app/api/campaigns/route.ts",
+    "apps/web/src/app/api/campaigns/[id]/route.ts",
+    "apps/web/src/app/api/campaigns/[id]/moves/route.ts",
+    "apps/web/src/app/api/campaigns/[id]/moves/[moveId]/tasks/route.ts",
+    "apps/web/src/app/api/campaigns/[id]/tasks/route.ts",
+    "apps/web/src/app/api/campaigns/[id]/brief/route.ts",
+  ]),
+  "apps/web/src/app/api/daily-wins": new Set([
+    "apps/web/src/app/api/daily-wins/route.ts",
+    "apps/web/src/app/api/daily-wins/[id]/route.ts",
+    "apps/web/src/app/api/daily-wins/today/route.ts",
+  ]),
+  "apps/web/src/app/api/nudges": new Set([
+    "apps/web/src/app/api/nudges/route.ts",
+    "apps/web/src/app/api/nudges/[id]/route.ts",
+  ]),
+  "apps/web/src/app/api/intel": new Set(["apps/web/src/app/api/intel/route.ts"]),
+  "apps/web/src/app/api/muse": new Set([
+    "apps/web/src/app/api/muse/conversations/route.ts",
+    "apps/web/src/app/api/muse/conversations/[id]/route.ts",
+    "apps/web/src/app/api/muse/conversations/[id]/chat/route.ts",
+  ]),
+  "apps/web/src/app/api/prl": new Set(["apps/web/src/app/api/prl/decay/route.ts"]),
+};
 
 const FORBIDDEN_IMPORTS = ["@raptorflow/database", "prisma."];
 
@@ -75,6 +94,8 @@ async function main() {
   const docGaps = [];
   const dirs = [APPS_API, APPS_LIB];
 
+  const allowGaps = process.env.ALLOW_PRISMA_GAPS !== "0";
+
   for (const dir of dirs) {
     for await (const file of walkDir(dir)) {
       if (isAllowed(file)) continue;
@@ -84,7 +105,9 @@ async function main() {
       for (const forbidden of FORBIDDEN_IMPORTS) {
         if (content.includes(forbidden)) {
           const apiRouteKey = rel.split("/").slice(0, 6).join("/");
-          if (RUST_EQUIVALENTS.has(apiRouteKey)) {
+          const rustEquivs = RUST_EQUIVALENTS[apiRouteKey];
+
+          if (rustEquivs && rustEquivs.has(rel)) {
             violations.push(`${rel}: Prisma in route with Rust equivalent`);
           } else {
             docGaps.push(`${rel}: Prisma in route without Rust equivalent (documented gap)`);
@@ -95,28 +118,36 @@ async function main() {
   }
 
   if (violations.length > 0) {
-    console.warn("WARN: Prisma used in routes with Rust equivalents (documented migration gap):");
+    console.error("FAIL: Prisma product runtime found where Rust equivalent exists:");
     for (const v of violations) {
-      console.warn("  " + v);
+      console.error("  " + v);
     }
-    console.warn("\nThese routes must be migrated to Rust API in a follow-up patch.");
+    console.error("\nThese routes have been migrated to Rust. Remove Prisma usage.");
+    process.exit(1);
   }
 
   if (docGaps.length > 0) {
-    console.warn("WARN: Prisma in routes without Rust equivalents (documented gaps):");
-    for (const g of docGaps) {
-      console.warn("  " + g);
+    if (allowGaps) {
+      console.warn("WARN: Prisma in routes without Rust equivalents (documented gaps):");
+      for (const g of docGaps) {
+        console.warn("  " + g);
+      }
+      console.warn("\nThese require a follow-up migration patch.");
+    } else {
+      console.error("FAIL: Prisma in routes without Rust equivalents (ALLOW_PRISMA_GAPS=0):");
+      for (const g of docGaps) {
+        console.error("  " + g);
+      }
+      process.exit(1);
     }
-    console.warn("\nThese require a follow-up migration patch.");
   }
 
-  console.log(
-    "PASS: Structural Prisma guard active. All new Prisma usage in product API routes will fail.",
-  );
-  console.log(
-    `      ${violations.length} routes with Rust equivalents flagged (migration needed).`,
-  );
-  console.log(`      ${docGaps.length} routes without Rust equivalents documented.`);
+  console.log("PASS: No Prisma product runtime violations.");
+  if (docGaps.length > 0) {
+    console.log(
+      `      ${docGaps.length} routes without Rust equivalents documented (allowed in dev mode).`,
+    );
+  }
   process.exit(0);
 }
 

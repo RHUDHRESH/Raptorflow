@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ApiError, appFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 
 export interface MuseMessage {
   id: string;
@@ -29,13 +29,15 @@ export interface ChatResponse {
 }
 
 async function fetchConversations(): Promise<MuseConversation[]> {
-  return appFetch<MuseConversation[]>("/api/muse/conversations", { auth: true });
+  return apiFetch<MuseConversation[]>("/api/v1/muse", { auth: true });
 }
 
 async function fetchConversation(
   id: string,
 ): Promise<MuseConversation & { messages: MuseMessage[] }> {
-  return appFetch<MuseConversation & { messages: MuseMessage[] }>(`/api/muse/conversations/${id}`, { auth: true });
+  return apiFetch<MuseConversation & { messages: MuseMessage[] }>(`/api/v1/muse/${id}`, {
+    auth: true,
+  });
 }
 
 export function useMuseConversations() {
@@ -57,7 +59,7 @@ export function useCreateConversation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (title?: string) =>
-      appFetch<{ id: string; title: string }>("/api/muse/conversations", {
+      apiFetch<{ id: string; title: string }>("/api/v1/muse", {
         method: "POST",
         body: { title },
         auth: true,
@@ -72,7 +74,7 @@ export function useSendMessage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ conversationId, message }: { conversationId: string; message: string }) =>
-      appFetch<ChatResponse>(`/api/muse/conversations/${conversationId}/chat`, {
+      apiFetch<ChatResponse>(`/api/v1/muse/${conversationId}/messages`, {
         method: "POST",
         body: { message },
         auth: true,
@@ -85,16 +87,9 @@ export function useSendMessage() {
 }
 
 export function usePatchConversation() {
-  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, title }: { id: string; title: string }) =>
-      appFetch<Record<string, unknown>>(`/api/muse/conversations/${id}`, {
-        method: "PATCH",
-        body: { title },
-        auth: true,
-      }),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["museConversations", id] });
+    mutationFn: ({ id, title }: { id: string; title: string }) => {
+      throw new ApiError(501, "muse_conversation_patch_not_implemented_in_rust");
     },
   });
 }
