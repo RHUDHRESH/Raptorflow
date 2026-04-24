@@ -38,10 +38,14 @@ async fn apply_migrations(pool: &SqlxPgPool) -> Result<(), sqlx::Error> {
     use sqlx::migrate::Migrator;
     use std::path::Path;
 
-    sqlx::query("DELETE FROM _sqlx_migrations")
+    if let Err(e) = sqlx::query("DELETE FROM _sqlx_migrations")
         .execute(pool)
         .await
-        .map_err(|e| sqlx::Error::Protocol(format!("failed to clear migrations table: {}", e)))?;
+    {
+        if !e.to_string().contains("does not exist") {
+            Err(e).map_err(|e| sqlx::Error::Protocol(format!("failed to clear migrations table: {}", e)))?;
+        }
+    }
 
     let migrator = Migrator::new(Path::new("../../database/migrations"))
         .await
