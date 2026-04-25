@@ -893,7 +893,7 @@ pub async fn get_latest_competitor_snapshot(
 ) -> AppResult<Json<Option<serde_json::Value>>> {
     let pool = db_pool(&state)?;
 
-    let snapshot = raptorflow_db::queries::get_latest_competitor_snapshot(
+    let snapshot = raptorflow_db::queries::get_latest_competitor_snapshot_by_url(
         pool,
         auth.tenant.org_id,
         &query.competitor_url,

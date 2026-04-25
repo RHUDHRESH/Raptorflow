@@ -15,7 +15,8 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "@raptorflow/contracts": ["packages/contracts/src/index.ts"]
+      "@raptorflow/contracts": ["packages/contracts/src/index.ts"],
+      "@raptorflow/database": ["packages/database/dist/index"]
     }
   }
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import type * as React from "react";
 import dynamic from "next/dynamic";
 import { OfficeErrorBoundary } from "@/components/office/OfficeErrorBoundary";

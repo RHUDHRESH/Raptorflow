@@ -3,6 +3,7 @@ pub mod auth;
 pub mod avatars;
 pub mod billing;
 pub mod campaigns;
+pub mod capabilities;
 pub mod content;
 pub mod council;
 pub mod daily_wins;

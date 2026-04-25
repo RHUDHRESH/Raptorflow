@@ -492,3 +492,115 @@ pub struct HarnessStep {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CapabilityDefinition {
+    pub capability_id: String,
+    pub capability_key: String,
+    pub name: String,
+    pub domain: String,
+    pub description: String,
+    pub input_schema: serde_json::Value,
+    pub output_schema: serde_json::Value,
+    pub required_context: serde_json::Value,
+    pub allowed_tools: serde_json::Value,
+    pub artifact_type: String,
+    pub evaluator_key: String,
+    pub ripple_policy: serde_json::Value,
+    pub risk_level: String,
+    pub is_active: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct AvatarCapabilityGrant {
+    pub grant_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: String,
+    pub capability_id: String,
+    pub grant_scope: String,
+    pub constraints: serde_json::Value,
+    pub is_enabled: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct HarnessContextPack {
+    pub context_pack_id: String,
+    pub org_id: uuid::Uuid,
+    pub run_id: Option<String>,
+    pub capability_id: Option<String>,
+    pub avatar_id: Option<String>,
+    pub scope: String,
+    pub token_budget: i32,
+    pub foundation_context: serde_json::Value,
+    pub intel_context: serde_json::Value,
+    pub campaign_context: serde_json::Value,
+    pub office_context: serde_json::Value,
+    pub ripple_context: serde_json::Value,
+    pub compressed_context: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CapabilityRun {
+    pub capability_run_id: String,
+    pub org_id: uuid::Uuid,
+    pub harness_run_id: Option<String>,
+    pub harness_step_id: Option<String>,
+    pub avatar_id: Option<String>,
+    pub capability_id: String,
+    pub context_pack_id: Option<String>,
+    pub status: String,
+    pub input: serde_json::Value,
+    pub output: Option<serde_json::Value>,
+    pub error_message: Option<String>,
+    pub model_id: Option<String>,
+    pub token_usage: serde_json::Value,
+    pub started_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CapabilityArtifact {
+    pub artifact_id: String,
+    pub org_id: uuid::Uuid,
+    pub capability_run_id: Option<String>,
+    pub harness_run_id: Option<String>,
+    pub avatar_id: Option<String>,
+    pub capability_id: Option<String>,
+    pub artifact_type: String,
+    pub title: String,
+    pub body: serde_json::Value,
+    pub status: String,
+    pub version: i32,
+    pub evaluation: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct ArtifactVersion {
+    pub artifact_version_id: String,
+    pub artifact_id: String,
+    pub org_id: uuid::Uuid,
+    pub version: i32,
+    pub body: serde_json::Value,
+    pub change_reason: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct ArtifactRippleLink {
+    pub link_id: String,
+    pub org_id: uuid::Uuid,
+    pub artifact_id: String,
+    pub ripple_id: String,
+    pub link_type: String,
+    pub salience: f64,
+    pub created_at: DateTime<Utc>,
+}

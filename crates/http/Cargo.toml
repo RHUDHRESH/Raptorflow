@@ -29,6 +29,7 @@ raptorflow-prl = { path = "../prl" }
 raptorflow-intel = { path = "../intel" }
 raptorflow-acquisition = { path = "../acquisition" }
 raptorflow-jobs = { path = "../jobs" }
+raptorflow-harness = { path = "../harness" }
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
