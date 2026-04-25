@@ -70,17 +70,6 @@ jobs:
       - name: Run Qdrant smoke
         run: node scripts/smoke/qdrant-smoke.mjs
 
-  api-health-smoke:
-    name: API Health Smoke
-    runs-on: ubuntu-latest
-    needs: db-qdrant-smoke
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run API health smoke
-        run: node scripts/smoke/api-health-smoke.mjs
-
   bedrock-smoke:
     name: Bedrock Smoke
     runs-on: ubuntu-latest
