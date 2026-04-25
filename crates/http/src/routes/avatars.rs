@@ -127,7 +127,10 @@ pub fn router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/", get(list_avatars).post(create_avatar))
         .route("/defaults", post(ensure_defaults))
-        .route("/{id}", get(get_avatar).patch(update_avatar).delete(delete_avatar))
+        .route(
+            "/{id}",
+            get(get_avatar).patch(update_avatar).delete(delete_avatar),
+        )
         .layer(Extension(state))
 }
 

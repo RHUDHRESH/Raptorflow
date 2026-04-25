@@ -131,7 +131,8 @@ pub async fn list_runs(
         .await
         .map_err(internal_error)?;
 
-    let response: Vec<HarnessRunResponse> = runs.into_iter().map(HarnessRunResponse::from).collect();
+    let response: Vec<HarnessRunResponse> =
+        runs.into_iter().map(HarnessRunResponse::from).collect();
     Ok(Json(json!({ "runs": response })))
 }
 
@@ -180,7 +181,10 @@ pub async fn create_run(
     let steps_created = if !body.avatar_keys.is_empty() {
         let mut steps = Vec::new();
         for (seq, key) in body.avatar_keys.iter().enumerate() {
-            if let Some(avatar) = db::get_avatar_by_key(pool, org_id, key).await.map_err(internal_error)? {
+            if let Some(avatar) = db::get_avatar_by_key(pool, org_id, key)
+                .await
+                .map_err(internal_error)?
+            {
                 let step_id = uuid::Uuid::new_v4().to_string();
                 let step_input = json!({ "avatar_key": key });
                 db::create_harness_step(
@@ -262,6 +266,7 @@ pub async fn list_steps(
         .await
         .map_err(internal_error)?;
 
-    let response: Vec<HarnessStepResponse> = steps.into_iter().map(HarnessStepResponse::from).collect();
+    let response: Vec<HarnessStepResponse> =
+        steps.into_iter().map(HarnessStepResponse::from).collect();
     Ok(Json(json!({ "steps": response })))
 }

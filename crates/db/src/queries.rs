@@ -1926,10 +1926,7 @@ pub async fn create_generated_campaign_moves_transactional(
     Ok(results)
 }
 
-pub async fn list_avatars(
-    pool: &PgPool,
-    org_id: uuid::Uuid,
-) -> Result<Vec<Avatar>, sqlx::Error> {
+pub async fn list_avatars(pool: &PgPool, org_id: uuid::Uuid) -> Result<Vec<Avatar>, sqlx::Error> {
     let rows = sqlx::query_as::<_, Avatar>(
         r#"
         SELECT avatar_id, org_id, avatar_key, display_name, role, archetype,
@@ -2088,12 +2085,27 @@ pub async fn ensure_default_avatars(
 ) -> Result<Vec<Avatar>, sqlx::Error> {
     let defaults = vec![
         ("strategist", "Strategist", "strategy", "market_war_room"),
-        ("growth_operator", "Growth Operator", "growth", "demand_generation"),
+        (
+            "growth_operator",
+            "Growth Operator",
+            "growth",
+            "demand_generation",
+        ),
         ("copywriter", "Copywriter", "copy", "content_studio"),
         ("researcher", "Researcher", "research", "intel_station"),
         ("analyst", "Analyst", "analysis", "data_hub"),
-        ("creative_director", "Creative Director", "creative", "brand_voice"),
-        ("proof_collector", "Proof Collector", "proof", "social_proof"),
+        (
+            "creative_director",
+            "Creative Director",
+            "creative",
+            "brand_voice",
+        ),
+        (
+            "proof_collector",
+            "Proof Collector",
+            "proof",
+            "social_proof",
+        ),
     ];
 
     for (key, name, role, archetype) in defaults {
@@ -2205,7 +2217,11 @@ pub async fn update_harness_run_status(
     org_id: uuid::Uuid,
     status: &str,
 ) -> Result<(), sqlx::Error> {
-    let started = if status == "running" { Some(chrono::Utc::now()) } else { None };
+    let started = if status == "running" {
+        Some(chrono::Utc::now())
+    } else {
+        None
+    };
     let completed = if status == "completed" || status == "failed" || status == "cancelled" {
         Some(chrono::Utc::now())
     } else {
@@ -2296,7 +2312,11 @@ pub async fn update_harness_step_status(
     output: Option<&serde_json::Value>,
     error_message: Option<&str>,
 ) -> Result<(), sqlx::Error> {
-    let started = if status == "running" { Some(chrono::Utc::now()) } else { None };
+    let started = if status == "running" {
+        Some(chrono::Utc::now())
+    } else {
+        None
+    };
     let completed = if status == "completed" || status == "failed" || status == "cancelled" {
         Some(chrono::Utc::now())
     } else {
