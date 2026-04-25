@@ -91,12 +91,16 @@ pub async fn get_office_state(
     .map_err(internal_error)?;
 
     Ok(Json(json!({
-        "active_campaigns": active_campaigns.0,
-        "active_council_sessions": active_sessions.0,
-        "open_nudges": open_nudges.0,
-        "recent_muse_conversations": recent_convs.0,
+        "org_id": org_id.to_string(),
+        "summary": {
+            "active_campaigns": active_campaigns.0,
+            "active_council_sessions": active_sessions.0,
+            "open_nudges": open_nudges.0,
+            "recent_muse_conversations": recent_convs.0,
+        },
         "event_types": super::events::OFFICE_EVENT_TYPES,
-        "status": "ok"
+        "status": "ok",
+        "updated_at": chrono::Utc::now().to_rfc3339(),
     })))
 }
 

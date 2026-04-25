@@ -12,8 +12,8 @@ use crate::middleware::{
     rate_limit::{RateLimitConfig, RateLimitLayer, RateLimitState},
 };
 use crate::routes::{
-    auth, billing, campaigns, content, council, daily_wins, foundation, health, intel, jobs, muse,
-    nudges, office, prl, replan,
+    auth, avatars, billing, campaigns, content, council, daily_wins, foundation, harness, health,
+    intel, jobs, muse, nudges, office, prl, replan,
 };
 
 fn cors_layer(state: &AppState) -> CorsLayer {
@@ -319,6 +319,27 @@ fn protected_router(state: Arc<AppState>) -> Router {
         )
         .route("/api/v1/office", get(office::get_office_state))
         .route("/api/v1/office/ws", get(office::ws_office))
+        .route(
+            "/api/v1/avatars",
+            get(avatars::list_avatars).post(avatars::create_avatar),
+        )
+        .route("/api/v1/avatars/defaults", post(avatars::ensure_defaults))
+        .route(
+            "/api/v1/avatars/{id}",
+            get(avatars::get_avatar)
+                .patch(avatars::update_avatar)
+                .delete(avatars::delete_avatar),
+        )
+        .route(
+            "/api/v1/harness/runs",
+            get(harness::list_runs).post(harness::create_run),
+        )
+        .route("/api/v1/harness/runs/{id}", get(harness::get_run))
+        .route(
+            "/api/v1/harness/runs/{id}/cancel",
+            post(harness::cancel_run),
+        )
+        .route("/api/v1/harness/runs/{id}/steps", get(harness::list_steps))
         .route("/api/v1/health", get(health::api_health))
         .layer(axum::middleware::from_fn_with_state(state, auth_middleware))
 }

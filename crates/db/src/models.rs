@@ -441,3 +441,54 @@ pub struct DailyWin {
     pub action_outcome: Option<String>,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct Avatar {
+    pub avatar_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_key: String,
+    pub display_name: String,
+    pub role: String,
+    pub archetype: String,
+    pub personality: serde_json::Value,
+    pub system_prompt: String,
+    pub tool_permissions: serde_json::Value,
+    pub memory_scope: String,
+    pub is_active: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct HarnessRun {
+    pub run_id: String,
+    pub org_id: uuid::Uuid,
+    pub run_type: String,
+    pub status: String,
+    pub input: serde_json::Value,
+    pub output: Option<serde_json::Value>,
+    pub error_message: Option<String>,
+    pub created_by: Option<String>,
+    pub started_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct HarnessStep {
+    pub step_id: String,
+    pub run_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: Option<String>,
+    pub step_type: String,
+    pub status: String,
+    pub input: serde_json::Value,
+    pub output: Option<serde_json::Value>,
+    pub error_message: Option<String>,
+    pub sequence_number: i32,
+    pub started_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}

@@ -612,13 +612,97 @@ export const officeApi = {
   getState: async () => {
     const res = await apiFetch<unknown>("/api/v1/office", { auth: true });
     const payload = (res ?? {}) as Record<string, unknown>;
+    const summary = (payload.summary ?? payload) as Record<string, unknown>;
     return {
-      activeCampaigns: Number(payload.active_campaigns ?? 0),
-      activeCouncilSessions: Number(payload.active_council_sessions ?? 0),
-      openNudges: Number(payload.open_nudges ?? 0),
-      recentMuseConversations: Number(payload.recent_muse_conversations ?? 0),
+      activeCampaigns: Number(summary.active_campaigns ?? payload.active_campaigns ?? 0),
+      activeCouncilSessions: Number(
+        summary.active_council_sessions ?? payload.active_council_sessions ?? 0,
+      ),
+      openNudges: Number(summary.open_nudges ?? payload.open_nudges ?? 0),
+      recentMuseConversations: Number(
+        summary.recent_muse_conversations ?? payload.recent_muse_conversations ?? 0,
+      ),
       eventTypes: Array.isArray(payload.event_types) ? (payload.event_types as string[]) : [],
     };
+  },
+};
+
+export const avatarsApi = {
+  list: async () => {
+    const res = await apiFetch<{ avatars: BackendAvatar[] }>("/api/v1/avatars", { auth: true });
+    return res.avatars.map(normalizeAvatar);
+  },
+  get: async (id: string) => {
+    const res = await apiFetch<{ avatar: BackendAvatar }>(`/api/v1/avatars/${id}`, { auth: true });
+    return normalizeAvatar(res.avatar);
+  },
+  create: async (body: CreateAvatarRequest) => {
+    const res = await apiFetch<{ avatar: BackendAvatar }>("/api/v1/avatars", {
+      method: "POST",
+      body,
+      auth: true,
+    });
+    return normalizeAvatar(res.avatar);
+  },
+  update: async (id: string, patch: UpdateAvatarRequest) => {
+    const res = await apiFetch<{ avatar: BackendAvatar }>(`/api/v1/avatars/${id}`, {
+      method: "PATCH",
+      body: patch,
+      auth: true,
+    });
+    return normalizeAvatar(res.avatar);
+  },
+  deactivate: async (id: string) => {
+    await apiFetch<{ deleted: boolean }>(`/api/v1/avatars/${id}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+  ensureDefaults: async () => {
+    const res = await apiFetch<{ avatars: BackendAvatar[] }>("/api/v1/avatars/defaults", {
+      method: "POST",
+      auth: true,
+    });
+    return res.avatars.map(normalizeAvatar);
+  },
+};
+
+export const harnessApi = {
+  listRuns: async () => {
+    const res = await apiFetch<{ runs: BackendHarnessRun[] }>("/api/v1/harness/runs", {
+      auth: true,
+    });
+    return res.runs.map(normalizeHarnessRun);
+  },
+  getRun: async (id: string) => {
+    const res = await apiFetch<{ run: BackendHarnessRun }>(`/api/v1/harness/runs/${id}`, {
+      auth: true,
+    });
+    return normalizeHarnessRun(res.run);
+  },
+  createRun: async (body: CreateHarnessRunRequest) => {
+    const res = await apiFetch<{ run: BackendHarnessRun }>("/api/v1/harness/runs", {
+      method: "POST",
+      body,
+      auth: true,
+    });
+    return normalizeHarnessRun(res.run);
+  },
+  cancelRun: async (id: string) => {
+    const res = await apiFetch<{ run: BackendHarnessRun }>(`/api/v1/harness/runs/${id}/cancel`, {
+      method: "POST",
+      auth: true,
+    });
+    return normalizeHarnessRun(res.run);
+  },
+  listSteps: async (runId: string) => {
+    const res = await apiFetch<{ steps: BackendHarnessStep[] }>(
+      `/api/v1/harness/runs/${runId}/steps`,
+      {
+        auth: true,
+      },
+    );
+    return res.steps.map(normalizeHarnessStep);
   },
 };
 
@@ -1264,5 +1348,172 @@ function normalizeGeneratedContent(content: BackendGeneratedContent): GeneratedC
     status: content.status,
     body: content.body,
     createdAt: content.created_at,
+  };
+}
+
+export interface Avatar {
+  avatarId: string;
+  avatarKey: string;
+  displayName: string;
+  role: string;
+  archetype: string;
+  personality: Record<string, unknown>;
+  systemPrompt: string;
+  toolPermissions: Record<string, unknown>;
+  memoryScope: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BackendAvatar {
+  avatar_id: string;
+  avatar_key: string;
+  display_name: string;
+  role: string;
+  archetype: string;
+  personality: Record<string, unknown>;
+  system_prompt: string;
+  tool_permissions: Record<string, unknown>;
+  memory_scope: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateAvatarRequest {
+  avatar_key: string;
+  display_name: string;
+  role: string;
+  archetype: string;
+  personality?: Record<string, unknown>;
+  system_prompt?: string;
+  tool_permissions?: Record<string, unknown>;
+  memory_scope?: string;
+}
+
+export interface UpdateAvatarRequest {
+  display_name?: string;
+  personality?: Record<string, unknown>;
+  system_prompt?: string;
+  tool_permissions?: Record<string, unknown>;
+  is_active?: boolean;
+}
+
+export interface HarnessRun {
+  runId: string;
+  runType: string;
+  status: string;
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  errorMessage: string | null;
+  createdBy: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BackendHarnessRun {
+  run_id: string;
+  run_type: string;
+  status: string;
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  error_message: string | null;
+  created_by: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HarnessStep {
+  stepId: string;
+  runId: string;
+  avatarId: string | null;
+  stepType: string;
+  status: string;
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  errorMessage: string | null;
+  sequenceNumber: number;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BackendHarnessStep {
+  step_id: string;
+  run_id: string;
+  avatar_id: string | null;
+  step_type: string;
+  status: string;
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  error_message: string | null;
+  sequence_number: number;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateHarnessRunRequest {
+  run_type: string;
+  input: Record<string, unknown>;
+  avatar_keys?: string[];
+  execute_now?: boolean;
+}
+
+function normalizeAvatar(a: BackendAvatar): Avatar {
+  return {
+    avatarId: a.avatar_id,
+    avatarKey: a.avatar_key,
+    displayName: a.display_name,
+    role: a.role,
+    archetype: a.archetype,
+    personality: a.personality,
+    systemPrompt: a.system_prompt,
+    toolPermissions: a.tool_permissions,
+    memoryScope: a.memory_scope,
+    isActive: a.is_active,
+    createdAt: a.created_at,
+    updatedAt: a.updated_at,
+  };
+}
+
+function normalizeHarnessRun(r: BackendHarnessRun): HarnessRun {
+  return {
+    runId: r.run_id,
+    runType: r.run_type,
+    status: r.status,
+    input: r.input,
+    output: r.output,
+    errorMessage: r.error_message,
+    createdBy: r.created_by,
+    startedAt: r.started_at,
+    completedAt: r.completed_at,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  };
+}
+
+function normalizeHarnessStep(s: BackendHarnessStep): HarnessStep {
+  return {
+    stepId: s.step_id,
+    runId: s.run_id,
+    avatarId: s.avatar_id,
+    stepType: s.step_type,
+    status: s.status,
+    input: s.input,
+    output: s.output,
+    errorMessage: s.error_message,
+    sequenceNumber: s.sequence_number,
+    startedAt: s.started_at,
+    completedAt: s.completed_at,
+    createdAt: s.created_at,
+    updatedAt: s.updated_at,
   };
 }
