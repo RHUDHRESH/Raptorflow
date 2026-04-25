@@ -1,14 +1,48 @@
 # Runtime Reality Smoke Test Report
 
-**Branch:** `fix/runtime-reality-smoke-tests`  
-**Date:** 2026-04-25  
-**Status:** CI IN PROGRESS (Migration fix pushed)
+**Branch:** `fix/runtime-reality-smoke-tests`
+**Date:** 2026-04-25
+**Status:** ✅ READY TO MERGE
+
+**PR:** https://github.com/RHUDHRESH/Raptorflow/pull/212
+**Latest Commit:** `8c01a69cf`
 
 ---
 
 ## Executive Summary
 
-Runtime reality smoke tests have been implemented and verified to confirm the application can connect to core infrastructure dependencies (Postgres/pgvector, Qdrant, AWS Bedrock) and that API health endpoints respond correctly.
+Runtime reality smoke tests have been implemented and verified to confirm the application can connect to core infrastructure dependencies (Postgres/pgvector, Qdrant, AWS Bedrock).
+
+---
+
+## CI Status
+
+| Job                        | Status     | Notes                                      |
+| -------------------------- | ---------- | ------------------------------------------ |
+| **DB & Qdrant Smoke**      | ✅ PASS    | Proves Postgres/pgvector + Qdrant working  |
+| **Structural Spine**       | ✅ PASS    | Route parity, runtime authority, typecheck |
+| **db-transaction-test**    | ✅ PASS    | Existing DB transaction tests              |
+| **compose**                | ✅ PASS    | Docker compose config valid                |
+| **Bedrock Smoke**          | ⏸️ SKIPPED | Manual-only (requires AWS secrets)         |
+| **rust (cargo fmt)**       | ❌ FAIL    | Pre-existing on `main`                     |
+| **web-and-docs (TS lint)** | ❌ FAIL    | Pre-existing on `main`                     |
+| **Vercel**                 | ❌ FAIL    | Pre-existing on `main`                     |
+
+**Pre-existing failures confirmed on `main`: YES** - These failures existed before this PR.
+
+---
+
+## What the Smoke Tests Prove
+
+### DB & Qdrant Smoke (PASSED)
+
+- ✅ Postgres/pgvector connection works
+- ✅ All migrations apply cleanly (22 migrations)
+- ✅ pgvector extension installed and usable
+- ✅ Required tables exist (organizations, avatars, harness_runs, etc.)
+- ✅ Tenant RLS session setting works
+- ✅ Qdrant health check responds
+- ✅ Qdrant collection create/upsert/search/delete works
 
 ---
 
@@ -16,13 +50,13 @@ Runtime reality smoke tests have been implemented and verified to confirm the ap
 
 ### Smoke Tests
 
-| File                                       | Purpose                                    |
-| ------------------------------------------ | ------------------------------------------ |
-| `crates/db/tests/runtime_reality_smoke.rs` | DB connection, pgvector, tables, RLS check |
-| `crates/aws/tests/bedrock_smoke.rs`        | Bedrock inference with JSON validation     |
-| `scripts/smoke/qdrant-smoke.mjs`           | Qdrant health, collection CRUD             |
-| `scripts/smoke/api-health-smoke.mjs`       | API health endpoints                       |
-| `scripts/smoke/local-runtime-smoke.ps1`    | Local orchestrator script                  |
+| File                                       | Purpose                                          |
+| ------------------------------------------ | ------------------------------------------------ |
+| `crates/db/tests/runtime_reality_smoke.rs` | DB connection, pgvector, migrations, tables, RLS |
+| `crates/aws/tests/bedrock_smoke.rs`        | Bedrock inference (manual-only)                  |
+| `scripts/smoke/qdrant-smoke.mjs`           | Qdrant health + CRUD                             |
+| `scripts/smoke/api-health-smoke.mjs`       | API health endpoints (local only)                |
+| `scripts/smoke/local-runtime-smoke.ps1`    | Local PowerShell orchestrator                    |
 
 ### Infrastructure
 
@@ -32,100 +66,61 @@ Runtime reality smoke tests have been implemented and verified to confirm the ap
 
 ### Documentation
 
-| File                                    | Purpose                |
-| --------------------------------------- | ---------------------- |
-| `docs/testing/runtime-reality-smoke.md` | How to run smoke tests |
+| File                                    | Purpose                      |
+| --------------------------------------- | ---------------------------- |
+| `docs/testing/runtime-reality-smoke.md` | How to run smoke tests       |
+| `RUST_API_GAP_LEDGER.md`                | Updated with runtime reality |
 
 ---
 
-## Red Team Checks
+## Issues Fixed During Development
 
-### Production Env Var Check
+1. **Duplicate migration version** - Merged `0002_auth_indexes.sql` + `0002_foundation.sql` into `0002_auth_and_foundation.sql`
 
-```bash
-rg "RAPTORFLOW_DATABASE_URL|RAPTORFLOW_DIRECT_DATABASE_URL" crates/db/tests scripts/smoke .github/workflows/runtime-reality.yml
-```
+2. **Invalid org_id index** - Removed erroneous `CREATE INDEX ON capability_definitions(org_id)` since table has no org_id column
 
-**Result:** No matches found - verified no production URLs in smoke test files.
+3. **SET LOCAL parameter syntax** - Changed `$1` placeholder to literal UUID in `SET LOCAL app.current_org_id`
 
-### TEST_DATABASE_URL Verification
+4. **JS async function syntax** - Fixed `function async` → `async function`
 
-```bash
-rg "TEST_DATABASE_URL" crates/db/tests scripts/smoke .github/workflows/runtime-reality.yml docs
-```
+5. **Qdrant /healthz response** - Changed `res.json()` to `res.text()` since endpoint returns plain text
 
-**Result:** `TEST_DATABASE_URL` is correctly used in:
+6. **Qdrant upsert validation** - Accept both `upserted` count and `status=acknowledged`
 
-- `crates/db/tests/runtime_reality_smoke.rs`
-- `.github/workflows/runtime-reality.yml`
-- `docs/testing/runtime-reality-smoke.md`
+7. **Qdrant liveness retry** - Added 5 retries with 2s delays for Qdrant startup
 
-### AWS Secrets Check
-
-```bash
-rg "AWS_SECRET|AWS_ACCESS|BEDROCK_SMOKE_TEST" crates/aws/tests .github/workflows scripts/smoke docs
-```
-
-**Result:** AWS secrets only referenced as env var names, never hardcoded. `BEDROCK_SMOKE_TEST=1` gating is in place.
-
-### Qdrant Collection Deletion Check
-
-```bash
-rg "delete collection|DELETE /collections" scripts/smoke/qdrant-smoke.mjs
-```
-
-**Result:** Smoke collections are properly deleted after test.
-
----
-
-## Issues Resolved
-
-### Duplicate Migration Version Fix
-
-**Problem:** Two migration files had version `0002`:
-
-- `database/migrations/0002_auth_indexes.sql`
-- `database/migrations/0002_foundation.sql`
-
-sqlx's Migrator uses the numeric prefix to track applied migrations. When two files share the same version, sqlx attempts to insert migration version 2 twice into `_sqlx_migrations`, causing:
-
-```
-duplicate key value violates unique constraint "_sqlx_migrations_pkey"
-Key (version)=(2) already exists
-```
-
-**Fix:** Renamed `0002_foundation.sql` to `0002a_foundation.sql` so it runs before `0002_auth_indexes.sql` (since `0002a` < `0002` alphabetically, and sqlx sorts migrations alphabetically).
-
-**Commit:** `a9e6b92d6`
+8. **Removed API health job** - No API server in CI; API health script available for local testing
 
 ---
 
 ## Safety Compliance
 
-| Rule                                                       | Status       |
-| ---------------------------------------------------------- | ------------ |
-| Uses `TEST_DATABASE_URL` not production URLs               | ✅ Compliant |
-| No production/staging DB URLs in test files                | ✅ Compliant |
-| Qdrant collections use random UUID names                   | ✅ Compliant |
-| Bedrock smoke gated behind `BEDROCK_SMOKE_TEST=1`          | ✅ Compliant |
-| Bedrock smoke requires manual workflow_dispatch            | ✅ Compliant |
-| No secrets committed                                       | ✅ Compliant |
-| `TEST_DATABASE_URL` absent = skip (present + fail = panic) | ✅ Compliant |
+| Rule                                              | Status       |
+| ------------------------------------------------- | ------------ |
+| Uses `TEST_DATABASE_URL` not production URLs      | ✅ Compliant |
+| No production/staging DB URLs in test files       | ✅ Compliant |
+| Qdrant collections use random UUID names          | ✅ Compliant |
+| Bedrock smoke gated behind `BEDROCK_SMOKE_TEST=1` | ✅ Compliant |
+| Bedrock smoke requires manual workflow_dispatch   | ✅ Compliant |
+| No secrets committed                              | ✅ Compliant |
 
 ---
 
-## Next Steps
+## Merge Recommendation
 
-After merging this PR:
+**✅ MERGE AFTER REQUIRED CI PASSES**
 
-1. **Avatar population** - Populate avatars/agents (next workstream: `feat/avatar-population-and-personality-pack`)
-2. **Agent personalities** - Add agent personalities
-3. **External actions** - Enable external actions
+The DB & Qdrant smoke tests pass and prove the core infrastructure dependencies work. The failing CI jobs (rust fmt, TS lint, Vercel) are pre-existing failures that exist on `main` and are unrelated to this smoke test PR.
+
+---
+
+## Next Workstream
+
+`feat/avatar-soul-engine` - Avatar population and agent personality pack
 
 ---
 
 ## Related Documents
 
-- `RUST_API_GAP_LEDGER.md` - API gap tracking (updated to include runtime reality verification)
+- `RUST_API_GAP_LEDGER.md` - API gap tracking
 - `docs/testing/runtime-reality-smoke.md` - Detailed smoke test documentation
-- `docker-compose.yml` - Infrastructure reference
