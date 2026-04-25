@@ -1,8 +1,9 @@
 use crate::models::{
-    AgentEssence, Campaign, CampaignBrief, CampaignMove, CampaignTask, CompetitorSnapshot,
+    AgentEssence, Avatar, Campaign, CampaignBrief, CampaignMove, CampaignTask, CompetitorSnapshot,
     ContentStrategy, CouncilAgentPosition, CouncilSession, DailyWin, FoundationScan,
-    FoundationSection, FoundationSnapshot, FoundationVersion, GeneratedContent, MuseConversation,
-    MuseMessage, Nudge, OrgUser, Organization, ReplanSession, Ripple, RippleEdge, Subscription,
+    FoundationSection, FoundationSnapshot, FoundationVersion, GeneratedContent, HarnessRun,
+    HarnessStep, MuseConversation, MuseMessage, Nudge, OrgUser, Organization, ReplanSession,
+    Ripple, RippleEdge, Subscription,
 };
 use sqlx::{PgPool, Row};
 
@@ -1923,4 +1924,404 @@ pub async fn create_generated_campaign_moves_transactional(
 
     tx.commit().await?;
     Ok(results)
+}
+
+pub async fn list_avatars(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<Avatar>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, Avatar>(
+        r#"
+        SELECT avatar_id, org_id, avatar_key, display_name, role, archetype,
+               personality, system_prompt, tool_permissions, memory_scope,
+               is_active, created_at, updated_at
+        FROM avatars
+        WHERE org_id = $1 AND is_active = TRUE
+        ORDER BY avatar_key ASC
+        "#,
+    )
+    .bind(org_id)
+    .fetch_all(pool)
+    .await?;
+    Ok(rows)
+}
+
+pub async fn get_avatar(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+) -> Result<Option<Avatar>, sqlx::Error> {
+    let row = sqlx::query_as::<_, Avatar>(
+        r#"
+        SELECT avatar_id, org_id, avatar_key, display_name, role, archetype,
+               personality, system_prompt, tool_permissions, memory_scope,
+               is_active, created_at, updated_at
+        FROM avatars
+        WHERE avatar_id = $1 AND org_id = $2
+        "#,
+    )
+    .bind(avatar_id)
+    .bind(org_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+pub async fn get_avatar_by_key(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_key: &str,
+) -> Result<Option<Avatar>, sqlx::Error> {
+    let row = sqlx::query_as::<_, Avatar>(
+        r#"
+        SELECT avatar_id, org_id, avatar_key, display_name, role, archetype,
+               personality, system_prompt, tool_permissions, memory_scope,
+               is_active, created_at, updated_at
+        FROM avatars
+        WHERE org_id = $1 AND avatar_key = $2 AND is_active = TRUE
+        "#,
+    )
+    .bind(org_id)
+    .bind(avatar_key)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+pub async fn create_avatar(
+    pool: &PgPool,
+    avatar_id: &str,
+    org_id: uuid::Uuid,
+    avatar_key: &str,
+    display_name: &str,
+    role: &str,
+    archetype: &str,
+    personality: &serde_json::Value,
+    system_prompt: &str,
+    tool_permissions: &serde_json::Value,
+    memory_scope: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO avatars (avatar_id, org_id, avatar_key, display_name, role, archetype,
+                            personality, system_prompt, tool_permissions, memory_scope)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        "#,
+    )
+    .bind(avatar_id)
+    .bind(org_id)
+    .bind(avatar_key)
+    .bind(display_name)
+    .bind(role)
+    .bind(archetype)
+    .bind(personality)
+    .bind(system_prompt)
+    .bind(tool_permissions)
+    .bind(memory_scope)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn update_avatar(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    display_name: Option<&str>,
+    personality: Option<&serde_json::Value>,
+    system_prompt: Option<&str>,
+    tool_permissions: Option<&serde_json::Value>,
+    is_active: Option<bool>,
+) -> Result<(), sqlx::Error> {
+    let current = get_avatar(pool, org_id, avatar_id).await?;
+    match current {
+        Some(avatar) => {
+            sqlx::query(
+                r#"
+                UPDATE avatars
+                SET display_name = $1,
+                    personality = $2,
+                    system_prompt = $3,
+                    tool_permissions = $4,
+                    is_active = $5,
+                    updated_at = now()
+                WHERE avatar_id = $6 AND org_id = $7
+                "#,
+            )
+            .bind(display_name.unwrap_or(&avatar.display_name))
+            .bind(personality.unwrap_or(&avatar.personality))
+            .bind(system_prompt.unwrap_or(&avatar.system_prompt))
+            .bind(tool_permissions.unwrap_or(&avatar.tool_permissions))
+            .bind(is_active.unwrap_or(avatar.is_active))
+            .bind(avatar_id)
+            .bind(org_id)
+            .execute(pool)
+            .await?;
+            Ok(())
+        }
+        None => Err(sqlx::Error::RowNotFound),
+    }
+}
+
+pub async fn soft_delete_avatar(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE avatars
+        SET is_active = FALSE, updated_at = now()
+        WHERE avatar_id = $1 AND org_id = $2 AND is_active = TRUE
+        "#,
+    )
+    .bind(avatar_id)
+    .bind(org_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn ensure_default_avatars(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<Avatar>, sqlx::Error> {
+    let defaults = vec![
+        ("strategist", "Strategist", "strategy", "market_war_room"),
+        ("growth_operator", "Growth Operator", "growth", "demand_generation"),
+        ("copywriter", "Copywriter", "copy", "content_studio"),
+        ("researcher", "Researcher", "research", "intel_station"),
+        ("analyst", "Analyst", "analysis", "data_hub"),
+        ("creative_director", "Creative Director", "creative", "brand_voice"),
+        ("proof_collector", "Proof Collector", "proof", "social_proof"),
+    ];
+
+    for (key, name, role, archetype) in defaults {
+        let existing = get_avatar_by_key(pool, org_id, key).await?;
+        if existing.is_none() {
+            let avatar_id = uuid::Uuid::new_v4().to_string();
+            let personality = serde_json::json!({
+                "tone": "direct",
+                "risk_tolerance": "medium",
+                "creativity": 0.7,
+                "skepticism": 0.6,
+                "detail_level": "high"
+            });
+            let tool_permissions = serde_json::json!({
+                "can_use_bedrock": true,
+                "can_read_foundation": true,
+                "can_read_intel": true,
+                "can_write_artifacts": false,
+                "can_trigger_jobs": false,
+                "requires_approval_for_external_actions": true
+            });
+            create_avatar(
+                pool,
+                &avatar_id,
+                org_id,
+                key,
+                name,
+                role,
+                archetype,
+                &personality,
+                "",
+                &tool_permissions,
+                "org",
+            )
+            .await?;
+        }
+    }
+
+    list_avatars(pool, org_id).await
+}
+
+pub async fn list_harness_runs(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+) -> Result<Vec<HarnessRun>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, HarnessRun>(
+        r#"
+        SELECT run_id, org_id, run_type, status, input, output, error_message,
+               created_by, started_at, completed_at, created_at, updated_at
+        FROM harness_runs
+        WHERE org_id = $1
+        ORDER BY created_at DESC
+        LIMIT 100
+        "#,
+    )
+    .bind(org_id)
+    .fetch_all(pool)
+    .await?;
+    Ok(rows)
+}
+
+pub async fn get_harness_run(
+    pool: &PgPool,
+    run_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Option<HarnessRun>, sqlx::Error> {
+    let row = sqlx::query_as::<_, HarnessRun>(
+        r#"
+        SELECT run_id, org_id, run_type, status, input, output, error_message,
+               created_by, started_at, completed_at, created_at, updated_at
+        FROM harness_runs
+        WHERE run_id = $1 AND org_id = $2
+        "#,
+    )
+    .bind(run_id)
+    .bind(org_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+pub async fn create_harness_run(
+    pool: &PgPool,
+    run_id: &str,
+    org_id: uuid::Uuid,
+    run_type: &str,
+    input: &serde_json::Value,
+    created_by: Option<&str>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO harness_runs (run_id, org_id, run_type, status, input, created_by)
+        VALUES ($1, $2, $3, 'queued', $4, $5)
+        "#,
+    )
+    .bind(run_id)
+    .bind(org_id)
+    .bind(run_type)
+    .bind(input)
+    .bind(created_by)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn update_harness_run_status(
+    pool: &PgPool,
+    run_id: &str,
+    org_id: uuid::Uuid,
+    status: &str,
+) -> Result<(), sqlx::Error> {
+    let started = if status == "running" { Some(chrono::Utc::now()) } else { None };
+    let completed = if status == "completed" || status == "failed" || status == "cancelled" {
+        Some(chrono::Utc::now())
+    } else {
+        None
+    };
+    sqlx::query(
+        r#"
+        UPDATE harness_runs
+        SET status = $1,
+            started_at = COALESCE($2, started_at),
+            completed_at = COALESCE($3, completed_at),
+            updated_at = now()
+        WHERE run_id = $4 AND org_id = $5
+        "#,
+    )
+    .bind(status)
+    .bind(started)
+    .bind(completed)
+    .bind(run_id)
+    .bind(org_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn cancel_harness_run(
+    pool: &PgPool,
+    run_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<(), sqlx::Error> {
+    update_harness_run_status(pool, run_id, org_id, "cancelled").await
+}
+
+pub async fn list_harness_steps(
+    pool: &PgPool,
+    run_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Vec<HarnessStep>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, HarnessStep>(
+        r#"
+        SELECT step_id, run_id, org_id, avatar_id, step_type, status, input, output,
+               error_message, sequence_number, started_at, completed_at, created_at, updated_at
+        FROM harness_steps
+        WHERE run_id = $1 AND org_id = $2
+        ORDER BY sequence_number ASC
+        "#,
+    )
+    .bind(run_id)
+    .bind(org_id)
+    .fetch_all(pool)
+    .await?;
+    Ok(rows)
+}
+
+pub async fn create_harness_step(
+    pool: &PgPool,
+    step_id: &str,
+    run_id: &str,
+    org_id: uuid::Uuid,
+    avatar_id: Option<&str>,
+    step_type: &str,
+    sequence_number: i32,
+    input: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO harness_steps (step_id, run_id, org_id, avatar_id, step_type, sequence_number, input)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        "#,
+    )
+    .bind(step_id)
+    .bind(run_id)
+    .bind(org_id)
+    .bind(avatar_id)
+    .bind(step_type)
+    .bind(sequence_number)
+    .bind(input)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn update_harness_step_status(
+    pool: &PgPool,
+    step_id: &str,
+    org_id: uuid::Uuid,
+    status: &str,
+    output: Option<&serde_json::Value>,
+    error_message: Option<&str>,
+) -> Result<(), sqlx::Error> {
+    let started = if status == "running" { Some(chrono::Utc::now()) } else { None };
+    let completed = if status == "completed" || status == "failed" || status == "cancelled" {
+        Some(chrono::Utc::now())
+    } else {
+        None
+    };
+    sqlx::query(
+        r#"
+        UPDATE harness_steps
+        SET status = $1,
+            output = COALESCE($2, output),
+            error_message = COALESCE($3, error_message),
+            started_at = COALESCE($4, started_at),
+            completed_at = COALESCE($5, completed_at),
+            updated_at = now()
+        WHERE step_id = $6 AND org_id = $7
+        "#,
+    )
+    .bind(status)
+    .bind(output)
+    .bind(error_message)
+    .bind(started)
+    .bind(completed)
+    .bind(step_id)
+    .bind(org_id)
+    .execute(pool)
+    .await?;
+    Ok(())
 }

@@ -16,8 +16,8 @@
 | ---------- | ---------------------------------------------- | ----------------------------------------- | ---------- |
 | Auth       | `auth/forgot-password`                         | Gap                                       | Low        |
 | Auth       | `auth/reset-password`                          | Gap                                       | Low        |
-| Avatars    | `avatars`                                      | Gap                                       | Medium     |
-| Dashboard  | `dashboard`                                    | Gap                                       | Medium     |
+| Avatars    | `avatars`                                      | **Implemented + Tombstoned**              | ~~Medium~~ |
+| Dashboard  | `dashboard`                                    | **Implemented + Tombstoned** (→ Office)   | ~~Medium~~ |
 | Foundation | `foundation/scan/quick`                        | **Implemented + Tombstoned**              | ~~Medium~~ |
 | Campaign   | `campaigns/[id]/evaluate`                      | **Implemented + Red-teamed**              | ~~Medium~~ |
 | Campaign   | `campaigns/[id]/moves/generate`                | **Implemented + Red-teamed**              | ~~High~~   |
@@ -47,19 +47,19 @@
 
 ### 2. Avatars
 
-| Next Route | Current Behavior                       | Why No Rust Equivalent | Risk   |
-| ---------- | -------------------------------------- | ---------------------- | ------ |
-| `avatars`  | CRUD for council avatar configurations | No Rust equivalent yet | Medium |
+| Next Route | Current Behavior                       | Status                                               | Risk       |
+| ---------- | -------------------------------------- | ---------------------------------------------------- | ---------- |
+| `avatars`  | CRUD for council avatar configurations | **IMPLEMENTED** - Rust endpoint at `/api/v1/avatars` | ~~Medium~~ |
 
-**Recommended Patch Bucket:** Avatars Rust migration
+**Recommended Patch Bucket:** ~~Avatars Rust migration~~ - NOW DONE (see AVATAR_OFFICE_HARNESS_SPINE_REPORT.md)
 
 ### 3. Dashboard/Office Summary
 
-| Next Route  | Current Behavior                              | Why No Rust Equivalent | Risk   |
-| ----------- | --------------------------------------------- | ---------------------- | ------ |
-| `dashboard` | Aggregates office state from multiple sources | No Rust equivalent yet | Medium |
+| Next Route  | Current Behavior                              | Status                                                   | Risk       |
+| ----------- | --------------------------------------------- | -------------------------------------------------------- | ---------- |
+| `dashboard` | Aggregates office state from multiple sources | **IMPLEMENTED** - Office aggregation at `/api/v1/office` | ~~Medium~~ |
 
-**Recommended Patch Bucket:** Dashboard Rust migration
+**Recommended Patch Bucket:** ~~Dashboard Rust migration~~ - NOW DONE (see AVATAR_OFFICE_HARNESS_SPINE_REPORT.md)
 
 ### 4. Foundation Scan Legacy
 
@@ -134,12 +134,13 @@
 3. ~~**Foundation scan consolidation**~~ - `POST /foundation/scan/quick`, `POST /foundation/scan/deep`, `GET /foundation/scan/{id}` - **IMPLEMENTED + TOMBSTONED**
 4. ~~**Intel signals**~~ - `GET /intel/signals`, `GET/PATCH /intel/signals/{id}` - **IMPLEMENTED + TOMBSTONED**
 5. ~~**Intel competitors**~~ - `GET/POST /intel/competitors` - **IMPLEMENTED + TOMBSTONED**
+6. ~~**Avatars**~~ - `GET/POST/PATCH/DELETE /api/v1/avatars`, `POST /avatars/defaults` - **IMPLEMENTED + TOMBSTONED**
+7. ~~**Dashboard**~~ - Merged into Office aggregation (`GET /api/v1/office`) - **IMPLEMENTED + TOMBSTONED**
 
 ### Medium Risk (Remaining)
 
-6. **Avatars** - Needed for Council to work properly
-7. **Dashboard** - Office summary endpoint
-8. **Intel brief cron** - Internal cron job
+8. **Harness ledger/scaffold** - Ledger implemented; full execution pending (see AVATAR_OFFICE_HARNESS_SPINE_REPORT.md)
+9. **Intel brief cron** - Internal cron job
 
 ### Low Risk (Remaining)
 

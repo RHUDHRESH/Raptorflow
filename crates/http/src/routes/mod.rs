@@ -1,11 +1,13 @@
 pub mod ai_helpers;
 pub mod auth;
+pub mod avatars;
 pub mod billing;
 pub mod campaigns;
 pub mod content;
 pub mod council;
 pub mod daily_wins;
 pub mod foundation;
+pub mod harness;
 pub mod health;
 pub mod intel;
 pub mod jobs;
