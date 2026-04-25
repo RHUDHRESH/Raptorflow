@@ -109,7 +109,7 @@ pub fn lattice_for_avatar(entry: &AvatarRegistryEntry) -> EelLatticeState {
     EelLatticeState {
         org_id: entry.org_id,
         avatar_key: entry.avatar_key.clone(),
-        role: entry.role.clone(),
+        role: entry.role,
         essence_core: json!({
             "display_name": entry.display_name.clone(),
             "office_zone_id": entry.office_zone_id.clone(),

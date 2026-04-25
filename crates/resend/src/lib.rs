@@ -97,7 +97,7 @@ impl ResendClient {
 
         let response = self
             .client
-            .post(&format!("{}/emails", self.base_url))
+            .post(format!("{}/emails", self.base_url))
             .header("Authorization", format!("Bearer {}", self.api_key))
             .header("Content-Type", "application/json")
             .json(&request)
@@ -133,7 +133,7 @@ impl ResendClient {
 
         let response = self
             .client
-            .post(&format!("{}/email-templates", self.base_url))
+            .post(format!("{}/email-templates", self.base_url))
             .header("Authorization", format!("Bearer {}", self.api_key))
             .header("Content-Type", "application/json")
             .json(&request)

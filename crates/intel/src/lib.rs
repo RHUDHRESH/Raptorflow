@@ -15,6 +15,10 @@ use raptorflow_db::TenantDbPool;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
+type SignalRow = (String, String, String, String, String, String, Option<String>, String, bool, bool, Option<String>, chrono::DateTime<chrono::Utc>);
+type SignalRowOpt = Option<(String, String, String, String, String, String, Option<String>, String, bool, bool, Option<String>, chrono::DateTime<chrono::Utc>)>;
+type CompetitorRow = (String, String, String, Option<String>, Value, chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>);
+
 #[allow(dead_code)]
 pub fn router() -> Router {
     Router::new()
@@ -103,7 +107,7 @@ pub async fn list_intel_overview(
     .await
     .map_err(internal_error)?;
 
-    let rows: Vec<(String, String, String, String, String, String, Option<String>, String, bool, bool, Option<String>, chrono::DateTime<chrono::Utc>)> = sqlx::query_as(
+    let rows: Vec<SignalRow> = sqlx::query_as(
         r#"
         SELECT id, user_id, type, source, title, summary, detail, severity, is_read, is_archived, related_to, created_at
         FROM intel_signals
@@ -228,7 +232,7 @@ pub async fn list_signals(
         .await
         .map_err(internal_error)?;
 
-    let rows: Vec<(String, String, String, String, String, String, Option<String>, String, bool, bool, Option<String>, chrono::DateTime<chrono::Utc>)> = if let Some(ref signal_type) = query.signal_type {
+    let rows: Vec<SignalRow> = if let Some(ref signal_type) = query.signal_type {
         sqlx::query_as(
             r#"
             SELECT id, user_id, type, source, title, summary, detail, severity, is_read, is_archived, related_to, created_at
@@ -280,7 +284,7 @@ pub async fn get_signal(
         .await
         .map_err(internal_error)?;
 
-    let row: Option<(String, String, String, String, String, String, Option<String>, String, bool, bool, Option<String>, chrono::DateTime<chrono::Utc>)> = sqlx::query_as(
+    let row: SignalRowOpt = sqlx::query_as(
         r#"
         SELECT id, user_id, type, source, title, summary, detail, severity, is_read, is_archived, related_to, created_at
         FROM intel_signals
@@ -400,7 +404,7 @@ pub async fn list_competitor_snapshots(
         .await
         .map_err(internal_error)?;
 
-    let rows: Vec<(String, String, String, Option<String>, Value, chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)> = sqlx::query_as(
+    let rows: Vec<CompetitorRow> = sqlx::query_as(
         r#"
         SELECT id, user_id, competitor_name, website, snapshot, last_analyzed_at, created_at
         FROM competitor_snapshots

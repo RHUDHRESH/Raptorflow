@@ -10,7 +10,7 @@ pub fn build_avatar_registry(org_id: Uuid) -> AvatarRegistry {
             org_id,
             avatar_key: t.avatar_key.to_string(),
             display_name: t.display_name.to_string(),
-            role: t.role.clone(),
+            role: t.role,
             support_domain: t.support_domain.map(String::from),
             office_zone_id: t.office_zone_id.to_string(),
             reflection_profile: t.reflection_profile.to_string(),
