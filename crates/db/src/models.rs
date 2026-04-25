@@ -22,7 +22,7 @@ impl CampaignStatus {
         }
     }
 
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse_from_str(s: &str) -> Option<Self> {
         match s {
             "draft" => Some(CampaignStatus::Draft),
             "active" => Some(CampaignStatus::Active),
@@ -52,7 +52,7 @@ impl MoveStatus {
         }
     }
 
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse_from_str(s: &str) -> Option<Self> {
         match s {
             "planned" => Some(MoveStatus::Planned),
             "in_progress" => Some(MoveStatus::InProgress),
@@ -81,7 +81,7 @@ impl TaskStatus {
         }
     }
 
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse_from_str(s: &str) -> Option<Self> {
         match s {
             "pending" => Some(TaskStatus::Pending),
             "in_progress" => Some(TaskStatus::InProgress),

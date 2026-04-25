@@ -1,7 +1,7 @@
 use axum::{
+    Json, Router,
     extract::{Extension, Path},
     http::StatusCode,
-    Json, Router,
     routing::{get, post},
 };
 use raptorflow_auth::TenantContext;
@@ -11,8 +11,8 @@ use std::sync::Arc;
 use ulid::Ulid;
 
 use crate::middleware::AppState;
-use raptorflow_db::{queries, TenantDbPool};
 use raptorflow_db::models::{MuseConversation, MuseMessage};
+use raptorflow_db::{TenantDbPool, queries};
 
 pub fn router() -> Router {
     Router::new()
@@ -93,7 +93,9 @@ pub async fn submit_prompt(
     }
 
     let org_id = tenant.org_id;
-    let conversation_id = req.conversation_id.unwrap_or_else(|| Ulid::new().to_string());
+    let conversation_id = req
+        .conversation_id
+        .unwrap_or_else(|| Ulid::new().to_string());
     let route = req.route.as_deref().unwrap_or("strategic");
     let user_message_id = Ulid::new().to_string();
     let assistant_message_id = Ulid::new().to_string();
@@ -130,12 +132,8 @@ pub async fn submit_prompt(
     );
 
     let assistant_response = match route {
-        "strategic" | "foundation_update" => {
-            bedrock.converse_large(&prompt_text, 512).await
-        }
-        _ => {
-            bedrock.converse_fast(&prompt_text, 512).await
-        }
+        "strategic" | "foundation_update" => bedrock.converse_large(&prompt_text, 512).await,
+        _ => bedrock.converse_fast(&prompt_text, 512).await,
     }
     .map_err(internal_error)?;
 
@@ -185,15 +183,17 @@ pub async fn get_conversation(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let conversation = queries::get_muse_conversation(&tenant_pool.pool(), &conversation_id, org_id)
-        .await
-        .map_err(internal_error)?;
+    let conversation =
+        queries::get_muse_conversation(&tenant_pool.pool(), &conversation_id, org_id)
+            .await
+            .map_err(internal_error)?;
 
     match conversation {
         Some(c) => {
-            let messages = queries::list_muse_messages(&tenant_pool.pool(), &conversation_id, org_id)
-                .await
-                .map_err(internal_error)?;
+            let messages =
+                queries::list_muse_messages(&tenant_pool.pool(), &conversation_id, org_id)
+                    .await
+                    .map_err(internal_error)?;
 
             Ok(Json(json!({
                 "conversation": ConversationResponse::from(c),
@@ -212,9 +212,10 @@ pub async fn get_messages(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let conversation = queries::get_muse_conversation(&tenant_pool.pool(), &conversation_id, org_id)
-        .await
-        .map_err(internal_error)?;
+    let conversation =
+        queries::get_muse_conversation(&tenant_pool.pool(), &conversation_id, org_id)
+            .await
+            .map_err(internal_error)?;
 
     if conversation.is_none() {
         return Err(not_found("conversation_not_found"));

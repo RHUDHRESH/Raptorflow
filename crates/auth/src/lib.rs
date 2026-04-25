@@ -30,11 +30,7 @@ pub mod jwt;
 pub use clerk::{ClerkClient, ClerkWebhookEvent};
 pub use error::AuthError;
 pub use jwt::{
-    derive_internal_org_id,
-    Claims,
-    ClerkOrganizationClaim,
-    JwtValidator,
-    TenantContext,
+    Claims, ClerkOrganizationClaim, JwtValidator, TenantContext, derive_internal_org_id,
 };
 
 use uuid::Uuid;

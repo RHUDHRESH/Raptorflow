@@ -24,7 +24,7 @@
 //! - Clerk, Razorpay, Resend — auth, payments, email
 //! - `RAPTORFLOW_SENTRY_DSN` / `SENTRY_DSN` — error reporting
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serde::Serialize;
 use std::env;
 
@@ -85,20 +85,29 @@ impl Settings {
         nonempty("RAPTORFLOW_FRONTEND_URL", &self.frontend_url)?;
         nonempty("RAPTORFLOW_DATABASE_URL", &self.database_url)?;
         if !self.database_url.starts_with("postgres") {
-            return Err(anyhow!("RAPTORFLOW_DATABASE_URL must be a postgres URL in prod"));
+            return Err(anyhow!(
+                "RAPTORFLOW_DATABASE_URL must be a postgres URL in prod"
+            ));
         }
         nonempty("RAPTORFLOW_DIRECT_DATABASE_URL", &self.direct_database_url)?;
         if !self.direct_database_url.starts_with("postgres") {
-            return Err(anyhow!("RAPTORFLOW_DIRECT_DATABASE_URL must be a postgres URL in prod"));
+            return Err(anyhow!(
+                "RAPTORFLOW_DIRECT_DATABASE_URL must be a postgres URL in prod"
+            ));
         }
 
         let example_issuer = "https://example.clerk.accounts.dev";
         if self.clerk_issuer.is_empty() || self.clerk_issuer == example_issuer {
-            return Err(anyhow!("RAPTORFLOW_CLERK_ISSUER must be set to a real Clerk issuer in prod"));
+            return Err(anyhow!(
+                "RAPTORFLOW_CLERK_ISSUER must be set to a real Clerk issuer in prod"
+            ));
         }
         valid_url("RAPTORFLOW_CLERK_JWKS_URL", &self.clerk_jwks_url)?;
         nonempty("RAPTORFLOW_BEDROCK_REGION", &self.bedrock_region)?;
-        nonempty("RAPTORFLOW_BEDROCK_MODEL_STRATEGIST", &self.bedrock_model_strategist)?;
+        nonempty(
+            "RAPTORFLOW_BEDROCK_MODEL_STRATEGIST",
+            &self.bedrock_model_strategist,
+        )?;
         nonempty("RAPTORFLOW_BEDROCK_MODEL_FAST", &self.bedrock_model_fast)?;
         nonempty("RAPTORFLOW_RAZORPAY_KEY_ID", &self.razorpay_key_id)?;
         nonempty("RAPTORFLOW_RAZORPAY_KEY_SECRET", &self.razorpay_key_secret)?;
@@ -137,8 +146,14 @@ impl Settings {
                 "raptorflow-dev-content-pregeneration",
             ),
             bedrock_region: read("RAPTORFLOW_BEDROCK_REGION", "ap-south-1"),
-            bedrock_model_strategist: read("RAPTORFLOW_BEDROCK_MODEL_STRATEGIST", "mistral.mistral-large-3-675b-instruct"),
-            bedrock_model_fast: read("RAPTORFLOW_BEDROCK_MODEL_FAST", "mistral.ministral-3-8b-instruct"),
+            bedrock_model_strategist: read(
+                "RAPTORFLOW_BEDROCK_MODEL_STRATEGIST",
+                "mistral.mistral-large-3-675b-instruct",
+            ),
+            bedrock_model_fast: read(
+                "RAPTORFLOW_BEDROCK_MODEL_FAST",
+                "mistral.ministral-3-8b-instruct",
+            ),
             clerk_jwks_url: read(
                 "RAPTORFLOW_CLERK_JWKS_URL",
                 "https://example.clerk.accounts.dev/.well-known/jwks.json",

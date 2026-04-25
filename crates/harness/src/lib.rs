@@ -135,9 +135,7 @@ impl SessionManager {
 
         let agent_futures: Vec<_> = agent_ids
             .iter()
-            .map(|agent_id| {
-                Self::load_agent_state(db_pool.clone(), org_id, *agent_id)
-            })
+            .map(|agent_id| Self::load_agent_state(db_pool.clone(), org_id, *agent_id))
             .collect();
 
         let results: Vec<Result<AvatarState>> = future::join_all(agent_futures).await;
@@ -200,11 +198,7 @@ impl SessionManager {
         Ok(())
     }
 
-    async fn load_agent_state(
-        pool: PgPool,
-        org_id: Uuid,
-        agent_id: Uuid,
-    ) -> Result<AvatarState> {
+    async fn load_agent_state(pool: PgPool, org_id: Uuid, agent_id: Uuid) -> Result<AvatarState> {
         let essence = Self::load_agent_essence(&pool, org_id, agent_id).await?;
         let working_memory = Self::load_working_memory(&pool, org_id, agent_id).await?;
         let avatar_state = Self::apply_ego_decay(essence, &working_memory);

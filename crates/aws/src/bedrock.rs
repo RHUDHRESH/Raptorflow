@@ -194,7 +194,8 @@ impl BedrockInferenceClient {
         prompt: &str,
         max_tokens: i32,
     ) -> Result<String, InferenceError> {
-        self.converse(&self.model_strategist, prompt, max_tokens).await
+        self.converse(&self.model_strategist, prompt, max_tokens)
+            .await
     }
 
     /// Convenience for fast inference (classification, nudges, snark, voice compliance).
@@ -246,7 +247,10 @@ mod tests {
 
         println!("Fast model response: {:?}", response);
         assert!(!response.is_empty(), "Response must not be empty");
-        assert!(response.to_uppercase().contains("PONG"), "Expected PONG, got: {response}");
+        assert!(
+            response.to_uppercase().contains("PONG"),
+            "Expected PONG, got: {response}"
+        );
     }
 
     #[tokio::test]
@@ -263,7 +267,10 @@ mod tests {
 
         println!("Large model response: {:?}", response);
         assert!(!response.is_empty(), "Response must not be empty");
-        assert!(response.to_uppercase().contains("PONG"), "Expected PONG, got: {response}");
+        assert!(
+            response.to_uppercase().contains("PONG"),
+            "Expected PONG, got: {response}"
+        );
     }
 
     #[tokio::test]

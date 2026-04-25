@@ -9,9 +9,9 @@
 //! process so buffered events can flush on shutdown.
 
 use anyhow::Result;
-use std::borrow::Cow;
 use sentry::ClientInitGuard;
 use sentry::integrations::tracing::EventFilter;
+use std::borrow::Cow;
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 pub fn init(

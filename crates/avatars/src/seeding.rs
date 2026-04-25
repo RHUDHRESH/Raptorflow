@@ -28,10 +28,10 @@ pub async fn seed_org_avatars(
         let ego_state = ego_baseline.clone();
         let mut essence_core = (tmpl.essence_core)();
 
-        if tmpl.avatar_key == "strategist" {
-            if let Some(fs) = foundation {
-                essence_core = overlay_strategist_essence(essence_core, fs);
-            }
+        if tmpl.avatar_key == "strategist"
+            && let Some(fs) = foundation
+        {
+            essence_core = overlay_strategist_essence(essence_core, fs);
         }
 
         let skill_atoms = serde_json::to_value((tmpl.initial_skill_atoms)())?;
@@ -161,6 +161,7 @@ fn overlay_strategist_essence(
         }
     }
 
+    #[allow(clippy::collapsible_if)]
     if let Some(arr) = essence
         .get_mut("core_beliefs")
         .and_then(|v| v.as_array_mut())

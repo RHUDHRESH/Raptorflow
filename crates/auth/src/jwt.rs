@@ -1,7 +1,7 @@
 use crate::error::AuthError;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
-use sha2::{Digest, Sha256};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -129,11 +129,7 @@ struct Jwk {
 }
 
 pub fn extract_bearer_token(auth_header: &str) -> Option<&str> {
-    if auth_header.starts_with("Bearer ") {
-        Some(&auth_header[7..])
-    } else {
-        None
-    }
+    auth_header.strip_prefix("Bearer ")
 }
 
 #[cfg(test)]

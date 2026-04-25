@@ -18,7 +18,7 @@
 | Auth       | `auth/reset-password`                          | Gap                                       | Low        |
 | Avatars    | `avatars`                                      | Gap                                       | Medium     |
 | Dashboard  | `dashboard`                                    | Gap                                       | Medium     |
-| Foundation | `foundation/scan/quick`                        | Gap                                       | Medium     |
+| Foundation | `foundation/scan/quick`                        | **Implemented + Tombstoned**              | ~~Medium~~ |
 | Campaign   | `campaigns/[id]/evaluate`                      | **Implemented + Red-teamed**              | ~~Medium~~ |
 | Campaign   | `campaigns/[id]/moves/generate`                | **Implemented + Red-teamed**              | ~~High~~   |
 | Campaign   | `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | Gap                                       | Low        |
@@ -26,9 +26,9 @@
 | Council    | `council/[sessionId]/stream`                   | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
 | Council    | `council/[sessionId]/synthesize`               | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
 | Daily-wins | `daily-wins/cron`                              | Gap                                       | Low        |
-| Intel      | `intel/[signalId]`                             | Gap                                       | Low        |
+| Intel      | `intel/[signalId]`                             | **Implemented + Tombstoned**              | ~~Low~~    |
 | Intel      | `intel/brief/cron`                             | Gap                                       | Medium     |
-| Intel      | `intel/competitors`                            | Gap                                       | High       |
+| Intel      | `intel/competitors`                            | **Implemented + Tombstoned**              | ~~High~~   |
 | Nudges     | `nudges/cron`                                  | Gap                                       | Low        |
 | PRL        | `prl/decay/cron`                               | Gap                                       | Low        |
 
@@ -63,11 +63,11 @@
 
 ### 4. Foundation Scan Legacy
 
-| Next Route              | Current Behavior           | Why No Rust Equivalent                                             | Risk   |
-| ----------------------- | -------------------------- | ------------------------------------------------------------------ | ------ |
-| `foundation/scan/quick` | Runs quick scan via Prisma | Rust has `POST /foundation/scan/quick` but this route is different | Medium |
+| Next Route              | Current Behavior           | Why No Rust Equivalent                                   | Risk       |
+| ----------------------- | -------------------------- | -------------------------------------------------------- | ---------- |
+| `foundation/scan/quick` | Runs quick scan via Prisma | **IMPLEMENTED** - Rust has `POST /foundation/scan/quick` | ~~Medium~~ |
 
-**Recommended Patch Bucket:** Foundation scan consolidation
+**Recommended Patch Bucket:** ~~Foundation scan consolidation~~ - NOW DONE (see FOUNDATION_INTEL_CONTEXT_SPINE_REPORT.md)
 
 ### 5. Campaign Sub-Routes
 
@@ -99,13 +99,13 @@
 
 ### 8. Intel Sub-Routes
 
-| Next Route          | Current Behavior                          | Why No Rust Equivalent       | Proposed Rust Route               | Risk   |
-| ------------------- | ----------------------------------------- | ---------------------------- | --------------------------------- | ------ |
-| `intel/[signalId]`  | GET/PATCH intel signal                    | Rust doesn't have this route | `GET/PATCH /intel/signals/{id}`   | Low    |
-| `intel/brief/cron`  | Generates intel briefs for all users      | Internal cron                | `POST /intel/brief/generate`      | Medium |
-| `intel/competitors` | GET competitor snapshots, POST to analyze | Complex AI + scraping logic  | `POST /intel/competitors/analyze` | High   |
+| Next Route          | Current Behavior                          | Why No Rust Equivalent | Proposed Rust Route             | Risk     |
+| ------------------- | ----------------------------------------- | ---------------------- | ------------------------------- | -------- |
+| `intel/[signalId]`  | GET/PATCH intel signal                    | **IMPLEMENTED**        | `GET/PATCH /intel/signals/{id}` | ~~Low~~  |
+| `intel/brief/cron`  | Generates intel briefs for all users      | Internal cron          | `POST /intel/brief/generate`    | Medium   |
+| `intel/competitors` | GET competitor snapshots, POST to analyze | **IMPLEMENTED**        | `GET/POST /intel/competitors`   | ~~High~~ |
 
-**Recommended Patch Bucket:** Intel analysis features
+**Recommended Patch Bucket:** ~~Intel analysis features~~ - NOW DONE (see FOUNDATION_INTEL_CONTEXT_SPINE_REPORT.md)
 
 ### 9. Nudges Cron
 
@@ -131,20 +131,21 @@
 
 1. ~~**Council streaming**~~ - `POST /council/{id}/start`, `GET /stream`, `POST /synthesize` - **IMPLEMENTED + RED-TEAMED**
 2. ~~**Campaign AI features**~~ - `POST /campaigns/{id}/evaluate`, `POST /moves/generate` - **IMPLEMENTED + RED-TEAMED**
+3. ~~**Foundation scan consolidation**~~ - `POST /foundation/scan/quick`, `POST /foundation/scan/deep`, `GET /foundation/scan/{id}` - **IMPLEMENTED + TOMBSTONED**
+4. ~~**Intel signals**~~ - `GET /intel/signals`, `GET/PATCH /intel/signals/{id}` - **IMPLEMENTED + TOMBSTONED**
+5. ~~**Intel competitors**~~ - `GET/POST /intel/competitors` - **IMPLEMENTED + TOMBSTONED**
 
 ### Medium Risk (Remaining)
 
-3. **Avatars** - Needed for Council to work properly
-4. **Dashboard** - Office summary endpoint
-5. **Intel competitors** - Competitor analysis feature
-6. **Intel brief cron** - Internal cron job
+6. **Avatars** - Needed for Council to work properly
+7. **Dashboard** - Office summary endpoint
+8. **Intel brief cron** - Internal cron job
 
 ### Low Risk (Remaining)
 
-7. **Auth flows** - Using Clerk, low risk
-8. **Foundation scan** - Minor route difference
-9. **Task PATCH** - Simple route rename
-10. **Cron jobs** - Internal, not user-facing
+9. **Auth flows** - Using Clerk, low risk
+10. **Task PATCH** - Simple route rename
+11. **Cron jobs** - Internal, not user-facing
 
 ---
 

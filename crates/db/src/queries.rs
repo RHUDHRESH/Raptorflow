@@ -219,6 +219,7 @@ pub async fn get_ripples(pool: &PgPool) -> Result<Vec<Ripple>, sqlx::Error> {
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn create_ripple(
     pool: &PgPool,
     ripple_id: &str,
@@ -972,6 +973,7 @@ pub async fn complete_foundation(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn create_nudge(
     pool: &PgPool,
     nudge_id: &str,

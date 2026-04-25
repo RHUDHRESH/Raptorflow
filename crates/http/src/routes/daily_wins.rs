@@ -1,17 +1,17 @@
 use axum::{
+    Json, Router,
     extract::{Extension, Path},
     http::StatusCode,
-    Json, Router,
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use ulid::Ulid;
 
-use raptorflow_auth::TenantContext;
-use raptorflow_db::{queries, TenantDbPool};
-use raptorflow_db::models::DailyWin;
 use crate::routes::office::handlers::emit_office_event;
+use raptorflow_auth::TenantContext;
+use raptorflow_db::models::DailyWin;
+use raptorflow_db::{TenantDbPool, queries};
 
 pub fn router() -> Router {
     Router::new()
@@ -32,7 +32,10 @@ fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, Json<Value>) {
 }
 
 fn not_found() -> (StatusCode, Json<Value>) {
-    (StatusCode::NOT_FOUND, Json(json!({ "error": "daily_win_not_found" })))
+    (
+        StatusCode::NOT_FOUND,
+        Json(json!({ "error": "daily_win_not_found" })),
+    )
 }
 
 #[derive(Debug, Serialize)]
@@ -128,8 +131,13 @@ pub async fn create_daily_win(
     let org_id = tenant.org_id;
     let briefing_id = Ulid::new().to_string();
 
-    let briefing_date = chrono::NaiveDate::parse_from_str(&req.briefing_date, "%Y-%m-%d")
-        .map_err(|_| (StatusCode::BAD_REQUEST, Json(json!({ "error": "invalid_date_format" }))))?;
+    let briefing_date =
+        chrono::NaiveDate::parse_from_str(&req.briefing_date, "%Y-%m-%d").map_err(|_| {
+            (
+                StatusCode::BAD_REQUEST,
+                Json(json!({ "error": "invalid_date_format" })),
+            )
+        })?;
 
     queries::create_daily_win(
         &tenant_pool.pool(),
@@ -140,12 +148,18 @@ pub async fn create_daily_win(
         &req.full_briefing,
         &req.recommended_action,
         &req.recommended_action_type,
-        req.recommended_action_data.as_ref().unwrap_or(&serde_json::json!({})),
+        req.recommended_action_data
+            .as_ref()
+            .unwrap_or(&serde_json::json!({})),
     )
     .await
     .map_err(internal_error)?;
 
-    emit_office_event("daily_win_available", org_id, json!({"briefing_id": briefing_id, "briefing_date": &req.briefing_date}));
+    emit_office_event(
+        "daily_win_available",
+        org_id,
+        json!({"briefing_id": briefing_id, "briefing_date": &req.briefing_date}),
+    );
 
     Ok(Json(json!({
         "briefing_id": briefing_id,
@@ -160,9 +174,10 @@ pub async fn mark_viewed(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let existing = queries::get_today_daily_win(&tenant_pool.pool(), org_id, chrono::Utc::now().date_naive())
-        .await
-        .map_err(internal_error)?;
+    let existing =
+        queries::get_today_daily_win(&tenant_pool.pool(), org_id, chrono::Utc::now().date_naive())
+            .await
+            .map_err(internal_error)?;
 
     if existing.is_none() {
         return Err(not_found());
@@ -183,7 +198,10 @@ pub async fn mark_acted(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let outcome = req.get("outcome").and_then(|v| v.as_str()).unwrap_or("completed");
+    let outcome = req
+        .get("outcome")
+        .and_then(|v| v.as_str())
+        .unwrap_or("completed");
 
     let pool = tenant_pool.pool();
     sqlx::query(

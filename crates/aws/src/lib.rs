@@ -31,7 +31,10 @@ use aws_config::BehaviorVersion;
 use aws_sdk_s3::config::Credentials;
 use aws_sdk_s3::presigning::PresigningConfig;
 use aws_sdk_s3::Client;
-use aws_smithy_http_client::{Builder, tls::{self, rustls_provider::CryptoMode}};
+use aws_smithy_http_client::{
+    tls::{self, rustls_provider::CryptoMode},
+    Builder,
+};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 

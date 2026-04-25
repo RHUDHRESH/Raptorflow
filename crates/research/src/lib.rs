@@ -60,10 +60,10 @@ impl VectorIndex {
         let grpc_url = normalize_qdrant_url(&settings.qdrant_url);
         let mut client_builder = Qdrant::from_url(&grpc_url);
 
-        if let Some(api_key) = settings.qdrant_api_key.as_deref() {
-            if !api_key.trim().is_empty() {
-                client_builder = client_builder.api_key(api_key);
-            }
+        if let Some(api_key) = settings.qdrant_api_key.as_deref()
+            && !api_key.trim().is_empty()
+        {
+            client_builder = client_builder.api_key(api_key);
         }
 
         let client = client_builder

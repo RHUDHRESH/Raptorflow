@@ -1,16 +1,16 @@
 use axum::{
+    Json, Router,
     extract::{Extension, Path},
     http::StatusCode,
-    Json, Router,
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use uuid::Uuid;
 
-use raptorflow_auth::TenantContext;
-use raptorflow_db::{queries, TenantDbPool};
 use crate::routes::office::handlers::emit_office_event;
+use raptorflow_auth::TenantContext;
+use raptorflow_db::{TenantDbPool, queries};
 
 pub fn router() -> Router {
     Router::new()
@@ -35,7 +35,10 @@ fn bad_request(msg: &str) -> (StatusCode, Json<Value>) {
 }
 
 fn not_found() -> (StatusCode, Json<Value>) {
-    (StatusCode::NOT_FOUND, Json(json!({ "error": "nudge_not_found" })))
+    (
+        StatusCode::NOT_FOUND,
+        Json(json!({ "error": "nudge_not_found" })),
+    )
 }
 
 #[derive(Debug, Deserialize)]
@@ -137,8 +140,15 @@ pub async fn create_nudge(
     let action_data = if input.nudge_type == "foundation_update" {
         if let Some(data) = &input.action_data {
             let field = data.get("field").and_then(|f| f.as_str()).unwrap_or("");
-            let value = data.get("suggestedValue").and_then(|v| v.as_str()).unwrap_or("");
-            let action_url = format!("/foundation?edit={}&value={}", field, value.replace(' ', "%20"));
+            let value = data
+                .get("suggestedValue")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let action_url = format!(
+                "/foundation?edit={}&value={}",
+                field,
+                value.replace(' ', "%20")
+            );
             Some(serde_json::json!({ "action_url": action_url }))
         } else {
             None
@@ -164,7 +174,11 @@ pub async fn create_nudge(
     .await
     .map_err(internal_error)?;
 
-    emit_office_event("nudge_created", org_id, json!({"nudge_id": nudge_id, "title": &input.title, "nudge_type": &input.nudge_type}));
+    emit_office_event(
+        "nudge_created",
+        org_id,
+        json!({"nudge_id": nudge_id, "title": &input.title, "nudge_type": &input.nudge_type}),
+    );
 
     Ok(Json(json!({
         "nudge_id": nudge_id,

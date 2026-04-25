@@ -222,10 +222,9 @@ pub async fn accept_research_request(
         .await
         .map_err(internal_error)?;
 
-    let result =
-        process_research_request(&mut conn, &vector_index, &embedding, request)
-            .await
-            .map_err(internal_error)?;
+    let result = process_research_request(&mut conn, &vector_index, &embedding, request)
+        .await
+        .map_err(internal_error)?;
 
     Ok(Json(json!({
         "status": "completed",
@@ -239,8 +238,8 @@ pub async fn accept_research_request(
     })))
 }
 
-async fn process_research_request<'e>(
-    conn: &'e mut sqlx::pool::PoolConnection<sqlx::postgres::Postgres>,
+async fn process_research_request(
+    conn: &mut sqlx::pool::PoolConnection<sqlx::postgres::Postgres>,
     vector_index: &VectorIndex,
     embedding: &EmbeddingClient,
     request: ResearchRequest,
@@ -511,7 +510,11 @@ async fn fetch_and_parse(
                     browser_parsed.title.unwrap_or_default(),
                 )
             } else {
-                (parsed.cleaned_text, final_url, parsed.title.unwrap_or_default())
+                (
+                    parsed.cleaned_text,
+                    final_url,
+                    parsed.title.unwrap_or_default(),
+                )
             }
         }
         Err(_) if matches!(request_kind, ResearchRequestKind::Browser) => {
@@ -580,18 +583,6 @@ fn embed_text_vector(text: &str) -> Vec<f32> {
     vector
 }
 
-#[cfg(test)]
-mod embedding_tests {
-    use super::*;
-
-    #[test]
-    fn embed_text_vector_has_expected_dimension() {
-        let vector = embed_text_vector("the quick brown fox");
-        assert_eq!(vector.len(), 1024);
-        assert!(vector.iter().any(|value| *value != 0.0));
-    }
-}
-
 async fn write_audit_log(
     conn: &mut sqlx::pool::PoolConnection<sqlx::postgres::Postgres>,
     org_id: Uuid,
@@ -628,6 +619,19 @@ fn request_kind_str(request_kind: &ResearchRequestKind) -> &'static str {
         ResearchRequestKind::CompetitiveAnalysis => "competitive_analysis",
         ResearchRequestKind::PerformanceAnalysis => "performance_analysis",
         ResearchRequestKind::ContentResearch => "content_research",
+    }
+}
+
+#[allow(clippy::items_after_test_module)]
+#[cfg(test)]
+mod embedding_tests {
+    use super::*;
+
+    #[test]
+    fn embed_text_vector_has_expected_dimension() {
+        let vector = embed_text_vector("the quick brown fox");
+        assert_eq!(vector.len(), 1024);
+        assert!(vector.iter().any(|value| *value != 0.0));
     }
 }
 
@@ -693,14 +697,9 @@ pub async fn accept_tool_gateway_request(
         .await
         .map_err(internal_error)?;
 
-    let result = process_research_request(
-        &mut conn,
-        &vector_index,
-        &embedding,
-        research_request,
-    )
-    .await
-    .map_err(internal_error)?;
+    let result = process_research_request(&mut conn, &vector_index, &embedding, research_request)
+        .await
+        .map_err(internal_error)?;
 
     Ok(Json(json!({
         "status": "completed",

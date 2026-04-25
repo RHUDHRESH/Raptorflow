@@ -46,11 +46,12 @@ pub async fn readiness(Extension(state): Extension<Arc<AppState>>) -> impl IntoR
     }
 }
 
-pub async fn api_health(
-    Extension(state): Extension<Arc<AppState>>,
-) -> Json<HealthResponse> {
+pub async fn api_health(Extension(state): Extension<Arc<AppState>>) -> Json<HealthResponse> {
     let db_ok = match &state.db_pool {
-        Some(pool) => sqlx::query("SELECT 1").fetch_one(pool.as_ref()).await.is_ok(),
+        Some(pool) => sqlx::query("SELECT 1")
+            .fetch_one(pool.as_ref())
+            .await
+            .is_ok(),
         None => false,
     };
 

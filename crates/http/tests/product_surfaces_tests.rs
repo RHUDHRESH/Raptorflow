@@ -100,7 +100,10 @@ async fn nudges_create_rejects_empty_title() {
             Request::builder()
                 .uri("/api/v1/nudges")
                 .method("POST")
-                .header("Authorization", auth_header("00000000-0000-0000-0000-000000000001", "user_001"))
+                .header(
+                    "Authorization",
+                    auth_header("00000000-0000-0000-0000-000000000001", "user_001"),
+                )
                 .header("Content-Type", "application/json")
                 .body(Body::from(serde_json::to_vec(&body).unwrap()))
                 .expect("request"),
@@ -126,7 +129,10 @@ async fn nudges_get_returns_404_for_nonexistent() {
             Request::builder()
                 .uri("/api/v1/nudges/nonexistent-nudge")
                 .method("GET")
-                .header("Authorization", auth_header("00000000-0000-0000-0000-000000000002", "user_002"))
+                .header(
+                    "Authorization",
+                    auth_header("00000000-0000-0000-0000-000000000002", "user_002"),
+                )
                 .body(Body::empty())
                 .expect("request"),
         )

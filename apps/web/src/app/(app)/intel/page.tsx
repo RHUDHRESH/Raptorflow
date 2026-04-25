@@ -34,7 +34,7 @@ export default function IntelPage(): React.ReactElement {
     return {
       total: all.length,
       highPriority: all.filter(s => s.severity === "high" || s.severity === "critical").length,
-      thisWeek: all.filter(s => new Date(s.createdAt).getTime() > weekAgo).length,
+      thisWeek: all.filter(s => new Date(s.created_at).getTime() > weekAgo).length,
     };
   }, [overviewData]);
   

@@ -105,10 +105,6 @@ impl FoundationService {
         section: &str,
     ) -> Result<Option<serde_json::Value>, sqlx::Error> {
         let current = Self::get_current(pool, org_id).await?;
-        Ok(current.and_then(|s| {
-            s.sections
-                .get(section)
-                .cloned()
-        }))
+        Ok(current.and_then(|s| s.sections.get(section).cloned()))
     }
 }

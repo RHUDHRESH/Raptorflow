@@ -1,15 +1,15 @@
 use axum::{
+    Json,
     extract::{Extension, Path},
     http::StatusCode,
-    Json,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use ulid::Ulid;
 
 use raptorflow_auth::TenantContext;
-use raptorflow_db::{queries, TenantDbPool};
 use raptorflow_db::models::GeneratedContent;
+use raptorflow_db::{TenantDbPool, queries};
 
 type AppResult<T> = Result<T, (StatusCode, Json<Value>)>;
 
@@ -26,7 +26,10 @@ fn bad_request(msg: &str) -> (StatusCode, Json<Value>) {
 }
 
 fn not_found() -> (StatusCode, Json<Value>) {
-    (StatusCode::NOT_FOUND, Json(json!({ "error": "content_not_found" })))
+    (
+        StatusCode::NOT_FOUND,
+        Json(json!({ "error": "content_not_found" })),
+    )
 }
 
 #[derive(Debug, Deserialize)]

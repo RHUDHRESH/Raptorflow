@@ -70,7 +70,10 @@ async fn muse_submit_rejects_empty_prompt() {
             Request::builder()
                 .uri("/api/v1/muse")
                 .method("POST")
-                .header("Authorization", auth_header("00000000-0000-0000-0000-000000000001", "user_001"))
+                .header(
+                    "Authorization",
+                    auth_header("00000000-0000-0000-0000-000000000001", "user_001"),
+                )
                 .header("Content-Type", "application/json")
                 .body(Body::from(serde_json::to_vec(&body).unwrap()))
                 .expect("request"),
@@ -114,7 +117,10 @@ async fn muse_get_returns_404_for_nonexistent() {
             Request::builder()
                 .uri("/api/v1/muse/nonexistent-conversation")
                 .method("GET")
-                .header("Authorization", auth_header("00000000-0000-0000-0000-000000000002", "user_002"))
+                .header(
+                    "Authorization",
+                    auth_header("00000000-0000-0000-0000-000000000002", "user_002"),
+                )
                 .body(Body::empty())
                 .expect("request"),
         )
@@ -133,7 +139,10 @@ async fn muse_messages_returns_404_for_nonexistent() {
             Request::builder()
                 .uri("/api/v1/muse/nonexistent-conversation/messages")
                 .method("GET")
-                .header("Authorization", auth_header("00000000-0000-0000-0000-000000000003", "user_003"))
+                .header(
+                    "Authorization",
+                    auth_header("00000000-0000-0000-0000-000000000003", "user_003"),
+                )
                 .body(Body::empty())
                 .expect("request"),
         )
