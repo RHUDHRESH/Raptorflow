@@ -33,15 +33,37 @@
 //! last agent activity. Decay is applied per-dimension using per-avatar
 //! `ego_multipliers` so different emotional dimensions decay at different rates.
 //!
+//! ## Capability Harness (new in 0022)
+//!
+//! ### Cortex
+//! Builds bounded context packs from Foundation, Intel, Campaign, Office, and Ripple data.
+//!
+//! ### ExecutionEngine
+//! Executes capabilities by calling Bedrock with properly constructed prompts.
+//!
+//! ### RippleHarvester
+//! Extracts learning atoms from capability outputs for future context.
+//!
+//! ### CapabilitySeeder
+//! Seeds the 5 default safe capabilities into the database.
+//!
 //! ## Dependency chain
 //!
 //! ```text
 //! harness ──► eel ──► avatars ──► contracts
 //!       │                          
 //!       └──► db (pg pool + queries)
+//!       └──► aws (bedrock inference)
 //! ```
 //!
 //! No circular dependencies exist in this chain.
+
+#![allow(clippy::manual_clamp)]
+
+pub mod cortex;
+pub mod execution;
+pub mod ripples;
+pub mod seeds;
 
 use anyhow::Result;
 use chrono::{DateTime, Utc};

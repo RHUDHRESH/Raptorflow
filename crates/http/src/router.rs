@@ -12,8 +12,8 @@ use crate::middleware::{
     rate_limit::{RateLimitConfig, RateLimitLayer, RateLimitState},
 };
 use crate::routes::{
-    auth, avatars, billing, campaigns, content, council, daily_wins, foundation, harness, health,
-    intel, jobs, muse, nudges, office, prl, replan,
+    auth, avatars, billing, campaigns, capabilities, content, council, daily_wins, foundation,
+    harness, health, intel, jobs, muse, nudges, office, prl, replan,
 };
 
 fn cors_layer(state: &AppState) -> CorsLayer {
@@ -340,6 +340,53 @@ fn protected_router(state: Arc<AppState>) -> Router {
             post(harness::cancel_run),
         )
         .route("/api/v1/harness/runs/{id}/steps", get(harness::list_steps))
+        .route("/api/v1/capabilities", get(capabilities::list_capabilities))
+        .route(
+            "/api/v1/capabilities/defaults",
+            post(capabilities::ensure_default_capabilities),
+        )
+        .route(
+            "/api/v1/capabilities/{id}",
+            get(capabilities::get_capability),
+        )
+        .route(
+            "/api/v1/capabilities/key/{key}",
+            get(capabilities::get_capability_by_key),
+        )
+        .route(
+            "/api/v1/avatars/{id}/capabilities",
+            get(capabilities::list_avatar_capabilities),
+        )
+        .route(
+            "/api/v1/avatars/{id}/capabilities",
+            post(capabilities::grant_capability_to_avatar),
+        )
+        .route(
+            "/api/v1/avatars/{id}/capabilities/{capability_id}",
+            delete(capabilities::revoke_capability_from_avatar),
+        )
+        .route(
+            "/api/v1/harness/context-packs",
+            post(capabilities::create_context_pack),
+        )
+        .route(
+            "/api/v1/harness/context-packs/{id}",
+            get(capabilities::get_context_pack),
+        )
+        .route(
+            "/api/v1/capability-runs",
+            get(capabilities::list_capability_runs).post(capabilities::create_capability_run),
+        )
+        .route(
+            "/api/v1/capability-runs/{id}",
+            get(capabilities::get_capability_run),
+        )
+        .route("/api/v1/artifacts", get(capabilities::list_artifacts))
+        .route("/api/v1/artifacts/{id}", get(capabilities::get_artifact))
+        .route(
+            "/api/v1/artifacts/{id}/versions",
+            post(capabilities::create_artifact_version),
+        )
         .route("/api/v1/health", get(health::api_health))
         .layer(axum::middleware::from_fn_with_state(state, auth_middleware))
 }

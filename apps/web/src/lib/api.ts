@@ -706,6 +706,154 @@ export const harnessApi = {
   },
 };
 
+export const capabilitiesApi = {
+  list: async () => {
+    const res = await apiFetch<unknown>("/api/v1/capabilities", { auth: true });
+    return unwrapList<BackendCapabilityDefinition>(res, ["capabilities"]);
+  },
+  ensureDefaults: async () => {
+    const res = await apiFetch<unknown>("/api/v1/capabilities/defaults", {
+      method: "POST",
+      auth: true,
+    });
+    return unwrapList<BackendCapabilityDefinition>(res, ["capabilities"]);
+  },
+  get: async (id: string) => {
+    const res = await apiFetch<unknown>(`/api/v1/capabilities/${id}`, { auth: true });
+    const cap = unwrapItem<BackendCapabilityDefinition>(res, ["capability"]);
+    if (!cap) throw new ApiError(500, "Capability response missing capability payload");
+    return cap;
+  },
+  getByKey: async (key: string) => {
+    const res = await apiFetch<unknown>(`/api/v1/capabilities/key/${key}`, { auth: true });
+    const cap = unwrapItem<BackendCapabilityDefinition>(res, ["capability"]);
+    if (!cap) throw new ApiError(500, "Capability response missing capability payload");
+    return cap;
+  },
+  listAvatarCapabilities: async (avatarId: string) => {
+    const res = await apiFetch<unknown>(`/api/v1/avatars/${avatarId}/capabilities`, {
+      auth: true,
+    });
+    return unwrapList<BackendCapabilityDefinition>(res, ["capabilities"]);
+  },
+  grantToAvatar: async (avatarId: string, body: GrantCapabilityRequest) => {
+    const res = await apiFetch<{
+      grant_id: string;
+      avatar_id: string;
+      capability_id: string;
+      capability_key: string;
+      grant_scope: string;
+    }>(`/api/v1/avatars/${avatarId}/capabilities`, { method: "POST", body, auth: true });
+    return res;
+  },
+  revokeFromAvatar: async (avatarId: string, capabilityId: string) => {
+    await apiFetch<void>(`/api/v1/avatars/${avatarId}/capabilities/${capabilityId}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+  createContextPack: async (body: CreateContextPackRequest) => {
+    const res = await apiFetch<{
+      context_pack_id: string;
+      org_id: string;
+      scope: string;
+      token_budget: number;
+      created_at: string;
+    }>("/api/v1/harness/context-packs", { method: "POST", body, auth: true });
+    return res;
+  },
+  getContextPack: async (id: string) => {
+    const res = await apiFetch<{
+      context_pack_id: string;
+      org_id: string;
+      run_id: string | null;
+      capability_id: string | null;
+      avatar_id: string | null;
+      scope: string;
+      token_budget: number;
+      foundation_context: unknown;
+      intel_context: unknown;
+      campaign_context: unknown;
+      office_context: unknown;
+      ripple_context: unknown;
+      compressed_context: unknown | null;
+      created_at: string;
+    }>(`/api/v1/harness/context-packs/${id}`, { auth: true });
+    return res;
+  },
+  listRuns: async (limit = 50) => {
+    const res = await apiFetch<unknown>(`/api/v1/capability-runs?limit=${limit}`, { auth: true });
+    return unwrapList<BackendCapabilityRun>(res, ["capability_runs"]);
+  },
+  createRun: async (body: CreateCapabilityRunRequest) => {
+    const res = await apiFetch<{
+      capability_run_id: string;
+      artifact_id: string | null;
+      status: string;
+      output: unknown;
+      error: string | null;
+      model_id: string | null;
+      token_usage: unknown;
+    }>("/api/v1/capability-runs", { method: "POST", body, auth: true });
+    return res;
+  },
+  getRun: async (id: string) => {
+    const res = await apiFetch<unknown>(`/api/v1/capability-runs/${id}`, { auth: true });
+    const run = unwrapItem<BackendCapabilityRun>(res, ["capability_run"]);
+    if (!run) throw new ApiError(500, "Run response missing run payload");
+    return run;
+  },
+  listArtifacts: async (params?: { artifact_type?: string; status?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.artifact_type) query.set("artifact_type", params.artifact_type);
+    if (params?.status) query.set("status", params.status);
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    const res = await apiFetch<unknown>(`/api/v1/artifacts${qs ? `?${qs}` : ""}`, { auth: true });
+    return unwrapList<BackendCapabilityArtifact>(res, ["artifacts"]);
+  },
+  getArtifact: async (id: string) => {
+    const res = await apiFetch<unknown>(`/api/v1/artifacts/${id}`, { auth: true });
+    const artifact = unwrapItem<BackendCapabilityArtifact>(res, ["artifact"]);
+    if (!artifact) throw new ApiError(500, "Artifact response missing artifact payload");
+    return artifact;
+  },
+  createArtifactVersion: async (artifactId: string, body: CreateArtifactVersionRequest) => {
+    const res = await apiFetch<{ artifact: BackendCapabilityArtifact }>(
+      `/api/v1/artifacts/${artifactId}/versions`,
+      { method: "POST", body, auth: true },
+    );
+    return res.artifact;
+  },
+};
+
+export interface CreateContextPackRequest {
+  avatar_id?: string;
+  capability_id?: string;
+  capability_key?: string;
+  campaign_id?: string;
+  token_budget?: number;
+}
+
+export interface CreateCapabilityRunRequest {
+  avatar_id: string;
+  capability_key: string;
+  campaign_id?: string;
+  input: Record<string, unknown>;
+  mode?: "draft" | "dry_run";
+}
+
+export interface GrantCapabilityRequest {
+  capability_id: string;
+  grant_scope?: string;
+  constraints?: Record<string, unknown>;
+}
+
+export interface CreateArtifactVersionRequest {
+  body: Record<string, unknown>;
+  change_reason?: string;
+}
+
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
 export interface DailyWin {
@@ -1465,6 +1613,59 @@ export interface CreateHarnessRunRequest {
   input: Record<string, unknown>;
   avatar_keys?: string[];
   execute_now?: boolean;
+}
+
+export interface BackendCapabilityDefinition {
+  capability_id: string;
+  capability_key: string;
+  name: string;
+  domain: string;
+  description: string;
+  input_schema: Record<string, unknown>;
+  output_schema: Record<string, unknown>;
+  required_context: Record<string, unknown>;
+  allowed_tools: Record<string, unknown>;
+  artifact_type: string;
+  evaluator_key: string;
+  ripple_policy: Record<string, unknown>;
+  risk_level: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BackendCapabilityRun {
+  capability_run_id: string;
+  org_id: string;
+  avatar_id: string | null;
+  capability_id: string;
+  capability_key: string | null;
+  status: string;
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  error_message: string | null;
+  model_id: string | null;
+  token_usage: Record<string, unknown>;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BackendCapabilityArtifact {
+  artifact_id: string;
+  org_id: string;
+  capability_run_id: string | null;
+  avatar_id: string | null;
+  capability_id: string | null;
+  artifact_type: string;
+  title: string;
+  body: Record<string, unknown>;
+  status: string;
+  version: number;
+  evaluation: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 }
 
 function normalizeAvatar(a: BackendAvatar): Avatar {

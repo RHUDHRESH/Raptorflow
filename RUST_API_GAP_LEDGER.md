@@ -12,25 +12,28 @@
 
 ## Gap Summary
 
-| Category   | Route                                          | Status                                    | Risk       |
-| ---------- | ---------------------------------------------- | ----------------------------------------- | ---------- |
-| Auth       | `auth/forgot-password`                         | Gap                                       | Low        |
-| Auth       | `auth/reset-password`                          | Gap                                       | Low        |
-| Avatars    | `avatars`                                      | **Implemented + Tombstoned**              | ~~Medium~~ |
-| Dashboard  | `dashboard`                                    | **Implemented + Tombstoned** (→ Office)   | ~~Medium~~ |
-| Foundation | `foundation/scan/quick`                        | **Implemented + Tombstoned**              | ~~Medium~~ |
-| Campaign   | `campaigns/[id]/evaluate`                      | **Implemented + Red-teamed**              | ~~Medium~~ |
-| Campaign   | `campaigns/[id]/moves/generate`                | **Implemented + Red-teamed**              | ~~High~~   |
-| Campaign   | `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | Gap                                       | Low        |
-| Council    | `council/[sessionId]/start`                    | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
-| Council    | `council/[sessionId]/stream`                   | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
-| Council    | `council/[sessionId]/synthesize`               | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
-| Daily-wins | `daily-wins/cron`                              | Gap                                       | Low        |
-| Intel      | `intel/[signalId]`                             | **Implemented + Tombstoned**              | ~~Low~~    |
-| Intel      | `intel/brief/cron`                             | Gap                                       | Medium     |
-| Intel      | `intel/competitors`                            | **Implemented + Tombstoned**              | ~~High~~   |
-| Nudges     | `nudges/cron`                                  | Gap                                       | Low        |
-| PRL        | `prl/decay/cron`                               | Gap                                       | Low        |
+| Category        | Route                                          | Status                                    | Risk       |
+| --------------- | ---------------------------------------------- | ----------------------------------------- | ---------- |
+| Auth            | `auth/forgot-password`                         | Gap                                       | Low        |
+| Auth            | `auth/reset-password`                          | Gap                                       | Low        |
+| Avatars         | `avatars`                                      | **Implemented + Tombstoned**              | ~~Medium~~ |
+| Dashboard       | `dashboard`                                    | **Implemented + Tombstoned** (→ Office)   | ~~Medium~~ |
+| Foundation      | `foundation/scan/quick`                        | **Implemented + Tombstoned**              | ~~Medium~~ |
+| Campaign        | `campaigns/[id]/evaluate`                      | **Implemented + Red-teamed**              | ~~Medium~~ |
+| Campaign        | `campaigns/[id]/moves/generate`                | **Implemented + Red-teamed**              | ~~High~~   |
+| Campaign        | `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | Gap                                       | Low        |
+| Council         | `council/[sessionId]/start`                    | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
+| Council         | `council/[sessionId]/stream`                   | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
+| Council         | `council/[sessionId]/synthesize`               | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
+| Daily-wins      | `daily-wins/cron`                              | Gap                                       | Low        |
+| Intel           | `intel/[signalId]`                             | **Implemented + Tombstoned**              | ~~Low~~    |
+| Intel           | `intel/brief/cron`                             | Gap                                       | Medium     |
+| Intel           | `intel/competitors`                            | **Implemented + Tombstoned**              | ~~High~~   |
+| Nudges          | `nudges/cron`                                  | Gap                                       | Low        |
+| PRL             | `prl/decay/cron`                               | Gap                                       | Low        |
+| Capabilities    | `capabilities/*`, `harness/context-packs/*`    | **Implemented**                           | ~~High~~   |
+| Capability Runs | `capability-runs/*`                            | **Implemented**                           | ~~High~~   |
+| Artifacts       | `artifacts/*`                                  | **Implemented**                           | ~~Medium~~ |
 
 ---
 
@@ -123,6 +126,17 @@
 
 **Recommended Patch Bucket:** Cron job migration
 
+### 11. Capabilities, Cortex & Harness (0022)
+
+| Next Route                | Current Behavior               | Status                                                              | Risk       |
+| ------------------------- | ------------------------------ | ------------------------------------------------------------------- | ---------- |
+| `capabilities/*`          | Capability registry and grants | **IMPLEMENTED** - Rust endpoints at `/api/v1/capabilities`          | ~~High~~   |
+| `harness/context-packs/*` | Cortex context pack builder    | **IMPLEMENTED** - Rust endpoints at `/api/v1/harness/context-packs` | ~~High~~   |
+| `capability-runs/*`       | Capability execution engine    | **IMPLEMENTED** - Rust endpoints at `/api/v1/capability-runs`       | ~~High~~   |
+| `artifacts/*`             | Capability artifact versioning | **IMPLEMENTED** - Rust endpoints at `/api/v1/artifacts`             | ~~Medium~~ |
+
+**Recommended Patch Bucket:** ~~Capabilities/Cortex/Harness~~ - NOW DONE (see AVATAR_CAPABILITY_HARNESS_CORTEX_REPORT.md)
+
 ---
 
 ## Implementation Priority
@@ -136,6 +150,7 @@
 5. ~~**Intel competitors**~~ - `GET/POST /intel/competitors` - **IMPLEMENTED + TOMBSTONED**
 6. ~~**Avatars**~~ - `GET/POST/PATCH/DELETE /api/v1/avatars`, `POST /avatars/defaults` - **IMPLEMENTED + TOMBSTONED**
 7. ~~**Dashboard**~~ - Merged into Office aggregation (`GET /api/v1/office`) - **IMPLEMENTED + TOMBSTONED**
+8. ~~**Capabilities/Cortex/Harness**~~ - `GET /capabilities`, `POST /capabilities/defaults`, `GET/POST /avatars/{id}/capabilities`, `POST /harness/context-packs`, `GET /capability-runs`, `POST /capability-runs`, `GET /artifacts`, `POST /artifacts/{id}/versions` - **IMPLEMENTED** (see AVATAR_CAPABILITY_HARNESS_CORTEX_REPORT.md)
 
 ### Medium Risk (Remaining)
 

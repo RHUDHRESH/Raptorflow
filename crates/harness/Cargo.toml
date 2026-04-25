@@ -16,8 +16,11 @@ anyhow.workspace = true
 tracing.workspace = true
 ulid.workspace = true
 futures.workspace = true
+thiserror.workspace = true
+sqlx.workspace = true
 raptorflow-db = { path = "../db" }
 raptorflow-config = { path = "../config" }
 raptorflow-contracts = { path = "../contracts" }
 raptorflow-eel = { path = "../eel" }
 raptorflow-prl = { path = "../prl" }
+raptorflow-aws = { path = "../aws" }
