@@ -127,9 +127,6 @@ async fn runtime_reality_smoke_db_connection_and_migrations() {
 
     // Step 3: Apply migrations
     println!("[SMOKE DB] Step 3: Applying migrations from database/migrations/...");
-    let _ = sqlx::query("DELETE FROM _sqlx_migrations")
-        .execute(&pool)
-        .await;
     if let Err(e) = apply_migrations(&pool).await {
         panic!("[SMOKE DB] FAIL: Migration failed: {}", e);
     }
