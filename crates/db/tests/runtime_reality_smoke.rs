@@ -48,7 +48,7 @@ async fn apply_migrations(pool: &SqlxPgPool) -> Result<(), String> {
         .map(|p| p.join("database/migrations"))
         .ok_or("failed to resolve migrations path from CARGO_MANIFEST_DIR")?;
 
-    let migrator = Migrator::new(&migrations_path)
+    let migrator = Migrator::new(migrations_path)
         .await
         .map_err(|e| format!("failed to create migrator: {}", e))?;
 
