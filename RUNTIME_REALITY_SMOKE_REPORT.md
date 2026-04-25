@@ -2,7 +2,7 @@
 
 **Branch:** `fix/runtime-reality-smoke-tests`  
 **Date:** 2026-04-25  
-**Status:** COMPLETED
+**Status:** CI IN PROGRESS (Migration fix pushed)
 
 ---
 
@@ -75,6 +75,28 @@ rg "delete collection|DELETE /collections" scripts/smoke/qdrant-smoke.mjs
 ```
 
 **Result:** Smoke collections are properly deleted after test.
+
+---
+
+## Issues Resolved
+
+### Duplicate Migration Version Fix
+
+**Problem:** Two migration files had version `0002`:
+
+- `database/migrations/0002_auth_indexes.sql`
+- `database/migrations/0002_foundation.sql`
+
+sqlx's Migrator uses the numeric prefix to track applied migrations. When two files share the same version, sqlx attempts to insert migration version 2 twice into `_sqlx_migrations`, causing:
+
+```
+duplicate key value violates unique constraint "_sqlx_migrations_pkey"
+Key (version)=(2) already exists
+```
+
+**Fix:** Renamed `0002_foundation.sql` to `0002a_foundation.sql` so it runs before `0002_auth_indexes.sql` (since `0002a` < `0002` alphabetically, and sqlx sorts migrations alphabetically).
+
+**Commit:** `a9e6b92d6`
 
 ---
 
