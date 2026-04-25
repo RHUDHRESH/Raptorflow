@@ -30,7 +30,7 @@ function headers() {
   return h;
 }
 
-function async fetchWithTimeout(url, options, timeoutMs = 10000) {
+async function fetchWithTimeout(url, options, timeoutMs = 10000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -91,7 +91,9 @@ async function createCollection(collectionName) {
 }
 
 async function waitForCollection(collectionName) {
-  process.stdout.write(`[SMOKE QDRANT] Step 2b: Wait for collection '${collectionName}' to be ready ... `);
+  process.stdout.write(
+    `[SMOKE QDRANT] Step 2b: Wait for collection '${collectionName}' to be ready ... `,
+  );
   const maxAttempts = 10;
   for (let i = 0; i < maxAttempts; i++) {
     try {
@@ -105,7 +107,9 @@ async function waitForCollection(collectionName) {
           return true;
         }
       }
-    } catch (_) { /* retry */ }
+    } catch (_) {
+      /* retry */
+    }
     await new Promise((r) => setTimeout(r, 500));
   }
   console.log("FAIL: Collection not ready after 10 attempts");
@@ -115,22 +119,19 @@ async function waitForCollection(collectionName) {
 async function upsertPoint(collectionName) {
   process.stdout.write(`[SMOKE QDRANT] Step 3: PUT /collections/${collectionName}/points ... `);
   try {
-    const res = await fetchWithTimeout(
-      `${QDRANT_URL}/collections/${collectionName}/points`,
-      {
-        method: "PUT",
-        headers: headers(),
-        body: JSON.stringify({
-          points: [
-            {
-              id: 1,
-              vector: [0.1, 0.2, 0.3, 0.4],
-              payload: { smoke: true, source: "runtime_reality" },
-            },
-          ],
-        }),
-      }
-    );
+    const res = await fetchWithTimeout(`${QDRANT_URL}/collections/${collectionName}/points`, {
+      method: "PUT",
+      headers: headers(),
+      body: JSON.stringify({
+        points: [
+          {
+            id: 1,
+            vector: [0.1, 0.2, 0.3, 0.4],
+            payload: { smoke: true, source: "runtime_reality" },
+          },
+        ],
+      }),
+    });
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`Upsert failed: ${res.status} ${text}`);
@@ -148,7 +149,9 @@ async function upsertPoint(collectionName) {
 }
 
 async function searchPoint(collectionName) {
-  process.stdout.write(`[SMOKE QDRANT] Step 4: POST /collections/${collectionName}/points/search ... `);
+  process.stdout.write(
+    `[SMOKE QDRANT] Step 4: POST /collections/${collectionName}/points/search ... `,
+  );
   try {
     const res = await fetchWithTimeout(
       `${QDRANT_URL}/collections/${collectionName}/points/search`,
@@ -160,7 +163,7 @@ async function searchPoint(collectionName) {
           limit: 1,
           with_payload: true,
         }),
-      }
+      },
     );
     if (!res.ok) {
       const text = await res.text();
