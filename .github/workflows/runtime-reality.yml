@@ -60,7 +60,7 @@ jobs:
           CONTAINER_ID=$(docker ps -q --filter "ancestor=pgvector/pgvector:pg16")
           docker exec $CONTAINER_ID psql -U testuser -d postgres -c "DROP DATABASE IF EXISTS raptorflow_test;"
           docker exec $CONTAINER_ID psql -U testuser -d postgres -c "CREATE DATABASE raptorflow_test;"
-          docker exec $CONTAINER_ID psql -U testuser -d postgres -c "CREATE EXTENSION IF NOT EXISTS vector;"
+          docker exec $CONTAINER_ID psql -U testuser -d raptorflow_test -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
       - name: Run DB smoke test
         env:
