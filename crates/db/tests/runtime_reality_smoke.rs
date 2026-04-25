@@ -171,12 +171,9 @@ async fn runtime_reality_smoke_db_connection_and_migrations() {
         Err(e) => panic!("[SMOKE DB] FAIL: Could not begin transaction: {}", e),
     };
 
-    let set_result = sqlx::query(&format!(
-        "SET LOCAL app.current_org_id = '{}'",
-        test_org_id
-    ))
-    .execute(&mut *tx)
-    .await;
+    let set_result = sqlx::query(&format!("SET LOCAL app.current_org_id = '{}'", test_org_id))
+        .execute(&mut *tx)
+        .await;
 
     match set_result {
         Ok(_) => println!("[SMOKE DB]   SET LOCAL app.current_org_id succeeded"),
