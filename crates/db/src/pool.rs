@@ -26,9 +26,7 @@ pub async fn create_migration_pool(direct_database_url: &str) -> Result<PgPool, 
 
 /// Verify the pool is reachable. Used in health checks.
 pub async fn ping(pool: &PgPool) -> Result<(), sqlx::Error> {
-    sqlx::query("SELECT 1")
-        .execute(pool)
-        .await?;
+    sqlx::query("SELECT 1").execute(pool).await?;
     Ok(())
 }
 

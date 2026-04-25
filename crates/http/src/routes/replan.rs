@@ -1,16 +1,16 @@
 use axum::{
+    Json,
     extract::{Extension, Path},
     http::StatusCode,
-    Json,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use ulid::Ulid;
 
-use raptorflow_auth::TenantContext;
-use raptorflow_db::{queries, TenantDbPool};
-use raptorflow_db::models::ReplanSession;
 use crate::routes::office::handlers::emit_office_event;
+use raptorflow_auth::TenantContext;
+use raptorflow_db::models::ReplanSession;
+use raptorflow_db::{TenantDbPool, queries};
 
 type AppResult<T> = Result<T, (StatusCode, Json<Value>)>;
 
@@ -27,7 +27,10 @@ fn bad_request(msg: &str) -> (StatusCode, Json<Value>) {
 }
 
 fn not_found() -> (StatusCode, Json<Value>) {
-    (StatusCode::NOT_FOUND, Json(json!({ "error": "replan_not_found" })))
+    (
+        StatusCode::NOT_FOUND,
+        Json(json!({ "error": "replan_not_found" })),
+    )
 }
 
 #[derive(Debug, Deserialize)]
@@ -98,7 +101,11 @@ pub async fn trigger_replan(
 
     match session {
         Some(s) => {
-            emit_office_event("replan_triggered", org_id, json!({"campaign_id": campaign_id, "replan_session_id": &s.replan_session_id, "trigger_type": &s.trigger_type}));
+            emit_office_event(
+                "replan_triggered",
+                org_id,
+                json!({"campaign_id": campaign_id, "replan_session_id": &s.replan_session_id, "trigger_type": &s.trigger_type}),
+            );
             Ok(Json(json!({
                 "replan": ReplanResponse::from(s),
                 "status": "created"

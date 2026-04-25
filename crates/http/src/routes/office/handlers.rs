@@ -1,23 +1,23 @@
-use std::sync::Arc;
-use std::sync::LazyLock;
 use axum::{
+    Json, Router,
     extract::{
-        ws::{Message, WebSocket, WebSocketUpgrade},
         Extension, Query,
+        ws::{Message, WebSocket, WebSocketUpgrade},
     },
     http::StatusCode,
-    Json, Router,
     routing::get,
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use std::sync::Arc;
+use std::sync::LazyLock;
 use tokio::sync::broadcast;
 
+use super::events::{EventBus, OfficeEvent};
+use crate::middleware::AppState;
 use raptorflow_auth::TenantContext;
 use raptorflow_db::TenantDbPool;
-use crate::middleware::AppState;
-use super::events::{EventBus, OfficeEvent};
 
 static EVENT_BUS: LazyLock<Arc<EventBus>> = LazyLock::new(|| Arc::new(EventBus::new()));
 
@@ -124,16 +124,15 @@ pub async fn ws_office(
 
     let org_id = claims.org_id.map(|id| id.to_string()).unwrap_or_default();
 
-    let response = ws.on_upgrade(move |socket| {
-        handle_socket(socket, org_id)
-    });
+    let response = ws.on_upgrade(move |socket| handle_socket(socket, org_id));
 
     Ok(response.into())
 }
 
 async fn handle_socket(socket: WebSocket, org_id: String) {
     let event_bus = get_event_bus();
-    let mut event_rx: broadcast::Receiver<OfficeEvent> = match event_bus.get_receiver(&org_id).await {
+    let mut event_rx: broadcast::Receiver<OfficeEvent> = match event_bus.get_receiver(&org_id).await
+    {
         Some(rx) => rx,
         None => {
             return;

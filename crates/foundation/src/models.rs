@@ -349,11 +349,11 @@ pub struct VoicePractice {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct BrandVoiceSliders {
     // 1 = one extreme, 10 = the other extreme
-    pub formal_informal: u8,          // "Corporate" ↔ "Casual"
-    pub serious_playful: u8,          // "Serious" ↔ "Playful"
-    pub technical_simple: u8,         // "Technical" ↔ "Simple"
-    pub authoritative_collegial: u8,  // "Authoritative" ↔ "Collegial"
-    pub traditional_innovative: u8,   // "Traditional" ↔ "Innovative"
+    pub formal_informal: u8,         // "Corporate" ↔ "Casual"
+    pub serious_playful: u8,         // "Serious" ↔ "Playful"
+    pub technical_simple: u8,        // "Technical" ↔ "Simple"
+    pub authoritative_collegial: u8, // "Authoritative" ↔ "Collegial"
+    pub traditional_innovative: u8,  // "Traditional" ↔ "Innovative"
 }
 
 impl BrandVoiceSliders {

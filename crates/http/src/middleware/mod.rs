@@ -4,8 +4,8 @@ pub mod role_guard;
 pub mod tenant;
 pub mod trace;
 
-use raptorflow_aws::bedrock::BedrockInferenceClient;
 use raptorflow_auth::JwtValidator;
+use raptorflow_aws::bedrock::BedrockInferenceClient;
 use raptorflow_db::TenantDbPool;
 use std::sync::Arc;
 
@@ -43,6 +43,9 @@ impl AppState {
 
 impl axum::extract::FromRef<AppState> for TenantDbPool {
     fn from_ref(state: &AppState) -> Self {
-        state.tenant_pool.clone().expect("tenant_pool not configured")
+        state
+            .tenant_pool
+            .clone()
+            .expect("tenant_pool not configured")
     }
 }

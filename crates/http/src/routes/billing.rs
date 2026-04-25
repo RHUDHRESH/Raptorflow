@@ -45,18 +45,22 @@ pub async fn razorpay_webhook(
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?;
 
-    let webhook_secret = state.settings.razorpay_webhook_secret.clone().ok_or_else(|| {
-        tracing::error!("Missing Razorpay webhook secret in settings");
-        StatusCode::INTERNAL_SERVER_ERROR
-    })?;
+    let webhook_secret = state
+        .settings
+        .razorpay_webhook_secret
+        .clone()
+        .ok_or_else(|| {
+            tracing::error!("Missing Razorpay webhook secret in settings");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     if !verify_razorpay_signature(&body, &signature, &webhook_secret) {
         return Err(StatusCode::UNAUTHORIZED);
     }
 
     let payload: Value = serde_json::from_slice(&body).map_err(|_| StatusCode::BAD_REQUEST)?;
-    let event_id = extract_str(&payload, &["id", "event_id"])
-        .unwrap_or_else(|| payload_hash_id(&body));
+    let event_id =
+        extract_str(&payload, &["id", "event_id"]).unwrap_or_else(|| payload_hash_id(&body));
     let event_type = extract_str(&payload, &["event"]).unwrap_or_else(|| "unknown".to_string());
     let subscription_id = nested_str(&payload, &["payload", "subscription", "entity", "id"]);
     let payment_id = nested_str(&payload, &["payload", "payment", "entity", "id"]);
@@ -98,7 +102,8 @@ pub async fn razorpay_webhook(
             }));
         }
 
-        if let (Some(subscription_id), Some(status)) = (subscription_id.as_deref(), status.as_deref())
+        if let (Some(subscription_id), Some(status)) =
+            (subscription_id.as_deref(), status.as_deref())
         {
             sqlx::query(
                 r#"
@@ -140,13 +145,9 @@ pub async fn razorpay_webhook(
     }))
 }
 
-fn verify_razorpay_signature(
-    body: &[u8],
-    signature: &str,
-    secret: &str,
-) -> bool {
-    let mut mac = HmacSha256::new_from_slice(secret.as_bytes())
-        .expect("HMAC accepts any key length");
+fn verify_razorpay_signature(body: &[u8], signature: &str, secret: &str) -> bool {
+    let mut mac =
+        HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC accepts any key length");
     mac.update(body);
     let Ok(provided) = hex::decode(signature) else {
         return false;

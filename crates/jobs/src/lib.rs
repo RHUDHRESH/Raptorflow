@@ -222,10 +222,9 @@ pub async fn accept_research_request(
         .await
         .map_err(internal_error)?;
 
-    let result =
-        process_research_request(&mut conn, &vector_index, &embedding, request)
-            .await
-            .map_err(internal_error)?;
+    let result = process_research_request(&mut conn, &vector_index, &embedding, request)
+        .await
+        .map_err(internal_error)?;
 
     Ok(Json(json!({
         "status": "completed",
@@ -511,7 +510,11 @@ async fn fetch_and_parse(
                     browser_parsed.title.unwrap_or_default(),
                 )
             } else {
-                (parsed.cleaned_text, final_url, parsed.title.unwrap_or_default())
+                (
+                    parsed.cleaned_text,
+                    final_url,
+                    parsed.title.unwrap_or_default(),
+                )
             }
         }
         Err(_) if matches!(request_kind, ResearchRequestKind::Browser) => {
@@ -694,14 +697,9 @@ pub async fn accept_tool_gateway_request(
         .await
         .map_err(internal_error)?;
 
-    let result = process_research_request(
-        &mut conn,
-        &vector_index,
-        &embedding,
-        research_request,
-    )
-    .await
-    .map_err(internal_error)?;
+    let result = process_research_request(&mut conn, &vector_index, &embedding, research_request)
+        .await
+        .map_err(internal_error)?;
 
     Ok(Json(json!({
         "status": "completed",

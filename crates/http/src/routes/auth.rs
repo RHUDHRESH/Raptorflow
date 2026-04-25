@@ -6,7 +6,7 @@ use axum::{
     routing::post,
 };
 use raptorflow_auth::clerk::{ClerkMembershipData, ClerkOrgData, ClerkUserData};
-use raptorflow_auth::{derive_internal_org_id, ClerkClient, ClerkWebhookEvent};
+use raptorflow_auth::{ClerkClient, ClerkWebhookEvent, derive_internal_org_id};
 use raptorflow_db::queries;
 use serde::Serialize;
 use std::sync::Arc;
@@ -108,20 +108,20 @@ pub async fn clerk_webhook(
         }
 
         let processing_result: Result<(), String> = async {
-        match event.event_type.as_str() {
-            "user.created" | "user.updated" => {
-                upsert_user(pool, &event).await?;
+            match event.event_type.as_str() {
+                "user.created" | "user.updated" => {
+                    upsert_user(pool, &event).await?;
+                }
+                "organization_membership.created" | "organization_membership.updated" => {
+                    upsert_membership(pool, &event).await?;
+                }
+                "organization.created" => {
+                    handle_org_created(pool, &event).await?;
+                }
+                _ => {
+                    tracing::debug!(event_type = %event.event_type, "Unhandled webhook event type");
+                }
             }
-            "organization_membership.created" | "organization_membership.updated" => {
-                upsert_membership(pool, &event).await?;
-            }
-            "organization.created" => {
-                handle_org_created(pool, &event).await?;
-            }
-            _ => {
-                tracing::debug!(event_type = %event.event_type, "Unhandled webhook event type");
-            }
-        }
 
             Ok(())
         }

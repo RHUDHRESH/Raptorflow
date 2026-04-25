@@ -194,18 +194,14 @@ fn protected_router(state: Arc<AppState>) -> Router {
         .route("/api/v1/intel", get(intel::list_intel_overview))
         .route("/api/v1/intel/runs", get(intel::list_research_runs))
         .route("/api/v1/intel/documents", get(intel::list_documents))
-        .route(
-            "/api/v1/intel/signals",
-            get(intel::list_signals),
-        )
+        .route("/api/v1/intel/signals", get(intel::list_signals))
         .route(
             "/api/v1/intel/signals/{id}",
             get(intel::get_signal).patch(intel::update_signal),
         )
         .route(
             "/api/v1/intel/competitors",
-            get(intel::list_competitor_snapshots)
-                .post(intel::create_competitor_snapshot),
+            get(intel::list_competitor_snapshots).post(intel::create_competitor_snapshot),
         )
         .route(
             "/api/v1/campaigns",

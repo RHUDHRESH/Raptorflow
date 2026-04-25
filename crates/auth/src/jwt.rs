@@ -1,7 +1,7 @@
 use crate::error::AuthError;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
-use sha2::{Digest, Sha256};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;

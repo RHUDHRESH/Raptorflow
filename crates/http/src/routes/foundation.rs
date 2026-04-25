@@ -549,7 +549,9 @@ async fn launch_scan(
                 .map(|s| s == "failed")
                 .unwrap_or(false);
             if is_failed {
-                d.get("error").and_then(|e: &serde_json::Value| e.as_str()).map(String::from)
+                d.get("error")
+                    .and_then(|e: &serde_json::Value| e.as_str())
+                    .map(String::from)
             } else {
                 None
             }

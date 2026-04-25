@@ -81,7 +81,7 @@ static TEMPLATE: AvatarTemplate = AvatarTemplate {
             SkillAtom::initial(
                 "offer_construction",
                 "Offer construction",
-"Design commercial offers (guarantee, premium, coupon) that lower purchase risk and test consumer response.",
+                "Design commercial offers (guarantee, premium, coupon) that lower purchase risk and test consumer response.",
                 SkillAtomType::StructuredRule,
                 vec!["offer", "direct_response", "conversion"],
             ),

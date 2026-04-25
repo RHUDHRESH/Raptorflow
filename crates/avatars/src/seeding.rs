@@ -162,7 +162,10 @@ fn overlay_strategist_essence(
     }
 
     #[allow(clippy::collapsible_if)]
-    if let Some(arr) = essence.get_mut("core_beliefs").and_then(|v| v.as_array_mut()) {
+    if let Some(arr) = essence
+        .get_mut("core_beliefs")
+        .and_then(|v| v.as_array_mut())
+    {
         if let Some(audience) = target_audience {
             arr.push(serde_json::json!(format!(
                 "Every campaign must speak directly to {} with precision and authenticity.",

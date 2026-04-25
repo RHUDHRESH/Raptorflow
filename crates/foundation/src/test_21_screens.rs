@@ -17,10 +17,10 @@ fn test_full_21_screen_payload_serialization() {
         writing_samples: None,
         channel_performance: None,
         version: 1,
-        
+
         // Screen 1: URL
         company_url: Some("https://acme.com".to_string()),
-        
+
         // Screen 2: Company Info
         company_info: CompanyInfo {
             name: Some("Acme Corp".to_string()),
@@ -34,27 +34,25 @@ fn test_full_21_screen_payload_serialization() {
             tagline: Some("Empowering teams to do more".to_string()),
             logo_url: None,
         },
-        
+
         // Screen 3: Stage
         company_stage: Some("growth".to_string()),
-        
+
         // Screen 4: Product Catalog
         product_catalog: ProductCatalog {
-            products: vec![
-                Product {
-                    name: "Pro Plan".to_string(),
-                    description: Some("For growing teams".to_string()),
-                    price: Some("$99/mo".to_string()),
-                    target_segment: Some("SMB".to_string()),
-                }
-            ],
+            products: vec![Product {
+                name: "Pro Plan".to_string(),
+                description: Some("For growing teams".to_string()),
+                price: Some("$99/mo".to_string()),
+                target_segment: Some("SMB".to_string()),
+            }],
             primary_product: Some("Pro Plan".to_string()),
             pricing_model: Some("subscription".to_string()),
         },
-        
+
         // Screen 5: Problem Statement
         problem_statement: Some("Teams struggle with coordination".to_string()),
-        
+
         // Screen 6: Primary ICP (using B2B variant)
         target_audience: TargetAudience {
             mode: "b2b".to_string(),
@@ -72,45 +70,38 @@ fn test_full_21_screen_payload_serialization() {
                 demographics: json!({"age": "30-50", "team_size": "10-50"}),
             }),
         },
-        
+
         // Screen 7: Secondary ICPs
-        secondary_icps: vec![
-            SecondaryIcp::B2B(B2BIcp {
-                name: "Enterprise".to_string(),
-                persona_name: "Enterprise CTO".to_string(),
-                role_identity: "CTO".to_string(),
-                reporting_to: Some("CEO".to_string()),
-                key_goals: vec!["Innovation".to_string()],
-                pressures: vec!["Budget constraints".to_string()],
-                decision_process: Some("Procurement".to_string()),
-                language_samples: vec!["Enterprise-grade".to_string()],
-                pain_points: vec!["Legacy systems".to_string()],
-                goals: vec!["Digital transformation".to_string()],
-                demographics: json!({"size": "500+"}),
-            })
-        ],
-        
+        secondary_icps: vec![SecondaryIcp::B2B(B2BIcp {
+            name: "Enterprise".to_string(),
+            persona_name: "Enterprise CTO".to_string(),
+            role_identity: "CTO".to_string(),
+            reporting_to: Some("CEO".to_string()),
+            key_goals: vec!["Innovation".to_string()],
+            pressures: vec!["Budget constraints".to_string()],
+            decision_process: Some("Procurement".to_string()),
+            language_samples: vec!["Enterprise-grade".to_string()],
+            pain_points: vec!["Legacy systems".to_string()],
+            goals: vec!["Digital transformation".to_string()],
+            demographics: json!({"size": "500+"}),
+        })],
+
         // Screen 8: Competitors
         competitors: Competitors {
-            direct: vec![
-                Competitor {
-                    name: "CompetitorA".to_string(),
-                    competitor_url: Some("https://competitor-a.com".to_string()),
-                    tracking_enabled: true,
-                    strengths: vec!["Brand".to_string()],
-                    weaknesses: vec!["Price".to_string()],
-                    positioning: None,
-                }
-            ],
+            direct: vec![Competitor {
+                name: "CompetitorA".to_string(),
+                competitor_url: Some("https://competitor-a.com".to_string()),
+                tracking_enabled: true,
+                strengths: vec!["Brand".to_string()],
+                weaknesses: vec!["Price".to_string()],
+                positioning: None,
+            }],
             indirect: vec![],
         },
-        
+
         // Screen 9: Differentiation
-        differentiation: vec![
-            "Better UX".to_string(),
-            "Lower price".to_string(),
-        ],
-        
+        differentiation: vec!["Better UX".to_string(), "Lower price".to_string()],
+
         // Screen 10: Positioning
         positioning: Positioning {
             tagline: Some("The modern choice".to_string()),
@@ -126,7 +117,7 @@ fn test_full_21_screen_payload_serialization() {
             locked_at: None,
             ai_draft: None,
         },
-        
+
         // Screen 11: Brand Personality
         brand_personality: BrandPersonality {
             traits: vec!["Innovative".to_string(), "Friendly".to_string()],
@@ -134,7 +125,7 @@ fn test_full_21_screen_payload_serialization() {
             style: "Modern".to_string(),
             archetype: Some("Hero".to_string()),
         },
-        
+
         // Screen 12: Voice Practice
         voice_practice: VoicePractice {
             sliders: BrandVoiceSliders {
@@ -144,40 +135,34 @@ fn test_full_21_screen_payload_serialization() {
                 authoritative_collegial: 5,
                 traditional_innovative: 8,
             },
-            writing_samples: vec![
-                WritingSample {
-                    title: "Welcome Email".to_string(),
-                    content: "Welcome to Acme! We're excited to have you.".to_string(),
-                    category: "email".to_string(),
-                    quality_score: Some(4.5),
-                }
-            ],
+            writing_samples: vec![WritingSample {
+                title: "Welcome Email".to_string(),
+                content: "Welcome to Acme! We're excited to have you.".to_string(),
+                category: "email".to_string(),
+                quality_score: Some(4.5),
+            }],
             voice_fingerprint: Some("confident-friendly-informative".to_string()),
         },
-        
+
         // Screen 13: Content Territories
-        content_territories: vec![
-            ContentTerritory {
-                name: "Product Updates".to_string(),
-                description: "Latest features and releases".to_string(),
-                priority: 1,
-                topics: vec!["New features".to_string()],
-                content_types: vec!["Blog".to_string()],
-            }
-        ],
-        
+        content_territories: vec![ContentTerritory {
+            name: "Product Updates".to_string(),
+            description: "Latest features and releases".to_string(),
+            priority: 1,
+            topics: vec!["New features".to_string()],
+            content_types: vec!["Blog".to_string()],
+        }],
+
         // Screen 14: Channels
         channels: Channels {
-            primary: vec![
-                Channel {
-                    name: "LinkedIn".to_string(),
-                    platform: "LinkedIn".to_string(),
-                    frequency: Some("Weekly".to_string()),
-                    audience_size: Some("10k".to_string()),
-                    url: Some("https://linkedin.com/company/acme".to_string()),
-                    is_active: true,
-                }
-            ],
+            primary: vec![Channel {
+                name: "LinkedIn".to_string(),
+                platform: "LinkedIn".to_string(),
+                frequency: Some("Weekly".to_string()),
+                audience_size: Some("10k".to_string()),
+                url: Some("https://linkedin.com/company/acme".to_string()),
+                is_active: true,
+            }],
             secondary: vec![],
             content_history: ContentHistory {
                 current_output: Some("Bi-weekly blogs".to_string()),
@@ -185,19 +170,17 @@ fn test_full_21_screen_payload_serialization() {
                 challenges: vec!["Content calendar".to_string()],
             },
         },
-        
+
         // Screen 15: Goals & KPIs
         goals: Goals {
             primary_goal: Some("Brand awareness".to_string()),
             secondary_goals: vec!["Lead generation".to_string()],
-            kpis: vec![
-                Kpi {
-                    name: "Website traffic".to_string(),
-                    target: "50k/mo".to_string(),
-                    current: Some("20k/mo".to_string()),
-                    metric: "visitors".to_string(),
-                }
-            ],
+            kpis: vec![Kpi {
+                name: "Website traffic".to_string(),
+                target: "50k/mo".to_string(),
+                current: Some("20k/mo".to_string()),
+                metric: "visitors".to_string(),
+            }],
             budget: Budget {
                 monthly: Some("$5000".to_string()),
                 total: Some("$60000".to_string()),
@@ -205,76 +188,71 @@ fn test_full_21_screen_payload_serialization() {
             },
             timeline: Some("12 months".to_string()),
         },
-        
+
         // Screen 16: SEO Keywords
         seo_keywords: SeoKeywords {
-            primary_keywords: vec!["project management".to_string(), "team collaboration".to_string()],
+            primary_keywords: vec![
+                "project management".to_string(),
+                "team collaboration".to_string(),
+            ],
             secondary_keywords: vec!["productivity tools".to_string()],
             negative_keywords: vec!["free".to_string()],
             search_volume_data: None,
             competitor_keywords: None,
         },
-        
+
         // Screen 17: Asset Inventory
         asset_inventory: AssetInventory {
-            logos: vec![
-                Asset {
-                    name: "Primary Logo".to_string(),
-                    url: Some("https://acme.com/logo.png".to_string()),
-                    asset_type: "logo".to_string(),
-                    description: None,
-                }
-            ],
+            logos: vec![Asset {
+                name: "Primary Logo".to_string(),
+                url: Some("https://acme.com/logo.png".to_string()),
+                asset_type: "logo".to_string(),
+                description: None,
+            }],
             images: vec![],
             templates: vec![],
             documents: vec![],
             existing_brand_guidelines: None,
         },
-        
+
         // Screen 18: Frustrations
         frustrations: Frustrations {
             current_solutions: vec!["Spreadsheets".to_string()],
-            pain_points: vec![
-                Frustration {
-                    description: "Disorganized workflows".to_string(),
-                    severity: "high".to_string(),
-                    frequency: "daily".to_string(),
-                    impact: "productivity".to_string(),
-                }
-            ],
+            pain_points: vec![Frustration {
+                description: "Disorganized workflows".to_string(),
+                severity: "high".to_string(),
+                frequency: "daily".to_string(),
+                impact: "productivity".to_string(),
+            }],
             analytics_tracking: AnalyticsTracking {
                 current_tools: vec!["Google Analytics".to_string()],
                 satisfaction: Some("Neutral".to_string()),
                 gaps: vec!["Attribution".to_string()],
             },
         },
-        
+
         // Screen 19: Tools
         tools: Tools {
-            crm: vec![
-                Tool {
-                    name: "HubSpot".to_string(),
-                    category: "CRM".to_string(),
-                    usage: "Customer management".to_string(),
-                    integration_status: Some("Connected".to_string()),
-                }
-            ],
+            crm: vec![Tool {
+                name: "HubSpot".to_string(),
+                category: "CRM".to_string(),
+                usage: "Customer management".to_string(),
+                integration_status: Some("Connected".to_string()),
+            }],
             marketing: vec![],
             analytics: vec![],
             design: vec![],
             other: vec![],
         },
-        
+
         // Screen 20: Reference Brands
-        reference_brands: vec![
-            ReferenceBrand {
-                name: "Stripe".to_string(),
-                website: Some("https://stripe.com".to_string()),
-                what_to_imitate: "Developer experience".to_string(),
-                aspects: vec!["Documentation".to_string(), "API design".to_string()],
-            }
-        ],
-        
+        reference_brands: vec![ReferenceBrand {
+            name: "Stripe".to_string(),
+            website: Some("https://stripe.com".to_string()),
+            what_to_imitate: "Developer experience".to_string(),
+            aspects: vec!["Documentation".to_string(), "API design".to_string()],
+        }],
+
         // Screen 21: Strategist
         strategist: Strategist {
             name: "Alex".to_string(),
@@ -288,86 +266,141 @@ fn test_full_21_screen_payload_serialization() {
             calibration_notes: Some("Prefers data-driven insights".to_string()),
             avatar_seed: None,
         },
-        
+
         extra: json!({}),
     };
 
     // Serialize to JSON
     let json_str = serde_json::to_string_pretty(&foundation).expect("Failed to serialize");
-    
+
     // Verify key fields are present in the JSON
     let json: serde_json::Value = serde_json::from_str(&json_str).expect("Failed to parse JSON");
-    
+
     // Screen 1: URL
     assert_eq!(json["company_url"].as_str().unwrap(), "https://acme.com");
-    
+
     // Screen 2: Company Info
     assert_eq!(json["company_info"]["name"].as_str().unwrap(), "Acme Corp");
-    assert_eq!(json["company_info"]["legal_name"].as_str().unwrap(), "Acme Corporation");
+    assert_eq!(
+        json["company_info"]["legal_name"].as_str().unwrap(),
+        "Acme Corporation"
+    );
     assert_eq!(json["company_info"]["year_founded"].as_i64().unwrap(), 2020);
-    
+
     // Screen 3: Stage
     assert_eq!(json["company_stage"].as_str().unwrap(), "growth");
-    
+
     // Screen 4: Products
-    assert_eq!(json["product_catalog"]["pricing_model"].as_str().unwrap(), "subscription");
-    
+    assert_eq!(
+        json["product_catalog"]["pricing_model"].as_str().unwrap(),
+        "subscription"
+    );
+
     // Screen 5: Problem Statement
-    assert_eq!(json["problem_statement"].as_str().unwrap(), "Teams struggle with coordination");
-    
+    assert_eq!(
+        json["problem_statement"].as_str().unwrap(),
+        "Teams struggle with coordination"
+    );
+
     // Screen 6: Primary ICP
     assert!(json["target_audience"]["mode"].is_string());
     assert_eq!(json["target_audience"]["mode"].as_str().unwrap(), "b2b");
-    
+
     // Screen 7: Secondary ICPs
     assert!(json["secondary_icps"].is_array());
-    
+
     // Screen 8: Competitors
-    assert_eq!(json["competitors"]["direct"][0]["name"].as_str().unwrap(), "CompetitorA");
-    
+    assert_eq!(
+        json["competitors"]["direct"][0]["name"].as_str().unwrap(),
+        "CompetitorA"
+    );
+
     // Screen 9: Differentiation
     assert_eq!(json["differentiation"][0].as_str().unwrap(), "Better UX");
-    
+
     // Screen 10: Positioning
-    assert_eq!(json["positioning"]["tagline"].as_str().unwrap(), "The modern choice");
-    
+    assert_eq!(
+        json["positioning"]["tagline"].as_str().unwrap(),
+        "The modern choice"
+    );
+
     // Screen 11: Brand Personality
-    assert_eq!(json["brand_personality"]["archetype"].as_str().unwrap(), "Hero");
-    
+    assert_eq!(
+        json["brand_personality"]["archetype"].as_str().unwrap(),
+        "Hero"
+    );
+
     // Screen 12: Voice Practice
-    assert_eq!(json["voice_practice"]["sliders"]["formal_informal"].as_u64().unwrap(), 6);
-    
+    assert_eq!(
+        json["voice_practice"]["sliders"]["formal_informal"]
+            .as_u64()
+            .unwrap(),
+        6
+    );
+
     // Screen 13: Content Territories
-    assert_eq!(json["content_territories"][0]["name"].as_str().unwrap(), "Product Updates");
-    
+    assert_eq!(
+        json["content_territories"][0]["name"].as_str().unwrap(),
+        "Product Updates"
+    );
+
     // Screen 14: Channels
-    assert_eq!(json["channels"]["primary"][0]["platform"].as_str().unwrap(), "LinkedIn");
-    
+    assert_eq!(
+        json["channels"]["primary"][0]["platform"].as_str().unwrap(),
+        "LinkedIn"
+    );
+
     // Screen 15: Goals & KPIs
-    assert_eq!(json["goals"]["primary_goal"].as_str().unwrap(), "Brand awareness");
-    
+    assert_eq!(
+        json["goals"]["primary_goal"].as_str().unwrap(),
+        "Brand awareness"
+    );
+
     // Screen 16: SEO Keywords
-    assert_eq!(json["seo_keywords"]["primary_keywords"][0].as_str().unwrap(), "project management");
-    
+    assert_eq!(
+        json["seo_keywords"]["primary_keywords"][0]
+            .as_str()
+            .unwrap(),
+        "project management"
+    );
+
     // Screen 17: Asset Inventory
-    assert_eq!(json["asset_inventory"]["logos"][0]["name"].as_str().unwrap(), "Primary Logo");
-    
+    assert_eq!(
+        json["asset_inventory"]["logos"][0]["name"]
+            .as_str()
+            .unwrap(),
+        "Primary Logo"
+    );
+
     // Screen 18: Frustrations
-    assert_eq!(json["frustrations"]["pain_points"][0]["severity"].as_str().unwrap(), "high");
-    
+    assert_eq!(
+        json["frustrations"]["pain_points"][0]["severity"]
+            .as_str()
+            .unwrap(),
+        "high"
+    );
+
     // Screen 19: Tools
     assert_eq!(json["tools"]["crm"][0]["name"].as_str().unwrap(), "HubSpot");
-    
+
     // Screen 20: Reference Brands
-    assert_eq!(json["reference_brands"][0]["name"].as_str().unwrap(), "Stripe");
-    
+    assert_eq!(
+        json["reference_brands"][0]["name"].as_str().unwrap(),
+        "Stripe"
+    );
+
     // Screen 21: Strategist
     assert_eq!(json["strategist"]["name"].as_str().unwrap(), "Alex");
-    assert_eq!(json["strategist"]["personality"]["communication_style"].as_str().unwrap(), "Direct and practical");
-    
+    assert_eq!(
+        json["strategist"]["personality"]["communication_style"]
+            .as_str()
+            .unwrap(),
+        "Direct and practical"
+    );
+
     // Version field
     assert_eq!(json["version"].as_i64().unwrap(), 1);
-    
+
     println!("✅ All 21 screen fields serialize correctly!");
     println!("\nSerialized payload:\n{}", json_str);
 }
@@ -375,7 +408,7 @@ fn test_full_21_screen_payload_serialization() {
 #[test]
 fn test_brand_voice_sliders_defaults() {
     let sliders = BrandVoiceSliders::defaults();
-    
+
     assert_eq!(sliders.formal_informal, 5);
     assert_eq!(sliders.serious_playful, 5);
     assert_eq!(sliders.technical_simple, 5);
@@ -514,27 +547,36 @@ fn test_foundation_data_roundtrip() {
             "avatar_seed": null
         }
     });
-    
+
     // Deserialize
-    let foundation: FoundationData = serde_json::from_value(json_payload.clone())
-        .expect("Failed to deserialize");
-    
+    let foundation: FoundationData =
+        serde_json::from_value(json_payload.clone()).expect("Failed to deserialize");
+
     assert_eq!(foundation.company_url.as_deref(), Some("https://test.com"));
     assert_eq!(foundation.company_info.name.as_deref(), Some("Test Co"));
-    assert_eq!(foundation.company_info.legal_name.as_deref(), Some("Test Company LLC"));
+    assert_eq!(
+        foundation.company_info.legal_name.as_deref(),
+        Some("Test Company LLC")
+    );
     assert_eq!(foundation.company_info.year_founded, Some(2021));
     assert_eq!(foundation.company_stage.as_deref(), Some("startup"));
-    assert_eq!(foundation.product_catalog.pricing_model.as_deref(), Some("tiered"));
+    assert_eq!(
+        foundation.product_catalog.pricing_model.as_deref(),
+        Some("tiered")
+    );
     assert_eq!(foundation.strategist.name, "Sarah");
-    
+
     // Serialize back
     let serialized = serde_json::to_value(&foundation).expect("Failed to serialize back");
-    
+
     // Verify the roundtrip preserved all fields
     assert_eq!(serialized["company_url"], json_payload["company_url"]);
-    assert_eq!(serialized["company_info"]["name"], json_payload["company_info"]["name"]);
+    assert_eq!(
+        serialized["company_info"]["name"],
+        json_payload["company_info"]["name"]
+    );
     assert_eq!(serialized["company_stage"], json_payload["company_stage"]);
-    
+
     println!("✅ Foundation data roundtrip test passed!");
 }
 
@@ -593,17 +635,20 @@ fn test_partial_payload_deserialization() {
         },
         "differentiation": ["Diff 1", "Diff 2"]
     });
-    
-    let foundation: FoundationData = serde_json::from_value(partial_json)
-        .expect("Failed to deserialize partial payload");
-    
-    assert_eq!(foundation.company_url.as_deref(), Some("https://partial.com"));
+
+    let foundation: FoundationData =
+        serde_json::from_value(partial_json).expect("Failed to deserialize partial payload");
+
+    assert_eq!(
+        foundation.company_url.as_deref(),
+        Some("https://partial.com")
+    );
     assert_eq!(foundation.differentiation.len(), 2);
-    
+
     // Other fields should be default
     assert!(foundation.company_info.name.is_none());
     assert!(foundation.strategist.name.is_empty());
-    
+
     println!("✅ Partial payload deserialization works!");
 }
 
@@ -623,7 +668,7 @@ fn test_b2b_b2c_icp_variants() {
         goals: vec!["Growth".to_string()],
         demographics: json!({"age": "40-55"}),
     });
-    
+
     // Test B2C ICP
     let b2c_icp = PrimaryIcp::B2C(B2CIcp {
         name: "B2C Customer".to_string(),
@@ -636,13 +681,13 @@ fn test_b2b_b2c_icp_variants() {
         goals: vec!["Save time".to_string()],
         demographics: json!({"age": "30-45"}),
     });
-    
+
     // Serialize both
     let b2b_json = serde_json::to_value(&b2b_icp).unwrap();
     let b2c_json = serde_json::to_value(&b2c_icp).unwrap();
-    
+
     assert!(b2b_json.get("B2B").is_some());
     assert!(b2c_json.get("B2C").is_some());
-    
+
     println!("✅ B2B/B2C ICP variants serialize correctly!");
 }

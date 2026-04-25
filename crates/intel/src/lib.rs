@@ -15,9 +15,43 @@ use raptorflow_db::TenantDbPool;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-type SignalRow = (String, String, String, String, String, String, Option<String>, String, bool, bool, Option<String>, chrono::DateTime<chrono::Utc>);
-type SignalRowOpt = Option<(String, String, String, String, String, String, Option<String>, String, bool, bool, Option<String>, chrono::DateTime<chrono::Utc>)>;
-type CompetitorRow = (String, String, String, Option<String>, Value, chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>);
+type SignalRow = (
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    Option<String>,
+    String,
+    bool,
+    bool,
+    Option<String>,
+    chrono::DateTime<chrono::Utc>,
+);
+type SignalRowOpt = Option<(
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    Option<String>,
+    String,
+    bool,
+    bool,
+    Option<String>,
+    chrono::DateTime<chrono::Utc>,
+)>;
+type CompetitorRow = (
+    String,
+    String,
+    String,
+    Option<String>,
+    Value,
+    chrono::DateTime<chrono::Utc>,
+    chrono::DateTime<chrono::Utc>,
+);
 
 #[allow(dead_code)]
 pub fn router() -> Router {
@@ -27,7 +61,10 @@ pub fn router() -> Router {
         .route("/documents", get(list_documents))
         .route("/signals", get(list_signals))
         .route("/signals/:id", get(get_signal).patch(update_signal))
-        .route("/competitors", get(list_competitor_snapshots).post(create_competitor_snapshot))
+        .route(
+            "/competitors",
+            get(list_competitor_snapshots).post(create_competitor_snapshot),
+        )
 }
 
 type AppResult<T> = Result<T, (StatusCode, Json<Value>)>;
@@ -63,8 +100,38 @@ pub struct IntelSignalResponse {
     pub created_at: String,
 }
 
-impl From<(String, String, String, String, String, String, Option<String>, String, bool, bool, Option<String>, chrono::DateTime<chrono::Utc>)> for IntelSignalResponse {
-    fn from(row: (String, String, String, String, String, String, Option<String>, String, bool, bool, Option<String>, chrono::DateTime<chrono::Utc>)) -> Self {
+impl
+    From<(
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        Option<String>,
+        String,
+        bool,
+        bool,
+        Option<String>,
+        chrono::DateTime<chrono::Utc>,
+    )> for IntelSignalResponse
+{
+    fn from(
+        row: (
+            String,
+            String,
+            String,
+            String,
+            String,
+            String,
+            Option<String>,
+            String,
+            bool,
+            bool,
+            Option<String>,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    ) -> Self {
         IntelSignalResponse {
             id: row.0,
             user_id: row.1,
@@ -345,7 +412,7 @@ pub async fn update_signal(
             return Err((
                 StatusCode::NOT_FOUND,
                 Json(json!({ "error": "signal_not_found" })),
-            ))
+            ));
         }
     };
 
@@ -381,8 +448,28 @@ pub struct CompetitorSnapshotResponse {
     pub created_at: String,
 }
 
-impl From<(String, String, String, Option<String>, Value, chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)> for CompetitorSnapshotResponse {
-    fn from(row: (String, String, String, Option<String>, Value, chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)) -> Self {
+impl
+    From<(
+        String,
+        String,
+        String,
+        Option<String>,
+        Value,
+        chrono::DateTime<chrono::Utc>,
+        chrono::DateTime<chrono::Utc>,
+    )> for CompetitorSnapshotResponse
+{
+    fn from(
+        row: (
+            String,
+            String,
+            String,
+            Option<String>,
+            Value,
+            chrono::DateTime<chrono::Utc>,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    ) -> Self {
         CompetitorSnapshotResponse {
             id: row.0,
             user_id: row.1,
@@ -426,7 +513,9 @@ pub async fn list_competitor_snapshots(
         })
         .collect();
 
-    Ok(Json(json!({ "competitor_snapshots": snapshots, "status": "ok" })))
+    Ok(Json(
+        json!({ "competitor_snapshots": snapshots, "status": "ok" }),
+    ))
 }
 
 #[derive(Debug, Deserialize)]
@@ -461,5 +550,7 @@ pub async fn create_competitor_snapshot(
     .await
     .map_err(internal_error)?;
 
-    Ok(Json(json!({ "snapshot_id": snapshot_id, "status": "created" })))
+    Ok(Json(
+        json!({ "snapshot_id": snapshot_id, "status": "created" }),
+    ))
 }

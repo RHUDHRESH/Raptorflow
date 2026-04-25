@@ -103,7 +103,10 @@ impl CreateRippleRequest {
         }
         let valid_bands = ["protected", "important", "normal", "disposable"];
         if !valid_bands.contains(&self.importance_band.as_str()) {
-            return Err(format!("importance_band must be one of: {}", valid_bands.join(", ")));
+            return Err(format!(
+                "importance_band must be one of: {}",
+                valid_bands.join(", ")
+            ));
         }
         Ok(())
     }
@@ -529,7 +532,9 @@ impl CreateEssenceRequest {
             return Err("avatar_key is required and cannot be empty".to_string());
         }
         if self.ego_baseline.len() != 8 {
-            return Err("ego_baseline must have exactly 8 elements (Plutchik emotions)".to_string());
+            return Err(
+                "ego_baseline must have exactly 8 elements (Plutchik emotions)".to_string(),
+            );
         }
         for (i, val) in self.ego_baseline.iter().enumerate() {
             if !(0.0..=1.0).contains(val) {
@@ -729,7 +734,8 @@ pub async fn run_decay(
                 total_deleted += 1;
                 total_decayed += 1;
             } else if (new_salience - ripple.salience).abs() > 0.001
-                      || (new_confidence - ripple.confidence).abs() > 0.001 {
+                || (new_confidence - ripple.confidence).abs() > 0.001
+            {
                 sqlx::query(
                     r#"
                     UPDATE ripples
