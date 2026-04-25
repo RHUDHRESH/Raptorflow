@@ -32,7 +32,6 @@ CREATE TABLE IF NOT EXISTS capability_definitions (
     CONSTRAINT capability_definitions_risk_level_check CHECK (risk_level IN ('low', 'medium', 'high'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_capability_definitions_org_id ON capability_definitions(org_id);
 CREATE INDEX IF NOT EXISTS idx_capability_definitions_capability_key ON capability_definitions(capability_key);
 CREATE INDEX IF NOT EXISTS idx_capability_definitions_domain ON capability_definitions(domain);
 CREATE INDEX IF NOT EXISTS idx_capability_definitions_is_active ON capability_definitions(is_active) WHERE is_active = TRUE;
