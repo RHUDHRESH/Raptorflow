@@ -48,7 +48,7 @@ jobs:
         run: pg_isready -h localhost -p 5432 -U testuser
 
       - name: Wait for Qdrant
-        run: curl -f http://localhost:6333/health || exit 1
+        run: curl -f http://localhost:6333/healthz || exit 1
 
       - name: Grant CREATEDB
         run: |
