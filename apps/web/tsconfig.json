@@ -12,7 +12,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@raptorflow/contracts": ["../../packages/contracts/src/index.ts"],
-      "@raptorflow/database": ["../../packages/database/dist/index.d.ts"]
+      "@raptorflow/database": ["../../packages/database/src/client.ts"]
     }
   },
   "include": ["**/*.d.ts", "**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
