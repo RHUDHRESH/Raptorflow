@@ -157,6 +157,18 @@
 8. **Harness ledger/scaffold** - Ledger implemented; full execution pending (see AVATAR_OFFICE_HARNESS_SPINE_REPORT.md)
 9. **Intel brief cron** - Internal cron job
 
+### DONE - Runtime Reality Verification (2026-04-25)
+
+- **Runtime Reality Smoke Tests** - DB, Qdrant, API health, optional Bedrock smoke (see RUNTIME_REALITY_SMOKE_REPORT.md)
+  - `crates/db/tests/runtime_reality_smoke.rs` - DB connection + pgvector + tables + RLS
+  - `crates/aws/tests/bedrock_smoke.rs` - Bedrock inference with JSON validation
+  - `scripts/smoke/qdrant-smoke.mjs` - Qdrant collection CRUD
+  - `scripts/smoke/api-health-smoke.mjs` - API health endpoints
+  - `scripts/smoke/local-runtime-smoke.ps1` - Local orchestrator
+  - `.github/workflows/runtime-reality.yml` - CI/CD workflow
+  - `docs/testing/runtime-reality-smoke.md` - Documentation
+  - **Next workstream:** `feat/avatar-population-and-personality-pack`
+
 ### Low Risk (Remaining)
 
 9. **Auth flows** - Using Clerk, low risk
