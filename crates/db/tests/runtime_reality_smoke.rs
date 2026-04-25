@@ -39,9 +39,16 @@ fn get_test_db_url() -> Option<String> {
 
 async fn apply_migrations(pool: &SqlxPgPool) -> Result<(), String> {
     use sqlx::migrate::Migrator;
-    use std::path::Path;
+    use std::path::PathBuf;
 
-    let migrator = Migrator::new(Path::new("../../../database/migrations"))
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let migrations_path = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .map(|p| p.join("database/migrations"))
+        .ok_or("failed to resolve migrations path from CARGO_MANIFEST_DIR")?;
+
+    let migrator = Migrator::new(&migrations_path)
         .await
         .map_err(|e| format!("failed to create migrator: {}", e))?;
 
