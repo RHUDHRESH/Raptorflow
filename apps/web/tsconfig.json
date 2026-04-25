@@ -10,22 +10,11 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@raptorflow/contracts": [
-        "../../packages/contracts/src/index.ts"
-      ]
+      "@/*": ["./src/*"],
+      "@raptorflow/contracts": ["../../packages/contracts/src/index.ts"],
+      "@raptorflow/database": ["../../packages/database/dist/index.d.ts"]
     }
   },
-  "include": [
-    "**/*.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "next-env.d.ts",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["**/*.d.ts", "**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }
