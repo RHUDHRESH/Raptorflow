@@ -55,8 +55,8 @@ async function checkLiveness() {
       if (!res.ok) {
         throw new Error(`Health check failed: ${res.status} ${res.statusText}`);
       }
-      const data = await res.json();
-      console.log("PASS", JSON.stringify(data));
+      const text = await res.text();
+      console.log("PASS (status:", res.status, ")");
       return true;
     } catch (err) {
       lastError = err;
