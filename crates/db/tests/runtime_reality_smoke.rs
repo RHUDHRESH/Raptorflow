@@ -182,16 +182,16 @@ async fn runtime_reality_smoke_db_connection_and_migrations() {
         sqlx::query_as("SELECT name FROM organizations WHERE org_id = $1")
             .bind(test_org_id)
             .fetch_optional(&mut *tx)
-            .await;
+            .await
+            .expect("Tenant query should not fail");
 
     match org_check {
-        Ok(None) => println!(
+        None => println!(
             "[SMOKE DB]   Tenant query succeeded (no org found, as expected for random UUID)"
         ),
-        Ok(Some(_)) => {
+        Some(_) => {
             println!("[SMOKE DB]   Tenant query succeeded (found org, unexpected but valid)")
         }
-        Err(e) => panic!("[SMOKE DB] FAIL: Tenant query failed: {}", e),
     }
 
     // Rollback to not pollute the database
