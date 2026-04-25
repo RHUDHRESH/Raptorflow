@@ -146,7 +146,7 @@ async function upsertPoint(collectionName) {
       throw new Error(`Upsert failed: ${res.status} ${text}`);
     }
     const data = await res.json();
-    if (data.result?.upserted !== 1) {
+    if (data.result?.upserted !== 1 && data.result?.status !== "acknowledged") {
       throw new Error(`Unexpected upsert response: ${JSON.stringify(data)}`);
     }
     console.log("PASS");
