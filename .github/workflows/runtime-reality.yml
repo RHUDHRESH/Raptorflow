@@ -21,8 +21,8 @@ jobs:
         image: pgvector/pgvector:pg16
         env:
           POSTGRES_DB: postgres
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: >-
@@ -45,7 +45,7 @@ jobs:
           toolchain: 1.94.0
 
       - name: Wait for PostgreSQL
-        run: pg_isready -h localhost -p 5432 -U testuser
+        run: pg_isready -h localhost -p 5432 -U postgres
 
       - name: Wait for Qdrant
         run: curl -f http://localhost:6333/healthz || exit 1
@@ -53,18 +53,18 @@ jobs:
       - name: Grant CREATEDB
         run: |
           CONTAINER_ID=$(docker ps -q --filter "ancestor=pgvector/pgvector:pg16")
-          docker exec $CONTAINER_ID psql -U testuser -d postgres -c "ALTER USER testuser CREATEDB;"
+          docker exec $CONTAINER_ID psql -U postgres -d postgres -c "ALTER USER postgres CREATEDB;"
 
       - name: Create test DB
         run: |
           CONTAINER_ID=$(docker ps -q --filter "ancestor=pgvector/pgvector:pg16")
-          docker exec $CONTAINER_ID psql -U testuser -d postgres -c "DROP DATABASE IF EXISTS raptorflow_test;"
-          docker exec $CONTAINER_ID psql -U testuser -d postgres -c "CREATE DATABASE raptorflow_test;"
-          docker exec $CONTAINER_ID psql -U testuser -d raptorflow_test -c "CREATE EXTENSION IF NOT EXISTS vector;"
+          docker exec $CONTAINER_ID psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS raptorflow_test;"
+          docker exec $CONTAINER_ID psql -U postgres -d postgres -c "CREATE DATABASE raptorflow_test;"
+          docker exec $CONTAINER_ID psql -U postgres -d raptorflow_test -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
       - name: Run DB smoke test
         env:
-          TEST_DATABASE_URL: postgres://testuser:testpass@localhost:5432/raptorflow_test
+          TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/raptorflow_test
         run: cargo test -p raptorflow-db --test runtime_reality_smoke -- --nocapture --test-threads=1
 
       - name: Run Qdrant smoke
