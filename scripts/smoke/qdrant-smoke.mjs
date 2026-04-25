@@ -45,20 +45,29 @@ async function fetchWithTimeout(url, options, timeoutMs = 10000) {
 
 async function checkLiveness() {
   process.stdout.write("[SMOKE QDRANT] Step 1: GET /healthz ... ");
-  try {
-    const res = await fetchWithTimeout(`${QDRANT_URL}/healthz`, {
-      headers: headers(),
-    });
-    if (!res.ok) {
-      throw new Error(`Health check failed: ${res.status} ${res.statusText}`);
+  const maxAttempts = 5;
+  let lastError = null;
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const res = await fetchWithTimeout(`${QDRANT_URL}/healthz`, {
+        headers: headers(),
+      });
+      if (!res.ok) {
+        throw new Error(`Health check failed: ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log("PASS", JSON.stringify(data));
+      return true;
+    } catch (err) {
+      lastError = err;
+      if (i < maxAttempts - 1) {
+        process.stdout.write(`retry (${i + 1}/${maxAttempts})... `);
+        await new Promise((r) => setTimeout(r, 2000));
+      }
     }
-    const data = await res.json();
-    console.log("PASS", JSON.stringify(data));
-    return true;
-  } catch (err) {
-    console.log("FAIL:", err.message);
-    return false;
   }
+  console.log("FAIL:", lastError?.message || "Unknown error");
+  return false;
 }
 
 async function createCollection(collectionName) {
