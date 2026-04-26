@@ -65,6 +65,7 @@ pub mod cortex;
 pub mod execution;
 pub mod ripples;
 pub mod seeds;
+pub mod strategist_soul;
 
 use anyhow::Result;
 use chrono::{DateTime, Utc};

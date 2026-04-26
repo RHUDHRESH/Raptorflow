@@ -906,6 +906,96 @@ export const avatarSoulApi = {
   },
 };
 
+export const strategistApi = {
+  ensureDefault: async () => {
+    const res = await apiFetch<StrategistSoulResponse>("/api/v1/avatars/strategist/default", {
+      method: "POST",
+      auth: true,
+    });
+    return res;
+  },
+  dryRun: async (body: StrategistDryRunRequest) => {
+    const res = await apiFetch<StrategistDryRunResponse>("/api/v1/avatars/strategist/dry-run", {
+      method: "POST",
+      body,
+      auth: true,
+    });
+    return res;
+  },
+};
+
+export interface StrategistSoulResponse {
+  avatar_id: string;
+  soul_id: string;
+  created: boolean;
+  updated: boolean;
+}
+
+export interface StrategistDryRunRequest {
+  task_summary: string;
+  context_summary: string;
+}
+
+export interface StrategistDryRunResponse {
+  avatar_id: string;
+  soul_id: string;
+  embodiment_pack: AvatarEmbodimentPack;
+  role_lock_prompt: string;
+  instinct_frame: DerivedInstinctFrame;
+  presence_state: StrategistPresenceState | null;
+  debate_event: StrategistDebateEvent | null;
+}
+
+export interface AvatarEmbodimentPack {
+  avatar_id: string;
+  soul_id: string;
+  identity_kernel: Record<string, unknown>;
+  worldview: string[];
+  obsessions: string[];
+  reflexes: string[];
+  taboos: string[];
+  operating_principles: string[];
+  debate_style: Record<string, unknown>;
+  evaluation_bias: Record<string, unknown>;
+  memory_edges: AvatarMemoryEdge[];
+}
+
+export interface AvatarMemoryEdge {
+  memory_edge_id: string;
+  ripple_id: string;
+  relationship_type: string;
+  salience: number;
+  decay_policy: string;
+  use_when: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface DerivedInstinctFrame {
+  trigger_kind: string;
+  dominant_concern: string;
+  risk_flags: string[];
+  recommended_posture: string;
+  visible_summary: string;
+}
+
+export interface StrategistPresenceState {
+  presence_id: string;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  visible_summary: string;
+  confidence: number;
+}
+
+export interface StrategistDebateEvent {
+  debate_event_id: string;
+  event_type: string;
+  stance: string;
+  content: Record<string, unknown>;
+  confidence: number;
+}
+
 export interface UpdateAvatarSoulRequest {
   identity_kernel?: Record<string, unknown>;
   worldview?: string[];
