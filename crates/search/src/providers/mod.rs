@@ -30,17 +30,36 @@ pub trait SearchProvider: Send + Sync {
     fn request_timeout(&self) -> Duration;
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct SearchQuery {
     pub query: String,
-    #[serde(default = "default_max_results")]
     pub max_results: usize,
-    #[serde(default)]
     pub search_depth: SearchDepth,
 }
 
-fn default_max_results() -> usize {
-    10
+impl<'de> Deserialize<'de> for SearchQuery {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct RawSearchQuery {
+            query: String,
+            #[serde(default)]
+            max_results: Option<usize>,
+            #[serde(default)]
+            search_depth: SearchDepth,
+        }
+
+        let raw = RawSearchQuery::deserialize(deserializer)?;
+        let max_results = raw.max_results.unwrap_or(10).clamp(1, 30);
+
+        Ok(SearchQuery {
+            query: raw.query,
+            max_results,
+            search_depth: raw.search_depth,
+        })
+    }
 }
 
 impl SearchQuery {
@@ -90,4 +109,38 @@ pub struct SearchResponse {
     #[serde(default)]
     pub cached: bool,
     pub search_time_ms: u64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json;
+
+    #[test]
+    fn test_deserialize_max_results_zero_clamped_to_one() {
+        let json = r#"{"query": "test", "max_results": 0}"#;
+        let query: SearchQuery = serde_json::from_str(json).unwrap();
+        assert_eq!(query.max_results, 1);
+    }
+
+    #[test]
+    fn test_deserialize_max_results_above_max_clamped_to_thirty() {
+        let json = r#"{"query": "test", "max_results": 100}"#;
+        let query: SearchQuery = serde_json::from_str(json).unwrap();
+        assert_eq!(query.max_results, 30);
+    }
+
+    #[test]
+    fn test_deserialize_max_results_within_range_unchanged() {
+        let json = r#"{"query": "test", "max_results": 5}"#;
+        let query: SearchQuery = serde_json::from_str(json).unwrap();
+        assert_eq!(query.max_results, 5);
+    }
+
+    #[test]
+    fn test_deserialize_without_max_results_uses_default() {
+        let json = r#"{"query": "test"}"#;
+        let query: SearchQuery = serde_json::from_str(json).unwrap();
+        assert_eq!(query.max_results, 10);
+    }
 }
