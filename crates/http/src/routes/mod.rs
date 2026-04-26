@@ -9,6 +9,7 @@ pub mod capabilities;
 pub mod content;
 pub mod copywriter_soul;
 pub mod council;
+pub mod council_orchestration;
 pub mod creative_director_soul;
 pub mod daily_wins;
 pub mod foundation;

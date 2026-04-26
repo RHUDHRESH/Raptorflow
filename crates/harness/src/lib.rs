@@ -64,6 +64,7 @@ pub mod analyst_soul;
 pub mod avatar_soul;
 pub mod copywriter_soul;
 pub mod cortex;
+pub mod council_orchestrator;
 pub mod creative_director_soul;
 pub mod execution;
 pub mod growth_operator_soul;

@@ -459,6 +459,140 @@ export const councilApi = {
     apiFetch<CouncilPollMessagesResponse>(`/api/v1/council/${sessionId}/messages`, { auth: true }),
 };
 
+export const councilOrchestrationApi = {
+  create: async (body: CreateCouncilOrchestrationRequest) => {
+    const res = await apiFetch<CouncilOrchestrationResponse>("/api/v1/council/orchestrations", {
+      method: "POST",
+      body,
+      auth: true,
+    });
+    return res;
+  },
+  list: async (limit?: number) => {
+    const res = await apiFetch<unknown>(
+      `/api/v1/council/orchestrations${limit ? `?limit=${limit}` : ""}`,
+      { auth: true },
+    );
+    return res as CouncilOrchestrationRun[];
+  },
+  get: async (id: string) => {
+    const res = await apiFetch<CouncilOrchestrationRun>(`/api/v1/council/orchestrations/${id}`, {
+      auth: true,
+    });
+    return res;
+  },
+  listTurns: async (id: string) => {
+    const res = await apiFetch<unknown>(`/api/v1/council/orchestrations/${id}/turns`, {
+      auth: true,
+    });
+    return res as CouncilAvatarTurn[];
+  },
+  listPresence: async (id: string) => {
+    const res = await apiFetch<unknown>(`/api/v1/council/orchestrations/${id}/presence`, {
+      auth: true,
+    });
+    return res as AvatarPresenceState[];
+  },
+  listDebateEvents: async (id: string) => {
+    const res = await apiFetch<unknown>(`/api/v1/council/orchestrations/${id}/debate-events`, {
+      auth: true,
+    });
+    return res as AvatarDebateEvent[];
+  },
+};
+
+export interface CreateCouncilOrchestrationRequest {
+  request_summary: string;
+  context_summary: string;
+  mode?: string;
+  requested_avatar_keys?: string[];
+  max_challenge_rounds?: number;
+}
+
+export interface CouncilOrchestrationResponse {
+  council_run_id: string;
+  harness_run_id: string | null;
+  status: string;
+  avatar_roster: string[];
+  presence_states: CouncilPresenceState[];
+  debate_events: CouncilDebateEvent[];
+  synthesis: Record<string, unknown>;
+  turns: CouncilTurn[];
+}
+
+export interface CouncilPresenceState {
+  presence_id: string;
+  avatar_key: string;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  visible_summary: string;
+  confidence: number;
+}
+
+export interface CouncilDebateEvent {
+  debate_event_id: string;
+  org_id: string;
+  harness_run_id: string | null;
+  speaker_avatar_id: string | null;
+  target_avatar_id: string | null;
+  event_type: string;
+  stance: string | null;
+  content: Record<string, unknown>;
+  confidence: number;
+  created_at: string;
+}
+
+export interface CouncilTurn {
+  turn_id: string;
+  avatar_key: string;
+  turn_type: string;
+  sequence_number: number;
+  status: string;
+  instinct_frame: Record<string, unknown> | null;
+  debate_event: CouncilDebateEvent | null;
+}
+
+export interface CouncilOrchestrationRun {
+  council_run_id: string;
+  org_id: string;
+  harness_run_id: string | null;
+  request_summary: string;
+  mode: string;
+  status: string;
+  avatar_roster: Record<string, unknown>;
+  context_summary: string;
+  synthesis: Record<string, unknown>;
+  final_artifact_id: string | null;
+  error_message: string | null;
+  created_by: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CouncilAvatarTurn {
+  turn_id: string;
+  org_id: string;
+  council_run_id: string;
+  harness_run_id: string | null;
+  avatar_id: string;
+  avatar_key: string;
+  turn_type: string;
+  sequence_number: number;
+  status: string;
+  input: Record<string, unknown>;
+  output: Record<string, unknown>;
+  debate_event_id: string | null;
+  instinct_frame_id: string | null;
+  presence_id: string | null;
+  error_message: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
+
 export const museApi = {
   submitPrompt: async (body: MusePromptRequest) => {
     const res = await apiFetch<{
