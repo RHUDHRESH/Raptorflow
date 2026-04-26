@@ -1389,6 +1389,120 @@ export interface VelocityAssessment {
   risk_flags: string[];
 }
 
+export const analystApi = {
+  ensureDefault: async () => {
+    const res = await apiFetch<AnalystSoulResponse>("/api/v1/avatars/analyst/default", {
+      method: "POST",
+      auth: true,
+    });
+    return res;
+  },
+  dryRun: async (body: AnalystDryRunRequest) => {
+    const res = await apiFetch<AnalystDryRunResponse>("/api/v1/avatars/analyst/dry-run", {
+      method: "POST",
+      body,
+      auth: true,
+    });
+    return res;
+  },
+};
+
+export interface AnalystSoulResponse {
+  avatar_id: string;
+  soul_id: string;
+  created: boolean;
+  updated: boolean;
+}
+
+export interface AnalystDryRunRequest {
+  task_summary: string;
+  context_summary: string;
+}
+
+export interface AnalystDryRunResponse {
+  avatar_id: string;
+  soul_id: string;
+  embodiment_pack: AnalystEmbodimentPack;
+  role_lock_prompt: string;
+  instinct_frame: AnalystInstinctFrame;
+  presence_state: AnalystPresenceState | null;
+  debate_event: AnalystDebateEvent | null;
+  signal_quality_review: AnalystSignalQualityReview | null;
+}
+
+export interface AnalystEmbodimentPack {
+  avatar_id: string;
+  soul_id: string;
+  identity_kernel: Record<string, unknown>;
+  worldview: string[];
+  obsessions: string[];
+  reflexes: string[];
+  taboos: string[];
+  operating_principles: string[];
+  debate_style: Record<string, unknown>;
+  evaluation_bias: Record<string, unknown>;
+  memory_edges: AnalystMemoryEdge[];
+}
+
+export interface AnalystMemoryEdge {
+  memory_edge_id: string;
+  ripple_id: string;
+  relationship_type: string;
+  salience: number;
+  decay_policy: string;
+  use_when: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface AnalystInstinctFrame {
+  trigger_kind: string;
+  dominant_concern: string;
+  risk_flags: string[];
+  recommended_posture: string;
+  visible_summary: string;
+}
+
+export interface AnalystPresenceState {
+  presence_id: string;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  visible_summary: string;
+  confidence: number;
+}
+
+export interface AnalystDebateEvent {
+  debate_event_id: string;
+  event_type: string;
+  stance: string;
+  content: Record<string, unknown>;
+  confidence: number;
+}
+
+export interface AnalystSignalQualityReview {
+  known_facts: string[];
+  metrics: MetricAnalysisItem[];
+  vanity_metrics: string[];
+  missing_metrics: string[];
+  attribution_limits: string[];
+  recommended_decision: string;
+  next_test: string;
+  open_questions: string[];
+}
+
+export interface MetricAnalysisItem {
+  metric_name: string;
+  metric_type: string;
+  value_summary: string;
+  source: string;
+  baseline: string;
+  sample_size: string;
+  signal_strength: string;
+  decision_usefulness: string;
+  risk: string;
+}
+
 export interface UpdateAvatarSoulRequest {
   identity_kernel?: Record<string, unknown>;
   worldview?: string[];

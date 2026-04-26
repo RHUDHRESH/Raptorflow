@@ -1,4 +1,5 @@
 pub mod ai_helpers;
+pub mod analyst_soul;
 pub mod auth;
 pub mod avatar_soul;
 pub mod avatars;
