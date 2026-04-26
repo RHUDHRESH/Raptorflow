@@ -35,6 +35,7 @@
 | Capability Runs | `capability-runs/*`                                                                                               | **Implemented**                           | ~~High~~   |
 | Artifacts       | `artifacts/*`                                                                                                     | **Implemented**                           | ~~Medium~~ |
 | AvatarSoul      | `avatars/{id}/soul`, `avatars/{id}/memory/*`, `harness/runs/{id}/presence/*`, `harness/runs/{id}/debate-events/*` | **Implemented**                           | ~~High~~   |
+| StrategistSoul  | `avatars/strategist/default`, `avatars/strategist/dry-run`                                                        | **Implemented**                           | ~~High~~   |
 
 ---
 
@@ -151,6 +152,18 @@
 
 **Recommended Patch Bucket:** ~~AvatarSoul Engine substrate~~ - NOW DONE (see AVATAR_SOUL_ENGINE_REPORT.md)
 
+### 13. StrategistSoul (Avatar #1)
+
+| Next Route                                | Current Behavior                           | Status                                                                             | Risk     |
+| ----------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------- | -------- |
+| `avatars/strategist/default`              | Ensure default Strategist soul exists      | **IMPLEMENTED** - Rust endpoint at `/api/v1/avatars/strategist/default`            | ~~High~~ |
+| `avatars/strategist/dry-run`              | Run Strategist dry-run                     | **IMPLEMENTED** - Rust endpoint at `/api/v1/avatars/strategist/dry-run`            | ~~High~~ |
+| `avatars/{id}/soul` (Strategist-specific) | Strategist identity, memory classification | **IMPLEMENTED** - StrategistMemoryClassification, derive_strategist_instinct_frame | ~~High~~ |
+
+**Recommended Patch Bucket:** ~~StrategistSoul pack~~ - NOW DONE (see STRATEGIST_SOUL_PACK_REPORT.md)
+
+**Next Avatar:** ResearcherSoul (`feat/researcher-soul-pack`)
+
 ---
 
 ## Implementation Priority
@@ -166,6 +179,7 @@
 7. ~~**Dashboard**~~ - Merged into Office aggregation (`GET /api/v1/office`) - **IMPLEMENTED + TOMBSTONED**
 8. ~~**Capabilities/Cortex/Harness**~~ - `GET /capabilities`, `POST /capabilities/defaults`, `GET/POST /avatars/{id}/capabilities`, `POST /harness/context-packs`, `GET /capability-runs`, `POST /capability-runs`, `GET /artifacts`, `POST /artifacts/{id}/versions` - **IMPLEMENTED** (see AVATAR_CAPABILITY_HARNESS_CORTEX_REPORT.md)
 9. ~~**AvatarSoul Engine**~~ - Identity kernel, memory edges, instinct frames, presence states, debate events, artifact trails - **IMPLEMENTED + RED-TEAMED** (see AVATAR_SOUL_ENGINE_REPORT.md)
+10. ~~**StrategistSoul**~~ - Strategist avatar with identity, memory classification, instinct frames, debate behavior, dry-run - **IMPLEMENTED + RED-TEAMED** (see STRATEGIST_SOUL_PACK_REPORT.md)
 
 ### Medium Risk (Remaining)
 
@@ -182,7 +196,7 @@
   - `scripts/smoke/local-runtime-smoke.ps1` - Local orchestrator
   - `.github/workflows/runtime-reality.yml` - CI/CD workflow
   - `docs/testing/runtime-reality-smoke.md` - Documentation
-  - **Next workstream:** `feat/strategist-soul-pack` (populate Strategist avatar with full soul)
+  - **Next workstream:** `feat/researcher-soul-pack` (implement Researcher avatar)
 
 ### Low Risk (Remaining)
 

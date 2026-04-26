@@ -18,3 +18,4 @@ pub mod nudges;
 pub mod office;
 pub mod prl;
 pub mod replan;
+pub mod strategist_soul;
