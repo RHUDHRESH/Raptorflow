@@ -695,3 +695,45 @@ pub struct AvatarArtifactTrail {
     pub summary: String,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CouncilOrchestrationRun {
+    pub council_run_id: String,
+    pub org_id: uuid::Uuid,
+    pub harness_run_id: Option<String>,
+    pub request_summary: String,
+    pub mode: String,
+    pub status: String,
+    pub avatar_roster: serde_json::Value,
+    pub context_summary: String,
+    pub synthesis: serde_json::Value,
+    pub final_artifact_id: Option<String>,
+    pub error_message: Option<String>,
+    pub created_by: Option<String>,
+    pub started_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CouncilAvatarTurn {
+    pub turn_id: String,
+    pub org_id: uuid::Uuid,
+    pub council_run_id: String,
+    pub harness_run_id: Option<String>,
+    pub avatar_id: String,
+    pub avatar_key: String,
+    pub turn_type: String,
+    pub sequence_number: i32,
+    pub status: String,
+    pub input: serde_json::Value,
+    pub output: serde_json::Value,
+    pub debate_event_id: Option<String>,
+    pub instinct_frame_id: Option<String>,
+    pub presence_id: Option<String>,
+    pub error_message: Option<String>,
+    pub started_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}

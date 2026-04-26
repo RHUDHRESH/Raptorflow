@@ -13,9 +13,9 @@ use crate::middleware::{
 };
 use crate::routes::{
     analyst_soul, auth, avatar_soul, avatars, billing, campaigns, capabilities, content,
-    copywriter_soul, council, creative_director_soul, daily_wins, foundation, growth_operator_soul,
-    harness, health, intel, jobs, muse, nudges, office, prl, proof_collector_soul, replan,
-    researcher_soul, strategist_soul,
+    copywriter_soul, council, council_orchestration, creative_director_soul, daily_wins,
+    foundation, growth_operator_soul, harness, health, intel, jobs, muse, nudges, office, prl,
+    proof_collector_soul, replan, researcher_soul, strategist_soul,
 };
 
 fn cors_layer(state: &AppState) -> CorsLayer {
@@ -306,6 +306,27 @@ fn protected_router(state: Arc<AppState>) -> Router {
         .route(
             "/api/v1/council/{session_id}/synthesize",
             post(council::synthesize_council_session),
+        )
+        .route(
+            "/api/v1/council/orchestrations",
+            post(council_orchestration::create_orchestration)
+                .get(council_orchestration::list_orchestrations),
+        )
+        .route(
+            "/api/v1/council/orchestrations/{id}",
+            get(council_orchestration::get_orchestration),
+        )
+        .route(
+            "/api/v1/council/orchestrations/{id}/turns",
+            get(council_orchestration::list_orchestration_turns),
+        )
+        .route(
+            "/api/v1/council/orchestrations/{id}/presence",
+            get(council_orchestration::list_orchestration_presence),
+        )
+        .route(
+            "/api/v1/council/orchestrations/{id}/debate-events",
+            get(council_orchestration::list_orchestration_debate_events),
         )
         .route(
             "/api/v1/muse",

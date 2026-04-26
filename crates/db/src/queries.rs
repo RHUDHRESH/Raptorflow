@@ -2,10 +2,10 @@ use crate::models::{
     AgentEssence, Avatar, AvatarArtifactTrail, AvatarDebateEvent, AvatarMemoryEdge,
     AvatarPresenceState, AvatarSoul, Campaign, CampaignBrief, CampaignMove, CampaignTask,
     CapabilityArtifact, CapabilityDefinition, CapabilityRun, CompetitorSnapshot, ContentStrategy,
-    CouncilAgentPosition, CouncilSession, DailyWin, FoundationScan, FoundationSection,
-    FoundationSnapshot, FoundationVersion, GeneratedContent, HarnessContextPack, HarnessRun,
-    HarnessStep, MuseConversation, MuseMessage, Nudge, OrgUser, Organization, ReplanSession,
-    Ripple, RippleEdge, Subscription,
+    CouncilAgentPosition, CouncilAvatarTurn, CouncilOrchestrationRun, CouncilSession, DailyWin,
+    FoundationScan, FoundationSection, FoundationSnapshot, FoundationVersion, GeneratedContent,
+    HarnessContextPack, HarnessRun, HarnessStep, MuseConversation, MuseMessage, Nudge, OrgUser,
+    Organization, ReplanSession, Ripple, RippleEdge, Subscription,
 };
 use sqlx::{PgPool, Row};
 
@@ -3329,9 +3329,9 @@ pub async fn list_avatar_artifact_trail(
         SELECT trail_id, org_id, avatar_id, artifact_id, harness_run_id,
                contribution_type, summary, created_at
         FROM avatar_artifact_trails
-        WHERE avatar_id = $1 AND org_id = $2
-        ORDER BY created_at DESC
-        "#,
+         WHERE avatar_id = $1 AND org_id = $2
+         ORDER BY created_at DESC
+         "#,
     )
     .bind(avatar_id)
     .bind(org_id)
@@ -3339,4 +3339,232 @@ pub async fn list_avatar_artifact_trail(
     .await?;
 
     Ok(rows)
+}
+
+// --- COUNCIL ORCHESTRATION RUNS ---
+
+pub async fn create_council_orchestration_run(
+    pool: &PgPool,
+    council_run_id: &str,
+    org_id: uuid::Uuid,
+    request_summary: &str,
+    mode: &str,
+    avatar_roster: &serde_json::Value,
+    context_summary: &str,
+    created_by: Option<&str>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO council_orchestration_runs
+            (council_run_id, org_id, request_summary, mode, status, avatar_roster, context_summary, created_by)
+        VALUES ($1, $2, $3, $4, 'queued', $5, $6, $7)
+        "#,
+    )
+    .bind(council_run_id)
+    .bind(org_id)
+    .bind(request_summary)
+    .bind(mode)
+    .bind(avatar_roster)
+    .bind(context_summary)
+    .bind(created_by)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn get_council_orchestration_run(
+    pool: &PgPool,
+    council_run_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Option<CouncilOrchestrationRun>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, CouncilOrchestrationRun>(
+        r#"
+        SELECT council_run_id, org_id, harness_run_id, request_summary, mode, status,
+               avatar_roster, context_summary, synthesis, final_artifact_id,
+               error_message, created_by, started_at, completed_at, created_at, updated_at
+        FROM council_orchestration_runs
+        WHERE council_run_id = $1 AND org_id = $2
+        "#,
+    )
+    .bind(council_run_id)
+    .bind(org_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(rows)
+}
+
+pub async fn list_council_orchestration_runs(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    limit: i64,
+) -> Result<Vec<CouncilOrchestrationRun>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, CouncilOrchestrationRun>(
+        r#"
+        SELECT council_run_id, org_id, harness_run_id, request_summary, mode, status,
+               avatar_roster, context_summary, synthesis, final_artifact_id,
+               error_message, created_by, started_at, completed_at, created_at, updated_at
+        FROM council_orchestration_runs
+        WHERE org_id = $1
+        ORDER BY created_at DESC
+        LIMIT $2
+        "#,
+    )
+    .bind(org_id)
+    .bind(limit)
+    .fetch_all(pool)
+    .await?;
+    Ok(rows)
+}
+
+pub async fn update_council_orchestration_status(
+    pool: &PgPool,
+    council_run_id: &str,
+    org_id: uuid::Uuid,
+    status: &str,
+    started_at: Option<chrono::DateTime<chrono::Utc>>,
+    completed_at: Option<chrono::DateTime<chrono::Utc>>,
+    error_message: Option<&str>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE council_orchestration_runs
+        SET status = $1,
+            started_at = COALESCE($2, started_at),
+            completed_at = COALESCE($3, completed_at),
+            error_message = COALESCE($4, error_message),
+            updated_at = now()
+        WHERE council_run_id = $5 AND org_id = $6
+        "#,
+    )
+    .bind(status)
+    .bind(started_at)
+    .bind(completed_at)
+    .bind(error_message)
+    .bind(council_run_id)
+    .bind(org_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn update_council_orchestration_synthesis(
+    pool: &PgPool,
+    council_run_id: &str,
+    org_id: uuid::Uuid,
+    synthesis: &serde_json::Value,
+    final_artifact_id: Option<&str>,
+    harness_run_id: Option<&str>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE council_orchestration_runs
+        SET synthesis = $1,
+            final_artifact_id = COALESCE($2, final_artifact_id),
+            harness_run_id = COALESCE($3, harness_run_id),
+            updated_at = now()
+        WHERE council_run_id = $4 AND org_id = $5
+        "#,
+    )
+    .bind(synthesis)
+    .bind(final_artifact_id)
+    .bind(harness_run_id)
+    .bind(council_run_id)
+    .bind(org_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+// --- COUNCIL AVATAR TURNS ---
+
+pub async fn create_council_avatar_turn(
+    pool: &PgPool,
+    turn_id: &str,
+    org_id: uuid::Uuid,
+    council_run_id: &str,
+    avatar_id: &str,
+    avatar_key: &str,
+    turn_type: &str,
+    sequence_number: i32,
+    input: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO council_avatar_turns
+            (turn_id, org_id, council_run_id, avatar_id, avatar_key, turn_type, sequence_number, input)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        "#,
+    )
+    .bind(turn_id)
+    .bind(org_id)
+    .bind(council_run_id)
+    .bind(avatar_id)
+    .bind(avatar_key)
+    .bind(turn_type)
+    .bind(sequence_number)
+    .bind(input)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn list_council_avatar_turns(
+    pool: &PgPool,
+    council_run_id: &str,
+    org_id: uuid::Uuid,
+) -> Result<Vec<CouncilAvatarTurn>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, CouncilAvatarTurn>(
+        r#"
+        SELECT turn_id, org_id, council_run_id, harness_run_id, avatar_id, avatar_key,
+               turn_type, sequence_number, status, input, output,
+               debate_event_id, instinct_frame_id, presence_id,
+               error_message, started_at, completed_at, created_at
+        FROM council_avatar_turns
+        WHERE council_run_id = $1 AND org_id = $2
+        ORDER BY sequence_number ASC
+        "#,
+    )
+    .bind(council_run_id)
+    .bind(org_id)
+    .fetch_all(pool)
+    .await?;
+    Ok(rows)
+}
+
+pub async fn update_council_avatar_turn_status(
+    pool: &PgPool,
+    turn_id: &str,
+    org_id: uuid::Uuid,
+    status: &str,
+    output: Option<&serde_json::Value>,
+    debate_event_id: Option<&str>,
+    instinct_frame_id: Option<&str>,
+    presence_id: Option<&str>,
+    error_message: Option<&str>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE council_avatar_turns
+        SET status = $1,
+            output = COALESCE($2, output),
+            debate_event_id = COALESCE($3, debate_event_id),
+            instinct_frame_id = COALESCE($4, instinct_frame_id),
+            presence_id = COALESCE($5, presence_id),
+            error_message = COALESCE($6, error_message),
+            completed_at = CASE WHEN $1 IN ('completed','failed') THEN now() ELSE completed_at END,
+            started_at = CASE WHEN $1 = 'in_progress' AND started_at IS NULL THEN now() ELSE started_at END
+        WHERE turn_id = $7 AND org_id = $8
+        "#,
+    )
+    .bind(status)
+    .bind(output)
+    .bind(debate_event_id)
+    .bind(instinct_frame_id)
+    .bind(presence_id)
+    .bind(error_message)
+    .bind(turn_id)
+    .bind(org_id)
+    .execute(pool)
+    .await?;
+    Ok(())
 }
