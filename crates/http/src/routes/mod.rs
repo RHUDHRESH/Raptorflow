@@ -10,6 +10,7 @@ pub mod copywriter_soul;
 pub mod council;
 pub mod daily_wins;
 pub mod foundation;
+pub mod growth_operator_soul;
 pub mod harness;
 pub mod health;
 pub mod intel;
