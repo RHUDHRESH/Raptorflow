@@ -1650,6 +1650,133 @@ export interface CreativeRiskAssessment {
   risk_concerns: string[];
 }
 
+export const proofCollectorApi = {
+  ensureDefault: async () => {
+    const res = await apiFetch<ProofCollectorSoulResponse>(
+      "/api/v1/avatars/proof-collector/default",
+      {
+        method: "POST",
+        auth: true,
+      },
+    );
+    return res;
+  },
+  dryRun: async (body: ProofCollectorDryRunRequest) => {
+    const res = await apiFetch<ProofCollectorDryRunResponse>(
+      "/api/v1/avatars/proof-collector/dry-run",
+      {
+        method: "POST",
+        body,
+        auth: true,
+      },
+    );
+    return res;
+  },
+};
+
+export interface ProofCollectorSoulResponse {
+  avatar_id: string;
+  soul_id: string;
+  created: boolean;
+  updated: boolean;
+}
+
+export interface ProofCollectorDryRunRequest {
+  task_summary: string;
+  context_summary: string;
+}
+
+export interface ProofCollectorDryRunResponse {
+  avatar_id: string;
+  soul_id: string;
+  embodiment_pack: ProofCollectorEmbodimentPack;
+  role_lock_prompt: string;
+  instinct_frame: ProofCollectorInstinctFrame;
+  presence_state: ProofCollectorPresenceState | null;
+  debate_event: ProofCollectorDebateEvent | null;
+  proof_map: ProofMap | null;
+}
+
+export interface ProofCollectorEmbodimentPack {
+  avatar_id: string;
+  soul_id: string;
+  identity_kernel: Record<string, unknown>;
+  worldview: string[];
+  obsessions: string[];
+  reflexes: string[];
+  taboos: string[];
+  operating_principles: string[];
+  debate_style: Record<string, unknown>;
+  evaluation_bias: Record<string, unknown>;
+  memory_edges: ProofCollectorMemoryEdge[];
+}
+
+export interface ProofCollectorMemoryEdge {
+  memory_edge_id: string;
+  ripple_id: string;
+  relationship_type: string;
+  salience: number;
+  decay_policy: string;
+  use_when: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface ProofCollectorInstinctFrame {
+  instinct_frame_id: string;
+  dominant_concern: string;
+  risk_flags: string[];
+  recommended_posture: string;
+  visible_summary: string;
+}
+
+export interface ProofCollectorPresenceState {
+  presence_id: string;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  visible_summary: string;
+  confidence: number;
+}
+
+export interface ProofCollectorDebateEvent {
+  debate_event_id: string;
+  event_type: string;
+  stance: string;
+  content: Record<string, unknown>;
+  confidence: number;
+}
+
+export interface ProofMap {
+  known_facts: string[];
+  claims: ClaimProofAssessment[];
+  proof_gaps: string[];
+  assets_to_collect: string[];
+  unsafe_claims: string[];
+  legal_review_flags: string[];
+  ripple_candidates: string[];
+}
+
+export interface ClaimProofAssessment {
+  claim: string;
+  proof_available: string;
+  proof_type: string;
+  proof_strength: string;
+  source: string;
+  permission_status: string;
+  metric_context: MetricContext;
+  risk: string;
+  recommended_action: string;
+  safer_wording: string;
+}
+
+export interface MetricContext {
+  source: string;
+  time_window: string;
+  baseline: string;
+  sample_size: string;
+}
+
 export interface UpdateAvatarSoulRequest {
   identity_kernel?: Record<string, unknown>;
   worldview?: string[];

@@ -67,6 +67,7 @@ pub mod cortex;
 pub mod creative_director_soul;
 pub mod execution;
 pub mod growth_operator_soul;
+pub mod proof_collector_soul;
 pub mod researcher_soul;
 pub mod ripples;
 pub mod seeds;
