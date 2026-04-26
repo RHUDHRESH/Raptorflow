@@ -69,6 +69,7 @@ pub mod council_orchestrator;
 pub mod creative_director_soul;
 pub mod execution;
 pub mod growth_operator_soul;
+pub mod identity;
 pub mod proof_collector_soul;
 pub mod researcher_soul;
 pub mod ripples;
