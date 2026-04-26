@@ -500,7 +500,7 @@ pub async fn run_council_dry_run(
             created_at: chrono::Utc::now(),
         };
 
-        let _ = raptorflow_db::queries::create_council_avatar_turn(
+        raptorflow_db::queries::create_council_avatar_turn(
             pool,
             &turn_id,
             req.org_id,
@@ -511,9 +511,15 @@ pub async fn run_council_dry_run(
             seq as i32 + 1,
             &turn_input,
         )
-        .await;
+        .await
+        .map_err(|e| {
+            CouncilOrchestratorError::DatabaseError(format!(
+                "Failed to create council avatar turn: {}",
+                e
+            ))
+        })?;
 
-        let _ = raptorflow_db::queries::create_avatar_debate_event(
+        raptorflow_db::queries::create_avatar_debate_event(
             pool,
             &debate_event_id,
             req.org_id,
@@ -525,9 +531,15 @@ pub async fn run_council_dry_run(
             &debate_event.content,
             0.7,
         )
-        .await;
+        .await
+        .map_err(|e| {
+            CouncilOrchestratorError::DatabaseError(format!(
+                "Failed to create avatar debate event: {}",
+                e
+            ))
+        })?;
 
-        let _ = raptorflow_db::queries::update_council_avatar_turn_status(
+        raptorflow_db::queries::update_council_avatar_turn_status(
             pool,
             &turn_id,
             req.org_id,
@@ -541,7 +553,13 @@ pub async fn run_council_dry_run(
             Some(&presence_id),
             None,
         )
-        .await;
+        .await
+        .map_err(|e| {
+            CouncilOrchestratorError::DatabaseError(format!(
+                "Failed to update council avatar turn status: {}",
+                e
+            ))
+        })?;
 
         let presence_output = AvatarPresenceStateOutput {
             presence_id: presence_id.clone(),
@@ -632,7 +650,7 @@ pub async fn run_council_dry_run(
                         };
 
                         let turn_id = generate_id();
-                        let _ = raptorflow_db::queries::create_council_avatar_turn(
+                        raptorflow_db::queries::create_council_avatar_turn(
                             pool,
                             &turn_id,
                             req.org_id,
@@ -648,9 +666,15 @@ pub async fn run_council_dry_run(
                                 + 1,
                             &serde_json::json!({"target": target_key, "reason": decision.reason}),
                         )
-                        .await;
+                        .await
+                        .map_err(|e| {
+                            CouncilOrchestratorError::DatabaseError(format!(
+                                "Failed to create council avatar turn: {}",
+                                e
+                            ))
+                        })?;
 
-                        let _ = raptorflow_db::queries::create_avatar_debate_event(
+                        raptorflow_db::queries::create_avatar_debate_event(
                             pool,
                             &challenge_id,
                             req.org_id,
@@ -662,9 +686,15 @@ pub async fn run_council_dry_run(
                             &challenge.content,
                             decision.confidence,
                         )
-                        .await;
+                        .await
+                        .map_err(|e| {
+                            CouncilOrchestratorError::DatabaseError(format!(
+                                "Failed to create avatar debate event: {}",
+                                e
+                            ))
+                        })?;
 
-                        let _ = raptorflow_db::queries::update_council_avatar_turn_status(
+                        raptorflow_db::queries::update_council_avatar_turn_status(
                             pool,
                             &turn_id,
                             req.org_id,
@@ -675,7 +705,13 @@ pub async fn run_council_dry_run(
                             None,
                             None,
                         )
-                        .await;
+                        .await
+                        .map_err(|e| {
+                            CouncilOrchestratorError::DatabaseError(format!(
+                                "Failed to update council avatar turn status: {}",
+                                e
+                            ))
+                        })?;
 
                         round_challenges.push(challenge);
                         challenge_count += 1;
@@ -698,7 +734,7 @@ pub async fn run_council_dry_run(
         &avatar_roster,
     );
 
-    let _ = raptorflow_db::queries::update_council_orchestration_synthesis(
+    raptorflow_db::queries::update_council_orchestration_synthesis(
         pool,
         &council_run_id,
         req.org_id,
@@ -706,9 +742,15 @@ pub async fn run_council_dry_run(
         None,
         Some(&harness_run_id),
     )
-    .await;
+    .await
+    .map_err(|e| {
+        CouncilOrchestratorError::DatabaseError(format!(
+            "Failed to update council orchestration synthesis: {}",
+            e
+        ))
+    })?;
 
-    let _ = raptorflow_db::queries::update_council_orchestration_status(
+    raptorflow_db::queries::update_council_orchestration_status(
         pool,
         &council_run_id,
         req.org_id,
@@ -717,7 +759,13 @@ pub async fn run_council_dry_run(
         Some(chrono::Utc::now()),
         None,
     )
-    .await;
+    .await
+    .map_err(|e| {
+        CouncilOrchestratorError::DatabaseError(format!(
+            "Failed to update council orchestration status: {}",
+            e
+        ))
+    })?;
 
     Ok(CouncilRunResult {
         council_run_id,
@@ -856,7 +904,7 @@ pub async fn run_council_run(
             created_at: chrono::Utc::now(),
         };
 
-        let _ = raptorflow_db::queries::create_council_avatar_turn(
+        raptorflow_db::queries::create_council_avatar_turn(
             pool,
             &turn_id,
             req.org_id,
@@ -867,9 +915,15 @@ pub async fn run_council_run(
             seq as i32 + 1,
             &turn_input,
         )
-        .await;
+        .await
+        .map_err(|e| {
+            CouncilOrchestratorError::DatabaseError(format!(
+                "Failed to create council avatar turn: {}",
+                e
+            ))
+        })?;
 
-        let _ = raptorflow_db::queries::create_avatar_debate_event(
+        raptorflow_db::queries::create_avatar_debate_event(
             pool,
             &debate_event_id,
             req.org_id,
@@ -881,9 +935,15 @@ pub async fn run_council_run(
             &debate_event.content,
             0.7,
         )
-        .await;
+        .await
+        .map_err(|e| {
+            CouncilOrchestratorError::DatabaseError(format!(
+                "Failed to create avatar debate event: {}",
+                e
+            ))
+        })?;
 
-        let _ = raptorflow_db::queries::update_council_avatar_turn_status(
+        raptorflow_db::queries::update_council_avatar_turn_status(
             pool,
             &turn_id,
             req.org_id,
@@ -894,7 +954,13 @@ pub async fn run_council_run(
             Some(&presence_id),
             None,
         )
-        .await;
+        .await
+        .map_err(|e| {
+            CouncilOrchestratorError::DatabaseError(format!(
+                "Failed to update council avatar turn status: {}",
+                e
+            ))
+        })?;
 
         all_presence_states.push(AvatarPresenceStateOutput {
             presence_id,
@@ -992,6 +1058,8 @@ pub async fn run_council_run(
                             content: serde_json::json!({
                                 "challenge_reason": decision.reason,
                                 "target_avatar_key": target_key,
+                                "risk": decision.reason,
+                                "required_fix": decision.suggested_event_type,
                                 "suggested_direction": decision.suggested_event_type,
                             }),
                             confidence: decision.confidence,
@@ -999,7 +1067,7 @@ pub async fn run_council_run(
                         };
 
                         let turn_id = generate_id();
-                        let _ = raptorflow_db::queries::create_council_avatar_turn(
+                        raptorflow_db::queries::create_council_avatar_turn(
                             pool,
                             &turn_id,
                             req.org_id,
@@ -1015,9 +1083,15 @@ pub async fn run_council_run(
                                 + 1,
                             &serde_json::json!({"target": target_key, "reason": decision.reason}),
                         )
-                        .await;
+                        .await
+                        .map_err(|e| {
+                            CouncilOrchestratorError::DatabaseError(format!(
+                                "Failed to create council avatar turn: {}",
+                                e
+                            ))
+                        })?;
 
-                        let _ = raptorflow_db::queries::create_avatar_debate_event(
+                        raptorflow_db::queries::create_avatar_debate_event(
                             pool,
                             &challenge_id,
                             req.org_id,
@@ -1029,9 +1103,15 @@ pub async fn run_council_run(
                             &challenge.content,
                             decision.confidence,
                         )
-                        .await;
+                        .await
+                        .map_err(|e| {
+                            CouncilOrchestratorError::DatabaseError(format!(
+                                "Failed to create avatar debate event: {}",
+                                e
+                            ))
+                        })?;
 
-                        let _ = raptorflow_db::queries::update_council_avatar_turn_status(
+                        raptorflow_db::queries::update_council_avatar_turn_status(
                             pool,
                             &turn_id,
                             req.org_id,
@@ -1042,13 +1122,27 @@ pub async fn run_council_run(
                             None,
                             None,
                         )
-                        .await;
+                        .await
+                        .map_err(|e| {
+                            CouncilOrchestratorError::DatabaseError(format!(
+                                "Failed to update council avatar turn status: {}",
+                                e
+                            ))
+                        })?;
 
                         round_challenges.push(challenge);
                         challenge_count += 1;
                     }
                 }
             }
+        }
+
+        if round_challenges.is_empty() {
+            tracing::debug!(
+                round = round_num,
+                "No challenges generated, ending challenge rounds early"
+            );
+            break;
         }
 
         all_debate_events.extend(round_challenges);
@@ -1106,7 +1200,7 @@ pub async fn run_council_run(
         )
     };
 
-    let _ = raptorflow_db::queries::update_council_orchestration_synthesis(
+    raptorflow_db::queries::update_council_orchestration_synthesis(
         pool,
         &council_run_id,
         req.org_id,
@@ -1114,9 +1208,15 @@ pub async fn run_council_run(
         None,
         Some(&harness_run_id),
     )
-    .await;
+    .await
+    .map_err(|e| {
+        CouncilOrchestratorError::DatabaseError(format!(
+            "Failed to update council orchestration synthesis: {}",
+            e
+        ))
+    })?;
 
-    let _ = raptorflow_db::queries::update_council_orchestration_status(
+    raptorflow_db::queries::update_council_orchestration_status(
         pool,
         &council_run_id,
         req.org_id,
@@ -1125,7 +1225,13 @@ pub async fn run_council_run(
         Some(chrono::Utc::now()),
         None,
     )
-    .await;
+    .await
+    .map_err(|e| {
+        CouncilOrchestratorError::DatabaseError(format!(
+            "Failed to update council orchestration status: {}",
+            e
+        ))
+    })?;
 
     Ok(CouncilRunResult {
         council_run_id,
