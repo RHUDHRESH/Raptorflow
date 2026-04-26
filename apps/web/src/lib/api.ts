@@ -1244,6 +1244,151 @@ export interface CopyVoiceAssessment {
   risk_flags: string[];
 }
 
+export const growthOperatorApi = {
+  ensureDefault: async () => {
+    const res = await apiFetch<GrowthOperatorSoulResponse>(
+      "/api/v1/avatars/growth-operator/default",
+      {
+        method: "POST",
+        auth: true,
+      },
+    );
+    return res;
+  },
+  dryRun: async (body: GrowthOperatorDryRunRequest) => {
+    const res = await apiFetch<GrowthOperatorDryRunResponse>(
+      "/api/v1/avatars/growth-operator/dry-run",
+      {
+        method: "POST",
+        body,
+        auth: true,
+      },
+    );
+    return res;
+  },
+};
+
+export interface GrowthOperatorSoulResponse {
+  avatar_id: string;
+  soul_id: string;
+  created: boolean;
+  updated: boolean;
+}
+
+export interface GrowthOperatorDryRunRequest {
+  task_summary: string;
+  context_summary: string;
+  move_draft?: string;
+}
+
+export interface GrowthOperatorDryRunResponse {
+  avatar_id: string;
+  soul_id: string;
+  embodiment_pack: GrowthOperatorEmbodimentPack;
+  role_lock_prompt: string;
+  instinct_frame: GrowthOperatorInstinctFrame;
+  presence_state: GrowthOperatorPresenceState | null;
+  debate_event: GrowthOperatorDebateEvent | null;
+  execution_audit: GrowthOperatorExecutionAudit | null;
+}
+
+export interface GrowthOperatorEmbodimentPack {
+  avatar_id: string;
+  soul_id: string;
+  identity_kernel: Record<string, unknown>;
+  worldview: string[];
+  obsessions: string[];
+  reflexes: string[];
+  taboos: string[];
+  operating_principles: string[];
+  debate_style: Record<string, unknown>;
+  evaluation_bias: Record<string, unknown>;
+  memory_edges: GrowthOperatorMemoryEdge[];
+}
+
+export interface GrowthOperatorMemoryEdge {
+  memory_edge_id: string;
+  ripple_id: string;
+  relationship_type: string;
+  salience: number;
+  decay_policy: string;
+  use_when: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface GrowthOperatorInstinctFrame {
+  trigger_kind: string;
+  dominant_concern: string;
+  risk_flags: string[];
+  recommended_posture: string;
+  visible_summary: string;
+}
+
+export interface GrowthOperatorPresenceState {
+  presence_id: string;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  visible_summary: string;
+  confidence: number;
+}
+
+export interface GrowthOperatorDebateEvent {
+  debate_event_id: string;
+  event_type: string;
+  stance: string;
+  content: Record<string, unknown>;
+  confidence: number;
+}
+
+export interface GrowthOperatorExecutionAudit {
+  move_analysis: MoveAnalysis[];
+  cadence_assessment: CadenceAssessment;
+  channel_coordination: ChannelCoordinationAssessment;
+  feedback_loops: FeedbackLoopAssessment;
+  velocity_signals: VelocityAssessment;
+  open_questions: string[];
+}
+
+export interface MoveAnalysis {
+  move_name: string;
+  has_owner: boolean;
+  has_deadline: boolean;
+  has_success_signal: boolean;
+  sequencing_justified: boolean;
+  risk_level: string;
+  recommended_action: string;
+}
+
+export interface CadenceAssessment {
+  has_rhythm: boolean;
+  cadence_quality: string;
+  consistency_score: number;
+  risk_flags: string[];
+}
+
+export interface ChannelCoordinationAssessment {
+  multi_channel: boolean;
+  coordination_quality: string;
+  handoff_explicit: boolean;
+  risk_flags: string[];
+}
+
+export interface FeedbackLoopAssessment {
+  has_feedback_tracking: boolean;
+  adaptation_triggers_defined: boolean;
+  loop_quality: string;
+  risk_flags: string[];
+}
+
+export interface VelocityAssessment {
+  has_velocity_tracking: boolean;
+  velocity_defined: boolean;
+  measurement_quality: string;
+  risk_flags: string[];
+}
+
 export interface UpdateAvatarSoulRequest {
   identity_kernel?: Record<string, unknown>;
   worldview?: string[];
