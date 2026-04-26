@@ -196,6 +196,16 @@
 10. ~~**StrategistSoul**~~ - Strategist avatar with identity, memory classification, instinct frames, debate behavior, dry-run - **IMPLEMENTED + RED-TEAMED** (see STRATEGIST_SOUL_PACK_REPORT.md)
 11. ~~**ResearcherSoul**~~ - Researcher avatar with evidence level model, claim audit, source verification, dry-run - **IMPLEMENTED + RED-TEAMED** (see RESEARCHER_SOUL_PACK_REPORT.md)
 
+### DONE - Multi-Avatar Council Orchestration (2026-04-26)
+
+- **Council Orchestration** - `POST/GET /api/v1/council/orchestrations`, `GET /api/v1/council/orchestrations/{id}`, `GET .../{id}/turns`, `GET .../{id}/presence`, `GET .../{id}/debate-events`
+  - Code-decided deterministic pipeline: validate → select roster → build context → form positions → challenge rounds → synthesize
+  - All 7 avatars participate with role-specific instincts, positions, and challenge routing
+  - No Bedrock/LCCalls, no external actions, no infinite loops
+  - 16 pure tests covering roster, validation, challenge routing, synthesis contract, and per-avatar challenge behavior
+  - Frontend hooks + TypeScript API at `apps/web/src/hooks/use-council-orchestration.ts`
+  - **IMPLEMENTED** (see MULTI_AVATAR_COUNCIL_ORCHESTRATION_REPORT.md)
+
 ### Medium Risk (Remaining)
 
 8. **Harness ledger/scaffold** - Ledger implemented; full execution pending (see AVATAR_OFFICE_HARNESS_SPINE_REPORT.md)
