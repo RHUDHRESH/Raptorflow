@@ -13,8 +13,9 @@ use crate::middleware::{
 };
 use crate::routes::{
     analyst_soul, auth, avatar_soul, avatars, billing, campaigns, capabilities, content,
-    copywriter_soul, council, daily_wins, foundation, growth_operator_soul, harness, health, intel,
-    jobs, muse, nudges, office, prl, replan, researcher_soul, strategist_soul,
+    copywriter_soul, council, creative_director_soul, daily_wins, foundation, growth_operator_soul,
+    harness, health, intel, jobs, muse, nudges, office, prl, replan, researcher_soul,
+    strategist_soul,
 };
 
 fn cors_layer(state: &AppState) -> CorsLayer {
@@ -398,6 +399,14 @@ fn protected_router(state: Arc<AppState>) -> Router {
         .route(
             "/api/v1/avatars/analyst/dry-run",
             post(analyst_soul::run_analyst_dry_run),
+        )
+        .route(
+            "/api/v1/avatars/creative-director/default",
+            post(creative_director_soul::ensure_creative_director_default),
+        )
+        .route(
+            "/api/v1/avatars/creative-director/dry-run",
+            post(creative_director_soul::run_creative_director_dry_run),
         )
         .route(
             "/api/v1/harness/runs",

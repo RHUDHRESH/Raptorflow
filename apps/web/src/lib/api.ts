@@ -1503,6 +1503,153 @@ export interface MetricAnalysisItem {
   risk: string;
 }
 
+export const creativeDirectorApi = {
+  ensureDefault: async () => {
+    const res = await apiFetch<CreativeDirectorSoulResponse>(
+      "/api/v1/avatars/creative-director/default",
+      {
+        method: "POST",
+        auth: true,
+      },
+    );
+    return res;
+  },
+  dryRun: async (body: CreativeDirectorDryRunRequest) => {
+    const res = await apiFetch<CreativeDirectorDryRunResponse>(
+      "/api/v1/avatars/creative-director/dry-run",
+      {
+        method: "POST",
+        body,
+        auth: true,
+      },
+    );
+    return res;
+  },
+};
+
+export interface CreativeDirectorSoulResponse {
+  avatar_id: string;
+  soul_id: string;
+  created: boolean;
+  updated: boolean;
+}
+
+export interface CreativeDirectorDryRunRequest {
+  task_summary: string;
+  context_summary: string;
+}
+
+export interface CreativeDirectorDryRunResponse {
+  avatar_id: string;
+  soul_id: string;
+  embodiment_pack: CreativeDirectorEmbodimentPack;
+  role_lock_prompt: string;
+  instinct_frame: CreativeDirectorInstinctFrame;
+  presence_state: CreativeDirectorPresenceState | null;
+  debate_event: CreativeDirectorDebateEvent | null;
+  creative_review: CreativeQualityReview | null;
+}
+
+export interface CreativeDirectorEmbodimentPack {
+  avatar_id: string;
+  soul_id: string;
+  identity_kernel: Record<string, unknown>;
+  worldview: string[];
+  obsessions: string[];
+  reflexes: string[];
+  taboos: string[];
+  operating_principles: string[];
+  debate_style: Record<string, unknown>;
+  evaluation_bias: Record<string, unknown>;
+  memory_edges: CreativeDirectorMemoryEdge[];
+}
+
+export interface CreativeDirectorMemoryEdge {
+  memory_edge_id: string;
+  ripple_id: string;
+  relationship_type: string;
+  salience: number;
+  decay_policy: string;
+  use_when: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface CreativeDirectorInstinctFrame {
+  trigger_kind: string;
+  dominant_concern: string;
+  risk_flags: string[];
+  recommended_posture: string;
+  visible_summary: string;
+}
+
+export interface CreativeDirectorPresenceState {
+  presence_id: string;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  visible_summary: string;
+  confidence: number;
+}
+
+export interface CreativeDirectorDebateEvent {
+  debate_event_id: string;
+  event_type: string;
+  stance: string;
+  content: Record<string, unknown>;
+  confidence: number;
+}
+
+export interface CreativeQualityReview {
+  aesthetic_quality: AestheticQualityAssessment;
+  brand_consistency: BrandConsistencyAssessment;
+  emotional_resonance: EmotionalResonanceAssessment;
+  message_clarity: MessageClarityAssessment;
+  creative_risk: CreativeRiskAssessment;
+  overall_verdict: string;
+  recommended_action: string;
+  open_questions: string[];
+}
+
+export interface AestheticQualityAssessment {
+  visual_hierarchy_clear: boolean;
+  design_unity: boolean;
+  first_impression_score: number;
+  quality_concerns: string[];
+  strengths: string[];
+}
+
+export interface BrandConsistencyAssessment {
+  voice_consistent: boolean;
+  tone_appropriate: boolean;
+  brand_values_aligned: boolean;
+  consistency_score: number;
+  deviations: string[];
+}
+
+export interface EmotionalResonanceAssessment {
+  has_emotional_hook: boolean;
+  audience_empathy_present: boolean;
+  resonance_level: string;
+  emotional_tone: string;
+  concerns: string[];
+}
+
+export interface MessageClarityAssessment {
+  primary_message_clear: boolean;
+  cta_visible: boolean;
+  cta_compelling: boolean;
+  hierarchy_clarity_score: number;
+  confusion_points: string[];
+}
+
+export interface CreativeRiskAssessment {
+  risk_level: string;
+  audience_tolerance_appropriate: boolean;
+  differentiation_achieved: boolean;
+  risk_concerns: string[];
+}
+
 export interface UpdateAvatarSoulRequest {
   identity_kernel?: Record<string, unknown>;
   worldview?: string[];
