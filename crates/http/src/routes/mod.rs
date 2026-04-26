@@ -6,6 +6,7 @@ pub mod billing;
 pub mod campaigns;
 pub mod capabilities;
 pub mod content;
+pub mod copywriter_soul;
 pub mod council;
 pub mod daily_wins;
 pub mod foundation;

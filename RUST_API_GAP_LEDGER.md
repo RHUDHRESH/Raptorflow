@@ -37,6 +37,7 @@
 | AvatarSoul      | `avatars/{id}/soul`, `avatars/{id}/memory/*`, `harness/runs/{id}/presence/*`, `harness/runs/{id}/debate-events/*` | **Implemented**                           | ~~High~~   |
 | StrategistSoul  | `avatars/strategist/default`, `avatars/strategist/dry-run`                                                        | **Implemented**                           | ~~High~~   |
 | ResearcherSoul  | `avatars/researcher/default`, `avatars/researcher/dry-run`                                                        | **Implemented**                           | ~~High~~   |
+| CopywriterSoul  | `avatars/copywriter/default`, `avatars/copywriter/dry-run`                                                        | **Implemented**                           | ~~High~~   |
 
 ---
 

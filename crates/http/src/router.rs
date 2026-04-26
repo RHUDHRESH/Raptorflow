@@ -12,9 +12,9 @@ use crate::middleware::{
     rate_limit::{RateLimitConfig, RateLimitLayer, RateLimitState},
 };
 use crate::routes::{
-    auth, avatar_soul, avatars, billing, campaigns, capabilities, content, council, daily_wins,
-    foundation, harness, health, intel, jobs, muse, nudges, office, prl, replan, researcher_soul,
-    strategist_soul,
+    auth, avatar_soul, avatars, billing, campaigns, capabilities, content, copywriter_soul,
+    council, daily_wins, foundation, harness, health, intel, jobs, muse, nudges, office, prl,
+    replan, researcher_soul, strategist_soul,
 };
 
 fn cors_layer(state: &AppState) -> CorsLayer {
@@ -374,6 +374,14 @@ fn protected_router(state: Arc<AppState>) -> Router {
         .route(
             "/api/v1/avatars/researcher/dry-run",
             post(researcher_soul::run_researcher_dry_run),
+        )
+        .route(
+            "/api/v1/avatars/copywriter/default",
+            post(copywriter_soul::ensure_copywriter_default),
+        )
+        .route(
+            "/api/v1/avatars/copywriter/dry-run",
+            post(copywriter_soul::run_copywriter_dry_run),
         )
         .route(
             "/api/v1/harness/runs",
