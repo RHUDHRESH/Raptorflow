@@ -3,8 +3,8 @@ use std::time::Duration;
 use reqwest::Client;
 
 use super::SearchProvider;
-use crate::providers::{RateLimit, SearchQuery, SearchResponse, SearchResult};
 use crate::SearchError;
+use crate::providers::{RateLimit, SearchQuery, SearchResponse, SearchResult};
 
 #[derive(Debug, Clone)]
 pub struct DuckDuckGoProvider {
@@ -105,9 +105,7 @@ fn parse_ddg_html(html: &str, max_results: usize) -> Vec<SearchResult> {
         let title: Option<String> = result_node
             .select(&title_sel)
             .next()
-            .map(|el: scraper::ElementRef| {
-                el.text().collect::<String>().trim().to_string()
-            })
+            .map(|el: scraper::ElementRef| el.text().collect::<String>().trim().to_string())
             .filter(|t: &String| !t.is_empty());
 
         let url: Option<String> = result_node
@@ -122,9 +120,7 @@ fn parse_ddg_html(html: &str, max_results: usize) -> Vec<SearchResult> {
         let snippet: String = result_node
             .select(&snippet_sel)
             .next()
-            .map(|el: scraper::ElementRef| {
-                el.text().collect::<String>().trim().to_string()
-            })
+            .map(|el: scraper::ElementRef| el.text().collect::<String>().trim().to_string())
             .unwrap_or_default();
 
         if let (Some(title), Some(url)) = (title, url) {

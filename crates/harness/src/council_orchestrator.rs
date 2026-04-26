@@ -807,13 +807,28 @@ pub async fn run_council_run(
                 )
                 .await
                 .unwrap_or_else(|| {
-                    derive_instinct_for_avatar(avatar_key, &pack, &req.request_summary, &req.context_summary)
+                    derive_instinct_for_avatar(
+                        avatar_key,
+                        &pack,
+                        &req.request_summary,
+                        &req.context_summary,
+                    )
                 })
             } else {
-                derive_instinct_for_avatar(avatar_key, &pack, &req.request_summary, &req.context_summary)
+                derive_instinct_for_avatar(
+                    avatar_key,
+                    &pack,
+                    &req.request_summary,
+                    &req.context_summary,
+                )
             }
         } else {
-            derive_instinct_for_avatar(avatar_key, &pack, &req.request_summary, &req.context_summary)
+            derive_instinct_for_avatar(
+                avatar_key,
+                &pack,
+                &req.request_summary,
+                &req.context_summary,
+            )
         };
 
         let position_content = create_position_content(avatar_key, &instinct);
@@ -842,23 +857,44 @@ pub async fn run_council_run(
         };
 
         let _ = raptorflow_db::queries::create_council_avatar_turn(
-            pool, &turn_id, req.org_id, &council_run_id,
-            &avatar.avatar_id, avatar_key, "instinct",
-            seq as i32 + 1, &turn_input,
-        ).await;
+            pool,
+            &turn_id,
+            req.org_id,
+            &council_run_id,
+            &avatar.avatar_id,
+            avatar_key,
+            "instinct",
+            seq as i32 + 1,
+            &turn_input,
+        )
+        .await;
 
         let _ = raptorflow_db::queries::create_avatar_debate_event(
-            pool, &debate_event_id, req.org_id, &harness_run_id,
-            Some(&avatar.avatar_id), None, "position",
+            pool,
+            &debate_event_id,
+            req.org_id,
+            &harness_run_id,
+            Some(&avatar.avatar_id),
+            None,
+            "position",
             Some(format!("{}_initial_position", avatar_key)).as_deref(),
-            &debate_event.content, 0.7,
-        ).await;
+            &debate_event.content,
+            0.7,
+        )
+        .await;
 
         let _ = raptorflow_db::queries::update_council_avatar_turn_status(
-            pool, &turn_id, req.org_id, "completed",
+            pool,
+            &turn_id,
+            req.org_id,
+            "completed",
             Some(&serde_json::json!({"instinct": instinct, "position": debate_event.content})),
-            Some(&debate_event_id), Some(&instinct_frame_id), Some(&presence_id), None,
-        ).await;
+            Some(&debate_event_id),
+            Some(&instinct_frame_id),
+            Some(&presence_id),
+            None,
+        )
+        .await;
 
         all_presence_states.push(AvatarPresenceStateOutput {
             presence_id,
@@ -901,8 +937,12 @@ pub async fn run_council_run(
                     break;
                 }
 
-                let target_events: Vec<&AvatarDebateEvent> = all_debate_events.iter()
-                    .filter(|e| e.speaker_avatar_id.as_deref() == Some(*target_key) || e.event_type == "position")
+                let target_events: Vec<&AvatarDebateEvent> = all_debate_events
+                    .iter()
+                    .filter(|e| {
+                        e.speaker_avatar_id.as_deref() == Some(*target_key)
+                            || e.event_type == "position"
+                    })
                     .collect();
 
                 for target_event in target_events.iter().take(MAX_CHALLENGES_PER_AVATAR) {
@@ -913,9 +953,13 @@ pub async fn run_council_run(
                     let decision = if use_ai {
                         if let Some(bedrock) = &bedrock {
                             council_ai::ai_evaluate_challenge(
-                                bedrock, pack, avatar_key, target_key,
+                                bedrock,
+                                pack,
+                                avatar_key,
+                                target_key,
                                 &serde_json::to_string(&target_event.content).unwrap_or_default(),
-                            ).await
+                            )
+                            .await
                             .unwrap_or_else(|| deterministic_challenge(pack, target_event))
                         } else {
                             deterministic_challenge(pack, target_event)
@@ -926,11 +970,13 @@ pub async fn run_council_run(
 
                     if decision.should_challenge && decision.confidence >= 0.5 {
                         let challenge_id = generate_id();
-                        let target_avatar_id = avatar_packs.iter()
+                        let target_avatar_id = avatar_packs
+                            .iter()
                             .find(|(key, _)| key == target_key)
                             .map(|(_, p)| p.avatar_id.clone())
                             .unwrap_or_default();
-                        let challenger_avatar_id = avatar_packs.iter()
+                        let challenger_avatar_id = avatar_packs
+                            .iter()
                             .find(|(key, _)| key == avatar_key)
                             .map(|(_, p)| p.avatar_id.clone())
                             .unwrap_or_default();
@@ -954,25 +1000,49 @@ pub async fn run_council_run(
 
                         let turn_id = generate_id();
                         let _ = raptorflow_db::queries::create_council_avatar_turn(
-                            pool, &turn_id, req.org_id, &council_run_id,
-                            &challenger_avatar_id, avatar_key, "challenge",
+                            pool,
+                            &turn_id,
+                            req.org_id,
+                            &council_run_id,
+                            &challenger_avatar_id,
+                            avatar_key,
+                            "challenge",
                             (avatar_packs.len() * round_num
-                                + avatar_packs.iter().position(|(k, _)| k == avatar_key).unwrap_or(0)) as i32 + 1,
+                                + avatar_packs
+                                    .iter()
+                                    .position(|(k, _)| k == avatar_key)
+                                    .unwrap_or(0)) as i32
+                                + 1,
                             &serde_json::json!({"target": target_key, "reason": decision.reason}),
-                        ).await;
+                        )
+                        .await;
 
                         let _ = raptorflow_db::queries::create_avatar_debate_event(
-                            pool, &challenge_id, req.org_id, &harness_run_id,
-                            Some(&challenger_avatar_id), Some(&target_avatar_id),
-                            "challenge", Some(&decision.reason),
-                            &challenge.content, decision.confidence,
-                        ).await;
+                            pool,
+                            &challenge_id,
+                            req.org_id,
+                            &harness_run_id,
+                            Some(&challenger_avatar_id),
+                            Some(&target_avatar_id),
+                            "challenge",
+                            Some(&decision.reason),
+                            &challenge.content,
+                            decision.confidence,
+                        )
+                        .await;
 
                         let _ = raptorflow_db::queries::update_council_avatar_turn_status(
-                            pool, &turn_id, req.org_id, "completed",
+                            pool,
+                            &turn_id,
+                            req.org_id,
+                            "completed",
                             Some(&serde_json::json!({"challenge": decision.reason})),
-                            Some(&challenge_id), None, None, None,
-                        ).await;
+                            Some(&challenge_id),
+                            None,
+                            None,
+                            None,
+                        )
+                        .await;
 
                         round_challenges.push(challenge);
                         challenge_count += 1;
@@ -986,42 +1056,76 @@ pub async fn run_council_run(
 
     let synthesis = if use_ai {
         if let Some(bedrock) = &bedrock {
-            let debate_summary = all_debate_events.iter()
+            let debate_summary = all_debate_events
+                .iter()
                 .map(|e| {
                     let speaker = e.speaker_avatar_id.as_deref().unwrap_or("?");
                     let target = e.target_avatar_id.as_deref().unwrap_or("none");
                     let content_str = serde_json::to_string(&e.content).unwrap_or_default();
-                    format!("[{}] {} → {} (conf: {}): {}",
-                        e.event_type, speaker, target, e.confidence,
-                        truncate_c(&content_str, 200))
+                    format!(
+                        "[{}] {} → {} (conf: {}): {}",
+                        e.event_type,
+                        speaker,
+                        target,
+                        e.confidence,
+                        truncate_c(&content_str, 200)
+                    )
                 })
                 .collect::<Vec<_>>()
                 .join("\n");
 
             council_ai::ai_synthesize(
-                bedrock, &req.request_summary, &req.context_summary,
+                bedrock,
+                &req.request_summary,
+                &req.context_summary,
                 &debate_summary,
-            ).await
-            .unwrap_or_else(|| synthesize_council_result(
-                &req.request_summary, &req.context_summary,
-                &all_debate_events, &avatar_roster,
-            ))
+            )
+            .await
+            .unwrap_or_else(|| {
+                synthesize_council_result(
+                    &req.request_summary,
+                    &req.context_summary,
+                    &all_debate_events,
+                    &avatar_roster,
+                )
+            })
         } else {
-            synthesize_council_result(&req.request_summary, &req.context_summary,
-                &all_debate_events, &avatar_roster)
+            synthesize_council_result(
+                &req.request_summary,
+                &req.context_summary,
+                &all_debate_events,
+                &avatar_roster,
+            )
         }
     } else {
-        synthesize_council_result(&req.request_summary, &req.context_summary,
-            &all_debate_events, &avatar_roster)
+        synthesize_council_result(
+            &req.request_summary,
+            &req.context_summary,
+            &all_debate_events,
+            &avatar_roster,
+        )
     };
 
     let _ = raptorflow_db::queries::update_council_orchestration_synthesis(
-        pool, &council_run_id, req.org_id, &synthesis, None, Some(&harness_run_id),
-    ).await;
+        pool,
+        &council_run_id,
+        req.org_id,
+        &synthesis,
+        None,
+        Some(&harness_run_id),
+    )
+    .await;
 
     let _ = raptorflow_db::queries::update_council_orchestration_status(
-        pool, &council_run_id, req.org_id, "completed", None, Some(chrono::Utc::now()), None,
-    ).await;
+        pool,
+        &council_run_id,
+        req.org_id,
+        "completed",
+        None,
+        Some(chrono::Utc::now()),
+        None,
+    )
+    .await;
 
     Ok(CouncilRunResult {
         council_run_id,

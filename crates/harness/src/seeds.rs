@@ -118,7 +118,7 @@ impl CapabilitySeeder {
                     "campaign": false,
                     "ripples": true
                 }),
-                allowed_tools: serde_json::json!(["bedrock.fast"]),
+                allowed_tools: serde_json::json!(["bedrock.fast", "web_search"]),
                 artifact_type: "icp_refined".to_string(),
                 evaluator_key: "default".to_string(),
                 ripple_policy: serde_json::json!({
@@ -192,7 +192,7 @@ impl CapabilitySeeder {
                     "campaign": false,
                     "ripples": true
                 }),
-                allowed_tools: serde_json::json!(["bedrock.fast"]),
+                allowed_tools: serde_json::json!(["bedrock.fast", "web_search"]),
                 artifact_type: "positioning".to_string(),
                 evaluator_key: "default".to_string(),
                 ripple_policy: serde_json::json!({
@@ -276,7 +276,7 @@ impl CapabilitySeeder {
                     "campaign": true,
                     "ripples": true
                 }),
-                allowed_tools: serde_json::json!(["bedrock.fast"]),
+                allowed_tools: serde_json::json!(["bedrock.fast", "web_search"]),
                 artifact_type: "offer_design".to_string(),
                 evaluator_key: "default".to_string(),
                 ripple_policy: serde_json::json!({
@@ -362,7 +362,7 @@ impl CapabilitySeeder {
                     "campaign": true,
                     "ripples": true
                 }),
-                allowed_tools: serde_json::json!(["bedrock.fast"]),
+                allowed_tools: serde_json::json!(["bedrock.fast", "web_search"]),
                 artifact_type: "hook_set".to_string(),
                 evaluator_key: "default".to_string(),
                 ripple_policy: serde_json::json!({
@@ -455,7 +455,7 @@ impl CapabilitySeeder {
                     "campaign": true,
                     "ripples": true
                 }),
-                allowed_tools: serde_json::json!(["bedrock.fast"]),
+                allowed_tools: serde_json::json!(["bedrock.fast", "web_search"]),
                 artifact_type: "calendar_plan".to_string(),
                 evaluator_key: "default".to_string(),
                 ripple_policy: serde_json::json!({

@@ -3,11 +3,10 @@ use serde::Deserialize;
 use tracing::instrument;
 
 use super::avatar_soul::{
-    AvatarEmbodimentPack, ChallengeDecision, DerivedInstinctFrame,
-    build_strategist_role_lock_prompt, build_researcher_role_lock_prompt,
-    build_copywriter_role_lock_prompt, build_growth_operator_role_lock_prompt,
-    build_analyst_role_lock_prompt, build_creative_director_role_lock_prompt,
-    build_proof_collector_role_lock_prompt,
+    AvatarEmbodimentPack, ChallengeDecision, DerivedInstinctFrame, build_analyst_role_lock_prompt,
+    build_copywriter_role_lock_prompt, build_creative_director_role_lock_prompt,
+    build_growth_operator_role_lock_prompt, build_proof_collector_role_lock_prompt,
+    build_researcher_role_lock_prompt, build_strategist_role_lock_prompt,
 };
 
 #[derive(Deserialize)]
@@ -45,7 +44,10 @@ fn role_lock_for_avatar(pack: &AvatarEmbodimentPack, avatar_key: &str) -> String
         "analyst" => build_analyst_role_lock_prompt(pack),
         "creative_director" => build_creative_director_role_lock_prompt(pack),
         "proof_collector" => build_proof_collector_role_lock_prompt(pack),
-        _ => format!("You are {}. Provide your strategic input.", pack.display_name),
+        _ => format!(
+            "You are {}. Provide your strategic input.",
+            pack.display_name
+        ),
     }
 }
 
@@ -199,6 +201,10 @@ fn truncate_context(text: &str, max_chars: usize) -> String {
         text.to_string()
     } else {
         let boundary = text.floor_char_boundary(max_chars);
-        format!("{}...[{} chars truncated]", &text[..boundary], text.len() - boundary)
+        format!(
+            "{}...[{} chars truncated]",
+            &text[..boundary],
+            text.len() - boundary
+        )
     }
 }

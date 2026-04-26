@@ -234,8 +234,7 @@ impl SessionManager {
     async fn load_agent_state(pool: PgPool, org_id: Uuid, agent_id: Uuid) -> Result<AvatarState> {
         let essence = Self::load_agent_essence(&pool, org_id, agent_id).await?;
         let avatar_key = essence.avatar_key.clone();
-        let working_memory =
-            Self::load_working_memory(&pool, org_id, &avatar_key).await?;
+        let working_memory = Self::load_working_memory(&pool, org_id, &avatar_key).await?;
         let avatar_state = Self::apply_ego_decay(essence, &working_memory);
 
         Ok(avatar_state)
@@ -268,7 +267,13 @@ impl SessionManager {
             MAX_MEMORY_RIPPLES,
         )
         .await
-        .map_err(|e| anyhow::anyhow!("Failed to load working memory for avatar {}: {}", avatar_key, e))?;
+        .map_err(|e| {
+            anyhow::anyhow!(
+                "Failed to load working memory for avatar {}: {}",
+                avatar_key,
+                e
+            )
+        })?;
 
         Ok(summaries
             .into_iter()

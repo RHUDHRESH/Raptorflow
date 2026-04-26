@@ -3,9 +3,9 @@ pub mod client;
 pub mod providers;
 
 pub use client::SearchClient;
-pub use providers::{SearchDepth, SearchQuery, SearchResponse, SearchResult};
 pub use providers::duckduckgo::DuckDuckGoProvider;
 pub use providers::searxng::SearXNGProvider;
+pub use providers::{SearchDepth, SearchQuery, SearchResponse, SearchResult};
 
 #[derive(Debug, thiserror::Error)]
 pub enum SearchError {

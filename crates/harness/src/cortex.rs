@@ -29,6 +29,7 @@ pub struct CortexContextPack {
     pub campaign_context: serde_json::Value,
     pub office_context: serde_json::Value,
     pub ripple_context: Vec<serde_json::Value>,
+    pub search_context: Option<serde_json::Value>,
     pub compressed_context: String,
 }
 
@@ -63,6 +64,7 @@ impl Cortex {
             campaign_context,
             office_context,
             ripple_context,
+            search_context: None,
             compressed_context,
         })
     }

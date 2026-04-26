@@ -3,11 +3,11 @@ use std::time::Duration;
 use tokio::sync::Semaphore;
 use tracing::instrument;
 
+use crate::SearchError;
 use crate::cache::SearchCache;
 use crate::providers::duckduckgo::DuckDuckGoProvider;
 use crate::providers::searxng::SearXNGProvider;
 use crate::providers::{SearchProvider, SearchQuery, SearchResponse};
-use crate::SearchError;
 
 const MAX_RETRIES: u32 = 3;
 const BASE_BACKOFF_MS: u64 = 1000;
@@ -52,7 +52,10 @@ impl SearchClient {
             return Ok(cached);
         }
 
-        let _permit = self.semaphore.acquire().await
+        let _permit = self
+            .semaphore
+            .acquire()
+            .await
             .map_err(|_| SearchError::Provider("Semaphore closed".into()))?;
 
         let same = std::ptr::addr_eq(Arc::as_ptr(&self.primary), Arc::as_ptr(&self.fallback));
@@ -71,10 +74,11 @@ impl SearchClient {
                         return Ok(response);
                     }
                     Err(e) => {
-                        let retryable = matches!(&e,
-                            SearchError::RateLimited { .. } |
-                            SearchError::Network(_) |
-                            SearchError::Timeout(_)
+                        let retryable = matches!(
+                            &e,
+                            SearchError::RateLimited { .. }
+                                | SearchError::Network(_)
+                                | SearchError::Timeout(_)
                         );
                         if !retryable || attempt == MAX_RETRIES {
                             last_error = Some(e);

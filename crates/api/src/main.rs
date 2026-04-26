@@ -73,8 +73,7 @@ async fn main() -> anyhow::Result<()> {
         && settings.searxng_url != "http://localhost:8081"
     {
         let ttl = std::time::Duration::from_secs(settings.search_cache_ttl_secs);
-        let client =
-            SearchClient::searxng_with_ddg_fallback(settings.searxng_url.clone(), ttl);
+        let client = SearchClient::searxng_with_ddg_fallback(settings.searxng_url.clone(), ttl);
         tracing::info!(
             searxng_url = %settings.searxng_url,
             cache_ttl_secs = settings.search_cache_ttl_secs,
