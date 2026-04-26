@@ -63,6 +63,7 @@
 pub mod avatar_soul;
 pub mod cortex;
 pub mod execution;
+pub mod researcher_soul;
 pub mod ripples;
 pub mod seeds;
 pub mod strategist_soul;
