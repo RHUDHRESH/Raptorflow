@@ -12,28 +12,29 @@
 
 ## Gap Summary
 
-| Category        | Route                                          | Status                                    | Risk       |
-| --------------- | ---------------------------------------------- | ----------------------------------------- | ---------- |
-| Auth            | `auth/forgot-password`                         | Gap                                       | Low        |
-| Auth            | `auth/reset-password`                          | Gap                                       | Low        |
-| Avatars         | `avatars`                                      | **Implemented + Tombstoned**              | ~~Medium~~ |
-| Dashboard       | `dashboard`                                    | **Implemented + Tombstoned** (→ Office)   | ~~Medium~~ |
-| Foundation      | `foundation/scan/quick`                        | **Implemented + Tombstoned**              | ~~Medium~~ |
-| Campaign        | `campaigns/[id]/evaluate`                      | **Implemented + Red-teamed**              | ~~Medium~~ |
-| Campaign        | `campaigns/[id]/moves/generate`                | **Implemented + Red-teamed**              | ~~High~~   |
-| Campaign        | `campaigns/[id]/moves/[moveId]/tasks/[taskId]` | Gap                                       | Low        |
-| Council         | `council/[sessionId]/start`                    | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
-| Council         | `council/[sessionId]/stream`                   | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
-| Council         | `council/[sessionId]/synthesize`               | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
-| Daily-wins      | `daily-wins/cron`                              | Gap                                       | Low        |
-| Intel           | `intel/[signalId]`                             | **Implemented + Tombstoned**              | ~~Low~~    |
-| Intel           | `intel/brief/cron`                             | Gap                                       | Medium     |
-| Intel           | `intel/competitors`                            | **Implemented + Tombstoned**              | ~~High~~   |
-| Nudges          | `nudges/cron`                                  | Gap                                       | Low        |
-| PRL             | `prl/decay/cron`                               | Gap                                       | Low        |
-| Capabilities    | `capabilities/*`, `harness/context-packs/*`    | **Implemented**                           | ~~High~~   |
-| Capability Runs | `capability-runs/*`                            | **Implemented**                           | ~~High~~   |
-| Artifacts       | `artifacts/*`                                  | **Implemented**                           | ~~Medium~~ |
+| Category        | Route                                                                                                             | Status                                    | Risk       |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------- |
+| Auth            | `auth/forgot-password`                                                                                            | Gap                                       | Low        |
+| Auth            | `auth/reset-password`                                                                                             | Gap                                       | Low        |
+| Avatars         | `avatars`                                                                                                         | **Implemented + Tombstoned**              | ~~Medium~~ |
+| Dashboard       | `dashboard`                                                                                                       | **Implemented + Tombstoned** (→ Office)   | ~~Medium~~ |
+| Foundation      | `foundation/scan/quick`                                                                                           | **Implemented + Tombstoned**              | ~~Medium~~ |
+| Campaign        | `campaigns/[id]/evaluate`                                                                                         | **Implemented + Red-teamed**              | ~~Medium~~ |
+| Campaign        | `campaigns/[id]/moves/generate`                                                                                   | **Implemented + Red-teamed**              | ~~High~~   |
+| Campaign        | `campaigns/[id]/moves/[moveId]/tasks/[taskId]`                                                                    | Gap                                       | Low        |
+| Council         | `council/[sessionId]/start`                                                                                       | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
+| Council         | `council/[sessionId]/stream`                                                                                      | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
+| Council         | `council/[sessionId]/synthesize`                                                                                  | **Implemented + Red-teamed + Tombstoned** | ~~High~~   |
+| Daily-wins      | `daily-wins/cron`                                                                                                 | Gap                                       | Low        |
+| Intel           | `intel/[signalId]`                                                                                                | **Implemented + Tombstoned**              | ~~Low~~    |
+| Intel           | `intel/brief/cron`                                                                                                | Gap                                       | Medium     |
+| Intel           | `intel/competitors`                                                                                               | **Implemented + Tombstoned**              | ~~High~~   |
+| Nudges          | `nudges/cron`                                                                                                     | Gap                                       | Low        |
+| PRL             | `prl/decay/cron`                                                                                                  | Gap                                       | Low        |
+| Capabilities    | `capabilities/*`, `harness/context-packs/*`                                                                       | **Implemented**                           | ~~High~~   |
+| Capability Runs | `capability-runs/*`                                                                                               | **Implemented**                           | ~~High~~   |
+| Artifacts       | `artifacts/*`                                                                                                     | **Implemented**                           | ~~Medium~~ |
+| AvatarSoul      | `avatars/{id}/soul`, `avatars/{id}/memory/*`, `harness/runs/{id}/presence/*`, `harness/runs/{id}/debate-events/*` | **Implemented**                           | ~~High~~   |
 
 ---
 
@@ -137,6 +138,19 @@
 
 **Recommended Patch Bucket:** ~~Capabilities/Cortex/Harness~~ - NOW DONE (see AVATAR_CAPABILITY_HARNESS_CORTEX_REPORT.md)
 
+### 12. AvatarSoul Engine (0023)
+
+| Next Route                        | Current Behavior              | Status                                                                        | Risk       |
+| --------------------------------- | ----------------------------- | ----------------------------------------------------------------------------- | ---------- |
+| `avatars/{id}/soul`               | Identity kernel CRUD          | **IMPLEMENTED** - Rust endpoints at `/api/v1/avatars/{id}/soul`               | ~~High~~   |
+| `avatars/{id}/memory/edges`       | Memory edge management        | **IMPLEMENTED** - Rust endpoints at `/api/v1/avatars/{id}/memory/edges`       | ~~High~~   |
+| `avatars/{id}/instinct-frame`     | Instinct frame derivation     | **IMPLEMENTED** - Rust endpoint at `/api/v1/avatars/{id}/instinct-frame`      | ~~High~~   |
+| `harness/runs/{id}/presence`      | Avatar presence states        | **IMPLEMENTED** - Rust endpoints at `/api/v1/harness/runs/{id}/presence`      | ~~Medium~~ |
+| `harness/runs/{id}/debate-events` | Debate event logging          | **IMPLEMENTED** - Rust endpoints at `/api/v1/harness/runs/{id}/debate-events` | ~~Medium~~ |
+| `avatars/{id}/artifact-trail`     | Artifact contribution history | **IMPLEMENTED** - Rust endpoint at `/api/v1/avatars/{id}/artifact-trail`      | ~~Low~~    |
+
+**Recommended Patch Bucket:** ~~AvatarSoul Engine substrate~~ - NOW DONE (see AVATAR_SOUL_ENGINE_REPORT.md)
+
 ---
 
 ## Implementation Priority
@@ -151,6 +165,7 @@
 6. ~~**Avatars**~~ - `GET/POST/PATCH/DELETE /api/v1/avatars`, `POST /avatars/defaults` - **IMPLEMENTED + TOMBSTONED**
 7. ~~**Dashboard**~~ - Merged into Office aggregation (`GET /api/v1/office`) - **IMPLEMENTED + TOMBSTONED**
 8. ~~**Capabilities/Cortex/Harness**~~ - `GET /capabilities`, `POST /capabilities/defaults`, `GET/POST /avatars/{id}/capabilities`, `POST /harness/context-packs`, `GET /capability-runs`, `POST /capability-runs`, `GET /artifacts`, `POST /artifacts/{id}/versions` - **IMPLEMENTED** (see AVATAR_CAPABILITY_HARNESS_CORTEX_REPORT.md)
+9. ~~**AvatarSoul Engine**~~ - Identity kernel, memory edges, instinct frames, presence states, debate events, artifact trails - **IMPLEMENTED + RED-TEAMED** (see AVATAR_SOUL_ENGINE_REPORT.md)
 
 ### Medium Risk (Remaining)
 
@@ -167,7 +182,7 @@
   - `scripts/smoke/local-runtime-smoke.ps1` - Local orchestrator
   - `.github/workflows/runtime-reality.yml` - CI/CD workflow
   - `docs/testing/runtime-reality-smoke.md` - Documentation
-  - **Next workstream:** `feat/avatar-population-and-personality-pack`
+  - **Next workstream:** `feat/strategist-soul-pack` (populate Strategist avatar with full soul)
 
 ### Low Risk (Remaining)
 
