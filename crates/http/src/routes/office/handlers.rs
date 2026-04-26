@@ -130,7 +130,7 @@ pub async fn ws_office(
 
     let response = ws.on_upgrade(move |socket| handle_socket(socket, org_id));
 
-    Ok(response.into())
+    Ok(response)
 }
 
 async fn handle_socket(socket: WebSocket, org_id: String) {

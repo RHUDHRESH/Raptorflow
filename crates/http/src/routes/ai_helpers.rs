@@ -74,10 +74,13 @@ pub fn validate_ai_output_not_just_prose(input: &str) -> Result<(), String> {
     let json_count = trimmed.matches('{').count();
     let comma_count = trimmed.matches(',').count();
 
-    if json_count < 2 && comma_count < 2 {
-        if trimmed.len() > 50 && !trimmed.starts_with('{') && !trimmed.starts_with('[') {
-            return Err("appears_to_be_prose_not_structured_json".to_string());
-        }
+    if json_count < 2
+        && comma_count < 2
+        && trimmed.len() > 50
+        && !trimmed.starts_with('{')
+        && !trimmed.starts_with('[')
+    {
+        return Err("appears_to_be_prose_not_structured_json".to_string());
     }
 
     Ok(())

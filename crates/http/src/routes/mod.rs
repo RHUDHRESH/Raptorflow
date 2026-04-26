@@ -1,5 +1,6 @@
 pub mod ai_helpers;
 pub mod auth;
+pub mod avatar_soul;
 pub mod avatars;
 pub mod billing;
 pub mod campaigns;

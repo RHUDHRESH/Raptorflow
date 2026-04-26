@@ -827,6 +827,137 @@ export const capabilitiesApi = {
   },
 };
 
+export const avatarSoulApi = {
+  getSoul: async (avatarId: string) => {
+    const res = await apiFetch<{ soul: BackendAvatarSoul }>(`/api/v1/avatars/${avatarId}/soul`, {
+      auth: true,
+    });
+    return normalizeAvatarSoul(res.soul);
+  },
+  updateSoul: async (avatarId: string, body: UpdateAvatarSoulRequest) => {
+    const res = await apiFetch<{ soul: BackendAvatarSoul }>(`/api/v1/avatars/${avatarId}/soul`, {
+      method: "PUT",
+      body,
+      auth: true,
+    });
+    return normalizeAvatarSoul(res.soul);
+  },
+  listMemoryEdges: async (avatarId: string) => {
+    const res = await apiFetch<{ memory_edges: BackendAvatarMemoryEdge[] }>(
+      `/api/v1/avatars/${avatarId}/memory/edges`,
+      { auth: true },
+    );
+    return res.memory_edges.map(normalizeAvatarMemoryEdge);
+  },
+  createMemoryEdge: async (avatarId: string, body: CreateMemoryEdgeRequest) => {
+    const res = await apiFetch<{ memory_edge: BackendAvatarMemoryEdge }>(
+      `/api/v1/avatars/${avatarId}/memory/edges`,
+      { method: "POST", body, auth: true },
+    );
+    return normalizeAvatarMemoryEdge(res.memory_edge);
+  },
+  deleteMemoryEdge: async (avatarId: string, edgeId: string) => {
+    await apiFetch<void>(`/api/v1/avatars/${avatarId}/memory/edges/${edgeId}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+  createInstinctFrame: async (avatarId: string, body: CreateInstinctFrameRequest) => {
+    const res = await apiFetch<{ instinct_frame_id: string; status: string }>(
+      `/api/v1/avatars/${avatarId}/instinct-frame`,
+      { method: "POST", body, auth: true },
+    );
+    return res;
+  },
+  listPresenceStates: async (runId: string) => {
+    const res = await apiFetch<{ presence_states: BackendAvatarPresenceState[] }>(
+      `/api/v1/harness/runs/${runId}/presence`,
+      { auth: true },
+    );
+    return res.presence_states.map(normalizeAvatarPresenceState);
+  },
+  upsertPresenceState: async (runId: string, body: UpsertPresenceStateRequest) => {
+    const res = await apiFetch<{ presence_id: string; status: string }>(
+      `/api/v1/harness/runs/${runId}/presence`,
+      { method: "POST", body, auth: true },
+    );
+    return res;
+  },
+  listDebateEvents: async (runId: string) => {
+    const res = await apiFetch<{ debate_events: BackendAvatarDebateEvent[] }>(
+      `/api/v1/harness/runs/${runId}/debate-events`,
+      { auth: true },
+    );
+    return res.debate_events.map(normalizeAvatarDebateEvent);
+  },
+  createDebateEvent: async (runId: string, body: CreateDebateEventRequest) => {
+    const res = await apiFetch<{ debate_event_id: string; status: string }>(
+      `/api/v1/harness/runs/${runId}/debate-events`,
+      { method: "POST", body, auth: true },
+    );
+    return res;
+  },
+  getArtifactTrail: async (avatarId: string) => {
+    const res = await apiFetch<{ artifact_trail: BackendAvatarArtifactTrail[] }>(
+      `/api/v1/avatars/${avatarId}/artifact-trail`,
+      { auth: true },
+    );
+    return res.artifact_trail.map(normalizeAvatarArtifactTrail);
+  },
+};
+
+export interface UpdateAvatarSoulRequest {
+  identity_kernel?: Record<string, unknown>;
+  worldview?: string[];
+  obsessions?: string[];
+  reflexes?: string[];
+  taboos?: string[];
+  debate_style?: Record<string, unknown>;
+  embodiment_level?: string;
+  operating_principles?: string[];
+  evaluation_bias?: Record<string, unknown>;
+  is_active?: boolean;
+}
+
+export interface CreateMemoryEdgeRequest {
+  ripple_id: string;
+  relationship_type: string;
+  salience: number;
+  decay_policy?: string;
+  use_when: string;
+}
+
+export interface CreateInstinctFrameRequest {
+  avatar_id: string;
+  harness_run_id?: string;
+  capability_run_id?: string;
+  trigger_kind: string;
+  dominant_concern: string;
+  risk_flags: Record<string, unknown>;
+  recommended_posture: string;
+  visible_summary: string;
+  private_notes?: Record<string, unknown>;
+}
+
+export interface UpsertPresenceStateRequest {
+  avatar_id: string;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  confidence: number;
+  visible_summary: string;
+  last_event_id?: string;
+}
+
+export interface CreateDebateEventRequest {
+  speaker_avatar_id?: string;
+  target_avatar_id?: string;
+  event_type: string;
+  stance?: string;
+  content: Record<string, unknown>;
+  confidence: number;
+}
+
 export interface CreateContextPackRequest {
   avatar_id?: string;
   capability_id?: string;
@@ -1716,5 +1847,222 @@ function normalizeHarnessStep(s: BackendHarnessStep): HarnessStep {
     completedAt: s.completed_at,
     createdAt: s.created_at,
     updatedAt: s.updated_at,
+  };
+}
+
+export interface BackendAvatarSoul {
+  soul_id: string;
+  avatar_id: string;
+  identity_kernel: Record<string, unknown>;
+  worldview: unknown;
+  obsessions: unknown;
+  reflexes: unknown;
+  taboos: unknown;
+  debate_style: Record<string, unknown>;
+  embodiment_level: string;
+  operating_principles: unknown;
+  evaluation_bias: Record<string, unknown>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BackendAvatarMemoryEdge {
+  memory_edge_id: string;
+  avatar_id: string;
+  ripple_id: string;
+  relationship_type: string;
+  salience: number;
+  decay_policy: string;
+  use_when: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface BackendAvatarInstinctFrame {
+  instinct_frame_id: string;
+  avatar_id: string;
+  harness_run_id: string | null;
+  capability_run_id: string | null;
+  trigger_kind: string;
+  dominant_concern: string;
+  risk_flags: Record<string, unknown>;
+  recommended_posture: string;
+  visible_summary: string;
+  created_at: string;
+}
+
+export interface BackendAvatarPresenceState {
+  presence_id: string;
+  avatar_id: string;
+  harness_run_id: string | null;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  confidence: number;
+  visible_summary: string;
+  last_event_id: string | null;
+  updated_at: string;
+}
+
+export interface BackendAvatarDebateEvent {
+  debate_event_id: string;
+  harness_run_id: string;
+  speaker_avatar_id: string | null;
+  target_avatar_id: string | null;
+  event_type: string;
+  stance: string | null;
+  content: Record<string, unknown>;
+  confidence: number;
+  created_at: string;
+}
+
+export interface BackendAvatarArtifactTrail {
+  trail_id: string;
+  avatar_id: string;
+  artifact_id: string;
+  harness_run_id: string | null;
+  contribution_type: string;
+  summary: string;
+  created_at: string;
+}
+
+export interface AvatarSoul {
+  soulId: string;
+  avatarId: string;
+  identityKernel: Record<string, unknown>;
+  worldview: string[];
+  obsessions: string[];
+  reflexes: string[];
+  taboos: string[];
+  debateStyle: Record<string, unknown>;
+  embodimentLevel: string;
+  operatingPrinciples: string[];
+  evaluationBias: Record<string, unknown>;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AvatarMemoryEdge {
+  memoryEdgeId: string;
+  avatarId: string;
+  rippleId: string;
+  relationshipType: string;
+  salience: number;
+  decayPolicy: string;
+  useWhen: string;
+  lastUsedAt: string | null;
+  createdAt: string;
+}
+
+export interface AvatarPresenceState {
+  presenceId: string;
+  avatarId: string;
+  harnessRunId: string | null;
+  state: string;
+  currentFocus: string;
+  currentConcern: string;
+  confidence: number;
+  visibleSummary: string;
+  lastEventId: string | null;
+  updatedAt: string;
+}
+
+export interface AvatarDebateEvent {
+  debateEventId: string;
+  harnessRunId: string;
+  speakerAvatarId: string | null;
+  targetAvatarId: string | null;
+  eventType: string;
+  stance: string | null;
+  content: Record<string, unknown>;
+  confidence: number;
+  createdAt: string;
+}
+
+export interface AvatarArtifactTrail {
+  trailId: string;
+  avatarId: string;
+  artifactId: string;
+  harnessRunId: string | null;
+  contributionType: string;
+  summary: string;
+  createdAt: string;
+}
+
+function normalizeAvatarSoul(s: BackendAvatarSoul): AvatarSoul {
+  return {
+    soulId: s.soul_id,
+    avatarId: s.avatar_id,
+    identityKernel: s.identity_kernel,
+    worldview: Array.isArray(s.worldview) ? (s.worldview as string[]) : [],
+    obsessions: Array.isArray(s.obsessions) ? (s.obsessions as string[]) : [],
+    reflexes: Array.isArray(s.reflexes) ? (s.reflexes as string[]) : [],
+    taboos: Array.isArray(s.taboos) ? (s.taboos as string[]) : [],
+    debateStyle: s.debate_style,
+    embodimentLevel: s.embodiment_level,
+    operatingPrinciples: Array.isArray(s.operating_principles)
+      ? (s.operating_principles as string[])
+      : [],
+    evaluationBias: s.evaluation_bias,
+    isActive: s.is_active,
+    createdAt: s.created_at,
+    updatedAt: s.updated_at,
+  };
+}
+
+function normalizeAvatarMemoryEdge(e: BackendAvatarMemoryEdge): AvatarMemoryEdge {
+  return {
+    memoryEdgeId: e.memory_edge_id,
+    avatarId: e.avatar_id,
+    rippleId: e.ripple_id,
+    relationshipType: e.relationship_type,
+    salience: e.salience,
+    decayPolicy: e.decay_policy,
+    useWhen: e.use_when,
+    lastUsedAt: e.last_used_at,
+    createdAt: e.created_at,
+  };
+}
+
+function normalizeAvatarPresenceState(p: BackendAvatarPresenceState): AvatarPresenceState {
+  return {
+    presenceId: p.presence_id,
+    avatarId: p.avatar_id,
+    harnessRunId: p.harness_run_id,
+    state: p.state,
+    currentFocus: p.current_focus,
+    currentConcern: p.current_concern,
+    confidence: p.confidence,
+    visibleSummary: p.visible_summary,
+    lastEventId: p.last_event_id,
+    updatedAt: p.updated_at,
+  };
+}
+
+function normalizeAvatarDebateEvent(e: BackendAvatarDebateEvent): AvatarDebateEvent {
+  return {
+    debateEventId: e.debate_event_id,
+    harnessRunId: e.harness_run_id,
+    speakerAvatarId: e.speaker_avatar_id,
+    targetAvatarId: e.target_avatar_id,
+    eventType: e.event_type,
+    stance: e.stance,
+    content: e.content,
+    confidence: e.confidence,
+    createdAt: e.created_at,
+  };
+}
+
+function normalizeAvatarArtifactTrail(t: BackendAvatarArtifactTrail): AvatarArtifactTrail {
+  return {
+    trailId: t.trail_id,
+    avatarId: t.avatar_id,
+    artifactId: t.artifact_id,
+    harnessRunId: t.harness_run_id,
+    contributionType: t.contribution_type,
+    summary: t.summary,
+    createdAt: t.created_at,
   };
 }

@@ -12,8 +12,8 @@ use crate::middleware::{
     rate_limit::{RateLimitConfig, RateLimitLayer, RateLimitState},
 };
 use crate::routes::{
-    auth, avatars, billing, campaigns, capabilities, content, council, daily_wins, foundation,
-    harness, health, intel, jobs, muse, nudges, office, prl, replan,
+    auth, avatar_soul, avatars, billing, campaigns, capabilities, content, council, daily_wins,
+    foundation, harness, health, intel, jobs, muse, nudges, office, prl, replan,
 };
 
 fn cors_layer(state: &AppState) -> CorsLayer {
@@ -329,6 +329,34 @@ fn protected_router(state: Arc<AppState>) -> Router {
             get(avatars::get_avatar)
                 .patch(avatars::update_avatar)
                 .delete(avatars::delete_avatar),
+        )
+        .route(
+            "/api/v1/avatars/{id}/soul",
+            get(avatar_soul::get_avatar_soul).put(avatar_soul::update_avatar_soul),
+        )
+        .route(
+            "/api/v1/avatars/{id}/memory/edges",
+            get(avatar_soul::list_memory_edges).post(avatar_soul::create_memory_edge),
+        )
+        .route(
+            "/api/v1/avatars/{id}/memory/edges/{edge_id}",
+            delete(avatar_soul::delete_memory_edge),
+        )
+        .route(
+            "/api/v1/avatars/{id}/instinct-frame",
+            post(avatar_soul::create_instinct_frame),
+        )
+        .route(
+            "/api/v1/harness/runs/{id}/presence",
+            get(avatar_soul::list_presence_states).post(avatar_soul::upsert_presence_state),
+        )
+        .route(
+            "/api/v1/harness/runs/{id}/debate-events",
+            get(avatar_soul::list_debate_events).post(avatar_soul::create_debate_event),
+        )
+        .route(
+            "/api/v1/avatars/{id}/artifact-trail",
+            get(avatar_soul::get_artifact_trail),
         )
         .route(
             "/api/v1/harness/runs",

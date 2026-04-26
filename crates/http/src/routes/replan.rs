@@ -76,7 +76,7 @@ pub async fn trigger_replan(
         return Err(bad_request("invalid_trigger_type"));
     }
 
-    let existing = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
@@ -86,7 +86,7 @@ pub async fn trigger_replan(
     let replan_session_id = Ulid::new().to_string();
 
     queries::create_replan_session(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &replan_session_id,
         org_id,
         &campaign_id,
@@ -95,7 +95,7 @@ pub async fn trigger_replan(
     .await
     .map_err(internal_error)?;
 
-    let session = queries::get_replan_session(&tenant_pool.pool(), &replan_session_id, org_id)
+    let session = queries::get_replan_session(tenant_pool.pool(), &replan_session_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -122,14 +122,14 @@ pub async fn list_replans(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let existing = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
         return Err(not_found());
     }
 
-    let sessions = queries::list_replan_sessions(&tenant_pool.pool(), &campaign_id, org_id)
+    let sessions = queries::list_replan_sessions(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
 

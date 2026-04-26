@@ -73,7 +73,7 @@ pub async fn list_content(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let content = queries::list_generated_content(&tenant_pool.pool(), org_id)
+    let content = queries::list_generated_content(tenant_pool.pool(), org_id)
         .await
         .map_err(internal_error)?;
 
@@ -100,7 +100,7 @@ pub async fn create_content(
     let content_id = Ulid::new().to_string();
 
     queries::create_generated_content(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &content_id,
         org_id,
         req.campaign_id.as_deref(),
@@ -112,7 +112,7 @@ pub async fn create_content(
     .await
     .map_err(internal_error)?;
 
-    let content = queries::get_generated_content(&tenant_pool.pool(), &content_id, org_id)
+    let content = queries::get_generated_content(tenant_pool.pool(), &content_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -132,7 +132,7 @@ pub async fn get_content(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let content = queries::get_generated_content(&tenant_pool.pool(), &content_id, org_id)
+    let content = queries::get_generated_content(tenant_pool.pool(), &content_id, org_id)
         .await
         .map_err(internal_error)?;
 
