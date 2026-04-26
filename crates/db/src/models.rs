@@ -604,3 +604,94 @@ pub struct ArtifactRippleLink {
     pub salience: f64,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct AvatarSoul {
+    pub soul_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: String,
+    pub identity_kernel: serde_json::Value,
+    pub worldview: serde_json::Value,
+    pub obsessions: serde_json::Value,
+    pub reflexes: serde_json::Value,
+    pub taboos: serde_json::Value,
+    pub debate_style: serde_json::Value,
+    pub embodiment_level: String,
+    pub operating_principles: serde_json::Value,
+    pub evaluation_bias: serde_json::Value,
+    pub is_active: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct AvatarMemoryEdge {
+    pub memory_edge_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: String,
+    pub ripple_id: String,
+    pub relationship_type: String,
+    pub salience: f64,
+    pub decay_policy: String,
+    pub use_when: String,
+    pub last_used_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct AvatarInstinctFrame {
+    pub instinct_frame_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: String,
+    pub harness_run_id: Option<String>,
+    pub capability_run_id: Option<String>,
+    pub trigger_kind: String,
+    pub dominant_concern: String,
+    pub risk_flags: serde_json::Value,
+    pub recommended_posture: String,
+    pub visible_summary: String,
+    pub private_notes: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct AvatarPresenceState {
+    pub presence_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: String,
+    pub harness_run_id: Option<String>,
+    pub state: String,
+    pub current_focus: String,
+    pub current_concern: String,
+    pub confidence: f64,
+    pub visible_summary: String,
+    pub last_event_id: Option<String>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct AvatarDebateEvent {
+    pub debate_event_id: String,
+    pub org_id: uuid::Uuid,
+    pub harness_run_id: String,
+    pub speaker_avatar_id: Option<String>,
+    pub target_avatar_id: Option<String>,
+    pub event_type: String,
+    pub stance: Option<String>,
+    pub content: serde_json::Value,
+    pub confidence: f64,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct AvatarArtifactTrail {
+    pub trail_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: String,
+    pub artifact_id: String,
+    pub harness_run_id: Option<String>,
+    pub contribution_type: String,
+    pub summary: String,
+    pub created_at: DateTime<Utc>,
+}

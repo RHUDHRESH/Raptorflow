@@ -7,17 +7,19 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClientType | undefined;
 };
 
-const connectionString =
-  process.env.DATABASE_URL ?? process.env.DIRECT_DATABASE_URL;
+const connectionString = process.env.DATABASE_URL ?? process.env.DIRECT_DATABASE_URL;
 
-if (!connectionString) {
-  throw new Error("DATABASE_URL is required for @raptorflow/database");
+function createPrismaClient(): PrismaClientType {
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is required for @raptorflow/database");
+  }
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({ adapter }) as PrismaClientType;
 }
 
-const adapter = new PrismaPg(new Pool({ connectionString }));
-
 export const prisma: PrismaClientType =
-  globalForPrisma.prisma ?? (new PrismaClient({ adapter }) as PrismaClientType);
+  globalForPrisma.prisma ?? (globalForPrisma.prisma = createPrismaClient());
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;

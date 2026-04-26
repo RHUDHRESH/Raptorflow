@@ -117,7 +117,7 @@ pub async fn start_session(
     let session_type = req.session_type.as_deref().unwrap_or("deliberation");
 
     queries::create_council_session(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &session_id,
         org_id,
         req.campaign_id.as_deref(),
@@ -127,7 +127,7 @@ pub async fn start_session(
     .await
     .map_err(internal_error)?;
 
-    let session = queries::get_council_session(&tenant_pool.pool(), &session_id, org_id)
+    let session = queries::get_council_session(tenant_pool.pool(), &session_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -146,7 +146,7 @@ pub async fn list_sessions(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let sessions = queries::list_council_sessions(&tenant_pool.pool(), org_id)
+    let sessions = queries::list_council_sessions(tenant_pool.pool(), org_id)
         .await
         .map_err(internal_error)?;
 
@@ -166,13 +166,13 @@ pub async fn get_session(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let session = queries::get_council_session(&tenant_pool.pool(), &session_id, org_id)
+    let session = queries::get_council_session(tenant_pool.pool(), &session_id, org_id)
         .await
         .map_err(internal_error)?;
 
     match session {
         Some(s) => {
-            let positions = queries::list_agent_positions(&tenant_pool.pool(), &session_id, org_id)
+            let positions = queries::list_agent_positions(tenant_pool.pool(), &session_id, org_id)
                 .await
                 .map_err(internal_error)?;
 
@@ -193,7 +193,7 @@ pub async fn get_session_messages(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let session = queries::get_council_session(&tenant_pool.pool(), &session_id, org_id)
+    let session = queries::get_council_session(tenant_pool.pool(), &session_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -201,7 +201,7 @@ pub async fn get_session_messages(
         return Err(not_found("session_not_found"));
     }
 
-    let positions = queries::list_agent_positions(&tenant_pool.pool(), &session_id, org_id)
+    let positions = queries::list_agent_positions(tenant_pool.pool(), &session_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -259,7 +259,7 @@ pub async fn start_council_session(
     let bedrock = bedrock.ok_or_else(service_unavailable)?;
     let org_id = tenant.org_id;
 
-    let session = queries::get_council_session(&tenant_pool.pool(), &session_id, org_id)
+    let session = queries::get_council_session(tenant_pool.pool(), &session_id, org_id)
         .await
         .map_err(internal_error)?;
     let session = session.ok_or_else(|| not_found("session_not_found"))?;
@@ -268,7 +268,7 @@ pub async fn start_council_session(
         return Err(bad_request("session_question_empty"));
     }
 
-    queries::update_council_session_status(&tenant_pool.pool(), &session_id, org_id, "running")
+    queries::update_council_session_status(tenant_pool.pool(), &session_id, org_id, "running")
         .await
         .map_err(internal_error)?;
 
@@ -276,7 +276,7 @@ pub async fn start_council_session(
     if roster.is_empty() {
         roster = DEFAULT_ROSTER.iter().map(|s| s.to_string()).collect();
     }
-    let max_agents = req.max_agents.unwrap_or(5).min(6).max(1);
+    let max_agents = req.max_agents.unwrap_or(5).clamp(1, 6);
     roster.truncate(max_agents as usize);
 
     let mut positions = Vec::new();
@@ -346,7 +346,7 @@ pub async fn start_council_session(
 
         let position_id = Ulid::new().to_string();
         if let Err(e) = queries::create_agent_position(
-            &tenant_pool.pool(),
+            tenant_pool.pool(),
             &position_id,
             org_id,
             &session_id,
@@ -373,7 +373,7 @@ pub async fn start_council_session(
     }
 
     if positions.is_empty() {
-        queries::update_council_session_status(&tenant_pool.pool(), &session_id, org_id, "failed")
+        queries::update_council_session_status(tenant_pool.pool(), &session_id, org_id, "failed")
             .await
             .map_err(internal_error)?;
         return Err((
@@ -387,7 +387,7 @@ pub async fn start_council_session(
     } else {
         "positions_ready"
     };
-    queries::update_council_session_status(&tenant_pool.pool(), &session_id, org_id, final_status)
+    queries::update_council_session_status(tenant_pool.pool(), &session_id, org_id, final_status)
         .await
         .map_err(internal_error)?;
 
@@ -405,7 +405,7 @@ pub async fn stream_council_session(
 ) -> AppResult<CouncilSseResponse> {
     let org_id = tenant.org_id;
 
-    let session = queries::get_council_session(&tenant_pool.pool(), &session_id, org_id)
+    let session = queries::get_council_session(tenant_pool.pool(), &session_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -414,7 +414,7 @@ pub async fn stream_council_session(
     }
     let session = session.unwrap();
 
-    let positions = queries::list_agent_positions(&tenant_pool.pool(), &session_id, org_id)
+    let positions = queries::list_agent_positions(tenant_pool.pool(), &session_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -475,12 +475,12 @@ pub async fn synthesize_council_session(
     let bedrock = bedrock.ok_or_else(service_unavailable)?;
     let org_id = tenant.org_id;
 
-    let session = queries::get_council_session(&tenant_pool.pool(), &session_id, org_id)
+    let session = queries::get_council_session(tenant_pool.pool(), &session_id, org_id)
         .await
         .map_err(internal_error)?;
     let session = session.ok_or_else(|| not_found("session_not_found"))?;
 
-    let positions = queries::list_agent_positions(&tenant_pool.pool(), &session_id, org_id)
+    let positions = queries::list_agent_positions(tenant_pool.pool(), &session_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -583,7 +583,7 @@ pub async fn synthesize_council_session(
 
     let content_id = Ulid::new().to_string();
     queries::create_generated_content(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &content_id,
         org_id,
         session.campaign_id.as_deref(),
@@ -595,7 +595,7 @@ pub async fn synthesize_council_session(
     .await
     .map_err(internal_error)?;
 
-    queries::update_council_session_status(&tenant_pool.pool(), &session_id, org_id, "synthesized")
+    queries::update_council_session_status(tenant_pool.pool(), &session_id, org_id, "synthesized")
         .await
         .map_err(internal_error)?;
 

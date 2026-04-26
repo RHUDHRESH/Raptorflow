@@ -100,18 +100,18 @@ pub async fn submit_prompt(
     let user_message_id = Ulid::new().to_string();
     let assistant_message_id = Ulid::new().to_string();
 
-    let existing = queries::get_muse_conversation(&tenant_pool.pool(), &conversation_id, org_id)
+    let existing = queries::get_muse_conversation(tenant_pool.pool(), &conversation_id, org_id)
         .await
         .map_err(internal_error)?;
 
     if existing.is_none() {
-        queries::create_muse_conversation(&tenant_pool.pool(), &conversation_id, org_id, route)
+        queries::create_muse_conversation(tenant_pool.pool(), &conversation_id, org_id, route)
             .await
             .map_err(internal_error)?;
     }
 
     queries::create_muse_message(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &user_message_id,
         &conversation_id,
         org_id,
@@ -138,7 +138,7 @@ pub async fn submit_prompt(
     .map_err(internal_error)?;
 
     queries::create_muse_message(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &assistant_message_id,
         &conversation_id,
         org_id,
@@ -163,7 +163,7 @@ pub async fn list_conversations(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let conversations = queries::list_muse_conversations(&tenant_pool.pool(), org_id)
+    let conversations = queries::list_muse_conversations(tenant_pool.pool(), org_id)
         .await
         .map_err(internal_error)?;
 
@@ -183,15 +183,14 @@ pub async fn get_conversation(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let conversation =
-        queries::get_muse_conversation(&tenant_pool.pool(), &conversation_id, org_id)
-            .await
-            .map_err(internal_error)?;
+    let conversation = queries::get_muse_conversation(tenant_pool.pool(), &conversation_id, org_id)
+        .await
+        .map_err(internal_error)?;
 
     match conversation {
         Some(c) => {
             let messages =
-                queries::list_muse_messages(&tenant_pool.pool(), &conversation_id, org_id)
+                queries::list_muse_messages(tenant_pool.pool(), &conversation_id, org_id)
                     .await
                     .map_err(internal_error)?;
 
@@ -212,16 +211,15 @@ pub async fn get_messages(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let conversation =
-        queries::get_muse_conversation(&tenant_pool.pool(), &conversation_id, org_id)
-            .await
-            .map_err(internal_error)?;
+    let conversation = queries::get_muse_conversation(tenant_pool.pool(), &conversation_id, org_id)
+        .await
+        .map_err(internal_error)?;
 
     if conversation.is_none() {
         return Err(not_found("conversation_not_found"));
     }
 
-    let messages = queries::list_muse_messages(&tenant_pool.pool(), &conversation_id, org_id)
+    let messages = queries::list_muse_messages(tenant_pool.pool(), &conversation_id, org_id)
         .await
         .map_err(internal_error)?;
 

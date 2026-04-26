@@ -1,10 +1,11 @@
 use crate::models::{
-    AgentEssence, Avatar, Campaign, CampaignBrief, CampaignMove, CampaignTask, CapabilityArtifact,
-    CapabilityDefinition, CapabilityRun, CompetitorSnapshot, ContentStrategy, CouncilAgentPosition,
-    CouncilSession, DailyWin, FoundationScan, FoundationSection, FoundationSnapshot,
-    FoundationVersion, GeneratedContent, HarnessContextPack, HarnessRun, HarnessStep,
-    MuseConversation, MuseMessage, Nudge, OrgUser, Organization, ReplanSession, Ripple, RippleEdge,
-    Subscription,
+    AgentEssence, Avatar, AvatarArtifactTrail, AvatarDebateEvent, AvatarMemoryEdge,
+    AvatarPresenceState, AvatarSoul, Campaign, CampaignBrief, CampaignMove, CampaignTask,
+    CapabilityArtifact, CapabilityDefinition, CapabilityRun, CompetitorSnapshot, ContentStrategy,
+    CouncilAgentPosition, CouncilSession, DailyWin, FoundationScan, FoundationSection,
+    FoundationSnapshot, FoundationVersion, GeneratedContent, HarnessContextPack, HarnessRun,
+    HarnessStep, MuseConversation, MuseMessage, Nudge, OrgUser, Organization, ReplanSession,
+    Ripple, RippleEdge, Subscription,
 };
 use sqlx::{PgPool, Row};
 
@@ -2952,4 +2953,390 @@ pub async fn update_harness_step_status(
     .execute(pool)
     .await?;
     Ok(())
+}
+
+pub async fn get_avatar_soul(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+) -> Result<Option<AvatarSoul>, sqlx::Error> {
+    let row = sqlx::query_as::<_, AvatarSoul>(
+        r#"
+        SELECT soul_id, org_id, avatar_id, identity_kernel, worldview, obsessions,
+               reflexes, taboos, debate_style, embodiment_level, operating_principles,
+               evaluation_bias, is_active, created_at, updated_at
+        FROM avatar_souls
+        WHERE avatar_id = $1 AND org_id = $2
+        "#,
+    )
+    .bind(avatar_id)
+    .bind(org_id)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(row)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn upsert_avatar_soul(
+    pool: &PgPool,
+    soul_id: &str,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    identity_kernel: &serde_json::Value,
+    worldview: &serde_json::Value,
+    obsessions: &serde_json::Value,
+    reflexes: &serde_json::Value,
+    taboos: &serde_json::Value,
+    debate_style: &serde_json::Value,
+    embodiment_level: &str,
+    operating_principles: &serde_json::Value,
+    evaluation_bias: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO avatar_souls (
+            soul_id, org_id, avatar_id, identity_kernel, worldview, obsessions,
+            reflexes, taboos, debate_style, embodiment_level, operating_principles,
+            evaluation_bias
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ON CONFLICT (org_id, avatar_id) DO UPDATE SET
+            identity_kernel = EXCLUDED.identity_kernel,
+            worldview = EXCLUDED.worldview,
+            obsessions = EXCLUDED.obsessions,
+            reflexes = EXCLUDED.reflexes,
+            taboos = EXCLUDED.taboos,
+            debate_style = EXCLUDED.debate_style,
+            embodiment_level = EXCLUDED.embodiment_level,
+            operating_principles = EXCLUDED.operating_principles,
+            evaluation_bias = EXCLUDED.evaluation_bias,
+            updated_at = now()
+        "#,
+    )
+    .bind(soul_id)
+    .bind(org_id)
+    .bind(avatar_id)
+    .bind(identity_kernel)
+    .bind(worldview)
+    .bind(obsessions)
+    .bind(reflexes)
+    .bind(taboos)
+    .bind(debate_style)
+    .bind(embodiment_level)
+    .bind(operating_principles)
+    .bind(evaluation_bias)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn list_avatar_memory_edges(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+) -> Result<Vec<AvatarMemoryEdge>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, AvatarMemoryEdge>(
+        r#"
+        SELECT memory_edge_id, org_id, avatar_id, ripple_id, relationship_type,
+               salience, decay_policy, use_when, last_used_at, created_at, updated_at
+        FROM avatar_memory_edges
+        WHERE avatar_id = $1 AND org_id = $2
+        ORDER BY salience DESC
+        "#,
+    )
+    .bind(avatar_id)
+    .bind(org_id)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows)
+}
+
+pub async fn create_avatar_memory_edge(
+    pool: &PgPool,
+    memory_edge_id: &str,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    ripple_id: &str,
+    relationship_type: &str,
+    salience: f64,
+    decay_policy: &str,
+    use_when: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO avatar_memory_edges (
+            memory_edge_id, org_id, avatar_id, ripple_id, relationship_type,
+            salience, decay_policy, use_when
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (org_id, avatar_id, ripple_id, relationship_type) DO UPDATE SET
+            salience = EXCLUDED.salience,
+            decay_policy = EXCLUDED.decay_policy,
+            use_when = EXCLUDED.use_when,
+            last_used_at = now(),
+            updated_at = now()
+        "#,
+    )
+    .bind(memory_edge_id)
+    .bind(org_id)
+    .bind(avatar_id)
+    .bind(ripple_id)
+    .bind(relationship_type)
+    .bind(salience)
+    .bind(decay_policy)
+    .bind(use_when)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn delete_avatar_memory_edge(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    memory_edge_id: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        DELETE FROM avatar_memory_edges
+        WHERE memory_edge_id = $1 AND avatar_id = $2 AND org_id = $3
+        "#,
+    )
+    .bind(memory_edge_id)
+    .bind(avatar_id)
+    .bind(org_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn create_avatar_instinct_frame(
+    pool: &PgPool,
+    instinct_frame_id: &str,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    harness_run_id: Option<&str>,
+    capability_run_id: Option<&str>,
+    trigger_kind: &str,
+    dominant_concern: &str,
+    risk_flags: &serde_json::Value,
+    recommended_posture: &str,
+    visible_summary: &str,
+    private_notes: &serde_json::Value,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO avatar_instinct_frames (
+            instinct_frame_id, org_id, avatar_id, harness_run_id, capability_run_id,
+            trigger_kind, dominant_concern, risk_flags, recommended_posture,
+            visible_summary, private_notes
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        "#,
+    )
+    .bind(instinct_frame_id)
+    .bind(org_id)
+    .bind(avatar_id)
+    .bind(harness_run_id)
+    .bind(capability_run_id)
+    .bind(trigger_kind)
+    .bind(dominant_concern)
+    .bind(risk_flags)
+    .bind(recommended_posture)
+    .bind(visible_summary)
+    .bind(private_notes)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn upsert_avatar_presence_state(
+    pool: &PgPool,
+    presence_id: &str,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    harness_run_id: Option<&str>,
+    state: &str,
+    current_focus: &str,
+    current_concern: &str,
+    confidence: f64,
+    visible_summary: &str,
+    last_event_id: Option<&str>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO avatar_presence_states (
+            presence_id, org_id, avatar_id, harness_run_id, state,
+            current_focus, current_concern, confidence, visible_summary, last_event_id
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ON CONFLICT (org_id, avatar_id, harness_run_id) DO UPDATE SET
+            state = EXCLUDED.state,
+            current_focus = EXCLUDED.current_focus,
+            current_concern = EXCLUDED.current_concern,
+            confidence = EXCLUDED.confidence,
+            visible_summary = EXCLUDED.visible_summary,
+            last_event_id = EXCLUDED.last_event_id,
+            updated_at = now()
+        "#,
+    )
+    .bind(presence_id)
+    .bind(org_id)
+    .bind(avatar_id)
+    .bind(harness_run_id)
+    .bind(state)
+    .bind(current_focus)
+    .bind(current_concern)
+    .bind(confidence)
+    .bind(visible_summary)
+    .bind(last_event_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn list_harness_presence(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    harness_run_id: &str,
+) -> Result<Vec<AvatarPresenceState>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, AvatarPresenceState>(
+        r#"
+        SELECT presence_id, org_id, avatar_id, harness_run_id, state,
+               current_focus, current_concern, confidence, visible_summary,
+               last_event_id, updated_at
+        FROM avatar_presence_states
+        WHERE harness_run_id = $1 AND org_id = $2
+        "#,
+    )
+    .bind(harness_run_id)
+    .bind(org_id)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows)
+}
+
+pub async fn create_avatar_debate_event(
+    pool: &PgPool,
+    debate_event_id: &str,
+    org_id: uuid::Uuid,
+    harness_run_id: &str,
+    speaker_avatar_id: Option<&str>,
+    target_avatar_id: Option<&str>,
+    event_type: &str,
+    stance: Option<&str>,
+    content: &serde_json::Value,
+    confidence: f64,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO avatar_debate_events (
+            debate_event_id, org_id, harness_run_id, speaker_avatar_id,
+            target_avatar_id, event_type, stance, content, confidence
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        "#,
+    )
+    .bind(debate_event_id)
+    .bind(org_id)
+    .bind(harness_run_id)
+    .bind(speaker_avatar_id)
+    .bind(target_avatar_id)
+    .bind(event_type)
+    .bind(stance)
+    .bind(content)
+    .bind(confidence)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn list_debate_events(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    harness_run_id: &str,
+) -> Result<Vec<AvatarDebateEvent>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, AvatarDebateEvent>(
+        r#"
+        SELECT debate_event_id, org_id, harness_run_id, speaker_avatar_id,
+               target_avatar_id, event_type, stance, content, confidence, created_at
+        FROM avatar_debate_events
+        WHERE harness_run_id = $1 AND org_id = $2
+        ORDER BY created_at ASC
+        "#,
+    )
+    .bind(harness_run_id)
+    .bind(org_id)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows)
+}
+
+pub async fn create_avatar_artifact_trail(
+    pool: &PgPool,
+    trail_id: &str,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    artifact_id: &str,
+    harness_run_id: Option<&str>,
+    contribution_type: &str,
+    summary: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO avatar_artifact_trails (
+            trail_id, org_id, avatar_id, artifact_id, harness_run_id,
+            contribution_type, summary
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (org_id, avatar_id, artifact_id, contribution_type) DO UPDATE SET
+            harness_run_id = EXCLUDED.harness_run_id,
+            summary = EXCLUDED.summary
+        "#,
+    )
+    .bind(trail_id)
+    .bind(org_id)
+    .bind(avatar_id)
+    .bind(artifact_id)
+    .bind(harness_run_id)
+    .bind(contribution_type)
+    .bind(summary)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn list_avatar_artifact_trail(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+) -> Result<Vec<AvatarArtifactTrail>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, AvatarArtifactTrail>(
+        r#"
+        SELECT trail_id, org_id, avatar_id, artifact_id, harness_run_id,
+               contribution_type, summary, created_at
+        FROM avatar_artifact_trails
+        WHERE avatar_id = $1 AND org_id = $2
+        ORDER BY created_at DESC
+        "#,
+    )
+    .bind(avatar_id)
+    .bind(org_id)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows)
 }

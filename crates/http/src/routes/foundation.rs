@@ -450,6 +450,7 @@ impl ScanStatus {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Self {
         match s {
             "queued" => ScanStatus::Queued,
@@ -507,6 +508,7 @@ enum ScanMode {
 }
 
 impl ScanMode {
+    #[allow(dead_code)]
     fn as_str(&self) -> &'static str {
         match self {
             ScanMode::Quick => "quick",
@@ -606,13 +608,10 @@ pub async fn start_scan(
 
     let url = match &payload.url {
         Some(u) if !u.is_empty() => u.clone(),
-        _ => {
-            let resolved = resolve_scan_url(pool, auth.tenant.org_id)
-                .await
-                .map_err(internal_error)?
-                .ok_or_else(|| bad_request("scan_url_required"))?;
-            resolved
-        }
+        _ => resolve_scan_url(pool, auth.tenant.org_id)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("scan_url_required"))?,
     };
 
     let scan_id = format!("scan-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
@@ -654,13 +653,10 @@ pub async fn start_quick_scan(
 
     let url = match &payload.url {
         Some(u) if !u.is_empty() => u.clone(),
-        _ => {
-            let resolved = resolve_scan_url(pool, auth.tenant.org_id)
-                .await
-                .map_err(internal_error)?
-                .ok_or_else(|| bad_request("scan_url_required"))?;
-            resolved
-        }
+        _ => resolve_scan_url(pool, auth.tenant.org_id)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("scan_url_required"))?,
     };
 
     let scan_id = format!("scan-quick-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
@@ -702,13 +698,10 @@ pub async fn start_deep_scan(
 
     let url = match &payload.url {
         Some(u) if !u.is_empty() => u.clone(),
-        _ => {
-            let resolved = resolve_scan_url(pool, auth.tenant.org_id)
-                .await
-                .map_err(internal_error)?
-                .ok_or_else(|| bad_request("scan_url_required"))?;
-            resolved
-        }
+        _ => resolve_scan_url(pool, auth.tenant.org_id)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("scan_url_required"))?,
     };
 
     let scan_id = format!("scan-deep-{}-{}", auth.tenant.org_id, ulid::Ulid::new());
@@ -1465,8 +1458,8 @@ pub async fn add_secondary_icp(
     }
 
     match mode {
-        "b2b" => validate_b2b_icp(icp_data).map_err(|e| bad_request(e))?,
-        "b2c" => validate_b2c_icp(icp_data).map_err(|e| bad_request(e))?,
+        "b2b" => validate_b2b_icp(icp_data).map_err(bad_request)?,
+        "b2c" => validate_b2c_icp(icp_data).map_err(bad_request)?,
         _ => return Err(bad_request("mode must be 'b2b' or 'b2c'")),
     }
 
@@ -1477,7 +1470,7 @@ pub async fn add_secondary_icp(
 
     let mut foundation_json: serde_json::Value = foundation_data.sections;
 
-    if !foundation_json.get("secondary_icps").is_some() {
+    if foundation_json.get("secondary_icps").is_none() {
         foundation_json["secondary_icps"] = serde_json::json!([]);
     }
 
@@ -1542,7 +1535,7 @@ pub async fn update_secondary_icp(
     let mut foundation_json: serde_json::Value = foundation_data.sections;
 
     // Get secondary_icps array
-    if !foundation_json.get("secondary_icps").is_some() {
+    if foundation_json.get("secondary_icps").is_none() {
         foundation_json["secondary_icps"] = serde_json::json!([]);
     }
     let _secondary_icps_len = {
@@ -1598,7 +1591,7 @@ pub async fn delete_secondary_icp(
     let mut foundation_json: serde_json::Value = foundation_data.sections;
 
     // Get secondary_icps array
-    if !foundation_json.get("secondary_icps").is_some() {
+    if foundation_json.get("secondary_icps").is_none() {
         foundation_json["secondary_icps"] = serde_json::json!([]);
     }
     let remaining_count = {
@@ -1952,7 +1945,7 @@ async fn quick_scan(url: &str) -> Result<serde_json::Value, String> {
     let logo_url = json_ld
         .as_ref()
         .and_then(|j| j.get("logo").and_then(|l| l.as_str()).map(String::from))
-        .or_else(|| og_image);
+        .or(og_image);
 
     let primary_offering = json_ld.as_ref().and_then(|j| {
         j.get("description")
