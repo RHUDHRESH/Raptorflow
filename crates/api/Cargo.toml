@@ -18,4 +18,5 @@ raptorflow-db = { path = "../db" }
 raptorflow-http = { path = "../http" }
 raptorflow-integrations = { path = "../integrations" }
 raptorflow-jobs = { path = "../jobs" }
+raptorflow-search = { path = "../search" }
 raptorflow-telemetry = { path = "../telemetry" }

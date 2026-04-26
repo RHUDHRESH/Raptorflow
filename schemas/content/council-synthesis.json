@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/content/council-synthesis.json",
+  "title": "CouncilSynthesis",
+  "description": "Council session synthesis with decision, rationale, and next actions",
+  "type": "object",
+  "required": ["decision", "rationale", "risks", "next_actions"],
+  "properties": {
+    "decision": {
+      "type": "string",
+      "minLength": 10
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 20
+    },
+    "risks": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 5 },
+      "maxItems": 10
+    },
+    "next_actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 5 },
+      "maxItems": 10
+    },
+    "participating_agents": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

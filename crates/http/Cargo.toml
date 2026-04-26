@@ -30,6 +30,7 @@ raptorflow-intel = { path = "../intel" }
 raptorflow-acquisition = { path = "../acquisition" }
 raptorflow-jobs = { path = "../jobs" }
 raptorflow-harness = { path = "../harness" }
+raptorflow-search = { path = "../search" }
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
@@ -37,6 +38,7 @@ tracing.workspace = true
 futures.workspace = true
 futures-util.workspace = true
 hmac.workspace = true
+jsonschema.workspace = true
 sha2.workspace = true
 hex.workspace = true
 

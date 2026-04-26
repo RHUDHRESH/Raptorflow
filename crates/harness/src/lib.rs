@@ -64,10 +64,12 @@ pub mod analyst_soul;
 pub mod avatar_soul;
 pub mod copywriter_soul;
 pub mod cortex;
+pub mod council_ai;
 pub mod council_orchestrator;
 pub mod creative_director_soul;
 pub mod execution;
 pub mod growth_operator_soul;
+pub mod identity;
 pub mod proof_collector_soul;
 pub mod researcher_soul;
 pub mod ripples;
@@ -231,7 +233,9 @@ impl SessionManager {
 
     async fn load_agent_state(pool: PgPool, org_id: Uuid, agent_id: Uuid) -> Result<AvatarState> {
         let essence = Self::load_agent_essence(&pool, org_id, agent_id).await?;
-        let working_memory = Self::load_working_memory(&pool, org_id, agent_id).await?;
+        let avatar_key = essence.avatar_key.clone();
+        let working_memory =
+            Self::load_working_memory(&pool, org_id, &avatar_key).await?;
         let avatar_state = Self::apply_ego_decay(essence, &working_memory);
 
         Ok(avatar_state)
@@ -251,11 +255,30 @@ impl SessionManager {
     }
 
     async fn load_working_memory(
-        _pool: &PgPool,
-        _org_id: Uuid,
-        _agent_id: Uuid,
+        pool: &PgPool,
+        org_id: Uuid,
+        avatar_key: &str,
     ) -> Result<Vec<RippleSummary>> {
-        Ok(Vec::new())
+        const MAX_MEMORY_RIPPLES: i64 = 50;
+
+        let summaries = raptorflow_db::queries::get_ripples_for_avatar(
+            pool,
+            org_id,
+            avatar_key,
+            MAX_MEMORY_RIPPLES,
+        )
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to load working memory for avatar {}: {}", avatar_key, e))?;
+
+        Ok(summaries
+            .into_iter()
+            .map(|s| RippleSummary {
+                ripple_id: s.ripple_id,
+                summary_text: s.summary_text,
+                salience: s.salience,
+                emotion_vector: None,
+            })
+            .collect())
     }
 
     fn apply_ego_decay(essence: AgentEssence, working_memory: &[RippleSummary]) -> AvatarState {

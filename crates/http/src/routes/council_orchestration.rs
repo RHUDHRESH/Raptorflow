@@ -105,6 +105,7 @@ pub fn router(state: Arc<AppState>) -> Router {
 pub async fn create_orchestration(
     Extension(tenant): Extension<TenantContext>,
     Extension(tenant_pool): Extension<TenantDbPool>,
+    Extension(state): Extension<Arc<AppState>>,
     Json(body): Json<CreateOrchestrationRequest>,
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
@@ -154,6 +155,8 @@ pub async fn create_orchestration(
         }
     }
 
+    let bedrock = state.bedrock.clone();
+
     let input = raptorflow_harness::council_orchestrator::CouncilRunRequest {
         org_id,
         request_summary: body.request_summary,
@@ -163,7 +166,7 @@ pub async fn create_orchestration(
         max_challenge_rounds,
     };
 
-    let result = raptorflow_harness::council_orchestrator::run_council_dry_run(pool, input)
+    let result = raptorflow_harness::council_orchestrator::run_council_run(pool, bedrock, input)
         .await
         .map_err(|e| {
             tracing::error!("Council orchestration failed: {}", e);
