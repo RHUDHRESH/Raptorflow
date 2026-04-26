@@ -1106,6 +1106,144 @@ export interface ClaimAnalysis {
   safer_rewrite: string;
 }
 
+export const copywriterApi = {
+  ensureDefault: async () => {
+    const res = await apiFetch<CopywriterSoulResponse>("/api/v1/avatars/copywriter/default", {
+      method: "POST",
+      auth: true,
+    });
+    return res;
+  },
+  dryRun: async (body: CopywriterDryRunRequest) => {
+    const res = await apiFetch<CopywriterDryRunResponse>("/api/v1/avatars/copywriter/dry-run", {
+      method: "POST",
+      body,
+      auth: true,
+    });
+    return res;
+  },
+};
+
+export interface CopywriterSoulResponse {
+  avatar_id: string;
+  soul_id: string;
+  created: boolean;
+  updated: boolean;
+}
+
+export interface CopywriterDryRunRequest {
+  task_summary: string;
+  context_summary: string;
+  copy_draft?: string;
+}
+
+export interface CopywriterDryRunResponse {
+  avatar_id: string;
+  soul_id: string;
+  embodiment_pack: CopywriterEmbodimentPack;
+  role_lock_prompt: string;
+  instinct_frame: CopywriterInstinctFrame;
+  presence_state: CopywriterPresenceState | null;
+  debate_event: CopywriterDebateEvent | null;
+  copy_audit: CopywriterCopyAudit | null;
+}
+
+export interface CopywriterEmbodimentPack {
+  avatar_id: string;
+  soul_id: string;
+  identity_kernel: Record<string, unknown>;
+  worldview: string[];
+  obsessions: string[];
+  reflexes: string[];
+  taboos: string[];
+  operating_principles: string[];
+  debate_style: Record<string, unknown>;
+  evaluation_bias: Record<string, unknown>;
+  memory_edges: CopywriterMemoryEdge[];
+}
+
+export interface CopywriterMemoryEdge {
+  memory_edge_id: string;
+  ripple_id: string;
+  relationship_type: string;
+  salience: number;
+  decay_policy: string;
+  use_when: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface CopywriterInstinctFrame {
+  trigger_kind: string;
+  dominant_concern: string;
+  risk_flags: string[];
+  recommended_posture: string;
+  visible_summary: string;
+}
+
+export interface CopywriterPresenceState {
+  presence_id: string;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  visible_summary: string;
+  confidence: number;
+}
+
+export interface CopywriterDebateEvent {
+  debate_event_id: string;
+  event_type: string;
+  stance: string;
+  content: Record<string, unknown>;
+  confidence: number;
+}
+
+export interface CopywriterCopyAudit {
+  copy_elements: CopyElementAnalysis[];
+  proof_claims: CopyProofClaimAnalysis[];
+  generic_risk_flags: string[];
+  hook_assessment: CopyHookAssessment;
+  cta_assessment: CopyCtaAssessment;
+  voice_assessment: CopyVoiceAssessment;
+  open_questions: string[];
+}
+
+export interface CopyElementAnalysis {
+  element: string;
+  element_type: string;
+  assessment: string;
+  risk_level: string;
+  recommended_action: string;
+}
+
+export interface CopyProofClaimAnalysis {
+  claim: string;
+  has_evidence: boolean;
+  evidence_quality: string;
+  safer_language: string;
+}
+
+export interface CopyHookAssessment {
+  has_hook: boolean;
+  hook_clarity: string;
+  icp_specific: boolean;
+  risk_flags: string[];
+}
+
+export interface CopyCtaAssessment {
+  has_cta: boolean;
+  cta_specificity: string;
+  cta_actionability: string;
+  risk_flags: string[];
+}
+
+export interface CopyVoiceAssessment {
+  voice_consistent: boolean;
+  icp_voice_match: boolean;
+  tone: string;
+  risk_flags: string[];
+}
+
 export interface UpdateAvatarSoulRequest {
   identity_kernel?: Record<string, unknown>;
   worldview?: string[];

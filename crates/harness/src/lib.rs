@@ -61,6 +61,7 @@
 #![allow(clippy::manual_clamp)]
 
 pub mod avatar_soul;
+pub mod copywriter_soul;
 pub mod cortex;
 pub mod execution;
 pub mod researcher_soul;
