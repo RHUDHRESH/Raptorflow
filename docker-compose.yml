@@ -60,6 +60,7 @@ services:
       RAPTORFLOW_BEDROCK_REGION: ap-south-1
       RAPTORFLOW_BEDROCK_MODEL_STRATEGIST: mistral.mistral-large-3-675b-instruct
       RAPTORFLOW_BEDROCK_MODEL_FAST: mistral.ministral-3-8b-instruct
+      RAPTORFLOW_SEARXNG_URL: http://searxng:8080
       RAPTORFLOW_CLERK_JWKS_URL: https://funky-scorpion-21.clerk.accounts.dev/.well-known/jwks.json
       RAPTORFLOW_CLERK_ISSUER: https://funky-scorpion-21.clerk.accounts.dev
       RAPTORFLOW_CLERK_WEBHOOK_SECRET: whsec_dev_replace_me
@@ -83,6 +84,7 @@ services:
       - postgres
       - pgbouncer
       - qdrant
+      - searxng
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/live >/dev/null"]
       interval: 10s
@@ -143,9 +145,33 @@ services:
       retries: 15
       start_period: 30s
 
+  searxng:
+    image: searxng/searxng:latest
+    container_name: raptorflow-searxng
+    ports:
+      - "8081:8080"
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8081/
+    volumes:
+      - searxng-data:/etc/searxng
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/search?q=test&format=json"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
 volumes:
   cargo-target:
   web-node-modules:
   pnpm-store:
   postgres-data:
   qdrant-data:
+  searxng-data:

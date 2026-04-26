@@ -737,3 +737,37 @@ pub struct CouncilAvatarTurn {
     pub completed_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct AvatarIdentityState {
+    pub identity_state_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: String,
+    pub mood_confidence: f64,
+    pub mood_skepticism: f64,
+    pub mood_creativity: f64,
+    pub mood_urgency: f64,
+    pub ego_drift_accumulator: serde_json::Value,
+    pub total_debates_participated: i32,
+    pub total_challenges_issued: i32,
+    pub total_challenges_received: i32,
+    pub total_challenges_won: i32,
+    pub total_syntheses_influenced: i32,
+    pub personality_summary: String,
+    pub updated_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct AvatarExperienceLog {
+    pub experience_id: String,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: String,
+    pub experience_type: String,
+    pub summary: String,
+    pub outcome: String,
+    pub salience: f64,
+    pub related_avatar_key: Option<String>,
+    pub related_hook_type: Option<String>,
+    pub created_at: DateTime<Utc>,
+}

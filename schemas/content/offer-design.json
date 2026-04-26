@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/content/offer-design.json",
+  "title": "OfferDesign",
+  "description": "Core offer structure with components, pricing, and value metrics",
+  "type": "object",
+  "required": ["offer_components", "value_metrics"],
+  "properties": {
+    "offer_components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "type": "string", "minLength": 2 },
+          "description": { "type": "string", "minLength": 10 },
+          "included": { "type": "boolean" },
+          "tier": { "type": "string" }
+        }
+      }
+    },
+    "pricing_structure": {
+      "type": "object",
+      "properties": {
+        "entry_price": { "type": "number", "minimum": 0 },
+        "core_price": { "type": "number", "minimum": 0 },
+        "premium_price": { "type": "number", "minimum": 0 },
+        "currency": { "type": "string", "default": "USD" }
+      }
+    },
+    "value_metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 5 }
+    },
+    "proof_requirements": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "learnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -1,13 +1,14 @@
 use crate::models::{
-    AgentEssence, Avatar, AvatarArtifactTrail, AvatarDebateEvent, AvatarMemoryEdge,
-    AvatarPresenceState, AvatarSoul, Campaign, CampaignBrief, CampaignMove, CampaignTask,
-    CapabilityArtifact, CapabilityDefinition, CapabilityRun, CompetitorSnapshot, ContentStrategy,
-    CouncilAgentPosition, CouncilAvatarTurn, CouncilOrchestrationRun, CouncilSession, DailyWin,
-    FoundationScan, FoundationSection, FoundationSnapshot, FoundationVersion, GeneratedContent,
-    HarnessContextPack, HarnessRun, HarnessStep, MuseConversation, MuseMessage, Nudge, OrgUser,
-    Organization, ReplanSession, Ripple, RippleEdge, Subscription,
+    AgentEssence, Avatar, AvatarArtifactTrail, AvatarDebateEvent, AvatarExperienceLog,
+    AvatarIdentityState, AvatarMemoryEdge, AvatarPresenceState, AvatarSoul, Campaign,
+    CampaignBrief, CampaignMove, CampaignTask, CapabilityArtifact, CapabilityDefinition,
+    CapabilityRun, CompetitorSnapshot, ContentStrategy, CouncilAgentPosition, CouncilAvatarTurn,
+    CouncilOrchestrationRun, CouncilSession, DailyWin, FoundationScan, FoundationSection,
+    FoundationSnapshot, FoundationVersion, GeneratedContent, HarnessContextPack, HarnessRun,
+    HarnessStep, MuseConversation, MuseMessage, Nudge, OrgUser, Organization, ReplanSession,
+    Ripple, RippleEdge, Subscription,
 };
-use sqlx::{PgPool, Row};
+use sqlx::{FromRow, PgPool, Row};
 
 pub async fn get_organizations(pool: &PgPool) -> Result<Vec<Organization>, sqlx::Error> {
     let rows = sqlx::query(
@@ -3564,6 +3565,175 @@ pub async fn update_council_avatar_turn_status(
     .bind(error_message)
     .bind(turn_id)
     .bind(org_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+// ────────────────────────────────────────────────────────────────
+// Ripple memory retrieval for avatar working memory
+// ────────────────────────────────────────────────────────────────
+
+/// A single ripple summary fetched for an avatar's working memory.
+/// Queried by joining avatar_memory_edges → ripples, ordered by edge salience.
+#[derive(Debug, FromRow)]
+pub struct AvatarRippleSummary {
+    pub ripple_id: String,
+    pub summary_text: String,
+    pub salience: f64,
+}
+
+/// Returns ripples linked to an avatar via avatar_memory_edges,
+/// ordered by edge salience (descending), limited to `limit` rows.
+///
+/// When no memory edges exist for this avatar (fresh org), returns an empty vec.
+/// This is the runtime data source for SessionManager::load_working_memory().
+pub async fn get_ripples_for_avatar(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    limit: i64,
+) -> Result<Vec<AvatarRippleSummary>, sqlx::Error> {
+    sqlx::query_as::<_, AvatarRippleSummary>(
+        r#"
+        SELECT r.ripple_id,
+               r.summary_text,
+               COALESCE(ame.salience, r.salience) AS salience
+        FROM ripples r
+        INNER JOIN avatar_memory_edges ame
+            ON r.ripple_id = ame.ripple_id
+        WHERE ame.avatar_id = $1
+          AND r.org_id = $2
+        ORDER BY ame.salience DESC
+        LIMIT $3
+        "#,
+    )
+    .bind(avatar_id)
+    .bind(org_id)
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+}
+
+// ────────────────────────────────────────────────────────────────
+// Avatar identity persistence queries
+// ────────────────────────────────────────────────────────────────
+
+pub async fn get_avatar_identity_state(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+) -> Result<Option<AvatarIdentityState>, sqlx::Error> {
+    let row = sqlx::query_as::<_, AvatarIdentityState>(
+        r#"
+        SELECT identity_state_id, org_id, avatar_id,
+               mood_confidence, mood_skepticism, mood_creativity, mood_urgency,
+               ego_drift_accumulator,
+               total_debates_participated, total_challenges_issued,
+               total_challenges_received, total_challenges_won,
+               total_syntheses_influenced, personality_summary,
+               updated_at, created_at
+        FROM avatar_identity_states
+        WHERE avatar_id = $1 AND org_id = $2
+        "#,
+    )
+    .bind(avatar_id)
+    .bind(org_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+pub async fn upsert_avatar_identity_state(
+    pool: &PgPool,
+    identity_state_id: &str,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    mood_confidence: f64,
+    mood_skepticism: f64,
+    mood_creativity: f64,
+    mood_urgency: f64,
+    ego_drift_accumulator: &serde_json::Value,
+    total_debates_participated: i32,
+    total_challenges_issued: i32,
+    total_challenges_received: i32,
+    total_challenges_won: i32,
+    total_syntheses_influenced: i32,
+    personality_summary: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO avatar_identity_states (
+            identity_state_id, org_id, avatar_id,
+            mood_confidence, mood_skepticism, mood_creativity, mood_urgency,
+            ego_drift_accumulator,
+            total_debates_participated, total_challenges_issued,
+            total_challenges_received, total_challenges_won,
+            total_syntheses_influenced, personality_summary
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        ON CONFLICT (org_id, avatar_id) DO UPDATE SET
+            mood_confidence = EXCLUDED.mood_confidence,
+            mood_skepticism = EXCLUDED.mood_skepticism,
+            mood_creativity = EXCLUDED.mood_creativity,
+            mood_urgency = EXCLUDED.mood_urgency,
+            ego_drift_accumulator = EXCLUDED.ego_drift_accumulator,
+            total_debates_participated = EXCLUDED.total_debates_participated,
+            total_challenges_issued = EXCLUDED.total_challenges_issued,
+            total_challenges_received = EXCLUDED.total_challenges_received,
+            total_challenges_won = EXCLUDED.total_challenges_won,
+            total_syntheses_influenced = EXCLUDED.total_syntheses_influenced,
+            personality_summary = EXCLUDED.personality_summary,
+            updated_at = now()
+        "#,
+    )
+    .bind(identity_state_id)
+    .bind(org_id)
+    .bind(avatar_id)
+    .bind(mood_confidence)
+    .bind(mood_skepticism)
+    .bind(mood_creativity)
+    .bind(mood_urgency)
+    .bind(ego_drift_accumulator)
+    .bind(total_debates_participated)
+    .bind(total_challenges_issued)
+    .bind(total_challenges_received)
+    .bind(total_challenges_won)
+    .bind(total_syntheses_influenced)
+    .bind(personality_summary)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn create_avatar_experience(
+    pool: &PgPool,
+    experience_id: &str,
+    org_id: uuid::Uuid,
+    avatar_id: &str,
+    experience_type: &str,
+    summary: &str,
+    outcome: &str,
+    salience: f64,
+    related_avatar_key: Option<&str>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        INSERT INTO avatar_experience_log (
+            experience_id, org_id, avatar_id, experience_type,
+            summary, outcome, salience, related_avatar_key
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        "#,
+    )
+    .bind(experience_id)
+    .bind(org_id)
+    .bind(avatar_id)
+    .bind(experience_type)
+    .bind(summary)
+    .bind(outcome)
+    .bind(salience)
+    .bind(related_avatar_key)
     .execute(pool)
     .await?;
     Ok(())

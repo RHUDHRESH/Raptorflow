@@ -57,6 +57,9 @@ pub struct Settings {
     pub resend_webhook_secret: Option<String>,
     pub webhook_timestamp_tolerance_seconds: u64,
     pub sentry_dsn: String,
+    pub searxng_url: String,
+    pub search_cache_ttl_secs: u64,
+    pub search_max_results: usize,
 }
 
 impl Settings {
@@ -179,6 +182,16 @@ impl Settings {
             sentry_dsn: optional("RAPTORFLOW_SENTRY_DSN")
                 .or_else(|| optional("SENTRY_DSN"))
                 .unwrap_or_default(),
+            searxng_url: read(
+                "RAPTORFLOW_SEARXNG_URL",
+                "http://localhost:8081",
+            ),
+            search_cache_ttl_secs: read("RAPTORFLOW_SEARCH_CACHE_TTL_SECS", "300")
+                .parse()
+                .unwrap_or(300),
+            search_max_results: read("RAPTORFLOW_SEARCH_MAX_RESULTS", "10")
+                .parse()
+                .unwrap_or(10),
         })
     }
 }

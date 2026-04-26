@@ -97,6 +97,17 @@ pub async fn create_content(
         return Err(bad_request("content_type_required"));
     }
 
+    if let Err(errors) = crate::routes::validation::validate_content(&req.content_type, &req.body) {
+        return Err((
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({
+                "error": "content_validation_failed",
+                "details": errors,
+                "content_type": req.content_type,
+            })),
+        ));
+    }
+
     let content_id = Ulid::new().to_string();
 
     queries::create_generated_content(
