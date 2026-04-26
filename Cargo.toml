@@ -23,6 +23,7 @@ members = [
   "crates/research",
   "crates/resend",
   "crates/sqs",
+  "crates/search",
   "crates/telemetry",
   "crates/testing"
 ]
