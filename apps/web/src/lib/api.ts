@@ -996,6 +996,116 @@ export interface StrategistDebateEvent {
   confidence: number;
 }
 
+export const researcherApi = {
+  ensureDefault: async () => {
+    const res = await apiFetch<ResearcherSoulResponse>("/api/v1/avatars/researcher/default", {
+      method: "POST",
+      auth: true,
+    });
+    return res;
+  },
+  dryRun: async (body: ResearcherDryRunRequest) => {
+    const res = await apiFetch<ResearcherDryRunResponse>("/api/v1/avatars/researcher/dry-run", {
+      method: "POST",
+      body,
+      auth: true,
+    });
+    return res;
+  },
+};
+
+export interface ResearcherSoulResponse {
+  avatar_id: string;
+  soul_id: string;
+  created: boolean;
+  updated: boolean;
+}
+
+export interface ResearcherDryRunRequest {
+  task_summary: string;
+  context_summary: string;
+}
+
+export interface ResearcherDryRunResponse {
+  avatar_id: string;
+  soul_id: string;
+  embodiment_pack: ResearcherEmbodimentPack;
+  role_lock_prompt: string;
+  instinct_frame: ResearcherInstinctFrame;
+  presence_state: ResearcherPresenceState | null;
+  debate_event: ResearcherDebateEvent | null;
+  claim_audit: ResearcherClaimAudit | null;
+}
+
+export interface ResearcherEmbodimentPack {
+  avatar_id: string;
+  soul_id: string;
+  identity_kernel: Record<string, unknown>;
+  worldview: string[];
+  obsessions: string[];
+  reflexes: string[];
+  taboos: string[];
+  operating_principles: string[];
+  debate_style: Record<string, unknown>;
+  evaluation_bias: Record<string, unknown>;
+  memory_edges: ResearcherMemoryEdge[];
+}
+
+export interface ResearcherMemoryEdge {
+  memory_edge_id: string;
+  ripple_id: string;
+  relationship_type: string;
+  salience: number;
+  decay_policy: string;
+  use_when: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface ResearcherInstinctFrame {
+  trigger_kind: string;
+  dominant_concern: string;
+  risk_flags: string[];
+  recommended_posture: string;
+  visible_summary: string;
+}
+
+export interface ResearcherPresenceState {
+  presence_id: string;
+  state: string;
+  current_focus: string;
+  current_concern: string;
+  visible_summary: string;
+  confidence: number;
+}
+
+export interface ResearcherDebateEvent {
+  debate_event_id: string;
+  event_type: string;
+  stance: string;
+  content: Record<string, unknown>;
+  confidence: number;
+}
+
+export interface ResearcherClaimAudit {
+  known_facts: string[];
+  claims: ClaimAnalysis[];
+  unsupported_claims: string[];
+  assumptions: string[];
+  needed_sources: string[];
+  competitor_notes: string[];
+  open_questions: string[];
+}
+
+export interface ClaimAnalysis {
+  claim: string;
+  evidence_level: string;
+  source: string;
+  risk: string;
+  recommended_action: string;
+  safer_rewrite: string;
+}
+
 export interface UpdateAvatarSoulRequest {
   identity_kernel?: Record<string, unknown>;
   worldview?: string[];

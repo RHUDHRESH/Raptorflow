@@ -36,6 +36,7 @@
 | Artifacts       | `artifacts/*`                                                                                                     | **Implemented**                           | ~~Medium~~ |
 | AvatarSoul      | `avatars/{id}/soul`, `avatars/{id}/memory/*`, `harness/runs/{id}/presence/*`, `harness/runs/{id}/debate-events/*` | **Implemented**                           | ~~High~~   |
 | StrategistSoul  | `avatars/strategist/default`, `avatars/strategist/dry-run`                                                        | **Implemented**                           | ~~High~~   |
+| ResearcherSoul  | `avatars/researcher/default`, `avatars/researcher/dry-run`                                                        | **Implemented**                           | ~~High~~   |
 
 ---
 
@@ -164,6 +165,18 @@
 
 **Next Avatar:** ResearcherSoul (`feat/researcher-soul-pack`)
 
+### 14. ResearcherSoul (Avatar #2)
+
+| Next Route                          | Current Behavior                      | Status                                                                      | Risk     |
+| ----------------------------------- | ------------------------------------- | --------------------------------------------------------------------------- | -------- |
+| `avatars/researcher/default`        | Ensure default Researcher soul exists | **IMPLEMENTED** - Rust endpoint at `/api/v1/avatars/researcher/default`     | ~~High~~ |
+| `avatars/researcher/dry-run`        | Run Researcher dry-run                | **IMPLEMENTED** - Rust endpoint at `/api/v1/avatars/researcher/dry-run`     | ~~High~~ |
+| Avatar memory (Researcher-specific) | Evidence level model, claim audit     | **IMPLEMENTED** - EvidenceLevel, ClaimSafetyAction, classify_claim_evidence | ~~High~~ |
+
+**Recommended Patch Bucket:** ~~ResearcherSoul pack~~ - NOW DONE (see RESEARCHER_SOUL_PACK_REPORT.md)
+
+**Next Avatar:** CopywriterSoul (`feat/copywriter-soul-pack`)
+
 ---
 
 ## Implementation Priority
@@ -180,6 +193,7 @@
 8. ~~**Capabilities/Cortex/Harness**~~ - `GET /capabilities`, `POST /capabilities/defaults`, `GET/POST /avatars/{id}/capabilities`, `POST /harness/context-packs`, `GET /capability-runs`, `POST /capability-runs`, `GET /artifacts`, `POST /artifacts/{id}/versions` - **IMPLEMENTED** (see AVATAR_CAPABILITY_HARNESS_CORTEX_REPORT.md)
 9. ~~**AvatarSoul Engine**~~ - Identity kernel, memory edges, instinct frames, presence states, debate events, artifact trails - **IMPLEMENTED + RED-TEAMED** (see AVATAR_SOUL_ENGINE_REPORT.md)
 10. ~~**StrategistSoul**~~ - Strategist avatar with identity, memory classification, instinct frames, debate behavior, dry-run - **IMPLEMENTED + RED-TEAMED** (see STRATEGIST_SOUL_PACK_REPORT.md)
+11. ~~**ResearcherSoul**~~ - Researcher avatar with evidence level model, claim audit, source verification, dry-run - **IMPLEMENTED + RED-TEAMED** (see RESEARCHER_SOUL_PACK_REPORT.md)
 
 ### Medium Risk (Remaining)
 
@@ -196,7 +210,7 @@
   - `scripts/smoke/local-runtime-smoke.ps1` - Local orchestrator
   - `.github/workflows/runtime-reality.yml` - CI/CD workflow
   - `docs/testing/runtime-reality-smoke.md` - Documentation
-  - **Next workstream:** `feat/researcher-soul-pack` (implement Researcher avatar)
+  - **Next workstream:** `feat/copywriter-soul-pack` (implement Copywriter avatar)
 
 ### Low Risk (Remaining)
 

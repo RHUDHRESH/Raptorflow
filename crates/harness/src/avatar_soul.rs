@@ -798,6 +798,508 @@ Truth discipline required:
     )
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub enum ResearcherMemoryClassification {
+    Scar,
+    #[default]
+    Instinct,
+    Preference,
+    Warning,
+    Proof,
+    MarketLearning,
+    CustomerLearning,
+}
+
+pub fn classify_researcher_memory(
+    summary: &str,
+    tags: &[String],
+) -> ResearcherMemoryClassification {
+    let summary_lower = summary.to_lowercase();
+    let all_text = format!(
+        "{} {}",
+        summary_lower,
+        tags.iter()
+            .map(|t| t.to_lowercase())
+            .collect::<Vec<_>>()
+            .join(" ")
+    );
+
+    if all_text.contains("verified")
+        || all_text.contains("source")
+        || all_text.contains("evidence")
+        || all_text.contains("citation")
+        || all_text.contains("case study")
+    {
+        return ResearcherMemoryClassification::Proof;
+    }
+
+    if all_text.contains("unsupported")
+        || all_text.contains("unverified")
+        || all_text.contains("hallucinated")
+        || all_text.contains("fake")
+        || all_text.contains("invented")
+    {
+        return ResearcherMemoryClassification::Warning;
+    }
+
+    if all_text.contains("wrong")
+        || all_text.contains("failed")
+        || all_text.contains("false assumption")
+        || all_text.contains("bad source")
+        || all_text.contains("wrong competitor")
+    {
+        return ResearcherMemoryClassification::Scar;
+    }
+
+    if all_text.contains("competitor")
+        || all_text.contains("category")
+        || all_text.contains("market")
+        || all_text.contains("pricing")
+        || all_text.contains("positioning")
+    {
+        return ResearcherMemoryClassification::MarketLearning;
+    }
+
+    if all_text.contains("customer")
+        || all_text.contains("icp")
+        || all_text.contains("buyer")
+        || all_text.contains("pain")
+        || all_text.contains("objection")
+        || all_text.contains("review")
+    {
+        return ResearcherMemoryClassification::CustomerLearning;
+    }
+
+    if all_text.contains("prefer")
+        || all_text.contains("use this source")
+        || all_text.contains("source hierarchy")
+    {
+        return ResearcherMemoryClassification::Preference;
+    }
+
+    ResearcherMemoryClassification::Instinct
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub enum EvidenceLevel {
+    Verified,
+    SourceBacked,
+    PlausibleButUnverified,
+    Assumption,
+    Unsupported,
+    Contradicted,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub enum ClaimSafetyAction {
+    Keep,
+    Qualify,
+    DowngradeToAssumption,
+    Remove,
+    NeedsSource,
+    ContradictionReview,
+}
+
+pub fn classify_claim_evidence(claim: &str, context_summary: &str) -> EvidenceLevel {
+    let claim_lower = claim.to_lowercase();
+    let context_lower = context_summary.to_lowercase();
+
+    let has_numbers = claim_lower.contains('%')
+        || claim_lower.contains("percent")
+        || claim_lower.contains("revenue")
+        || claim_lower.contains("$")
+        || claim_lower.contains("x increase")
+        || claim_lower.contains("x growth")
+        || claim_lower.contains("10x")
+        || claim_lower.contains("3x");
+
+    let has_source_words = context_lower.contains("verified")
+        || context_lower.contains("source:")
+        || context_lower.contains("citation")
+        || context_lower.contains("case study")
+        || context_lower.contains("customer quote")
+        || context_lower.contains("according to")
+        || context_lower.contains("data shows");
+
+    let has_contradiction = context_lower.contains("contradicts")
+        || context_lower.contains("false")
+        || context_lower.contains("wrong")
+        || context_lower.contains("incorrect");
+
+    let uncertain_phrases = [
+        "may",
+        "could",
+        "likely",
+        "might",
+        "probably",
+        "possibly",
+        "typically",
+    ];
+    let has_uncertain = uncertain_phrases.iter().any(|p| claim_lower.contains(p));
+
+    if has_contradiction && (has_numbers || claim_lower.len() > 20) {
+        return EvidenceLevel::Contradicted;
+    }
+
+    if has_numbers && !has_source_words {
+        return EvidenceLevel::Unsupported;
+    }
+
+    if has_source_words && (has_numbers || claim_lower.len() > 30) {
+        return EvidenceLevel::SourceBacked;
+    }
+
+    if has_uncertain {
+        return EvidenceLevel::PlausibleButUnverified;
+    }
+
+    EvidenceLevel::Assumption
+}
+
+pub fn claim_safety_action(level: EvidenceLevel) -> ClaimSafetyAction {
+    match level {
+        EvidenceLevel::Verified => ClaimSafetyAction::Keep,
+        EvidenceLevel::SourceBacked => ClaimSafetyAction::Keep,
+        EvidenceLevel::PlausibleButUnverified => ClaimSafetyAction::Qualify,
+        EvidenceLevel::Assumption => ClaimSafetyAction::DowngradeToAssumption,
+        EvidenceLevel::Unsupported => ClaimSafetyAction::NeedsSource,
+        EvidenceLevel::Contradicted => ClaimSafetyAction::ContradictionReview,
+    }
+}
+
+pub fn derive_researcher_instinct_frame(
+    pack: &AvatarEmbodimentPack,
+    task_summary: &str,
+    context_summary: &str,
+) -> DerivedInstinctFrame {
+    let mut risk_flags = Vec::new();
+
+    let task_lower = task_summary.to_lowercase();
+    let context_lower = context_summary.to_lowercase();
+
+    let has_numbers = task_lower.contains('%')
+        || task_lower.contains("percent")
+        || task_lower.contains("revenue")
+        || task_lower.contains("$")
+        || task_lower.contains("x increase")
+        || task_lower.contains("x growth")
+        || task_lower.contains("10x")
+        || task_lower.contains("3x")
+        || task_lower.contains("case study")
+        || task_lower.contains("customer said")
+        || task_lower.contains("customers say");
+
+    let has_source = context_lower.contains("source")
+        || context_lower.contains("verified")
+        || context_lower.contains("citation")
+        || context_lower.contains("data")
+        || context_lower.contains("study")
+        || context_lower.contains("customer quote");
+
+    if has_numbers && !has_source {
+        risk_flags.push("unsupported_metric".to_string());
+    }
+
+    if (task_lower.contains("competitor") || task_lower.contains("competitor's"))
+        && !context_lower.contains("competitor data")
+        && !context_lower.contains("competitor analysis")
+        && !context_lower.contains("market research")
+    {
+        risk_flags.push("competitor_claim_unverified".to_string());
+    }
+
+    if !has_source
+        && (task_lower.contains("proven")
+            || task_lower.contains("studies show")
+            || task_lower.contains("research shows")
+            || task_lower.contains("data shows"))
+    {
+        risk_flags.push("source_missing".to_string());
+    }
+
+    if (task_lower.contains("proof")
+        || task_lower.contains("case study")
+        || task_lower.contains("evidence"))
+        && !has_source
+    {
+        risk_flags.push("proof_required".to_string());
+    }
+
+    let overconfident_words = [
+        "guaranteed",
+        "proven",
+        "always",
+        "best",
+        "#1",
+        "world's best",
+        "industry leader",
+        "revolutionary",
+        "breakthrough",
+    ];
+    let has_overconfident = overconfident_words.iter().any(|w| task_lower.contains(w));
+
+    if has_overconfident {
+        risk_flags.push("overconfident_language".to_string());
+    }
+
+    if task_lower.contains("customer")
+        && (task_lower.contains("said")
+            || task_lower.contains("says")
+            || task_lower.contains("quote"))
+        && !context_lower.contains("customer quote")
+    {
+        risk_flags.push("invented_customer_risk".to_string());
+    }
+
+    if context_lower.len() < 100 && task_lower.len() > 100 {
+        risk_flags.push("market_context_thin".to_string());
+    }
+
+    let (concern, posture, summary) = match risk_flags.first().map(|s| s.as_str()) {
+        Some("unsupported_metric") => (
+            "Metric or percentage claim without supporting source".to_string(),
+            "Require verifiable source or remove specific metric".to_string(),
+            format!(
+                "{} is blocking unsupported metric claims without evidence",
+                pack.display_name
+            ),
+        ),
+        Some("competitor_claim_unverified") => (
+            "Competitor analysis requested but no competitor data in context".to_string(),
+            "Provide competitor data or source before making competitor claims".to_string(),
+            format!(
+                "{} is demanding verified competitor data before analysis",
+                pack.display_name
+            ),
+        ),
+        Some("source_missing") => (
+            "Strong claim made without evidence or source".to_string(),
+            "Require source citation or downgrade to assumption".to_string(),
+            format!(
+                "{} is challenging claims that lack supporting evidence",
+                pack.display_name
+            ),
+        ),
+        Some("proof_required") => (
+            "Proof or case study requested but none exists in context".to_string(),
+            "Either provide proof source or mark as assumption".to_string(),
+            format!(
+                "{} is checking whether required proof exists",
+                pack.display_name
+            ),
+        ),
+        Some("overconfident_language") => (
+            "Language uses guaranteed or overconfident claims without evidence".to_string(),
+            "Downgrade to qualified language or provide evidence".to_string(),
+            format!(
+                "{} is challenging overconfident language without basis",
+                pack.display_name
+            ),
+        ),
+        Some("invented_customer_risk") => (
+            "Customer quote requested but none provided".to_string(),
+            "Provide actual customer attribution or remove quote".to_string(),
+            format!(
+                "{} is refusing to approve fabricated customer quotes",
+                pack.display_name
+            ),
+        ),
+        Some("market_context_thin") => (
+            "Context lacks sufficient market information for evidence-based claims".to_string(),
+            "Request more context or mark claims as assumptions".to_string(),
+            format!(
+                "{} is noting insufficient context for confident claims",
+                pack.display_name
+            ),
+        ),
+        _ => (
+            format!("{} is forming evidence instinct", pack.display_name),
+            "Proceed with evidence verification".to_string(),
+            format!(
+                "{} is checking which claims are verified, assumed, or unsupported",
+                pack.display_name
+            ),
+        ),
+    };
+
+    DerivedInstinctFrame {
+        instinct_frame_id: Uuid::new_v4().to_string(),
+        dominant_concern: concern,
+        risk_flags,
+        recommended_posture: posture,
+        visible_summary: summary,
+    }
+}
+
+pub fn researcher_challenge_decision(
+    _pack: &AvatarEmbodimentPack,
+    target_event: &AvatarDebateEvent,
+) -> ChallengeDecision {
+    let content = &target_event.content;
+
+    let event_text = content
+        .get("text")
+        .and_then(|v| v.as_str())
+        .unwrap_or_default()
+        .to_lowercase();
+
+    let challengeable_types = ["position", "challenge", "refinement", "evidence_check"];
+
+    if !challengeable_types.contains(&target_event.event_type.as_str()) {
+        return ChallengeDecision {
+            should_challenge: false,
+            reason: "Event type not challengeable by Researcher".to_string(),
+            suggested_event_type: "evidence_challenge".to_string(),
+            confidence: 0.0,
+        };
+    }
+
+    let mut should_challenge = false;
+    let mut reason = String::new();
+    let mut confidence = 0.5;
+
+    let has_unsupported_metric = (event_text.contains('%')
+        || event_text.contains("percent")
+        || event_text.contains("revenue")
+        || event_text.contains("$")
+        || event_text.contains("x increase")
+        || event_text.contains("x growth")
+        || event_text.contains("10x"))
+        && !event_text.contains("source")
+        && !event_text.contains("according to")
+        && !event_text.contains("study");
+
+    let has_fake_customer_quote = (event_text.contains("customer said")
+        || event_text.contains("customers say")
+        || event_text.contains("customer says")
+        || event_text.contains("one customer"))
+        && !event_text.contains("\"")
+        && !event_text.contains("according to");
+
+    let has_unsupported_competitor = (event_text.contains("competitor does")
+        || event_text.contains("competitor is")
+        || event_text.contains("competitor's"))
+        && !event_text.contains("source")
+        && !event_text.contains("data");
+
+    let has_proof_claim = (event_text.contains("proven")
+        || event_text.contains("studies show")
+        || event_text.contains("research shows")
+        || event_text.contains("data shows"))
+        && !event_text.contains("source:")
+        && !event_text.contains("citation");
+
+    let has_overconfident = event_text.contains("guaranteed")
+        || event_text.contains("always")
+        || event_text.contains("best")
+        || event_text.contains("#1")
+        || event_text.contains("world's best");
+
+    let has_assumption_as_fact = event_text.contains("is the")
+        && !event_text.contains("may be")
+        && !event_text.contains("likely")
+        && event_text.len() < 100;
+
+    if has_unsupported_metric {
+        should_challenge = true;
+        reason = "Researcher challenged: metric claim without supporting source".to_string();
+        confidence = 0.9;
+    } else if has_fake_customer_quote {
+        should_challenge = true;
+        reason = "Researcher challenged: customer quote without actual attribution".to_string();
+        confidence = 0.95;
+    } else if has_unsupported_competitor {
+        should_challenge = true;
+        reason = "Researcher challenged: competitor claim without data or source".to_string();
+        confidence = 0.85;
+    } else if has_proof_claim {
+        should_challenge = true;
+        reason = "Researcher challenged: proof claim without source citation".to_string();
+        confidence = 0.8;
+    } else if has_overconfident {
+        should_challenge = true;
+        reason = "Researcher challenged: overconfident language without evidence".to_string();
+        confidence = 0.75;
+    } else if has_assumption_as_fact {
+        should_challenge = true;
+        reason =
+            "Researcher challenged: assumption stated as fact without qualification".to_string();
+        confidence = 0.6;
+    }
+
+    ChallengeDecision {
+        should_challenge,
+        reason,
+        suggested_event_type: if should_challenge {
+            "evidence_challenge".to_string()
+        } else {
+            "evidence_check".to_string()
+        },
+        confidence,
+    }
+}
+
+pub fn build_researcher_role_lock_prompt(pack: &AvatarEmbodimentPack) -> String {
+    let obsessions_str = if pack.obsessions.is_empty() {
+        String::new()
+    } else {
+        format!("Your obsessions are: {}.", pack.obsessions.join(", "))
+    };
+
+    let taboos_str = if pack.taboos.is_empty() {
+        String::new()
+    } else {
+        format!("Your taboos are: {}.", pack.taboos.join(", "))
+    };
+
+    let principles_str = if pack.operating_principles.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "Your operating principles are: {}.",
+            pack.operating_principles.join(" ")
+        )
+    };
+
+    let memory_summary = if pack.memory_edges.is_empty() {
+        "No relevant research memories loaded.".to_string()
+    } else {
+        let top_memories: Vec<String> = pack
+            .memory_edges
+            .iter()
+            .take(5)
+            .map(|e| format!("[{}] {}", e.relationship_type, e.use_when))
+            .collect();
+        format!("Relevant research memories: {}", top_memories.join("; "))
+    };
+
+    format!(
+        r#"You are operating as {}.
+You are not a generic AI assistant.
+Your role is: Evidence discipline, competitor context, source checking, claim verification, market research, proof mapping, assumption audit.
+
+You must find what is true, expose what is unsupported, and turn vague claims into evidence-backed decisions.
+You must separate verified facts from assumptions.
+You must not invent sources, metrics, customer quotes, or competitor claims.
+You must not approve proof language without evidence.
+You must challenge unsupported claims, fake specificity, and overconfident language.
+
+{}
+{}
+{}
+
+Truth discipline required:
+- Known facts: what is verified by sources in context
+- Assumptions: what we are inferring without proof
+- Unsupported claims: what cannot be verified and must be removed or marked
+- Open questions: what must be answered with evidence before proceeding
+
+{}
+"#,
+        pack.display_name, obsessions_str, taboos_str, principles_str, memory_summary
+    )
+}
+
 pub fn validate_salience(salience: f64) -> bool {
     (0.0..=1.0).contains(&salience)
 }
@@ -1311,6 +1813,410 @@ mod tests {
         assert!(prompt.contains("Open questions"));
         assert!(prompt.contains("highest-leverage strategic move"));
         assert!(prompt.contains("kill vague positioning"));
+        assert!(!prompt.contains("I am human"));
+        assert!(!prompt.contains("sentient"));
+    }
+
+    #[test]
+    fn test_classify_researcher_memory_proof() {
+        assert_eq!(
+            classify_researcher_memory("Verified case study shows results", &[]),
+            ResearcherMemoryClassification::Proof
+        );
+        assert_eq!(
+            classify_researcher_memory("Source citation needed", &["evidence".to_string()]),
+            ResearcherMemoryClassification::Proof
+        );
+    }
+
+    #[test]
+    fn test_classify_researcher_memory_warning() {
+        assert_eq!(
+            classify_researcher_memory("Unverified claim found", &[]),
+            ResearcherMemoryClassification::Warning
+        );
+        assert_eq!(
+            classify_researcher_memory("This looks hallucinated", &["fake".to_string()]),
+            ResearcherMemoryClassification::Warning
+        );
+    }
+
+    #[test]
+    fn test_classify_researcher_memory_scar() {
+        assert_eq!(
+            classify_researcher_memory("Wrong competitor assumption", &[]),
+            ResearcherMemoryClassification::Scar
+        );
+        assert_eq!(
+            classify_researcher_memory("Failed proof claim", &["false assumption".to_string()]),
+            ResearcherMemoryClassification::Scar
+        );
+    }
+
+    #[test]
+    fn test_classify_researcher_memory_market_learning() {
+        assert_eq!(
+            classify_researcher_memory("Competitor pricing analysis", &[]),
+            ResearcherMemoryClassification::MarketLearning
+        );
+        assert_eq!(
+            classify_researcher_memory("Category positioning", &["market".to_string()]),
+            ResearcherMemoryClassification::MarketLearning
+        );
+    }
+
+    #[test]
+    fn test_classify_researcher_memory_customer_learning() {
+        assert_eq!(
+            classify_researcher_memory("Customer pain point analysis", &[]),
+            ResearcherMemoryClassification::CustomerLearning
+        );
+        assert_eq!(
+            classify_researcher_memory("Buyer objection", &["ICP".to_string()]),
+            ResearcherMemoryClassification::CustomerLearning
+        );
+    }
+
+    #[test]
+    fn test_classify_claim_evidence_unsupported() {
+        assert_eq!(
+            classify_claim_evidence("40% increase in revenue", ""),
+            EvidenceLevel::Unsupported
+        );
+        assert_eq!(
+            classify_claim_evidence("10x faster", "Some context"),
+            EvidenceLevel::Unsupported
+        );
+    }
+
+    #[test]
+    fn test_classify_claim_evidence_source_backed() {
+        assert_eq!(
+            classify_claim_evidence("40% increase", "According to verified case study"),
+            EvidenceLevel::SourceBacked
+        );
+        assert_eq!(
+            classify_claim_evidence("data shows improvement", "Source: internal data"),
+            EvidenceLevel::SourceBacked
+        );
+    }
+
+    #[test]
+    fn test_classify_claim_evidence_contradicted() {
+        assert_eq!(
+            classify_claim_evidence("40% revenue boost", "This contradicts earlier findings"),
+            EvidenceLevel::Contradicted
+        );
+    }
+
+    #[test]
+    fn test_classify_claim_evidence_uncertain() {
+        assert_eq!(
+            classify_claim_evidence("may increase by 30%", ""),
+            EvidenceLevel::PlausibleButUnverified
+        );
+        assert_eq!(
+            classify_claim_evidence("could be faster", ""),
+            EvidenceLevel::PlausibleButUnverified
+        );
+    }
+
+    #[test]
+    fn test_claim_safety_action() {
+        assert_eq!(
+            claim_safety_action(EvidenceLevel::Verified),
+            ClaimSafetyAction::Keep
+        );
+        assert_eq!(
+            claim_safety_action(EvidenceLevel::SourceBacked),
+            ClaimSafetyAction::Keep
+        );
+        assert_eq!(
+            claim_safety_action(EvidenceLevel::PlausibleButUnverified),
+            ClaimSafetyAction::Qualify
+        );
+        assert_eq!(
+            claim_safety_action(EvidenceLevel::Assumption),
+            ClaimSafetyAction::DowngradeToAssumption
+        );
+        assert_eq!(
+            claim_safety_action(EvidenceLevel::Unsupported),
+            ClaimSafetyAction::NeedsSource
+        );
+        assert_eq!(
+            claim_safety_action(EvidenceLevel::Contradicted),
+            ClaimSafetyAction::ContradictionReview
+        );
+    }
+
+    #[test]
+    fn test_derive_researcher_instinct_frame_source_missing() {
+        let pack = AvatarEmbodimentPack {
+            avatar_id: "test".to_string(),
+            avatar_key: "researcher".to_string(),
+            display_name: "Researcher".to_string(),
+            role: "Researcher".to_string(),
+            identity_kernel: serde_json::json!({}),
+            worldview: vec![],
+            obsessions: vec!["source quality".to_string()],
+            reflexes: vec![],
+            taboos: vec![],
+            operating_principles: vec![],
+            debate_style: serde_json::json!({}),
+            memory_edges: vec![],
+        };
+
+        let frame = derive_researcher_instinct_frame(
+            &pack,
+            "studies show this works",
+            "Some context without source",
+        );
+
+        assert!(frame.risk_flags.contains(&"source_missing".to_string()));
+    }
+
+    #[test]
+    fn test_derive_researcher_instinct_frame_unsupported_metric() {
+        let pack = AvatarEmbodimentPack {
+            avatar_id: "test".to_string(),
+            avatar_key: "researcher".to_string(),
+            display_name: "Researcher".to_string(),
+            role: "Researcher".to_string(),
+            identity_kernel: serde_json::json!({}),
+            worldview: vec![],
+            obsessions: vec![],
+            reflexes: vec![],
+            taboos: vec![],
+            operating_principles: vec![],
+            debate_style: serde_json::json!({}),
+            memory_edges: vec![],
+        };
+
+        let frame = derive_researcher_instinct_frame(
+            &pack,
+            "40% revenue increase claimed",
+            "No evidence provided",
+        );
+
+        assert!(frame.risk_flags.contains(&"unsupported_metric".to_string()));
+    }
+
+    #[test]
+    fn test_derive_researcher_instinct_frame_competitor_unverified() {
+        let pack = AvatarEmbodimentPack {
+            avatar_id: "test".to_string(),
+            avatar_key: "researcher".to_string(),
+            display_name: "Researcher".to_string(),
+            role: "Researcher".to_string(),
+            identity_kernel: serde_json::json!({}),
+            worldview: vec![],
+            obsessions: vec![],
+            reflexes: vec![],
+            taboos: vec![],
+            operating_principles: vec![],
+            debate_style: serde_json::json!({}),
+            memory_edges: vec![],
+        };
+
+        let frame = derive_researcher_instinct_frame(
+            &pack,
+            "Analyze competitor positioning",
+            "Limited context",
+        );
+
+        assert!(
+            frame
+                .risk_flags
+                .contains(&"competitor_claim_unverified".to_string())
+        );
+    }
+
+    #[test]
+    fn test_derive_researcher_instinct_frame_overconfident() {
+        let pack = AvatarEmbodimentPack {
+            avatar_id: "test".to_string(),
+            avatar_key: "researcher".to_string(),
+            display_name: "Researcher".to_string(),
+            role: "Researcher".to_string(),
+            identity_kernel: serde_json::json!({}),
+            worldview: vec![],
+            obsessions: vec![],
+            reflexes: vec![],
+            taboos: vec![],
+            operating_principles: vec![],
+            debate_style: serde_json::json!({}),
+            memory_edges: vec![],
+        };
+
+        let frame = derive_researcher_instinct_frame(
+            &pack,
+            "Guaranteed to be the #1 solution",
+            "Some context",
+        );
+
+        assert!(
+            frame
+                .risk_flags
+                .contains(&"overconfident_language".to_string())
+        );
+    }
+
+    #[test]
+    fn test_researcher_challenge_decision_fake_metric() {
+        let target = AvatarDebateEvent {
+            debate_event_id: "event1".to_string(),
+            org_id: Uuid::new_v4(),
+            harness_run_id: "run1".to_string(),
+            speaker_avatar_id: Some("strategist".to_string()),
+            target_avatar_id: None,
+            event_type: "position".to_string(),
+            stance: Some("support".to_string()),
+            content: serde_json::json!({"text": "40% revenue increase expected"}),
+            confidence: 0.6,
+            created_at: chrono::Utc::now(),
+        };
+
+        let pack = AvatarEmbodimentPack {
+            avatar_id: "test".to_string(),
+            avatar_key: "researcher".to_string(),
+            display_name: "Researcher".to_string(),
+            role: "Researcher".to_string(),
+            identity_kernel: serde_json::json!({}),
+            worldview: vec![],
+            obsessions: vec![],
+            reflexes: vec![],
+            taboos: vec![],
+            operating_principles: vec![],
+            debate_style: serde_json::json!({}),
+            memory_edges: vec![],
+        };
+
+        let decision = researcher_challenge_decision(&pack, &target);
+
+        assert!(decision.should_challenge);
+        assert!(
+            decision
+                .reason
+                .contains("metric claim without supporting source")
+        );
+    }
+
+    #[test]
+    fn test_researcher_challenge_decision_fake_customer_quote() {
+        let target = AvatarDebateEvent {
+            debate_event_id: "event1".to_string(),
+            org_id: Uuid::new_v4(),
+            harness_run_id: "run1".to_string(),
+            speaker_avatar_id: Some("copywriter".to_string()),
+            target_avatar_id: None,
+            event_type: "position".to_string(),
+            stance: Some("support".to_string()),
+            content: serde_json::json!({"text": "Customers say this is great"}),
+            confidence: 0.6,
+            created_at: chrono::Utc::now(),
+        };
+
+        let pack = AvatarEmbodimentPack {
+            avatar_id: "test".to_string(),
+            avatar_key: "researcher".to_string(),
+            display_name: "Researcher".to_string(),
+            role: "Researcher".to_string(),
+            identity_kernel: serde_json::json!({}),
+            worldview: vec![],
+            obsessions: vec![],
+            reflexes: vec![],
+            taboos: vec![],
+            operating_principles: vec![],
+            debate_style: serde_json::json!({}),
+            memory_edges: vec![],
+        };
+
+        let decision = researcher_challenge_decision(&pack, &target);
+
+        assert!(decision.should_challenge);
+        assert!(
+            decision
+                .reason
+                .contains("customer quote without actual attribution")
+        );
+    }
+
+    #[test]
+    fn test_researcher_challenge_decision_unsupported_competitor() {
+        let target = AvatarDebateEvent {
+            debate_event_id: "event1".to_string(),
+            org_id: Uuid::new_v4(),
+            harness_run_id: "run1".to_string(),
+            speaker_avatar_id: Some("strategist".to_string()),
+            target_avatar_id: None,
+            event_type: "position".to_string(),
+            stance: Some("support".to_string()),
+            content: serde_json::json!({"text": "Competitor does X better"}),
+            confidence: 0.6,
+            created_at: chrono::Utc::now(),
+        };
+
+        let pack = AvatarEmbodimentPack {
+            avatar_id: "test".to_string(),
+            avatar_key: "researcher".to_string(),
+            display_name: "Researcher".to_string(),
+            role: "Researcher".to_string(),
+            identity_kernel: serde_json::json!({}),
+            worldview: vec![],
+            obsessions: vec![],
+            reflexes: vec![],
+            taboos: vec![],
+            operating_principles: vec![],
+            debate_style: serde_json::json!({}),
+            memory_edges: vec![],
+        };
+
+        let decision = researcher_challenge_decision(&pack, &target);
+
+        assert!(decision.should_challenge);
+        assert!(
+            decision
+                .reason
+                .contains("competitor claim without data or source")
+        );
+    }
+
+    #[test]
+    fn test_build_researcher_role_lock_prompt() {
+        let pack = AvatarEmbodimentPack {
+            avatar_id: "test".to_string(),
+            avatar_key: "researcher".to_string(),
+            display_name: "Researcher".to_string(),
+            role: "Researcher".to_string(),
+            identity_kernel: serde_json::json!({}),
+            worldview: vec![],
+            obsessions: vec![
+                "source quality".to_string(),
+                "evidence hierarchy".to_string(),
+            ],
+            reflexes: vec![],
+            taboos: vec![
+                "do not invent sources".to_string(),
+                "do not invent metrics".to_string(),
+            ],
+            operating_principles: vec!["Evidence beats confidence.".to_string()],
+            debate_style: serde_json::json!({}),
+            memory_edges: vec![],
+        };
+
+        let prompt = build_researcher_role_lock_prompt(&pack);
+
+        assert!(prompt.contains("Researcher"));
+        assert!(prompt.contains("Evidence discipline"));
+        assert!(prompt.contains("source quality"));
+        assert!(prompt.contains("do not invent sources"));
+        assert!(prompt.contains("do not invent metrics"));
+        assert!(prompt.contains("Evidence beats confidence"));
+        assert!(prompt.contains("Known facts"));
+        assert!(prompt.contains("Assumptions"));
+        assert!(prompt.contains("Unsupported claims"));
+        assert!(prompt.contains("find what is true"));
+        assert!(prompt.contains("expose what is unsupported"));
         assert!(!prompt.contains("I am human"));
         assert!(!prompt.contains("sentient"));
     }
