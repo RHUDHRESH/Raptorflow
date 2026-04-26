@@ -939,14 +939,14 @@ export interface StrategistDryRunRequest {
 export interface StrategistDryRunResponse {
   avatar_id: string;
   soul_id: string;
-  embodiment_pack: AvatarEmbodimentPack;
+  embodiment_pack: StrategistEmbodimentPack;
   role_lock_prompt: string;
-  instinct_frame: DerivedInstinctFrame;
+  instinct_frame: StrategistInstinctFrame;
   presence_state: StrategistPresenceState | null;
   debate_event: StrategistDebateEvent | null;
 }
 
-export interface AvatarEmbodimentPack {
+export interface StrategistEmbodimentPack {
   avatar_id: string;
   soul_id: string;
   identity_kernel: Record<string, unknown>;
@@ -957,10 +957,10 @@ export interface AvatarEmbodimentPack {
   operating_principles: string[];
   debate_style: Record<string, unknown>;
   evaluation_bias: Record<string, unknown>;
-  memory_edges: AvatarMemoryEdge[];
+  memory_edges: StrategistMemoryEdge[];
 }
 
-export interface AvatarMemoryEdge {
+export interface StrategistMemoryEdge {
   memory_edge_id: string;
   ripple_id: string;
   relationship_type: string;
@@ -971,7 +971,7 @@ export interface AvatarMemoryEdge {
   created_at: string;
 }
 
-export interface DerivedInstinctFrame {
+export interface StrategistInstinctFrame {
   trigger_kind: string;
   dominant_concern: string;
   risk_flags: string[];
