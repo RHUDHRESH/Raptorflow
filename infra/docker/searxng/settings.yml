@@ -1,0 +1,7 @@
+search:
+  formats:
+    - html
+    - json
+server:
+  secret_key: "raptorflow-dev-secret-change-me"
+  limiter: false

@@ -3,11 +3,11 @@ use std::time::Duration;
 use tokio::sync::Semaphore;
 use tracing::instrument;
 
+use crate::SearchError;
 use crate::cache::SearchCache;
 use crate::providers::duckduckgo::DuckDuckGoProvider;
 use crate::providers::searxng::SearXNGProvider;
 use crate::providers::{SearchProvider, SearchQuery, SearchResponse};
-use crate::SearchError;
 
 const MAX_RETRIES: u32 = 3;
 const BASE_BACKOFF_MS: u64 = 1000;
@@ -22,23 +22,26 @@ pub struct SearchClient {
 }
 
 impl SearchClient {
-    pub fn searxng_with_ddg_fallback(searxng_url: String, cache_ttl: Duration) -> Self {
-        Self {
-            primary: Arc::new(SearXNGProvider::new(searxng_url)),
-            fallback: Arc::new(DuckDuckGoProvider::new()),
+    pub fn searxng_with_ddg_fallback(
+        searxng_url: String,
+        cache_ttl: Duration,
+    ) -> Result<Self, SearchError> {
+        Ok(Self {
+            primary: Arc::new(SearXNGProvider::new(searxng_url)?),
+            fallback: Arc::new(DuckDuckGoProvider::new()?),
             cache: Arc::new(SearchCache::new(cache_ttl, 200)),
             semaphore: Arc::new(Semaphore::new(10)),
-        }
+        })
     }
 
-    pub fn duckduckgo_only(cache_ttl: Duration) -> Self {
-        let ddg = Arc::new(DuckDuckGoProvider::new());
-        Self {
+    pub fn duckduckgo_only(cache_ttl: Duration) -> Result<Self, SearchError> {
+        let ddg = Arc::new(DuckDuckGoProvider::new()?);
+        Ok(Self {
             primary: ddg.clone(),
             fallback: ddg,
             cache: Arc::new(SearchCache::new(cache_ttl, 200)),
             semaphore: Arc::new(Semaphore::new(3)),
-        }
+        })
     }
 
     #[instrument(skip(self), fields(query = %query.query))]
@@ -52,7 +55,10 @@ impl SearchClient {
             return Ok(cached);
         }
 
-        let _permit = self.semaphore.acquire().await
+        let _permit = self
+            .semaphore
+            .acquire()
+            .await
             .map_err(|_| SearchError::Provider("Semaphore closed".into()))?;
 
         let same = std::ptr::addr_eq(Arc::as_ptr(&self.primary), Arc::as_ptr(&self.fallback));
@@ -71,10 +77,11 @@ impl SearchClient {
                         return Ok(response);
                     }
                     Err(e) => {
-                        let retryable = matches!(&e,
-                            SearchError::RateLimited { .. } |
-                            SearchError::Network(_) |
-                            SearchError::Timeout(_)
+                        let retryable = matches!(
+                            &e,
+                            SearchError::RateLimited { .. }
+                                | SearchError::Network(_)
+                                | SearchError::Timeout(_)
                         );
                         if !retryable || attempt == MAX_RETRIES {
                             last_error = Some(e);
