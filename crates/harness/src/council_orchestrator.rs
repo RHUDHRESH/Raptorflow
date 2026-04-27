@@ -1388,6 +1388,15 @@ async fn persist_council_synthesis_artifact(
 
     let normalized = normalize_synthesis_to_schema(synthesis, council_run_id, avatar_roster, mode);
 
+    if let Err(errors) = raptorflow_db::validation::validate_council_synthesis(&normalized) {
+        let msg = format!(
+            "Council synthesis artifact failed schema validation: {}",
+            errors.join("; ")
+        );
+        tracing::error!(council_run_id = %council_run_id, errors = %msg, "Schema validation failed");
+        return Err(CouncilOrchestratorError::InvalidRequest(msg));
+    }
+
     let content_id = uuid::Uuid::new_v4().to_string();
     raptorflow_db::queries::create_generated_content(
         pool,

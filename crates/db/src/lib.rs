@@ -24,6 +24,7 @@
 pub mod models;
 pub mod pool;
 pub mod queries;
+pub mod validation;
 
 pub use models::*;
 pub use pool::{PgPool, TenantDbPool};

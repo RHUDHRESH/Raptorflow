@@ -4227,6 +4227,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "jsonschema",
  "raptorflow-config",
  "serde",
  "serde_json",
