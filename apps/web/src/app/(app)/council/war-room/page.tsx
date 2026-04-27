@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCouncilOrchestrationCreate } from "@/hooks/use-council-orchestration";
 import { useCouncilOrchestrationList } from "@/hooks/use-council-orchestration";
 import { useCouncilOrchestrationGet } from "@/hooks/use-council-orchestration";
@@ -24,8 +24,9 @@ const TERMINAL_STATUSES = ["completed", "failed", "cancelled"];
 
 export default function WarRoomPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const [pollingInterval, setPollingInterval] = useState<number | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { data: runs, isLoading: runsLoading } = useCouncilOrchestrationList(20);
   const selectedRun = useCouncilOrchestrationGet(selectedRunId ?? "");
@@ -37,26 +38,36 @@ export default function WarRoomPage() {
   const isTerminal =
     selectedRun.data?.status && TERMINAL_STATUSES.includes(selectedRun.data.status);
 
-  const avatarRosterKeys: string[] = Array.isArray(selectedRun.data?.avatar_roster)
-    ? (selectedRun.data.avatar_roster as string[])
-    : Object.keys(selectedRun.data?.avatar_roster ?? {});
+  useEffect(() => {
+    const runParam = searchParams.get("run");
+    if (runParam) {
+      setSelectedRunId(runParam);
+    }
+  }, [searchParams]);
+
+  const avatarRoster = selectedRun.data?.avatar_roster;
+  const avatarRosterKeys: string[] = Array.isArray(avatarRoster)
+    ? avatarRoster
+    : typeof avatarRoster === "object" && avatarRoster !== null
+      ? Object.keys(avatarRoster)
+      : [];
 
   useEffect(() => {
     if (selectedRunId && !isTerminal) {
-      const interval = window.setInterval(() => {
+      pollingRef.current = setInterval(() => {
         selectedRun.refetch();
         turns.refetch();
         presence.refetch();
         debateEvents.refetch();
       }, 2500);
-      setPollingInterval(interval);
-      return () => clearInterval(interval);
-    } else if (isTerminal && pollingInterval) {
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
+      return () => {
+        if (pollingRef.current !== null) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      };
     }
-    return () => {};
-  }, [selectedRunId, isTerminal, selectedRun, turns, presence, debateEvents]);
+  }, [selectedRunId, isTerminal]);
 
   const handleCreateRun = async (data: CreateCouncilOrchestrationRequest) => {
     const result = await createMutation.mutateAsync(data);

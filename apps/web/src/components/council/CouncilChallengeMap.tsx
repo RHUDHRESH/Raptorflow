@@ -1,9 +1,9 @@
 "use client";
 
-import { AvatarDebateEvent } from "@/lib/api";
+import { CouncilDebateEvent, CouncilChallengeContent } from "@/lib/api";
 
 interface Props {
-  debateEvents: AvatarDebateEvent[];
+  debateEvents: CouncilDebateEvent[];
 }
 
 const EVENT_STYLES: Record<string, { border: string; bg: string; label: string }> = {
@@ -17,11 +17,11 @@ const EVENT_STYLES: Record<string, { border: string; bg: string; label: string }
 export function CouncilChallengeMap({ debateEvents }: Props) {
   const challengeEvents = debateEvents.filter(
     (e) =>
-      e.eventType === "challenge" ||
-      e.eventType === "inquiry" ||
-      e.eventType === "objection" ||
-      e.eventType === "support" ||
-      e.eventType === "synthesis",
+      e.event_type === "challenge" ||
+      e.event_type === "inquiry" ||
+      e.event_type === "objection" ||
+      e.event_type === "support" ||
+      e.event_type === "synthesis",
   );
 
   if (challengeEvents.length === 0) {
@@ -38,22 +38,25 @@ export function CouncilChallengeMap({ debateEvents }: Props) {
       <h3 className="text-sm font-medium text-slate-300">Challenge Map</h3>
       <div className="space-y-2">
         {challengeEvents.map((event) => {
-          const style = EVENT_STYLES[event.eventType] ?? EVENT_STYLES.challenge;
-          const content = event.content as { summary?: string; topic?: string };
+          const style = EVENT_STYLES[event.event_type] ?? EVENT_STYLES.challenge;
+          const rawContent =
+            event.content && typeof event.content === "object"
+              ? (event.content as CouncilChallengeContent)
+              : null;
+          const contentSummary =
+            rawContent?.summary ?? rawContent?.topic ?? event.stance ?? "No summary";
           return (
             <div
-              key={event.debateEventId}
+              key={event.debate_event_id}
               className={`p-3 rounded-lg border ${style.border} ${style.bg}`}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-slate-200 uppercase">{style.label}</span>
                 <span className="text-xs text-slate-500">
-                  {event.speakerAvatarId ?? "?"} → {event.targetAvatarId ?? "?"}
+                  {event.speaker_avatar_id ?? "?"} → {event.target_avatar_id ?? "?"}
                 </span>
               </div>
-              <p className="text-xs text-slate-300">
-                {content?.summary ?? content?.topic ?? event.stance ?? "No summary"}
-              </p>
+              <p className="text-xs text-slate-300">{contentSummary}</p>
               <div className="mt-2 flex items-center gap-2">
                 <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
                   <div

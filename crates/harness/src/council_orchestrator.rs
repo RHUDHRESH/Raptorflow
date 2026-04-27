@@ -750,6 +750,16 @@ pub async fn run_council_dry_run(
         ))
     })?;
 
+    persist_council_synthesis_artifact(
+        pool,
+        &council_run_id,
+        req.org_id,
+        &synthesis,
+        &avatar_roster,
+        &req.mode,
+    )
+    .await?;
+
     raptorflow_db::queries::update_council_orchestration_status(
         pool,
         &council_run_id,
@@ -1216,6 +1226,16 @@ pub async fn run_council_run(
         ))
     })?;
 
+    persist_council_synthesis_artifact(
+        pool,
+        &council_run_id,
+        req.org_id,
+        &synthesis,
+        &avatar_roster,
+        &req.mode,
+    )
+    .await?;
+
     raptorflow_db::queries::update_council_orchestration_status(
         pool,
         &council_run_id,
@@ -1243,6 +1263,171 @@ pub async fn run_council_run(
         synthesis,
         turns: all_turns,
     })
+}
+
+fn normalize_synthesis_to_schema(
+    raw: &serde_json::Value,
+    council_run_id: &str,
+    avatar_roster: &[String],
+    mode: &str,
+) -> serde_json::Value {
+    let known_facts = raw
+        .get("known_facts")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let assumptions = raw
+        .get("assumptions")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let raw_risks = raw
+        .get("risks")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .map(|r| {
+                    if r.is_object() {
+                        r.clone()
+                    } else {
+                        serde_json::json!({
+                            "risk": r.as_str().unwrap_or("Unspecified risk"),
+                            "severity": "medium",
+                            "mitigation": ""
+                        })
+                    }
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+
+    let raw_next_actions = raw
+        .get("next_actions")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .map(|a| {
+                    if a.is_object() {
+                        a.clone()
+                    } else {
+                        serde_json::json!({
+                            "action": a.as_str().unwrap_or("Unspecified action"),
+                            "owner": "council",
+                            "priority": "medium"
+                        })
+                    }
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+
+    let open_questions = raw
+        .get("open_questions")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let strategic_recommendation = raw
+        .get("council_recommendation")
+        .and_then(|r| r.get("strategy"))
+        .and_then(|s| s.as_str())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| {
+            format!(
+                "Council assessed by {} avatar(s) in {} mode",
+                avatar_roster.len(),
+                mode
+            )
+        });
+
+    let synthesized_by = "council".to_string();
+
+    serde_json::json!({
+        "council_run_id": council_run_id,
+        "known_facts": known_facts,
+        "assumptions": assumptions,
+        "risks": raw_risks,
+        "next_actions": raw_next_actions,
+        "open_questions": open_questions,
+        "strategic_recommendation": strategic_recommendation,
+        "synthesized_by": synthesized_by,
+    })
+}
+
+async fn persist_council_synthesis_artifact(
+    pool: &PgPool,
+    council_run_id: &str,
+    org_id: uuid::Uuid,
+    synthesis: &serde_json::Value,
+    avatar_roster: &[String],
+    mode: &str,
+) -> Result<String, CouncilOrchestratorError> {
+    let existing = raptorflow_db::queries::check_council_synthesis_artifact_exists(
+        pool,
+        org_id,
+        council_run_id,
+    )
+    .await
+    .map_err(|e| {
+        CouncilOrchestratorError::DatabaseError(format!(
+            "Failed to check existing council synthesis artifact: {}",
+            e
+        ))
+    })?;
+
+    if let Some(content_id) = existing {
+        tracing::info!(
+            council_run_id = %council_run_id,
+            content_id = %content_id,
+            "Council synthesis artifact already exists, skipping insert"
+        );
+        return Ok(content_id);
+    }
+
+    let normalized = normalize_synthesis_to_schema(synthesis, council_run_id, avatar_roster, mode);
+
+    let content_id = uuid::Uuid::new_v4().to_string();
+    raptorflow_db::queries::create_generated_content(
+        pool,
+        &content_id,
+        org_id,
+        None,
+        Some(council_run_id),
+        "council-synthesis",
+        "generated",
+        &normalized,
+    )
+    .await
+    .map_err(|e| {
+        CouncilOrchestratorError::DatabaseError(format!(
+            "Failed to persist council synthesis artifact: {}",
+            e
+        ))
+    })?;
+
+    raptorflow_db::queries::update_council_orchestration_final_artifact(
+        pool,
+        council_run_id,
+        org_id,
+        &content_id,
+    )
+    .await
+    .map_err(|e| {
+        CouncilOrchestratorError::DatabaseError(format!(
+            "Failed to update council orchestration final_artifact_id: {}",
+            e
+        ))
+    })?;
+
+    tracing::info!(
+        council_run_id = %council_run_id,
+        content_id = %content_id,
+        "Council synthesis artifact persisted"
+    );
+
+    Ok(content_id)
 }
 
 fn truncate_c(text: &str, max_chars: usize) -> String {

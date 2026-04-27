@@ -1,10 +1,10 @@
 "use client";
 
-import { CouncilAvatarTurn, AvatarDebateEvent } from "@/lib/api";
+import { CouncilAvatarTurn, CouncilDebateEvent, CouncilChallengeContent } from "@/lib/api";
 
 interface Props {
   turns: CouncilAvatarTurn[];
-  debateEvents: AvatarDebateEvent[];
+  debateEvents: CouncilDebateEvent[];
   isLoading: boolean;
 }
 
@@ -35,8 +35,8 @@ export function CouncilTimeline({ turns, debateEvents, isLoading }: Props) {
     );
   }
 
-  const positionEvents = debateEvents.filter((e) => e.eventType === "position");
-  const challengeEvents = debateEvents.filter((e) => e.eventType === "challenge");
+  const positionEvents = debateEvents.filter((e) => e.event_type === "position");
+  const challengeEvents = debateEvents.filter((e) => e.event_type === "challenge");
 
   if (positionEvents.length === 0 && challengeEvents.length === 0 && turns.length === 0) {
     return (
@@ -54,14 +54,16 @@ export function CouncilTimeline({ turns, debateEvents, isLoading }: Props) {
           <div className="space-y-2">
             {positionEvents.map((event) => (
               <div
-                key={event.debateEventId}
+                key={event.debate_event_id}
                 className="card-elevated p-4 border border-[var(--border)]"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: "var(--blue)" }} />
-                  <span className="text-xs font-medium">{event.speakerAvatarId ?? "Unknown"}</span>
+                  <span className="text-xs font-medium">
+                    {event.speaker_avatar_id ?? "Unknown"}
+                  </span>
                   <span className="mono-label text-[var(--ink-400)] text-[10px]">
-                    {event.eventType}
+                    {event.event_type}
                   </span>
                   {event.confidence > 0 && (
                     <span className="mono-label text-[var(--ink-400)] text-[10px] ml-auto">
@@ -92,7 +94,7 @@ export function CouncilTimeline({ turns, debateEvents, isLoading }: Props) {
           <div className="space-y-2">
             {challengeEvents.map((event) => (
               <div
-                key={event.debateEventId}
+                key={event.debate_event_id}
                 className="card-elevated p-4 border"
                 style={{ borderColor: "rgba(239,68,68,0.2)" }}
               >
@@ -101,9 +103,9 @@ export function CouncilTimeline({ turns, debateEvents, isLoading }: Props) {
                     className="w-2 h-2 rounded-full"
                     style={{ background: "var(--destructive)" }}
                   />
-                  <span className="text-xs font-medium">{event.speakerAvatarId ?? "?"}</span>
+                  <span className="text-xs font-medium">{event.speaker_avatar_id ?? "?"}</span>
                   <span className="mono-label text-[var(--ink-400)] text-[10px]">→</span>
-                  <span className="text-xs font-medium">{event.targetAvatarId ?? "?"}</span>
+                  <span className="text-xs font-medium">{event.target_avatar_id ?? "?"}</span>
                   <span className="mono-label text-[var(--ink-400)] text-[10px] ml-auto">
                     {(event.confidence * 100).toFixed(0)}% confident
                   </span>
@@ -157,17 +159,19 @@ export function CouncilTimeline({ turns, debateEvents, isLoading }: Props) {
   );
 }
 
-function renderContent(content: Record<string, unknown>): React.ReactNode {
-  const text = content.text as string | undefined;
-  const dominantConcern = content.dominant_concern as string | undefined;
-  const challengeReason = content.challenge_reason as string | undefined;
-  const strategicConcern = content.strategic_concern as string | undefined;
-  const evidenceConcern = content.evidence_concern as string | undefined;
-  const languageConcern = content.language_concern as string | undefined;
-  const executionConcern = content.execution_concern as string | undefined;
-  const measurementConcern = content.measurement_concern as string | undefined;
-  const creativeConcern = content.creative_concern as string | undefined;
-  const proofConcern = content.proof_concern as string | undefined;
+function renderContent(content: unknown): React.ReactNode {
+  if (!content || typeof content !== "object") return null;
+  const c = content as CouncilChallengeContent;
+  const text = c.text;
+  const dominantConcern = c.dominant_concern;
+  const challengeReason = c.challenge_reason;
+  const strategicConcern = c.strategic_concern;
+  const evidenceConcern = c.evidence_concern;
+  const languageConcern = c.language_concern;
+  const executionConcern = c.execution_concern;
+  const measurementConcern = c.measurement_concern;
+  const creativeConcern = c.creative_concern;
+  const proofConcern = c.proof_concern;
 
   return (
     <>
