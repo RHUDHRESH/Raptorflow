@@ -182,10 +182,7 @@ impl Settings {
             sentry_dsn: optional("RAPTORFLOW_SENTRY_DSN")
                 .or_else(|| optional("SENTRY_DSN"))
                 .unwrap_or_default(),
-            searxng_url: read(
-                "RAPTORFLOW_SEARXNG_URL",
-                "http://localhost:8081",
-            ),
+            searxng_url: read("RAPTORFLOW_SEARXNG_URL", "http://localhost:8081"),
             search_cache_ttl_secs: read("RAPTORFLOW_SEARCH_CACHE_TTL_SECS", "300")
                 .parse()
                 .unwrap_or(300),

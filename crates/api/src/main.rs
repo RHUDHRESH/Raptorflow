@@ -73,8 +73,8 @@ async fn main() -> anyhow::Result<()> {
         && settings.searxng_url != "http://localhost:8081"
     {
         let ttl = std::time::Duration::from_secs(settings.search_cache_ttl_secs);
-        let client =
-            SearchClient::searxng_with_ddg_fallback(settings.searxng_url.clone(), ttl);
+        let client = SearchClient::searxng_with_ddg_fallback(settings.searxng_url.clone(), ttl)
+            .expect("Failed to create SearchClient");
         tracing::info!(
             searxng_url = %settings.searxng_url,
             cache_ttl_secs = settings.search_cache_ttl_secs,
@@ -83,7 +83,7 @@ async fn main() -> anyhow::Result<()> {
         Some(Arc::new(client))
     } else {
         let ttl = std::time::Duration::from_secs(settings.search_cache_ttl_secs);
-        let client = SearchClient::duckduckgo_only(ttl);
+        let client = SearchClient::duckduckgo_only(ttl).expect("Failed to create SearchClient");
         tracing::info!(
             "Web search client ready (DuckDuckGo only — set RAPTORFLOW_SEARXNG_URL for unlimited SearXNG)"
         );

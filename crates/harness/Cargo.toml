@@ -24,4 +24,3 @@ raptorflow-contracts = { path = "../contracts" }
 raptorflow-eel = { path = "../eel" }
 raptorflow-prl = { path = "../prl" }
 raptorflow-aws = { path = "../aws" }
-raptorflow-search = { path = "../search" }

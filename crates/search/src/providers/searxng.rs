@@ -4,8 +4,8 @@ use reqwest::Client;
 use serde::Deserialize;
 
 use super::SearchProvider;
-use crate::providers::{RateLimit, SearchQuery, SearchResponse, SearchResult};
 use crate::SearchError;
+use crate::providers::{RateLimit, SearchQuery, SearchResponse, SearchResult};
 
 #[derive(Debug, Clone)]
 pub struct SearXNGProvider {
@@ -14,20 +14,19 @@ pub struct SearXNGProvider {
 }
 
 impl SearXNGProvider {
-    pub fn new(base_url: impl Into<String>) -> Self {
-        let base_url = base_url
-            .into()
-            .trim_end_matches('/')
-            .to_string();
+    pub fn new(base_url: impl Into<String>) -> Result<Self, SearchError> {
+        let base_url = base_url.into().trim_end_matches('/').to_string();
 
-        Self {
+        Ok(Self {
             client: Client::builder()
                 .timeout(Duration::from_secs(30))
                 .user_agent("RaptorFlow/1.0 (AI Marketing Platform)")
                 .build()
-                .expect("reqwest Client construction is infallible"),
+                .map_err(|e| {
+                    SearchError::Provider(format!("Failed to build reqwest Client: {e}"))
+                })?,
             base_url,
-        }
+        })
     }
 }
 
@@ -122,7 +121,8 @@ impl SearchProvider for SearXNGProvider {
                     title: r.title,
                     url: r.url,
                     snippet: r.content,
-                    published_date: r.published_date
+                    published_date: r
+                        .published_date
                         .and_then(|d| chrono::DateTime::parse_from_rfc3339(&d).ok())
                         .map(|d| d.with_timezone(&chrono::Utc)),
                     relevance_score: (relevance * 100.0).round() / 100.0,

@@ -3,13 +3,11 @@ use std::sync::LazyLock;
 
 macro_rules! load_schema {
     ($path:expr) => {{
-        const SCHEMA_STR: &str = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"), "/../../", $path
-        ));
-        let schema: Value = serde_json::from_str(SCHEMA_STR)
-            .expect(concat!("Invalid JSON schema: ", $path));
-        jsonschema::Validator::new(&schema)
-            .expect(concat!("Failed to compile schema: ", $path))
+        const SCHEMA_STR: &str =
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../", $path));
+        let schema: Value =
+            serde_json::from_str(SCHEMA_STR).expect(concat!("Invalid JSON schema: ", $path));
+        jsonschema::Validator::new(&schema).expect(concat!("Failed to compile schema: ", $path))
     }};
 }
 
@@ -44,9 +42,7 @@ pub fn validate_content(content_type: &str, body: &Value) -> Result<(), Vec<Stri
 
     match validator.validate(body) {
         Ok(()) => Ok(()),
-        Err(errors) => {
-            Err(vec![errors.to_string()])
-        }
+        Err(errors) => Err(vec![errors.to_string()]),
     }
 }
 

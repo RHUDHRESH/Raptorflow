@@ -95,7 +95,11 @@ impl AvatarMoodState {
     }
 }
 
-pub fn compute_personality_summary(mood: &AvatarMoodState, total_debates: u32, challenges_won: u32) -> String {
+pub fn compute_personality_summary(
+    mood: &AvatarMoodState,
+    total_debates: u32,
+    challenges_won: u32,
+) -> String {
     let confidence_desc = if mood.confidence > 0.7 {
         "confident"
     } else if mood.confidence < 0.3 {
@@ -141,7 +145,9 @@ pub fn compute_personality_summary(mood: &AvatarMoodState, total_debates: u32, c
         "untested"
     };
 
-    format!("{confidence_desc} {skepticism_desc} {creativity_desc} {experience_desc} operator with {record_desc}")
+    format!(
+        "{confidence_desc} {skepticism_desc} {creativity_desc} {experience_desc} operator with {record_desc}"
+    )
 }
 
 pub fn build_identity_context_block(
@@ -149,15 +155,20 @@ pub fn build_identity_context_block(
     personality_summary: &str,
     experiences: &[AvatarExperience],
 ) -> serde_json::Value {
-    let recent: Vec<serde_json::Value> = experiences.iter().rev().take(5).map(|e| {
-        serde_json::json!({
-            "type": format!("{:?}", e.experience_type),
-            "summary": e.summary,
-            "outcome": e.outcome,
-            "salience": e.salience,
-            "related_avatar": e.related_avatar_key,
+    let recent: Vec<serde_json::Value> = experiences
+        .iter()
+        .rev()
+        .take(5)
+        .map(|e| {
+            serde_json::json!({
+                "type": format!("{:?}", e.experience_type),
+                "summary": e.summary,
+                "outcome": e.outcome,
+                "salience": e.salience,
+                "related_avatar": e.related_avatar_key,
+            })
         })
-    }).collect();
+        .collect();
 
     serde_json::json!({
         "personality_summary": personality_summary,
@@ -313,7 +324,11 @@ mod tests {
             salience: 0.6,
             related_avatar_key: Some("copywriter".into()),
         });
-        let block = build_identity_context_block(&state.mood, &state.personality_summary(), &state.recent_experiences);
+        let block = build_identity_context_block(
+            &state.mood,
+            &state.personality_summary(),
+            &state.recent_experiences,
+        );
         assert!(block.get("personality_summary").is_some());
         assert!(block.get("current_disposition").is_some());
         assert!(block.get("recent_experiences").is_some());
