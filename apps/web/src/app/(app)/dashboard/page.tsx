@@ -8,6 +8,9 @@ import { useDashboard } from "@/features/dashboard/hooks/useDashboard";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
+import { BrandHeader } from "@/components/brand/BrandHeader";
+import { RfWindow, RfWindowGrid } from "@/components/windows";
+import { StatusPill } from "@/components/windows/StatusPill";
 import {
   BackpackIcon,
   AvatarIcon,
@@ -60,6 +63,13 @@ export default function DashboardPage(): React.ReactElement {
 
   return (
     <GsapBridge stagger className="space-y-8">
+      <BrandHeader
+        eyebrow="Dashboard"
+        title="The Office"
+        description="Your daily briefing and operational overview."
+        status={<StatusPill status="Live" tone="success" />}
+      />
+
       {/* ── Today's Briefing ─────────────────────────────────── */}
       {data?.todayWin ? (
         <div className={cn("gsap-reveal card-elevated p-6 border transition-all", momentumBg(score))}>
@@ -105,7 +115,7 @@ export default function DashboardPage(): React.ReactElement {
       )}
 
       {/* ── Stats Grid ───────────────────────────────────────── */}
-      <div className="gsap-reveal grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <RfWindowGrid columns={4} className="gsap-reveal">
         <StatCard
           label="Active campaigns"
           value={data?.stats.activeCampaigns ?? 0}
@@ -149,9 +159,9 @@ export default function DashboardPage(): React.ReactElement {
           }
           icon={HomeIcon}
         />
-      </div>
+      </RfWindowGrid>
 
-      <div className="gsap-reveal grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <RfWindowGrid columns={2} className="gsap-reveal">
         <StatCard
           label="Intel signals"
           value={data?.stats.intelUnread ?? 0}
@@ -170,7 +180,7 @@ export default function DashboardPage(): React.ReactElement {
           alert={(data?.stats.nudgeCount ?? 0) > 0}
           icon={BellIcon}
         />
-      </div>
+      </RfWindowGrid>
 
       {/* ── Activity & Nudges ─────────────────────────────────── */}
       <div className="gsap-reveal grid grid-cols-1 lg:grid-cols-3 gap-6">
