@@ -4,7 +4,7 @@ import * as React from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { ArrowLeftIcon, CheckIcon, DotFilledIcon } from "@radix-ui/react-icons";
-import { useCampaignMoves } from "@/hooks/use-campaigns";
+import { useCampaignMoves } from "@/features/campaigns";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -22,13 +22,11 @@ export default function CampaignMovesPage({
   params: Promise<{ campaignId: string }>;
 }): React.ReactElement {
   const { campaignId } = React.use(params);
-  const { data, isLoading, error } = useCampaignMoves(campaignId);
-  const moves = data?.moves ?? [];
-  const totalBudget = moves.reduce((sum, move) => sum + ((move as { budget?: number }).budget ?? 0), 0);
-  const completedBudget = moves
-    .filter((move) => move.status === "completed")
-    .reduce((sum, move) => sum + ((move as { budget?: number }).budget ?? 0), 0);
-  const progress = totalBudget > 0 ? Math.round((completedBudget / totalBudget) * 100) : 0;
+  const { data: moves, isLoading, error } = useCampaignMoves(campaignId);
+
+  const moveList = moves ?? [];
+  const completedCount = moveList.filter((m) => m.status === "completed").length;
+  const progress = moveList.length > 0 ? Math.round((completedCount / moveList.length) * 100) : 0;
 
   return (
     <div className="flex flex-col gap-8 py-2">
@@ -69,7 +67,7 @@ export default function CampaignMovesPage({
 
         <div className="text-right shrink-0">
           <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: "var(--foreground)", lineHeight: 1 }}>
-            ₹{completedBudget.toLocaleString("en-IN")}
+            {progress}%
           </p>
           <p
             style={{
@@ -80,7 +78,7 @@ export default function CampaignMovesPage({
               color: "var(--muted-foreground)",
             }}
           >
-            of ₹{totalBudget.toLocaleString("en-IN")} deployed
+            {completedCount}/{moveList.length} completed
           </p>
           <div style={{ height: 2, background: "var(--muted)", marginTop: 6, width: 120 }}>
             <div style={{ height: "100%", width: `${progress}%`, background: "var(--amber-war)" }} />
@@ -98,7 +96,7 @@ export default function CampaignMovesPage({
         <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">
           Failed to load campaign moves from the backend.
         </div>
-      ) : moves.length === 0 ? (
+      ) : moveList.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--border)] p-10 text-center">
           <p className="font-semibold">No moves exist yet for this campaign.</p>
           <p className="mt-2 text-sm text-[var(--muted-foreground)]">
@@ -118,15 +116,14 @@ export default function CampaignMovesPage({
           />
 
           <div className="space-y-0">
-            {moves.map((move, index) => {
+            {moveList.map((move, index) => {
               const isCompleted = move.status === "completed";
-              const isActive = move.status === "active";
-              const typeColor = TYPE_COLOR[move.type] ?? "var(--muted-foreground)";
-              const budget = (move as { budget?: number }).budget ?? 0;
-              const isLast = index === moves.length - 1;
+              const isActive = move.status === "active" || move.status === "in_progress";
+              const typeColor = TYPE_COLOR[move.moveType] ?? "var(--muted-foreground)";
+              const isLast = index === moveList.length - 1;
 
               return (
-                <div key={move.move_id} className="flex gap-6">
+                <div key={move.moveId} className="flex gap-6">
                   <div className="flex flex-col items-center shrink-0" style={{ zIndex: 1 }}>
                     <div
                       className="flex h-9 w-9 items-center justify-center border-2 shrink-0"
@@ -148,14 +145,14 @@ export default function CampaignMovesPage({
                             color: "var(--muted-foreground)",
                           }}
                         >
-                          {move.move_number}
+                          {move.sequenceNumber}
                         </span>
                       )}
                     </div>
                   </div>
 
                   <Link
-                    href={`/campaigns/${campaignId}/moves/${move.move_id}` as Route}
+                    href={`/campaigns/${campaignId}/moves/${move.moveId}` as Route}
                     className={`group flex-1 mb-8 border transition-all hover:border-[var(--foreground)] ${isLast ? "mb-0" : ""}`}
                     style={{
                       background: "var(--card)",
@@ -180,7 +177,7 @@ export default function CampaignMovesPage({
                               padding: "2px 6px",
                             }}
                           >
-                            {move.type}
+                            {move.moveType}
                           </span>
                           <span
                             style={{
@@ -194,9 +191,6 @@ export default function CampaignMovesPage({
                             {move.status}
                           </span>
                         </div>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--muted-foreground)" }}>
-                          ₹{budget.toLocaleString("en-IN")}
-                        </span>
                       </div>
 
                       <h3
@@ -209,10 +203,10 @@ export default function CampaignMovesPage({
                           marginBottom: 8,
                         }}
                       >
-                        {move.name}
+                        {move.title ?? `${move.moveType} move`}
                       </h3>
                       <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, lineHeight: 1.6, color: "var(--muted-foreground)", margin: 0 }}>
-                        {move.sub_goal}
+                        {move.description ?? move.expectedImpact ?? move.moveType}
                       </p>
                     </div>
                   </Link>

@@ -21,6 +21,7 @@ import {
   useOfficeCampaignFronts,
   useOfficeCouncilActivity,
   useOfficeRecentArtifacts,
+  useOfficeRecentMoves,
   CANONICAL_AVATARS,
 } from "@/features/office";
 import { copy } from "@/brand/copy";
@@ -132,11 +133,61 @@ function CampaignFrontsWindow() {
 }
 
 function MoveLadderWindow() {
+  const { data: moves, isLoading, error } = useOfficeRecentMoves();
+
+  if (isLoading) return <AppLoadingState label="Loading moves..." />;
+  if (error)
+    return (
+      <AppErrorState
+        title="Move ladder unavailable"
+        description="Could not load moves. The backend may be unreachable."
+      />
+    );
+  if (!moves || moves.length === 0) {
+    return (
+      <AppEmptyState
+        title="No active moves"
+        description="Move ladder will appear after campaigns and moves are created."
+        action={
+          <Link
+            href="/campaigns"
+            className="inline-flex items-center px-3 py-1.5 rounded-md bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Go to Campaigns
+          </Link>
+        }
+      />
+    );
+  }
+
   return (
-    <AppEmptyState
-      title="Move ladder unavailable"
-      description="Move ladder will appear after campaign contract repair."
-    />
+    <div className="space-y-3">
+      {moves.slice(0, 5).map((move: any) => (
+        <div
+          key={move.moveId ?? move.move_id}
+          className="flex items-center justify-between p-3 rounded-lg border border-[var(--border)] bg-[var(--paper-100)] hover:bg-[var(--paper-150)] transition-colors"
+        >
+          <div className="min-w-0">
+            <p className="font-medium text-[var(--ink-900)] truncate">
+              {move.title ?? `${move.moveType ?? move.move_type} move`}
+            </p>
+            <p className="text-sm text-[var(--ink-500)]">
+              {move.moveType ?? move.move_type ?? "unknown type"}
+            </p>
+          </div>
+          <StatusPill
+            status={move.status ?? "unknown"}
+            tone={
+              move.status === "completed"
+                ? "success"
+                : move.status === "active" || move.status === "in_progress"
+                  ? "amber"
+                  : "neutral"
+            }
+          />
+        </div>
+      ))}
+    </div>
   );
 }
 

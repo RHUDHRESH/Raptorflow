@@ -76,3 +76,38 @@ export function useOfficeRecentArtifacts() {
     staleTime: 60_000,
   });
 }
+
+export function useOfficeRecentMoves() {
+  return useQuery({
+    queryKey: ["office", "moves"],
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/v1/campaigns", { credentials: "include" });
+        if (!res.ok) return null;
+        const data = await res.json();
+        const campaigns = Array.isArray(data?.campaigns) ? data.campaigns : [];
+        // Fetch moves for the first campaign that has them
+        for (const campaign of campaigns.slice(0, 3)) {
+          const campaignId = campaign.campaign_id ?? campaign.id;
+          if (!campaignId) continue;
+          try {
+            const moveRes = await fetch(`/api/v1/campaigns/${campaignId}/moves`, {
+              credentials: "include",
+            });
+            if (moveRes.ok) {
+              const moveData = await moveRes.json();
+              const moves = Array.isArray(moveData?.moves) ? moveData.moves : [];
+              if (moves.length > 0) return moves.slice(0, 5);
+            }
+          } catch {
+            // Continue to next campaign
+          }
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 60_000,
+  });
+}

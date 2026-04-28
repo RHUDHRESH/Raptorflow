@@ -10,16 +10,15 @@ import {
   DrawingPinIcon,
   MixerHorizontalIcon,
 } from "@radix-ui/react-icons";
-import { useCampaignMoves, useCampaignTasks } from "@/hooks/use-campaigns";
-import { AGENTS } from "@/lib/agents";
+import { useCampaignMoves, useCampaignTasks } from "@/features/campaigns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 function TaskStatusPill({ status }: { status: string }): React.ReactElement {
   const tone =
-    status === "completed" || status === "approved"
+    status === "completed"
       ? "bg-green-500/10 text-green-600 border-green-500/20"
-      : status === "processing" || status === "ready_for_review"
+      : status === "in_progress"
         ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
         : "bg-[#E5DED4] text-[#6B655E] border-[#E5DED4]";
   return (
@@ -35,12 +34,13 @@ export default function CampaignMoveDetailPage({
   params: Promise<{ campaignId: string; moveId: string }>;
 }): React.ReactElement {
   const { campaignId, moveId } = use(params);
-  const { data: movesData, isLoading: movesLoading } = useCampaignMoves(campaignId);
-  const { data: tasksData, isLoading: tasksLoading } = useCampaignTasks(campaignId);
+  const { data: moves, isLoading: movesLoading } = useCampaignMoves(campaignId);
+  const { data: tasks, isLoading: tasksLoading } = useCampaignTasks(campaignId);
 
-  const move = movesData?.moves.find((candidate) => candidate.move_id === moveId);
-  const tasks = (tasksData?.tasks ?? []).filter((task) => task.move_name === moveId);
-  const leadAgentConfig = AGENTS.find((agent) => agent.key === "strategist");
+  const move = moves?.find((candidate) => candidate.moveId === moveId);
+  const moveTasks = (tasks ?? []).filter((task) => task.moveId === moveId);
+  const completedCount = moveTasks.filter((t) => t.status === "completed").length;
+  const totalCount = moveTasks.length;
 
   if (movesLoading || tasksLoading) {
     return <div className="py-8 text-sm text-[var(--muted-foreground)]">Loading move from backend…</div>;
@@ -56,9 +56,6 @@ export default function CampaignMoveDetailPage({
       </div>
     );
   }
-
-  const completedCount = tasks.filter((task) => task.status === "completed" || task.status === "approved").length;
-  const totalCount = tasks.length;
 
   return (
     <div className="flex flex-col gap-8 py-2">
@@ -91,18 +88,18 @@ export default function CampaignMoveDetailPage({
                 color: "var(--muted-foreground)",
               }}
             >
-              Move Detail // {move.move_id.slice(0, 8).toUpperCase()}
+              Move Detail // {move.moveId.slice(0, 8).toUpperCase()}
             </p>
           </div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, lineHeight: 1, margin: 0 }}>
-            {move.name}
+            {move.title ?? `${move.moveType} move`}
           </h1>
         </div>
 
         <div className="flex flex-col items-end gap-2 text-right">
           <Badge
             className={
-              move.status === "active"
+              move.status === "active" || move.status === "in_progress"
                 ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
                 : move.status === "completed"
                   ? "bg-green-500/10 text-green-500 border-green-500/20"
@@ -112,7 +109,7 @@ export default function CampaignMoveDetailPage({
             {move.status}
           </Badge>
           <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--foreground)" }}>
-            {move.move_number} move number
+            {move.sequenceNumber} of sequence
           </p>
         </div>
       </header>
@@ -124,33 +121,15 @@ export default function CampaignMoveDetailPage({
               <div className="space-y-4 max-w-xl">
                 <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>Move Narrative</h3>
                 <p className="text-[#6B655E] font-light italic leading-relaxed">
-                  {move.sub_goal}
+                  {move.description ?? move.expectedImpact ?? move.moveType}
                 </p>
               </div>
-              {leadAgentConfig && (
-                <div className="text-right flex flex-col items-end gap-2">
-                  <p
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 8,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      color: "var(--muted-foreground)",
-                    }}
-                  >
-                    Lead Architect
-                  </p>
-                  <div className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-mono uppercase">
-                    {leadAgentConfig.displayName}
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-[#E5DED4]">
               <div>
-                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Timeline</p>
-                <p className="text-sm font-medium">{move.start_date} → {move.end_date}</p>
+                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Type</p>
+                <p className="text-sm font-medium">{move.moveType}</p>
               </div>
               <div>
                 <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Tasks</p>
@@ -161,8 +140,8 @@ export default function CampaignMoveDetailPage({
                 <p className="text-sm font-medium">{move.status}</p>
               </div>
               <div>
-                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Budget</p>
-                <p className="text-sm font-medium">Live backend value</p>
+                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Sequence</p>
+                <p className="text-sm font-medium">#{move.sequenceNumber}</p>
               </div>
             </div>
           </section>
@@ -188,19 +167,19 @@ export default function CampaignMoveDetailPage({
               </div>
             </div>
             <div className="divide-y divide-[var(--border)]">
-              {tasks.length === 0 ? (
+              {moveTasks.length === 0 ? (
                 <div className="p-6 text-sm text-[var(--muted-foreground)]">
                   No tasks are attached to this move yet.
                 </div>
               ) : (
-                tasks.map((task) => (
-                  <div key={task.task_id} className="p-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+                moveTasks.map((task) => (
+                  <div key={task.taskId} className="p-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
                     <div className="flex items-center gap-4">
                       <div
                         className={`h-2 w-2 rounded-full ${
-                          task.status === "completed" || task.status === "approved"
+                          task.status === "completed"
                             ? "bg-green-500"
-                            : task.status === "processing" || task.status === "ready_for_review"
+                            : task.status === "in_progress"
                               ? "bg-amber-500 animate-pulse"
                               : "bg-[#E5DED4]"
                         }`}
@@ -213,7 +192,7 @@ export default function CampaignMoveDetailPage({
                           <TaskStatusPill status={task.status} />
                           <span className="text-[#BAB0A0]">|</span>
                           <span className="text-[9px] font-mono text-[#6B655E] uppercase">
-                            {task.assigned_agent_name}
+                            {task.owner ?? "Unassigned"}
                           </span>
                         </div>
                       </div>
@@ -241,10 +220,6 @@ export default function CampaignMoveDetailPage({
                 Available Actions
               </p>
             </div>
-            <button className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all group">
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Discuss with Lead</span>
-              <ChatBubbleIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            </button>
             <Link
               href={`/campaigns/${campaignId}` as Route}
               className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all group"

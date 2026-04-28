@@ -12,7 +12,12 @@ import {
   LightningBoltIcon,
   BackpackIcon,
 } from "@radix-ui/react-icons";
-import { useCampaigns, useCreateCampaign, useEvaluateCampaign, type CampaignListItem } from "@/features/campaigns/hooks";
+import {
+  useCampaigns,
+  useCreateCampaign,
+  useEvaluateCampaign,
+} from "@/features/campaigns";
+import type { CampaignSummary } from "@/features/campaigns";
 import { Button } from "@/components/ui/button";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -25,6 +30,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; 
   evaluating: { bg: "bg-[var(--amber-wash)]", text: "text-[var(--primary)]", border: "border-[var(--amber-stroke)]/30", dot: "bg-[var(--primary)]" },
   active: { bg: "bg-[var(--leaf-wash)]", text: "text-[var(--leaf-confirm)]", border: "border-[var(--leaf-confirm)]/30", dot: "bg-[var(--leaf-confirm)]" },
   paused: { bg: "bg-[var(--indigo-wash)]", text: "text-[var(--indigo-muse)]", border: "border-[var(--indigo-muse)]/30", dot: "bg-[var(--indigo-muse)]" },
+  completed: { bg: "bg-[var(--paper-150)]", text: "text-[var(--pod-creative)]", border: "border-[var(--pod-creative)]/30", dot: "bg-[var(--pod-creative)]" },
   complete: { bg: "bg-[var(--paper-150)]", text: "text-[var(--pod-creative)]", border: "border-[var(--pod-creative)]/30", dot: "bg-[var(--pod-creative)]" },
 };
 
@@ -53,23 +59,20 @@ function NewCampaignModal({
   onClose: () => void;
   onCreated: (id: string) => void;
 }): React.ReactElement {
-  const [title, setTitle] = useState("");
-  const [brief, setBrief] = useState("");
+  const [name, setName] = useState("");
   const [goal, setGoal] = useState("");
-  const [budget, setBudget] = useState("");
-  const [timeframe, setTimeframe] = useState("");
   const create = useCreateCampaign();
   const evaluate = useEvaluateCampaign();
 
-  const isValid = title.trim().length > 0 && brief.trim().length >= 20;
+  const isValid = name.trim().length > 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!isValid) return;
     try {
-      const result = await create.mutateAsync({ title: title.trim(), brief: brief.trim(), goal: goal || undefined, budget: budget || undefined, timeframe: timeframe || undefined });
-      await evaluate.mutateAsync({ campaignId: result.id });
-      onCreated(result.id);
+      const result = await create.mutateAsync({ name: name.trim(), goal: goal || null });
+      await evaluate.mutateAsync({ campaignId: result.campaignId });
+      onCreated(result.campaignId);
     } catch (err) {
       console.error("Failed to create campaign:", err);
     }
@@ -90,70 +93,23 @@ function NewCampaignModal({
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="eyebrow mb-2 block">Campaign Title *</label>
+            <label className="eyebrow mb-2 block">Campaign Name *</label>
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Q4 Pipeline Push"
               className="w-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink-900)] placeholder:text-[var(--ink-300)] rounded-[var(--radius)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]/20 transition-all"
             />
           </div>
 
           <div>
-            <label className="eyebrow mb-2 block">Brief * (min 20 chars)</label>
-            <textarea
-              rows={4}
-              value={brief}
-              onChange={(e) => setBrief(e.target.value)}
-              placeholder="Describe what this campaign is trying to achieve and for whom..."
-              className="w-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink-900)] placeholder:text-[var(--ink-300)] rounded-[var(--radius)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]/20 transition-all resize-none"
-            />
-            <p className="mt-1 mono-label">
-              {brief.length}/20 chars minimum
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="eyebrow mb-2 block">Goal</label>
-              <select
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                className="w-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink-900)] rounded-[var(--radius)] focus:border-[var(--primary)] focus:outline-none transition-all"
-              >
-                <option value="">Select goal</option>
-                <option value="awareness">Awareness</option>
-                <option value="leads">Leads</option>
-                <option value="conversion">Conversion</option>
-                <option value="retention">Retention</option>
-                <option value="re_engagement">Re-engagement</option>
-              </select>
-            </div>
-            <div>
-              <label className="eyebrow mb-2 block">Budget</label>
-              <select
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                className="w-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink-900)] rounded-[var(--radius)] focus:border-[var(--primary)] focus:outline-none transition-all"
-              >
-                <option value="">Select budget</option>
-                <option value="organic">Organic only</option>
-                <option value="10k-50k">₹10k – ₹50k</option>
-                <option value="50k-2L">₹50k – ₹2L</option>
-                <option value="2L-10L">₹2L – ₹10L</option>
-                <option value="10L+">₹10L+</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="eyebrow mb-2 block">Timeframe</label>
+            <label className="eyebrow mb-2 block">Goal</label>
             <input
               type="text"
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-              placeholder="e.g. Q4 2025, 60 days"
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+              placeholder="e.g. Drive 500 qualified leads"
               className="w-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--ink-900)] placeholder:text-[var(--ink-300)] rounded-[var(--radius)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]/20 transition-all"
             />
           </div>
@@ -186,9 +142,9 @@ export default function CampaignsPage(): React.ReactElement {
   const [modalOpen, setModalOpen] = useState(false);
   const { data: campaigns, isLoading } = useCampaigns();
 
-  const campaignList: CampaignListItem[] = campaigns ?? [];
+  const campaignList: CampaignSummary[] = campaigns ?? [];
   const activeCount = campaignList.filter((c) => c.status === "active").length;
-  const completedCount = campaignList.filter((c) => c.status === "complete").length;
+  const completedCount = campaignList.filter((c) => c.status === "completed" || c.status === "complete").length;
 
   function handleCreated(campaignId: string) {
     setModalOpen(false);
@@ -209,7 +165,7 @@ export default function CampaignsPage(): React.ReactElement {
             onClick={() => setModalOpen(true)}
           >
             <PlusIcon className="w-4 h-4 mr-2" />
-            Initiate Campaign
+            New Campaign
           </Button>
         </header>
 
@@ -269,8 +225,8 @@ export default function CampaignsPage(): React.ReactElement {
             ) : (
               campaignList.map((c, index) => (
                 <Link
-                  key={c.id}
-                  href={`/campaigns/${c.id}` as Route}
+                  key={c.campaignId}
+                  href={`/campaigns/${c.campaignId}` as Route}
                   className="flex flex-col md:flex-row md:items-center justify-between p-6 group hover:bg-[var(--paper-150)]/50 transition-all duration-200 gap-6"
                   style={{ animationDelay: `${index * 60}ms` }}
                 >
@@ -280,7 +236,7 @@ export default function CampaignsPage(): React.ReactElement {
                     </div>
                     <div>
                       <h3 className="h2 group-hover:text-[var(--primary)] transition-colors duration-200">
-                        {c.title}
+                        {c.name}
                       </h3>
                       <div className="flex items-center gap-3 mt-1.5">
                         <StatusBadge status={c.status} />
@@ -288,15 +244,15 @@ export default function CampaignsPage(): React.ReactElement {
                           <>
                             <span className="h-1 w-1 rounded-full bg-[var(--border)]" />
                             <span className="mono-label">
-                              {c.goal.replace("_", " ")}
+                              {c.goal}
                             </span>
                           </>
                         )}
-                        {c.move_count > 0 && (
+                        {c.moveCount != null && c.moveCount > 0 && (
                           <>
                             <span className="h-1 w-1 rounded-full bg-[var(--border)]" />
                             <span className="mono-label">
-                              {c.move_count} moves
+                              {c.moveCount} moves
                             </span>
                           </>
                         )}
@@ -305,27 +261,27 @@ export default function CampaignsPage(): React.ReactElement {
                   </div>
 
                   <div className="flex items-center gap-8">
-                    {c.evaluation_result && (
+                    {c.evaluationScore != null && (
                       <div className="hidden lg:flex flex-col items-center">
                         <span
                           className="text-2xl font-bold font-display"
                           style={{
                             color:
-                              (c.evaluation_result as any).score >= 8
+                              c.evaluationScore >= 8
                                 ? "var(--leaf-confirm)"
-                                : (c.evaluation_result as any).score >= 5
+                                : c.evaluationScore >= 5
                                 ? "var(--primary)"
                                 : "var(--destructive)",
                           }}
                         >
-                          {(c.evaluation_result as any).score}
+                          {c.evaluationScore}
                         </span>
                         <span className="mono-label">/10</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2">
                       <span className="mono-label">
-                        {new Date(c.created_at).toLocaleDateString("en-IN", {
+                        {new Date(c.createdAt).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
                         })}
@@ -349,7 +305,7 @@ export default function CampaignsPage(): React.ReactElement {
                 Ready for deployment?
               </p>
               <p className="mono-label">
-                Strategist 01 is standing by for new instructions.
+                Create a campaign to begin the evaluation pipeline.
               </p>
             </div>
           </div>
@@ -358,7 +314,7 @@ export default function CampaignsPage(): React.ReactElement {
             className="h-12 px-8"
             onClick={() => setModalOpen(true)}
           >
-            Open Deployment Interface
+            New Campaign
           </Button>
         </footer>
 
