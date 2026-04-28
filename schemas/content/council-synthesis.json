@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raptorflow.dev/schemas/content/council-synthesis.json",
+  "title": "CouncilSynthesis",
+  "description": "Council orchestration run synthesis artifact with analysis, risks, and next actions",
+  "type": "object",
+  "required": [
+    "known_facts",
+    "assumptions",
+    "risks",
+    "next_actions",
+    "open_questions",
+    "strategic_recommendation",
+    "synthesized_by"
+  ],
+  "properties": {
+    "council_run_id": {
+      "type": "string",
+      "description": "Back-reference to the council orchestration run that produced this artifact"
+    },
+    "known_facts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Established facts identified by the council"
+    },
+    "assumptions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Assumptions made during council deliberation"
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["risk", "severity", "mitigation"],
+        "properties": {
+          "risk": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "mitigation": { "type": "string" }
+        }
+      },
+      "description": "Risks identified by the council with severity and mitigation"
+    },
+    "next_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action", "owner", "priority"],
+        "properties": {
+          "action": { "type": "string" },
+          "owner": { "type": "string" },
+          "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] }
+        }
+      },
+      "description": "Recommended next actions with ownership and priority"
+    },
+    "open_questions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Open questions that require further investigation"
+    },
+    "strategic_recommendation": {
+      "type": "string",
+      "description": "Overall strategic recommendation from the council"
+    },
+    "synthesized_by": {
+      "type": "string",
+      "description": "Avatar key that synthesized the result, or 'council'"
+    }
+  }
+}

@@ -87,7 +87,7 @@ pub async fn list_daily_wins(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let wins = queries::list_daily_wins(&tenant_pool.pool(), org_id)
+    let wins = queries::list_daily_wins(tenant_pool.pool(), org_id)
         .await
         .map_err(internal_error)?;
 
@@ -107,7 +107,7 @@ pub async fn get_today_daily_win(
     let org_id = tenant.org_id;
     let today = chrono::Utc::now().date_naive();
 
-    let win = queries::get_today_daily_win(&tenant_pool.pool(), org_id, today)
+    let win = queries::get_today_daily_win(tenant_pool.pool(), org_id, today)
         .await
         .map_err(internal_error)?;
 
@@ -140,7 +140,7 @@ pub async fn create_daily_win(
         })?;
 
     queries::create_daily_win(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &briefing_id,
         org_id,
         briefing_date,
@@ -175,7 +175,7 @@ pub async fn mark_viewed(
     let org_id = tenant.org_id;
 
     let existing =
-        queries::get_today_daily_win(&tenant_pool.pool(), org_id, chrono::Utc::now().date_naive())
+        queries::get_today_daily_win(tenant_pool.pool(), org_id, chrono::Utc::now().date_naive())
             .await
             .map_err(internal_error)?;
 
@@ -183,7 +183,7 @@ pub async fn mark_viewed(
         return Err(not_found());
     }
 
-    queries::update_daily_win_viewed(&tenant_pool.pool(), &briefing_id, org_id)
+    queries::update_daily_win_viewed(tenant_pool.pool(), &briefing_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -214,7 +214,7 @@ pub async fn mark_acted(
     .bind(outcome)
     .bind(&briefing_id)
     .bind(org_id)
-    .execute(&*pool)
+    .execute(pool)
     .await
     .map_err(internal_error)?;
 

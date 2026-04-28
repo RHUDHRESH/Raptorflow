@@ -35,6 +35,6 @@ where
 
     fn call(&mut self, request: Request) -> Self::Future {
         let mut inner = self.inner.clone();
-        Box::pin(async move { Ok(inner.call(request).await?) })
+        Box::pin(async move { inner.call(request).await })
     }
 }

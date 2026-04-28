@@ -8,6 +8,7 @@ import { contentApi } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FileText } from "lucide-react";
+import { renderGeneratedContent } from "@/components/content/renderer-registry";
 
 export default function ContentPage(): React.ReactElement {
   const { data, isLoading } = useQuery({
@@ -73,9 +74,7 @@ export default function ContentPage(): React.ReactElement {
                     </p>
                   </div>
                 </div>
-                <pre className="mt-4 overflow-x-auto whitespace-pre-wrap text-xs text-[var(--muted-foreground)]">
-                  {JSON.stringify(item.body, null, 2)}
-                </pre>
+                {renderGeneratedContent(item.contentType, item.body)}
               </div>
             ))
           )}

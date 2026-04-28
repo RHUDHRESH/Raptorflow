@@ -81,7 +81,7 @@ pub async fn list_nudges(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let nudges = queries::list_nudges(&tenant_pool.pool(), org_id)
+    let nudges = queries::list_nudges(tenant_pool.pool(), org_id)
         .await
         .map_err(internal_error)?;
 
@@ -158,7 +158,7 @@ pub async fn create_nudge(
     };
 
     queries::create_nudge(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &nudge_id,
         org_id,
         input.user_id,
@@ -193,7 +193,7 @@ pub async fn get_nudge(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let nudge = queries::get_nudge(&tenant_pool.pool(), &nudge_id, org_id)
+    let nudge = queries::get_nudge(tenant_pool.pool(), &nudge_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -231,14 +231,14 @@ pub async fn mark_viewed(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let existing = queries::get_nudge(&tenant_pool.pool(), &nudge_id, org_id)
+    let existing = queries::get_nudge(tenant_pool.pool(), &nudge_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
         return Err(not_found());
     }
 
-    queries::update_nudge_viewed(&tenant_pool.pool(), &nudge_id, org_id)
+    queries::update_nudge_viewed(tenant_pool.pool(), &nudge_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -252,14 +252,14 @@ pub async fn mark_dismissed(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let existing = queries::get_nudge(&tenant_pool.pool(), &nudge_id, org_id)
+    let existing = queries::get_nudge(tenant_pool.pool(), &nudge_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
         return Err(not_found());
     }
 
-    queries::update_nudge_dismissed(&tenant_pool.pool(), &nudge_id, org_id)
+    queries::update_nudge_dismissed(tenant_pool.pool(), &nudge_id, org_id)
         .await
         .map_err(internal_error)?;
 

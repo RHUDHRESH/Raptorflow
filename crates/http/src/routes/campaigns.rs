@@ -179,7 +179,7 @@ pub async fn list_campaigns(
     Extension(tenant_pool): Extension<TenantDbPool>,
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
-    let campaigns = queries::list_campaigns(&tenant_pool.pool(), org_id)
+    let campaigns = queries::list_campaigns(tenant_pool.pool(), org_id)
         .await
         .map_err(internal_error)?;
 
@@ -208,7 +208,7 @@ pub async fn create_campaign(
     let campaign_id = Ulid::new().to_string();
 
     queries::create_campaign(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &campaign_id,
         org_id,
         &req.name,
@@ -217,7 +217,7 @@ pub async fn create_campaign(
     .await
     .map_err(internal_error)?;
 
-    let campaign = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let campaign = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -244,16 +244,16 @@ pub async fn get_campaign(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let campaign = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let campaign = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
 
     match campaign {
         Some(c) => {
-            let moves = queries::list_campaign_moves(&tenant_pool.pool(), &campaign_id, org_id)
+            let moves = queries::list_campaign_moves(tenant_pool.pool(), &campaign_id, org_id)
                 .await
                 .map_err(internal_error)?;
-            let tasks = queries::list_campaign_tasks(&tenant_pool.pool(), &campaign_id, org_id)
+            let tasks = queries::list_campaign_tasks(tenant_pool.pool(), &campaign_id, org_id)
                 .await
                 .map_err(internal_error)?;
 
@@ -281,14 +281,14 @@ pub async fn update_campaign_status(
         return Err(bad_request("invalid_status"));
     }
 
-    let existing = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
         return Err(not_found("campaign_not_found"));
     }
 
-    queries::update_campaign_status(&tenant_pool.pool(), &campaign_id, org_id, &req.status)
+    queries::update_campaign_status(tenant_pool.pool(), &campaign_id, org_id, &req.status)
         .await
         .map_err(internal_error)?;
 
@@ -302,14 +302,14 @@ pub async fn list_moves(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let existing = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
         return Err(not_found("campaign_not_found"));
     }
 
-    let moves = queries::list_campaign_moves(&tenant_pool.pool(), &campaign_id, org_id)
+    let moves = queries::list_campaign_moves(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -327,7 +327,7 @@ pub async fn create_move(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let existing = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
@@ -336,7 +336,7 @@ pub async fn create_move(
 
     let move_id = Ulid::new().to_string();
     queries::create_campaign_move(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &move_id,
         &campaign_id,
         org_id,
@@ -365,7 +365,7 @@ pub async fn update_move_status(
         return Err(bad_request("invalid_move_status"));
     }
 
-    queries::update_move_status(&tenant_pool.pool(), &move_id, org_id, &req.status)
+    queries::update_move_status(tenant_pool.pool(), &move_id, org_id, &req.status)
         .await
         .map_err(internal_error)?;
 
@@ -379,14 +379,14 @@ pub async fn list_tasks(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let existing = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
         return Err(not_found("campaign_not_found"));
     }
 
-    let tasks = queries::list_campaign_tasks(&tenant_pool.pool(), &campaign_id, org_id)
+    let tasks = queries::list_campaign_tasks(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -408,7 +408,7 @@ pub async fn create_task(
         return Err(bad_request("task_title_required"));
     }
 
-    let existing = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
@@ -417,7 +417,7 @@ pub async fn create_task(
 
     let task_id = Ulid::new().to_string();
     queries::create_campaign_task(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &task_id,
         &req.move_id,
         &campaign_id,
@@ -446,7 +446,7 @@ pub async fn update_task_status(
         return Err(bad_request("invalid_task_status"));
     }
 
-    queries::update_task_status(&tenant_pool.pool(), &task_id, org_id, &req.status)
+    queries::update_task_status(tenant_pool.pool(), &task_id, org_id, &req.status)
         .await
         .map_err(internal_error)?;
 
@@ -460,14 +460,14 @@ pub async fn get_brief(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let existing = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
         return Err(not_found("campaign_not_found"));
     }
 
-    let brief = queries::get_campaign_brief(&tenant_pool.pool(), &campaign_id, org_id)
+    let brief = queries::get_campaign_brief(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -495,7 +495,7 @@ pub async fn create_brief(
         return Err(bad_request("brief_text_required"));
     }
 
-    let existing = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     if existing.is_none() {
@@ -504,7 +504,7 @@ pub async fn create_brief(
 
     let brief_id = Ulid::new().to_string();
     queries::create_campaign_brief(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &brief_id,
         org_id,
         Some(&campaign_id),
@@ -527,7 +527,7 @@ pub async fn update_brief_status(
 ) -> AppResult<Json<Value>> {
     let org_id = tenant.org_id;
 
-    let brief = queries::get_campaign_brief(&tenant_pool.pool(), &campaign_id, org_id)
+    let brief = queries::get_campaign_brief(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -541,7 +541,7 @@ pub async fn update_brief_status(
         return Err(bad_request("invalid_brief_status"));
     }
 
-    queries::update_brief_status(&tenant_pool.pool(), &brief_id, org_id, &req.status)
+    queries::update_brief_status(tenant_pool.pool(), &brief_id, org_id, &req.status)
         .await
         .map_err(internal_error)?;
 
@@ -721,15 +721,15 @@ pub async fn evaluate_campaign(
     let bedrock = bedrock.ok_or_else(service_unavailable)?;
     let org_id = tenant.org_id;
 
-    let campaign = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let campaign = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     let campaign = campaign.ok_or_else(|| not_found("campaign_not_found"))?;
 
-    let moves = queries::list_campaign_moves(&tenant_pool.pool(), &campaign_id, org_id)
+    let moves = queries::list_campaign_moves(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
-    let tasks = queries::list_campaign_tasks(&tenant_pool.pool(), &campaign_id, org_id)
+    let tasks = queries::list_campaign_tasks(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
 
@@ -793,7 +793,7 @@ pub async fn evaluate_campaign(
 
     let content_id = Ulid::new().to_string();
     queries::create_generated_content(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         &content_id,
         org_id,
         Some(&campaign_id),
@@ -828,16 +828,16 @@ pub async fn generate_campaign_moves(
     let bedrock = bedrock.ok_or_else(service_unavailable)?;
     let org_id = tenant.org_id;
 
-    let campaign = queries::get_campaign(&tenant_pool.pool(), &campaign_id, org_id)
+    let campaign = queries::get_campaign(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
     let campaign = campaign.ok_or_else(|| not_found("campaign_not_found"))?;
 
-    let existing_moves = queries::list_campaign_moves(&tenant_pool.pool(), &campaign_id, org_id)
+    let existing_moves = queries::list_campaign_moves(tenant_pool.pool(), &campaign_id, org_id)
         .await
         .map_err(internal_error)?;
 
-    let max_moves = req.max_moves.unwrap_or(3).min(5).max(1);
+    let max_moves = req.max_moves.unwrap_or(3).clamp(1, 5);
 
     let existing_moves_text: String = existing_moves
         .iter()
@@ -897,7 +897,7 @@ pub async fn generate_campaign_moves(
     let inserts = build_generated_move_inserts(generated_moves, next_seq);
 
     let created = queries::create_generated_campaign_moves_transactional(
-        &tenant_pool.pool(),
+        tenant_pool.pool(),
         org_id,
         &campaign_id,
         inserts,

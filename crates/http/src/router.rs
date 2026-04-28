@@ -12,8 +12,10 @@ use crate::middleware::{
     rate_limit::{RateLimitConfig, RateLimitLayer, RateLimitState},
 };
 use crate::routes::{
-    auth, avatars, billing, campaigns, capabilities, content, council, daily_wins, foundation,
-    harness, health, intel, jobs, muse, nudges, office, prl, replan,
+    analyst_soul, auth, avatar_soul, avatars, billing, campaigns, capabilities, content,
+    copywriter_soul, council, council_orchestration, creative_director_soul, daily_wins,
+    foundation, growth_operator_soul, harness, health, intel, jobs, muse, nudges, office, prl,
+    proof_collector_soul, replan, researcher_soul, strategist_soul,
 };
 
 fn cors_layer(state: &AppState) -> CorsLayer {
@@ -306,6 +308,27 @@ fn protected_router(state: Arc<AppState>) -> Router {
             post(council::synthesize_council_session),
         )
         .route(
+            "/api/v1/council/orchestrations",
+            post(council_orchestration::create_orchestration)
+                .get(council_orchestration::list_orchestrations),
+        )
+        .route(
+            "/api/v1/council/orchestrations/{id}",
+            get(council_orchestration::get_orchestration),
+        )
+        .route(
+            "/api/v1/council/orchestrations/{id}/turns",
+            get(council_orchestration::list_orchestration_turns),
+        )
+        .route(
+            "/api/v1/council/orchestrations/{id}/presence",
+            get(council_orchestration::list_orchestration_presence),
+        )
+        .route(
+            "/api/v1/council/orchestrations/{id}/debate-events",
+            get(council_orchestration::list_orchestration_debate_events),
+        )
+        .route(
             "/api/v1/muse",
             post(muse::submit_prompt).get(muse::list_conversations),
         )
@@ -329,6 +352,90 @@ fn protected_router(state: Arc<AppState>) -> Router {
             get(avatars::get_avatar)
                 .patch(avatars::update_avatar)
                 .delete(avatars::delete_avatar),
+        )
+        .route(
+            "/api/v1/avatars/{id}/soul",
+            get(avatar_soul::get_avatar_soul).put(avatar_soul::update_avatar_soul),
+        )
+        .route(
+            "/api/v1/avatars/{id}/memory/edges",
+            get(avatar_soul::list_memory_edges).post(avatar_soul::create_memory_edge),
+        )
+        .route(
+            "/api/v1/avatars/{id}/memory/edges/{edge_id}",
+            delete(avatar_soul::delete_memory_edge),
+        )
+        .route(
+            "/api/v1/avatars/{id}/instinct-frame",
+            post(avatar_soul::create_instinct_frame),
+        )
+        .route(
+            "/api/v1/harness/runs/{id}/presence",
+            get(avatar_soul::list_presence_states).post(avatar_soul::upsert_presence_state),
+        )
+        .route(
+            "/api/v1/harness/runs/{id}/debate-events",
+            get(avatar_soul::list_debate_events).post(avatar_soul::create_debate_event),
+        )
+        .route(
+            "/api/v1/avatars/{id}/artifact-trail",
+            get(avatar_soul::get_artifact_trail),
+        )
+        .route(
+            "/api/v1/avatars/strategist/default",
+            post(strategist_soul::ensure_strategist_default),
+        )
+        .route(
+            "/api/v1/avatars/strategist/dry-run",
+            post(strategist_soul::run_strategist_dry_run),
+        )
+        .route(
+            "/api/v1/avatars/researcher/default",
+            post(researcher_soul::ensure_researcher_default),
+        )
+        .route(
+            "/api/v1/avatars/researcher/dry-run",
+            post(researcher_soul::run_researcher_dry_run),
+        )
+        .route(
+            "/api/v1/avatars/copywriter/default",
+            post(copywriter_soul::ensure_copywriter_default),
+        )
+        .route(
+            "/api/v1/avatars/copywriter/dry-run",
+            post(copywriter_soul::run_copywriter_dry_run),
+        )
+        .route(
+            "/api/v1/avatars/growth-operator/default",
+            post(growth_operator_soul::ensure_growth_operator_default),
+        )
+        .route(
+            "/api/v1/avatars/growth-operator/dry-run",
+            post(growth_operator_soul::run_growth_operator_dry_run),
+        )
+        .route(
+            "/api/v1/avatars/analyst/default",
+            post(analyst_soul::ensure_analyst_default),
+        )
+        .route(
+            "/api/v1/avatars/analyst/dry-run",
+            post(analyst_soul::run_analyst_dry_run),
+        )
+        .route(
+            "/api/v1/avatars/creative-director/default",
+            post(creative_director_soul::ensure_creative_director_default),
+        )
+        .route(
+            "/api/v1/avatars/creative-director/dry-run",
+            post(creative_director_soul::run_creative_director_dry_run),
+        )
+        .route(
+            "/api/v1/avatars/proof-collector/default",
+            post(proof_collector_soul::ensure_proof_collector_default),
+        )
+        .route(
+            "/api/v1/avatars/proof-collector/dry-run",
+            post(proof_collector_soul::run_proof_collector_dry_run),
         )
         .route(
             "/api/v1/harness/runs",

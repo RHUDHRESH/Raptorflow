@@ -25,6 +25,8 @@
     "format:write": "prettier --write .",
     "setup:hooks": "git config core.hooksPath .githooks",
     "smoke": "node scripts/smoke.mjs",
+    "smoke:qdrant": "node scripts/smoke/qdrant-smoke.mjs",
+    "smoke:api": "node scripts/smoke/api-health-smoke.mjs",
     "scaffold:check": "node scripts/check-foundation-screens.mjs && node scripts/check-office-events.mjs && node scripts/check-job-registry.mjs",
     "contracts:sync": "node scripts/sync-contracts.mjs",
     "contracts:check": "node scripts/check-contracts.mjs",

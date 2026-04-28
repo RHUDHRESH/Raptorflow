@@ -1,0 +1,20 @@
+[package]
+name = "raptorflow-search"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+publish.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+chrono.workspace = true
+reqwest.workspace = true
+scraper.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+raptorflow-config = { path = "../config" }

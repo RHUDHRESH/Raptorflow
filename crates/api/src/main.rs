@@ -6,6 +6,7 @@
 //! - `Settings` from environment variables (via `raptorflow_config`)
 //! - PostgreSQL connection pool (via `raptorflow_db`)
 //! - AWS Bedrock inference client (via `raptorflow_aws`)
+//! - Web search client (via `raptorflow_search`)
 //! - Clerk JWT validation middleware (issuer + JWKS URL read from settings)
 //! - The main router built in the `http` crate
 //!
@@ -16,6 +17,7 @@ use raptorflow_config::Settings;
 use raptorflow_db::PgPool;
 use raptorflow_http::create_router;
 use raptorflow_http::middleware::AppState;
+use raptorflow_search::SearchClient;
 use std::sync::Arc;
 
 #[tokio::main]
@@ -67,7 +69,28 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
-    let state = AppState::new(db_pool, bedrock_client, settings.clone());
+    let search_client = if !settings.searxng_url.is_empty()
+        && settings.searxng_url != "http://localhost:8081"
+    {
+        let ttl = std::time::Duration::from_secs(settings.search_cache_ttl_secs);
+        let client = SearchClient::searxng_with_ddg_fallback(settings.searxng_url.clone(), ttl)
+            .expect("Failed to create SearchClient");
+        tracing::info!(
+            searxng_url = %settings.searxng_url,
+            cache_ttl_secs = settings.search_cache_ttl_secs,
+            "Web search client ready (SearXNG + DuckDuckGo fallback)"
+        );
+        Some(Arc::new(client))
+    } else {
+        let ttl = std::time::Duration::from_secs(settings.search_cache_ttl_secs);
+        let client = SearchClient::duckduckgo_only(ttl).expect("Failed to create SearchClient");
+        tracing::info!(
+            "Web search client ready (DuckDuckGo only — set RAPTORFLOW_SEARXNG_URL for unlimited SearXNG)"
+        );
+        Some(Arc::new(client))
+    };
+
+    let state = AppState::new(db_pool, bedrock_client, search_client, settings.clone());
     eprintln!("[raptorflow-api] boot: state ready");
 
     let app = create_router(state);
