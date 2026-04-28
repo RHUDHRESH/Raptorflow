@@ -7,6 +7,8 @@ import {
   CouncilOrchestrationResponse,
   CouncilOrchestrationRun,
   CouncilAvatarTurn,
+  CouncilPresenceState,
+  CouncilDebateEvent,
 } from "@/lib/api";
 
 export function useCouncilOrchestrationCreate() {
@@ -44,17 +46,17 @@ export function useCouncilOrchestrationTurns(id: string) {
 }
 
 export function useCouncilOrchestrationPresence(id: string) {
-  return useQuery({
+  return useQuery<CouncilPresenceState[]>({
     queryKey: ["council-orchestrations", id, "presence"],
-    queryFn: () => councilOrchestrationApi.listPresence(id),
+    queryFn: (): Promise<CouncilPresenceState[]> => councilOrchestrationApi.listPresence(id),
     enabled: !!id,
   });
 }
 
 export function useCouncilOrchestrationDebateEvents(id: string) {
-  return useQuery({
+  return useQuery<CouncilDebateEvent[]>({
     queryKey: ["council-orchestrations", id, "debate-events"],
-    queryFn: () => councilOrchestrationApi.listDebateEvents(id),
+    queryFn: (): Promise<CouncilDebateEvent[]> => councilOrchestrationApi.listDebateEvents(id),
     enabled: !!id,
   });
 }

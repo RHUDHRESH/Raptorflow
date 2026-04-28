@@ -1,12 +1,12 @@
 use crate::models::{
-    AgentEssence, Avatar, AvatarArtifactTrail, AvatarDebateEvent, AvatarExperienceLog,
-    AvatarIdentityState, AvatarMemoryEdge, AvatarPresenceState, AvatarSoul, Campaign,
-    CampaignBrief, CampaignMove, CampaignTask, CapabilityArtifact, CapabilityDefinition,
-    CapabilityRun, CompetitorSnapshot, ContentStrategy, CouncilAgentPosition, CouncilAvatarTurn,
-    CouncilOrchestrationRun, CouncilSession, DailyWin, FoundationScan, FoundationSection,
-    FoundationSnapshot, FoundationVersion, GeneratedContent, HarnessContextPack, HarnessRun,
-    HarnessStep, MuseConversation, MuseMessage, Nudge, OrgUser, Organization, ReplanSession,
-    Ripple, RippleEdge, Subscription,
+    AgentEssence, Avatar, AvatarArtifactTrail, AvatarDebateEvent, AvatarIdentityState,
+    AvatarMemoryEdge, AvatarPresenceState, AvatarSoul, Campaign, CampaignBrief, CampaignMove,
+    CampaignTask, CapabilityArtifact, CapabilityDefinition, CapabilityRun, CompetitorSnapshot,
+    ContentStrategy, CouncilAgentPosition, CouncilAvatarTurn, CouncilOrchestrationRun,
+    CouncilSession, DailyWin, FoundationScan, FoundationSection, FoundationSnapshot,
+    FoundationVersion, GeneratedContent, HarnessContextPack, HarnessRun, HarnessStep,
+    MuseConversation, MuseMessage, Nudge, OrgUser, Organization, ReplanSession, Ripple, RippleEdge,
+    Subscription,
 };
 use sqlx::{FromRow, PgPool, Row};
 
@@ -3340,6 +3340,50 @@ pub async fn list_avatar_artifact_trail(
     .await?;
 
     Ok(rows)
+}
+
+// ─── Council Synthesis Artifact Persistence ──────────────────────────────────
+
+pub async fn check_council_synthesis_artifact_exists(
+    pool: &PgPool,
+    org_id: uuid::Uuid,
+    council_run_id: &str,
+) -> Result<Option<String>, sqlx::Error> {
+    let row = sqlx::query_scalar::<_, String>(
+        r#"
+        SELECT content_id FROM generated_content
+        WHERE org_id = $1
+          AND content_type = 'council-synthesis'
+          AND body->>'council_run_id' = $2
+        LIMIT 1
+        "#,
+    )
+    .bind(org_id)
+    .bind(council_run_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+pub async fn update_council_orchestration_final_artifact(
+    pool: &PgPool,
+    council_run_id: &str,
+    org_id: uuid::Uuid,
+    final_artifact_id: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE council_orchestration_runs
+        SET final_artifact_id = $1, updated_at = now()
+        WHERE council_run_id = $2 AND org_id = $3
+        "#,
+    )
+    .bind(final_artifact_id)
+    .bind(council_run_id)
+    .bind(org_id)
+    .execute(pool)
+    .await?;
+    Ok(())
 }
 
 // --- COUNCIL ORCHESTRATION RUNS ---

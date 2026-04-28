@@ -1,10 +1,10 @@
 "use client";
 
-import { AvatarPresenceState } from "@/lib/api";
+import { CouncilPresenceState } from "@/lib/api";
 
 interface Props {
   avatarKeys: string[];
-  presenceStates?: AvatarPresenceState[];
+  presenceStates?: CouncilPresenceState[];
   isLoading?: boolean;
 }
 
@@ -45,7 +45,7 @@ export function CouncilAvatarRoster({ avatarKeys, presenceStates = [], isLoading
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
       {avatarKeys.map((key) => {
         const meta = AVATAR_META[key] ?? { label: key, color: "var(--ink-400)", role: "" };
-        const presence = presenceStates.find((p) => p.avatarId === key);
+        const presence = presenceStates.find((p) => p.avatar_id === key);
         const isActive = presence?.state === "active";
         return (
           <div

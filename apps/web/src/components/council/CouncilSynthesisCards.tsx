@@ -1,5 +1,7 @@
 "use client";
 
+import { CouncilSynthesis } from "@/lib/api";
+
 interface SynthesisCard {
   id: string;
   type: string;
@@ -11,8 +13,17 @@ interface SynthesisCard {
 }
 
 interface Props {
-  synthesis: Record<string, unknown>;
+  synthesis: unknown;
   isLoading: boolean;
+}
+
+function isCouncilSynthesis(obj: unknown): obj is CouncilSynthesis {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "known_facts" in obj &&
+    "strategic_recommendation" in obj
+  );
 }
 
 export function CouncilSynthesisCards({ synthesis, isLoading }: Props) {
@@ -27,32 +38,101 @@ export function CouncilSynthesisCards({ synthesis, isLoading }: Props) {
   }
 
   const cards: SynthesisCard[] = [];
-  if (synthesis.cards) {
-    (synthesis.cards as SynthesisCard[]).forEach((c: unknown) => {
-      const card = c as SynthesisCard;
-      cards.push({
-        id: card.id ?? Math.random().toString(36),
-        type: card.type ?? "recommendation",
-        title: card.title ?? "Recommendation",
-        summary: card.summary ?? "",
-        confidence: card.confidence ?? 0.5,
-        avatar_key: card.avatar_key,
-        concerns: card.concerns,
-      });
+  if (!synthesis || typeof synthesis !== "object") {
+    return (
+      <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+        <h3 className="text-sm font-medium text-slate-300 mb-2">Synthesis</h3>
+        <p className="text-slate-500 text-sm">No synthesis available yet.</p>
+      </div>
+    );
+  }
+
+  const syn = synthesis as Record<string, unknown>;
+  if (isCouncilSynthesis(synthesis)) {
+    const s = synthesis as CouncilSynthesis;
+    cards.push({
+      id: "strategic_recommendation",
+      type: "strategic_recommendation",
+      title: "Strategic Recommendation",
+      summary: s.strategic_recommendation,
+      confidence: 0.9,
     });
-  } else if (synthesis.recommendations) {
-    const recs = synthesis.recommendations as Record<string, unknown>[];
-    recs.forEach((r, i) => {
+    if (s.known_facts.length > 0) {
       cards.push({
-        id: `rec-${i}`,
-        type: "recommendation",
-        title: (r.title as string) ?? `Recommendation ${i + 1}`,
-        summary: (r.summary as string) ?? "",
-        confidence: (r.confidence as number) ?? 0.5,
-        avatar_key: r.avatar_key as string,
-        concerns: r.concerns as string[],
+        id: "known_facts",
+        type: "known_facts",
+        title: "Known Facts",
+        summary: s.known_facts.join("; "),
+        confidence: 0.85,
       });
-    });
+    }
+    if (s.assumptions.length > 0) {
+      cards.push({
+        id: "assumptions",
+        type: "assumptions",
+        title: "Assumptions",
+        summary: s.assumptions.join("; "),
+        confidence: 0.7,
+      });
+    }
+    if (s.risks.length > 0) {
+      cards.push({
+        id: "risks",
+        type: "risks",
+        title: "Risks",
+        summary: s.risks.join("; "),
+        confidence: 0.75,
+      });
+    }
+    if (s.next_actions.length > 0) {
+      cards.push({
+        id: "next_actions",
+        type: "next_actions",
+        title: "Next Actions",
+        summary: s.next_actions.join("; "),
+        confidence: 0.8,
+      });
+    }
+    if (s.open_questions.length > 0) {
+      cards.push({
+        id: "open_questions",
+        type: "open_questions",
+        title: "Open Questions",
+        summary: s.open_questions.join("; "),
+        confidence: 0.5,
+      });
+    }
+  } else if (Array.isArray(syn.cards)) {
+    for (const item of syn.cards) {
+      if (item && typeof item === "object") {
+        const c = item as Record<string, unknown>;
+        cards.push({
+          id: typeof c.id === "string" ? c.id : Math.random().toString(36),
+          type: typeof c.type === "string" ? c.type : "recommendation",
+          title: typeof c.title === "string" ? c.title : "Recommendation",
+          summary: typeof c.summary === "string" ? c.summary : "",
+          confidence: typeof c.confidence === "number" ? c.confidence : 0.5,
+          avatar_key: typeof c.avatar_key === "string" ? c.avatar_key : undefined,
+          concerns: Array.isArray(c.concerns) ? (c.concerns as string[]) : undefined,
+        });
+      }
+    }
+  } else if (Array.isArray(syn.recommendations)) {
+    for (let i = 0; i < syn.recommendations.length; i++) {
+      const r = syn.recommendations[i];
+      if (r && typeof r === "object") {
+        const rec = r as Record<string, unknown>;
+        cards.push({
+          id: `rec-${i}`,
+          type: "recommendation",
+          title: typeof rec.title === "string" ? rec.title : `Recommendation ${i + 1}`,
+          summary: typeof rec.summary === "string" ? rec.summary : "",
+          confidence: typeof rec.confidence === "number" ? rec.confidence : 0.5,
+          avatar_key: typeof rec.avatar_key === "string" ? rec.avatar_key : undefined,
+          concerns: Array.isArray(rec.concerns) ? (rec.concerns as string[]) : undefined,
+        });
+      }
+    }
   }
 
   if (cards.length === 0) {

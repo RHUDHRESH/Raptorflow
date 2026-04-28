@@ -460,44 +460,40 @@ export const councilApi = {
 };
 
 export const councilOrchestrationApi = {
-  create: async (body: CreateCouncilOrchestrationRequest) => {
-    const res = await apiFetch<CouncilOrchestrationResponse>("/api/v1/council/orchestrations", {
+  create: async (
+    body: CreateCouncilOrchestrationRequest,
+  ): Promise<CouncilOrchestrationResponse> => {
+    return apiFetch<CouncilOrchestrationResponse>("/api/v1/council/orchestrations", {
       method: "POST",
       body,
       auth: true,
     });
-    return res;
   },
-  list: async (limit?: number) => {
-    const res = await apiFetch<unknown>(
+  list: async (limit?: number): Promise<CouncilOrchestrationRun[]> => {
+    return apiFetch<CouncilOrchestrationRun[]>(
       `/api/v1/council/orchestrations${limit ? `?limit=${limit}` : ""}`,
       { auth: true },
     );
-    return res as CouncilOrchestrationRun[];
   },
-  get: async (id: string) => {
-    const res = await apiFetch<CouncilOrchestrationRun>(`/api/v1/council/orchestrations/${id}`, {
+  get: async (id: string): Promise<CouncilOrchestrationRun> => {
+    return apiFetch<CouncilOrchestrationRun>(`/api/v1/council/orchestrations/${id}`, {
       auth: true,
     });
-    return res;
   },
-  listTurns: async (id: string) => {
-    const res = await apiFetch<unknown>(`/api/v1/council/orchestrations/${id}/turns`, {
+  listTurns: async (id: string): Promise<CouncilAvatarTurn[]> => {
+    return apiFetch<CouncilAvatarTurn[]>(`/api/v1/council/orchestrations/${id}/turns`, {
       auth: true,
     });
-    return res as CouncilAvatarTurn[];
   },
-  listPresence: async (id: string) => {
-    const res = await apiFetch<unknown>(`/api/v1/council/orchestrations/${id}/presence`, {
+  listPresence: async (id: string): Promise<CouncilPresenceState[]> => {
+    return apiFetch<CouncilPresenceState[]>(`/api/v1/council/orchestrations/${id}/presence`, {
       auth: true,
     });
-    return res as AvatarPresenceState[];
   },
-  listDebateEvents: async (id: string) => {
-    const res = await apiFetch<unknown>(`/api/v1/council/orchestrations/${id}/debate-events`, {
+  listDebateEvents: async (id: string): Promise<CouncilDebateEvent[]> => {
+    return apiFetch<CouncilDebateEvent[]>(`/api/v1/council/orchestrations/${id}/debate-events`, {
       auth: true,
     });
-    return res as AvatarDebateEvent[];
   },
 };
 
@@ -514,43 +510,76 @@ export interface CouncilOrchestrationResponse {
   harness_run_id: string | null;
   status: string;
   avatar_roster: string[];
-  presence_states: CouncilPresenceState[];
-  debate_events: CouncilDebateEvent[];
-  synthesis: Record<string, unknown>;
-  turns: CouncilTurn[];
+  presence_states: unknown[];
+  debate_events: unknown[];
+  synthesis: unknown;
+  turns: unknown[];
 }
 
 export interface CouncilPresenceState {
   presence_id: string;
-  avatar_key: string;
+  org_id: string;
+  avatar_id: string;
+  harness_run_id: string | null;
   state: string;
   current_focus: string;
   current_concern: string;
-  visible_summary: string;
   confidence: number;
+  visible_summary: string;
+  last_event_id: string | null;
+  updated_at: string;
 }
 
 export interface CouncilDebateEvent {
   debate_event_id: string;
   org_id: string;
-  harness_run_id: string | null;
+  harness_run_id: string;
   speaker_avatar_id: string | null;
   target_avatar_id: string | null;
   event_type: string;
   stance: string | null;
-  content: Record<string, unknown>;
+  content: unknown;
   confidence: number;
   created_at: string;
 }
 
-export interface CouncilTurn {
-  turn_id: string;
-  avatar_key: string;
-  turn_type: string;
-  sequence_number: number;
-  status: string;
-  instinct_frame: Record<string, unknown> | null;
-  debate_event: CouncilDebateEvent | null;
+export interface CouncilSynthesis {
+  known_facts: string[];
+  assumptions: string[];
+  risks: string[];
+  next_actions: string[];
+  open_questions: string[];
+  strategic_recommendation: string;
+  synthesized_by: string;
+}
+
+export interface CouncilChallengeContent {
+  challenge_reason?: string;
+  dominant_concern?: string;
+  strategic_concern?: string;
+  evidence_concern?: string;
+  language_concern?: string;
+  execution_concern?: string;
+  measurement_concern?: string;
+  creative_concern?: string;
+  proof_concern?: string;
+  text?: string;
+  summary?: string;
+  topic?: string;
+}
+
+export interface CouncilPositionContent {
+  text?: string;
+  dominant_concern?: string;
+  [key: string]: unknown;
+}
+
+export interface CouncilInstinctContent {
+  trigger_kind?: string;
+  dominant_concern?: string;
+  risk_flags?: string[];
+  recommended_posture?: string;
+  visible_summary?: string;
 }
 
 export interface CouncilOrchestrationRun {
@@ -560,9 +589,9 @@ export interface CouncilOrchestrationRun {
   request_summary: string;
   mode: string;
   status: string;
-  avatar_roster: Record<string, unknown>;
+  avatar_roster: unknown;
   context_summary: string;
-  synthesis: Record<string, unknown>;
+  synthesis: unknown;
   final_artifact_id: string | null;
   error_message: string | null;
   created_by: string | null;

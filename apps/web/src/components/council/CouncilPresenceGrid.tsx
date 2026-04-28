@@ -1,9 +1,9 @@
 "use client";
 
-import { AvatarPresenceState } from "@/lib/api";
+import { CouncilPresenceState } from "@/lib/api";
 
 interface Props {
-  presenceStates: AvatarPresenceState[];
+  presenceStates: CouncilPresenceState[];
   isLoading: boolean;
 }
 
@@ -50,23 +50,23 @@ export function CouncilPresenceGrid({ presenceStates, isLoading }: Props) {
       <h3 className="text-sm font-medium text-slate-300">Presence Grid</h3>
       <div className="grid grid-cols-2 gap-3">
         {presenceStates.map((state) => {
-          const color = AVATAR_COLORS[state.avatarId] ?? "var(--slate)";
+          const color = AVATAR_COLORS[state.avatar_id] ?? "var(--slate)";
           const icon = STATE_ICONS[state.state] ?? "○";
           return (
             <div
-              key={state.presenceId}
+              key={state.presence_id}
               className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-slate-600 transition-colors"
             >
               <div className="flex items-center gap-2 mb-2">
                 <span style={{ color }}>{icon}</span>
-                <span className="text-sm font-medium text-slate-200">{state.avatarId}</span>
+                <span className="text-sm font-medium text-slate-200">{state.avatar_id}</span>
                 <span className="ml-auto text-xs text-slate-500 uppercase">{state.state}</span>
               </div>
               <p className="text-xs text-slate-400 mb-1 line-clamp-1">
-                {state.visibleSummary || "No summary"}
+                {state.visible_summary || "No summary"}
               </p>
-              {state.currentFocus && (
-                <p className="text-xs text-slate-500 truncate">Focus: {state.currentFocus}</p>
+              {state.current_focus && (
+                <p className="text-xs text-slate-500 truncate">Focus: {state.current_focus}</p>
               )}
               <div className="mt-2 flex items-center gap-2">
                 <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">

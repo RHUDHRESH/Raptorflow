@@ -63,8 +63,10 @@ export function CouncilRunList({ runs, selectedId, onSelect, isLoading }: Props)
     <div className="space-y-2">
       {runs.map((run) => {
         const roster: string[] = Array.isArray(run.avatar_roster)
-          ? (run.avatar_roster as string[])
-          : [];
+          ? run.avatar_roster
+          : typeof run.avatar_roster === "object" && run.avatar_roster !== null
+            ? Object.keys(run.avatar_roster)
+            : [];
         const isSelected = run.council_run_id === selectedId;
         const date = new Date(run.created_at).toLocaleDateString("en-IN", {
           day: "numeric",

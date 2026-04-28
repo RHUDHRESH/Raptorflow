@@ -80,7 +80,19 @@ async fn load_working_memory(
 
 The frontend content page just renders `JSON.stringify(item.body, null, 2)` — raw JSON to the user.
 
-**Fix:**
+**Partial fix (Steps 15-18 / Council War Room PR):**
+
+1. Council-synthesis now has a dedicated schema (`council-synthesis-schema.ts`) with validated field structure
+2. Schema-aware content renderers exist for `council-synthesis` — renders as formatted cards on both War Room and `/content` pages
+3. Other content types (`hook_set`, `positioning`, etc.) still lack per-type schemas
+
+**Remaining work:**
+
+- Add per-content-type JSON schemas for ALL content types (not just council-synthesis)
+- Validate content on creation against its content_type schema for all types
+- Add renderers for remaining content types
+
+**Fix (full):**
 
 1. Add per-content-type JSON schemas (in `schemas/` directory, following existing pattern)
 2. Validate content on creation against its content_type schema
@@ -313,7 +325,11 @@ What's built instead:
 
 **Problem:** The content page renders generated content as `JSON.stringify(item.body, null, 2)` — raw JSON. Users see JSON blobs, not formatted content.
 
-**Fix:** Add content-type-specific renderers (hook card, positioning statement, calendar grid, etc.)
+**Status: FIXED (Steps 15-18 / Council War Room PR)**
+
+Schema-aware content renderers added for `council-synthesis` content type. Content page now renders council-synthesis artifacts as formatted cards with structured display of key arguments, positions, and metadata instead of raw JSON.
+
+**Remaining:** Other content types (`hook_set`, `positioning`, `content_strategy`, etc.) still render as raw JSON. Add per-type renderers for each content type.
 
 ---
 
@@ -323,7 +339,11 @@ What's built instead:
 
 **Problem:** The page uses `as unknown as CouncilTurn[]`, `as unknown as CouncilDebateEvent[]`, `as unknown as CouncilPresenceState[]` — type casts everywhere. This means the API response types don't match the component prop types.
 
-**Fix:** Fix the type definitions in `api.ts` or update the components to use the actual API response types.
+**Status: FIXED (Steps 15-18 / Council War Room PR)**
+
+All `as unknown as X[]` unsafe casts removed from war room page. API types now align with component prop types. A minor `as string[]` cast remains on line 41 for `avatar_roster` (type narrowing, not an `unknown` escape hatch).
+
+**Remaining:** The `as string[]` on `avatar_roster` (line 41) should be replaced with a proper type guard or the API type should match.
 
 ---
 
@@ -398,6 +418,8 @@ What's built instead:
 - `apps/web/src/app/(app)/foundation/17/page.tsx`
 
 **Problem:** `as any` suppresses type checking and masks real type mismatches. Indicates missing/incomplete type definitions.
+
+**Note (Steps 15-18 / Council War Room PR):** The war-room page did not use `as any` and is not in this list. Council-specific `unknown` casts (see §3.3) were removed, but the `as any` instances listed here remain unfixed.
 
 **Fix:** Replace each with proper typed interfaces or use `unknown` + type guards.
 
@@ -538,30 +560,30 @@ Despite all the gaps, the system has remarkable strengths:
 
 1. ~~Wire ripple working memory to actual DB queries~~ — Fixed in PR #223/224
 2. ~~Add web search capability for avatars~~ — Fixed in PR #223/224 (crates/search exists)
-3. Fix content to have per-type validation
+3. ~~Fix content to have per-type validation~~ — Partially fixed in Steps 15-18 (council-synthesis schema + renderers added). Remaining types still need per-type validation.
 4. Document CI failure as known infrastructure issue
 5. Verify AI-powered council debate quality under varied scenarios
 
 ### 🟡 NEXT WORKSTREAM (marketing features):
 
-5. Positioning Engine UI (use existing Rust capability)
-6. Offer/Funnel Builder (use existing capability definition)
-7. Content Calendar UI (DB table exists)
-8. Case Study Builder (leverage ProofCollector)
+6. Positioning Engine UI (use existing Rust capability)
+7. Offer/Funnel Builder (use existing capability definition)
+8. Content Calendar UI (DB table exists)
+9. Case Study Builder (leverage ProofCollector)
 
 ### 🟢 SOON (frontend polish):
 
-9. Capabilities Management UI
-10. Content page with type-specific renderers
-11. Tombstone old Next.js API routes
-12. Fix War Room type casts
+10. Capabilities Management UI
+11. ~~Content page with type-specific renderers~~ — Done for council-synthesis in Steps 15-18. Other types still need renderers.
+12. Tombstone old Next.js API routes
+13. ~~Fix War Room type casts~~ — Fixed in Steps 15-18 (all `as unknown as X[]` casts removed)
 
 ### 🔵 BACKLOG (tech debt):
 
-13. Split queries.rs into modules
-14. Split avatar_soul.rs into per-avatar files
-15. Fix pre-existing test compilation errors
-16. Run cargo fmt across codebase
+14. Split queries.rs into modules
+15. Split avatar_soul.rs into per-avatar files
+16. Fix pre-existing test compilation errors
+17. Run cargo fmt across codebase
 
 ---
 

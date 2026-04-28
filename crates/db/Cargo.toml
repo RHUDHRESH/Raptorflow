@@ -9,6 +9,7 @@ rust-version.workspace = true
 [dependencies]
 anyhow.workspace = true
 chrono.workspace = true
+jsonschema.workspace = true
 raptorflow-config = { path = "../config" }
 serde.workspace = true
 serde_json.workspace = true
