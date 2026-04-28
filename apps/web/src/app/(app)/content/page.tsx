@@ -6,80 +6,85 @@ import { GsapBridge } from "@/components/ui/gsap-bridge";
 import { DownloadIcon, MixerHorizontalIcon, ViewGridIcon } from "@radix-ui/react-icons";
 import { contentApi } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
 import { FileText } from "lucide-react";
 import { renderGeneratedContent } from "@/components/content/renderer-registry";
+import { AppPageFrame } from "@/components/layout/AppPageFrame";
+import { AppEmptyState } from "@/components/layout/AppEmptyState";
+import { AppLoadingState } from "@/components/layout/AppLoadingState";
+import { AppErrorState } from "@/components/layout/AppErrorState";
+import { AppPageSection } from "@/components/layout/AppPageSection";
+import { StatusPill } from "@/components/windows/StatusPill";
 
 export default function ContentPage(): React.ReactElement {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["content"],
     queryFn: () => contentApi.list(),
   });
 
-  return (
-    <div className="min-h-[calc(100vh-theme(spacing.16))] bg-[var(--background)] p-8 md:p-12 font-body">
-      <GsapBridge stagger={true} className="mx-auto max-w-[1400px]">
-        {/* Header */}
-        <div className="gsap-reveal flex items-end justify-between border-b-2 border-[var(--foreground)] pb-8 mb-12">
-          <div>
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--muted-foreground)] mb-2">
-              Content Engine
-            </p>
-            <h1 className="font-[family-name:var(--font-display)] text-5xl">Content</h1>
-          </div>
-          <div className="flex gap-3">
-            <button disabled className="border border-[var(--border)] bg-transparent px-4 h-10 font-mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] flex items-center gap-2 opacity-40 cursor-not-allowed">
-              <MixerHorizontalIcon className="h-3.5 w-3.5" /> Filter
-            </button>
-            <button disabled className="border border-[var(--border)] bg-transparent px-4 h-10 font-mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] flex items-center gap-2 opacity-40 cursor-not-allowed">
-              <ViewGridIcon className="h-3.5 w-3.5" /> Grid
-            </button>
-            <button disabled className="border border-[var(--border)] bg-transparent px-4 h-10 font-mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] flex items-center gap-2 opacity-40 cursor-not-allowed">
-              <DownloadIcon className="h-3.5 w-3.5" /> Export All
-            </button>
-          </div>
-        </div>
+  if (isLoading) {
+    return (
+      <AppPageFrame eyebrow="Content Engine" title="Content Ledger">
+        <AppLoadingState label="Loading content archive..." />
+      </AppPageFrame>
+    );
+  }
 
-        <div className="gsap-reveal space-y-4">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-28 w-full rounded-none" />
-              <Skeleton className="h-28 w-full rounded-none" />
-              <Skeleton className="h-28 w-full rounded-none" />
-            </>
-          ) : (data?.length ?? 0) === 0 ? (
-            <EmptyState
-              icon={FileText}
-              title="Content Archive Empty"
-              description="No generated content has been persisted yet. Generate content from campaigns or the council."
-            />
-          ) : (
-            data?.map((item) => (
-              <div key={item.contentId} className="border border-[var(--border)] bg-[var(--card)] p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-[#D97757] mb-2">
-                      {item.contentType}
-                    </p>
-                    <h2 className="font-[family-name:var(--font-display)] text-2xl leading-tight">
-                      {String(item.body.headline ?? item.body.title ?? item.contentType)}
-                    </h2>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--muted-foreground)]">
-                      {item.status}
-                    </p>
-                    <p className="font-mono text-[9px] text-[var(--muted-foreground)] mt-1">
-                      {new Date(item.createdAt).toLocaleString()}
-                    </p>
-                  </div>
+  if (error) {
+    return (
+      <AppPageFrame eyebrow="Content Engine" title="Content Ledger">
+        <AppErrorState
+          title="Failed to load content"
+          description={error.message}
+        />
+      </AppPageFrame>
+    );
+  }
+
+  const hasContent = (data?.length ?? 0) > 0;
+
+  return (
+    <AppPageFrame
+      eyebrow="Content Engine"
+      title="Content Ledger"
+      description="Generated content from campaigns and council sessions."
+      actions={
+        <>
+          <button disabled className="btn-secondary opacity-40 cursor-not-allowed">
+            <MixerHorizontalIcon className="w-3.5 h-3.5" /> Filter
+          </button>
+          <button disabled className="btn-secondary opacity-40 cursor-not-allowed">
+            <DownloadIcon className="w-3.5 h-3.5" /> Export
+          </button>
+        </>
+      }
+    >
+      <GsapBridge stagger={true} className="space-y-4">
+        {!hasContent ? (
+          <AppEmptyState
+            icon={<FileText className="w-6 h-6 text-[var(--ink-400)]" />}
+            title="Content Archive Empty"
+            description="No generated content has been persisted yet. Generate content from campaigns or the council."
+          />
+        ) : (
+          data?.map((item) => (
+            <AppPageSection
+              key={item.contentId}
+              eyebrow={item.contentType}
+              title={String(item.body.headline ?? item.body.title ?? item.contentType)}
+              actions={<StatusPill status={item.status} tone="neutral" />}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  {renderGeneratedContent(item.contentType, item.body)}
                 </div>
-                {renderGeneratedContent(item.contentType, item.body)}
+                <span className="mono-label shrink-0">
+                  {new Date(item.createdAt).toLocaleString()}
+                </span>
               </div>
-            ))
-          )}
-        </div>
+            </AppPageSection>
+          ))
+        )}
       </GsapBridge>
-    </div>
+    </AppPageFrame>
   );
 }

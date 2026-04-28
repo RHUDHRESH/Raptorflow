@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRipples, useCreateRipple, useDeleteRipple, useRealizeRipple, useRunDecay } from "@/hooks/use-prl";
 import { AGENTS } from "@/lib/agents";
 import { AgentPill } from "@/components/ui/agent-portrait";
@@ -12,34 +12,40 @@ import {
   TrashIcon,
   ReloadIcon,
 } from "@radix-ui/react-icons";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Activity } from "lucide-react";
+import { AppPageFrame } from "@/components/layout/AppPageFrame";
+import { AppPageSection } from "@/components/layout/AppPageSection";
+import { AppEmptyState } from "@/components/layout/AppEmptyState";
+import { AppLoadingState } from "@/components/layout/AppLoadingState";
+import { AppErrorState } from "@/components/layout/AppErrorState";
+import { AppPageToolbar } from "@/components/layout/AppPageToolbar";
+import { StatusPill } from "@/components/windows/StatusPill";
+import { SignalDot } from "@/components/windows/SignalDot";
+import { cn } from "@/lib/cn";
 
 /* ─── Protection band config ────────────────────────────────────── */
-const BAND_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  protected:  { label: "PROTECTED",  color: "var(--indigo-muse)",      bg: "var(--indigo-muse-dim, rgba(99,102,241,0.08))" },
-  important:  { label: "IMPORTANT",  color: "var(--amber-war)",         bg: "var(--amber-war-dim,  rgba(196,128,30,0.08))"  },
-  normal:     { label: "NORMAL",     color: "var(--leaf-confirm)",      bg: "var(--leaf-confirm-dim, rgba(34,197,94,0.06))" },
-  disposable: { label: "DISPOSABLE", color: "var(--signal-red)",        bg: "var(--signal-red-dim, rgba(220,38,38,0.07))"   },
+const BAND_CONFIG: Record<string, { label: string; tone: "neutral" | "success" | "warning" | "danger" | "amber" | "muse" }> = {
+  protected:  { label: "PROTECTED",  tone: "muse" },
+  important:  { label: "IMPORTANT",  tone: "amber" },
+  normal:     { label: "NORMAL",     tone: "success" },
+  disposable: { label: "DISPOSABLE", tone: "danger" },
 };
 
 /* ─── Confidence bar ────────────────────────────────────────────── */
 function ConfidenceBar({ value }: { value: number }): React.ReactElement {
   const pct = Math.round(value * 100);
-  const color = pct >= 75 ? "var(--leaf-confirm)" : pct >= 40 ? "var(--amber-war)" : "var(--signal-red)";
+  const color = pct >= 75 ? "var(--leaf-confirm)" : pct >= 40 ? "var(--primary)" : "var(--destructive)";
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--muted-foreground)" }}>
-          Confidence
-        </span>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, color }}>
-          {pct}%
-        </span>
+        <span className="mono-label">Confidence</span>
+        <span className="font-mono text-[9px] font-bold" style={{ color }}>{pct}%</span>
       </div>
-      <div style={{ height: 3, background: "var(--muted)", overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: color, transition: "width 0.6s ease" }} />
+      <div className="h-[3px] bg-[var(--paper-200)] overflow-hidden rounded-full">
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${pct}%`, background: color }}
+        />
       </div>
     </div>
   );
@@ -56,118 +62,47 @@ function RippleCard({ ripple, onRealize, onDelete }: {
   const dateStr = new Date(ripple.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
   return (
-    <div
-      className="flex border border-[var(--border)] overflow-hidden"
-      style={{ background: "var(--card)" }}
+    <AppPageSection
+      eyebrow={`LEVEL ${ripple.hierarchyLevel || 1}`}
+      title={ripple.summaryText}
+      actions={<StatusPill status={band.label} tone={band.tone} />}
+      variant="quiet"
     >
-      {/* Left band */}
-      <div className="w-1 shrink-0" style={{ background: band.color }} />
-
-      {/* Content */}
-      <div className="flex-1 p-5">
-        {/* Header row */}
-        <div className="flex items-start justify-between mb-3 gap-3">
-          <div className="flex gap-2">
-            <span
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 8,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.14em",
-                border: `1px solid ${band.color}`,
-                color: band.color,
-                padding: "2px 6px",
-                background: band.bg,
-                whiteSpace: "nowrap",
-              }}
-            >
-              LEVEL {ripple.hierarchyLevel || 1}
-            </span>
-            {ripple.memoryClass && (
-              <span
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 8,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.14em",
-                  border: `1px solid var(--border)`,
-                  color: "var(--muted-foreground)",
-                  padding: "2px 6px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {ripple.memoryClass}
-              </span>
-            )}
-          </div>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)", whiteSpace: "nowrap" }}>
-            {dateStr}
-          </span>
-        </div>
-
-        {/* Core claim */}
-        <h3
-          style={{
-            fontFamily: "'DM Serif Display', serif",
-            fontSize: 17,
-            lineHeight: 1.3,
-            color: "var(--foreground)",
-            margin: 0,
-            marginBottom: 8,
-          }}
-        >
-          {ripple.summaryText}
-        </h3>
-
-        {/* Reasoning */}
+      <div className="space-y-4">
         {ripple.rawText && (
-          <p
-            className="mb-4 line-clamp-2"
-            style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, lineHeight: 1.6, color: "var(--muted-foreground)" }}
-          >
-            {ripple.rawText}
-          </p>
+          <p className="text-xs text-[var(--ink-500)] line-clamp-2">{ripple.rawText}</p>
         )}
 
-        {/* Confidence bar */}
-        <div className="mb-4">
-          <ConfidenceBar value={ripple.confidence} />
-        </div>
+        <ConfidenceBar value={ripple.confidence} />
 
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-[var(--border)]">
+        <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
           {sourceAgent ? (
             <AgentPill agent={sourceAgent} size={16} />
-          ) : ripple.sourceAgent ? (
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)" }}>
-              {ripple.sourceAgent}
-            </span>
           ) : (
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)" }}>
-              System Generated
-            </span>
+            <span className="mono-label">{ripple.sourceAgent || "System Generated"}</span>
           )}
-          <div className="flex gap-1">
-            <button
-              onClick={onRealize}
-              className="flex h-7 w-7 items-center justify-center border border-[var(--border)] hover:border-[var(--amber-war)] hover:text-[var(--amber-war)] transition-all"
-              title="Realize ripple"
-            >
-              <LightningBoltIcon className="h-3 w-3" />
-            </button>
-            <button
-              onClick={onDelete}
-              className="flex h-7 w-7 items-center justify-center border border-[var(--border)] hover:border-[var(--signal-red)] hover:text-[var(--signal-red)] transition-all"
-              title="Delete ripple"
-            >
-              <TrashIcon className="h-3 w-3" />
-            </button>
+          <div className="flex items-center gap-2">
+            <span className="mono-label">{dateStr}</span>
+            <div className="flex gap-1">
+              <button
+                onClick={onRealize}
+                className="flex h-7 w-7 items-center justify-center rounded-[var(--radius)] border border-[var(--border)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all"
+                title="Realize ripple"
+              >
+                <LightningBoltIcon className="h-3 w-3" />
+              </button>
+              <button
+                onClick={onDelete}
+                className="flex h-7 w-7 items-center justify-center rounded-[var(--radius)] border border-[var(--border)] hover:border-[var(--destructive)] hover:text-[var(--destructive)] transition-all"
+                title="Delete ripple"
+              >
+                <TrashIcon className="h-3 w-3" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </AppPageSection>
   );
 }
 
@@ -179,7 +114,7 @@ function NewRipplePanel({ onClose, onCreate }: {
   const [claim, setClaim] = useState("");
   const [reasoning, setReasoning] = useState("");
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -187,26 +122,20 @@ function NewRipplePanel({ onClose, onCreate }: {
 
   return (
     <>
-      <div className="fixed inset-0 z-40" style={{ background: "rgba(16,14,15,0.2)" }} onClick={onClose} />
-      <div
-        className="fixed right-0 top-0 bottom-0 z-50 flex flex-col border-l-2 border-[var(--foreground)]"
-        style={{ width: 400, background: "var(--background)" }}
-      >
-        <div className="flex items-center justify-between p-5 border-b-2 border-[var(--foreground)]">
-          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, margin: 0 }}>New Ripple</h2>
-          <button onClick={onClose} className="p-1 hover:bg-[var(--accent)] transition-colors">
+      <div className="fixed inset-0 z-40 bg-[var(--ink-900)]/20" onClick={onClose} />
+      <div className="fixed right-0 top-0 bottom-0 z-50 flex flex-col border-l border-[var(--border)] bg-[var(--background)] w-full max-w-md">
+        <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
+          <h2 className="h2">New Ripple</h2>
+          <button onClick={onClose} className="p-1 hover:bg-[var(--paper-150)] rounded-[var(--radius)] transition-colors">
             <Cross2Icon className="h-4 w-4" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           <div>
-            <label style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--muted-foreground)", display: "block", marginBottom: 8 }}>
-              Core Claim *
-            </label>
+            <label className="mono-label block mb-2">Core Claim *</label>
             <textarea
-              className="w-full bg-transparent border border-[var(--border)] focus:border-[var(--foreground)] focus:outline-none p-3 resize-none"
-              style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: "var(--foreground)", minHeight: 80 }}
+              className="w-full bg-transparent border border-[var(--border)] focus:border-[var(--primary)] focus:outline-none p-3 resize-none rounded-[var(--radius)] font-display text-base"
               placeholder="State the strategic claim..."
               value={claim}
               onChange={(e) => setClaim(e.target.value)}
@@ -214,12 +143,9 @@ function NewRipplePanel({ onClose, onCreate }: {
             />
           </div>
           <div>
-            <label style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--muted-foreground)", display: "block", marginBottom: 8 }}>
-              Key Reasoning
-            </label>
+            <label className="mono-label block mb-2">Key Reasoning</label>
             <textarea
-              className="w-full bg-transparent border border-[var(--border)] focus:border-[var(--foreground)] focus:outline-none p-3 resize-none"
-              style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: "var(--foreground)", minHeight: 100 }}
+              className="w-full bg-transparent border border-[var(--border)] focus:border-[var(--primary)] focus:outline-none p-3 resize-none rounded-[var(--radius)] text-sm"
               placeholder="Why does this claim matter? What evidence supports it?"
               value={reasoning}
               onChange={(e) => setReasoning(e.target.value)}
@@ -228,19 +154,14 @@ function NewRipplePanel({ onClose, onCreate }: {
           </div>
         </div>
 
-        <div className="p-5 border-t-2 border-[var(--foreground)] flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 border border-[var(--border)] hover:border-[var(--foreground)] transition-all"
-            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em" }}
-          >
+        <div className="p-5 border-t border-[var(--border)] flex gap-3">
+          <button onClick={onClose} className="btn-secondary flex-1">
             Cancel
           </button>
           <button
             onClick={() => { if (claim.trim()) onCreate({ coreClaim: claim, keyReasoning: reasoning }); }}
             disabled={!claim.trim()}
-            className="flex-1 py-3 hover:opacity-80 disabled:opacity-30 transition-all"
-            style={{ background: "var(--foreground)", color: "var(--background)", fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em" }}
+            className="btn-primary flex-1 disabled:opacity-30"
           >
             Create Ripple
           </button>
@@ -276,115 +197,92 @@ export default function RipplesPage(): React.ReactElement {
     }, { onSuccess: () => setShowPanel(false) });
   };
 
-  return (
-    <div className="flex flex-col gap-8 py-2">
+  if (isLoading) {
+    return (
+      <AppPageFrame eyebrow="PRL" title="Memory Ripples">
+        <AppLoadingState label="Loading ripples..." />
+      </AppPageFrame>
+    );
+  }
 
-      {/* ── Header ──────────────────────────────────────── */}
-      <header className="flex items-end justify-between border-b-2 border-[var(--foreground)] pb-6">
-        <div>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)", marginBottom: 8 }}>
-            PRL — Propagated Rationality Log
-          </p>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, lineHeight: 1, margin: 0 }}>
-            Memory Ripples
-          </h1>
-          <p className="mt-2" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: "0.14em" }}>
-            {displayRipples.length} tracked claims
-          </p>
-        </div>
-        <div className="flex gap-2">
+  if (error) {
+    return (
+      <AppPageFrame eyebrow="PRL" title="Memory Ripples">
+        <AppErrorState
+          title="Failed to load ripples"
+          description={error.message}
+        />
+      </AppPageFrame>
+    );
+  }
+
+  return (
+    <AppPageFrame
+      eyebrow="PRL — Propagated Rationality Log"
+      title="Memory Ripples"
+      description={`${displayRipples.length} tracked claims`}
+      actions={
+        <>
           <button
             onClick={() => runDecay.mutate()}
             disabled={runDecay.isPending}
-            className="flex h-10 items-center gap-2 px-4 border border-[var(--border)] hover:border-[var(--foreground)] transition-all"
-            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--muted-foreground)" }}
+            className="btn-secondary"
           >
-            <ReloadIcon className={`h-3 w-3 ${runDecay.isPending ? "animate-spin" : ""}`} />
+            <ReloadIcon className={cn("h-3 w-3", runDecay.isPending && "animate-spin")} />
             Run Decay
           </button>
-          <button
-            onClick={() => setShowPanel(true)}
-            className="flex h-10 items-center gap-2 px-4 hover:opacity-80 transition-opacity"
-            style={{ background: "var(--foreground)", color: "var(--background)", fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em" }}
-          >
+          <button onClick={() => setShowPanel(true)} className="btn-primary">
             <PlusIcon className="h-3.5 w-3.5" />
             New Ripple
           </button>
-        </div>
-      </header>
-
-      {/* ── Band Filter ──────────────────────────────────── */}
-      <div className="flex gap-0.5 flex-wrap">
+        </>
+      }
+    >
+      <AppPageToolbar>
         {(["all", "protected", "important", "normal", "disposable"] as BandFilter[]).map((b) => {
-          const conf = b !== "all" ? BAND_CONFIG[b] : null;
           const isActive = filter === b;
           return (
             <button
               key={b}
               onClick={() => setFilter(b)}
-              className="px-4 py-2 border transition-all"
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 9,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.12em",
-                background: isActive ? (conf?.color ?? "var(--foreground)") : "transparent",
-                color: isActive ? "var(--background)" : conf?.color ?? "var(--muted-foreground)",
-                borderColor: isActive ? (conf?.color ?? "var(--foreground)") : "var(--border)",
-              }}
+              className={cn(
+                "px-4 py-2 rounded-[var(--radius)] text-[11px] font-mono uppercase tracking-widest transition-all border",
+                isActive
+                  ? "bg-[var(--ink-900)] text-white border-[var(--ink-900)]"
+                  : "bg-transparent text-[var(--ink-500)] border-[var(--border)] hover:border-[var(--ink-400)]",
+              )}
             >
               {b}
             </button>
           );
         })}
-      </div>
-
-      {/* ── Grid ─────────────────────────────────────────── */}
-      {isLoading && (
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full" />
-          ))}
-        </div>
-      )}
-
-      {error && (
-        <div className="border border-[var(--signal-red)] p-5" style={{ background: "var(--signal-red-dim, rgba(220,38,38,0.06))" }}>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--signal-red)" }}>
-            FAILED TO LOAD: {error.message}
-          </p>
-        </div>
-      )}
+      </AppPageToolbar>
 
       {!isLoading && filtered.length === 0 && !error && (
-        <EmptyState
-          icon={Activity}
+        <AppEmptyState
+          icon={<Activity className="w-6 h-6 text-[var(--ink-400)]" />}
           title={filter === "all" ? "No ripples yet" : `No ${filter} ripples`}
           description={filter === "all" ? "Create your first ripple to begin tracking." : `No ripples in the ${filter} band.`}
         />
       )}
 
-      {!isLoading && filtered.length > 0 && (
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((ripple: any) => (
-            <RippleCard
-              key={ripple.rippleId}
-              ripple={ripple}
-              onRealize={() => realizeRipple.mutate(ripple.rippleId)}
-              onDelete={() => { if (confirm("Delete this ripple?")) deleteRipple.mutate(ripple.rippleId); }}
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {filtered.map((ripple: any) => (
+          <RippleCard
+            key={ripple.rippleId}
+            ripple={ripple}
+            onRealize={() => realizeRipple.mutate(ripple.rippleId)}
+            onDelete={() => { if (confirm("Delete this ripple?")) deleteRipple.mutate(ripple.rippleId); }}
+          />
+        ))}
+      </div>
 
-      {/* ── Slide-in Panel ───────────────────────────────── */}
       {showPanel && (
         <NewRipplePanel
           onClose={() => setShowPanel(false)}
           onCreate={handleCreate}
         />
       )}
-    </div>
+    </AppPageFrame>
   );
 }
