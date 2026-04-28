@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- PLACEHOLDER: Replace with final RaptorFlow mark -->
+  <!-- Abstract strategic mark: amber diamond with ink inner shape -->
+  <rect x="2" y="2" width="28" height="28" rx="6" fill="#2a2622"/>
+  <path d="M16 8L24 16L16 24L8 16Z" fill="#d97757"/>
+  <circle cx="16" cy="16" r="3" fill="#fbf8f2"/>
+</svg>
