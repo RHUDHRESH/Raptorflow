@@ -24,59 +24,27 @@ import {
 import { cn } from "@/lib/cn";
 import { RaptorMark } from "@/components/brand/RaptorMark";
 import { BrandWordmark } from "@/components/brand/BrandWordmark";
+import { routeGroups } from "@/brand/routes";
 import { OfficeMiniStrip } from "@/components/office/office-mini-strip";
 import { NotificationPanel } from "@/components/layout/notification-panel";
 import { useOfficeStore } from "@/state/office-store";
 import { Menu, X } from "lucide-react";
 
-type NavItem = {
-  href: Route;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  badge?: string;
-  accent?: string;
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  "/app/dashboard": DashboardIcon,
+  "/office": MagicWandIcon,
+  "/daily-wins": CalendarIcon,
+  "/uploads": UploadIcon,
+  "/intel": TargetIcon,
+  "/nudges": BellIcon,
+  "/ripples": MixerHorizontalIcon,
+  "/campaigns": BackpackIcon,
+  "/council": AvatarIcon,
+  "/muse": ChatBubbleIcon,
+  "/content": FileTextIcon,
+  "/foundation": HomeIcon,
+  "/settings": GearIcon,
 };
-
-type NavGroup = {
-  label: string;
-  items: NavItem[];
-};
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: "Workspace",
-    items: [
-      { href: "/app/dashboard" as Route, label: "Dashboard", icon: DashboardIcon },
-      { href: "/office" as Route, label: "The Office", icon: MagicWandIcon },
-      { href: "/daily-wins" as Route, label: "Daily Wins", icon: CalendarIcon },
-      { href: "/uploads" as Route, label: "Uploads", icon: UploadIcon },
-    ],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      { href: "/intel" as Route, label: "Intel", icon: TargetIcon },
-      { href: "/nudges" as Route, label: "Nudges", icon: BellIcon },
-      { href: "/ripples" as Route, label: "Ripples", icon: MixerHorizontalIcon },
-    ],
-  },
-  {
-    label: "Strategy",
-    items: [
-      { href: "/campaigns" as Route, label: "Campaigns", icon: BackpackIcon },
-      { href: "/council" as Route, label: "Council", icon: AvatarIcon },
-      { href: "/muse" as Route, label: "Muse", icon: ChatBubbleIcon, accent: "#4f46e5" },
-      { href: "/content" as Route, label: "Content", icon: FileTextIcon },
-    ],
-  },
-  {
-    label: "System",
-    items: [
-      { href: "/foundation" as Route, label: "Foundation", icon: HomeIcon },
-      { href: "/settings" as Route, label: "Settings", icon: GearIcon },
-    ],
-  },
-];
 
 function SidebarBadge({ queryKey, countPath }: { queryKey: unknown[]; countPath: string }) {
   const { data } = useQuery({
@@ -168,52 +136,53 @@ export function ShellSidebar({ identity }: { identity: { userId: string; orgId: 
         </div>
 
         <nav className="flex-1 overflow-y-auto pt-6 space-y-8 scrollbar-thin">
-          {NAV_GROUPS.map((group, groupIndex) => (
-            <div key={group.label} className="px-3">
+          {routeGroups.map((group, groupIndex) => (
+            <div key={group.key} className="px-3">
               <h2 className="px-3 mb-3 text-[9px] font-bold text-[var(--ink-400)] uppercase tracking-[0.2em] font-mono">
                 {group.label}
               </h2>
               <div className="space-y-1">
-                {group.items.map((item, itemIndex) => {
-                  const isExact = pathname === item.href;
+                {group.routes.map((route, itemIndex) => {
+                  const href = route.href as Route;
+                  const isExact = pathname === route.href;
                   const isNested =
-                    item.href !== "/office" &&
-                    item.href !== "/app/dashboard" &&
-                    pathname.startsWith(item.href + "/");
+                    route.href !== "/office" &&
+                    route.href !== "/app/dashboard" &&
+                    pathname.startsWith(route.href + "/");
                   const isActive = isExact || isNested;
-                  const Icon = item.icon;
+                  const Icon = iconMap[route.href] ?? DashboardIcon;
 
                   return (
                     <Link
-                      key={item.href}
-                      href={item.href}
+                      key={route.href}
+                      href={href}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 text-[13px] transition-all duration-150 group relative rounded-[var(--radius)]",
                         isActive
-                          ? "text-white bg-[rgba(139,92,246,0.08)] shadow-sm"
-                          : "text-slate-400 hover:text-slate-300 hover:bg-white/[0.04]",
+                          ? "bg-[var(--amber-wash)] text-[var(--ink-900)] shadow-sm border border-[var(--amber-stroke)]/20"
+                          : "text-[var(--ink-500)] hover:text-[var(--ink-900)] hover:bg-[var(--paper-150)]",
                       )}
                       style={{
                         animationDelay: `${(groupIndex * 4 + itemIndex) * 50}ms`,
                       }}
                     >
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 bg-[#8b5cf6] rounded-r-full" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 bg-[var(--primary)] rounded-r-full" />
                       )}
                       <Icon
                         className={cn(
                           "w-4 h-4 transition-colors duration-200",
                           isActive
-                            ? "text-violet-400"
-                            : "text-slate-500 group-hover:text-slate-400",
+                            ? "text-[var(--primary)]"
+                            : "text-[var(--ink-400)] group-hover:text-[var(--ink-700)]",
                         )}
                       />
-                      <span className="font-medium">{item.label}</span>
+                      <span className="font-medium">{route.label}</span>
                       {isActive && <span className="ml-auto status-dot-live" />}
-                      {item.href === "/intel" && (
+                      {route.href === "/intel" && (
                         <SidebarBadge queryKey={["intel"]} countPath="signals.length" />
                       )}
-                      {item.href === "/nudges" && (
+                      {route.href === "/nudges" && (
                         <SidebarBadge queryKey={["nudges"]} countPath="totalCount" />
                       )}
                     </Link>

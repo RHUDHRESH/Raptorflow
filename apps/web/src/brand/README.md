@@ -116,6 +116,62 @@ Respect `prefers-reduced-motion`. Do not add heavy animation libraries.
 - `RfWindowGrid` stacks gracefully: 1 col mobile, expands at `sm`/`lg` breakpoints.
 - Sidebar is fixed on desktop, slide-over on mobile.
 
+## App Shell Usage
+
+### AppPageFrame
+
+Standard page wrapper. Use on every page.
+
+```tsx
+import { AppPageFrame } from "@/components/layout";
+
+<AppPageFrame
+  eyebrow="Section"
+  title="Page Title"
+  description="Optional description."
+  actions={<button className="btn-primary">Action</button>}
+  maxWidth="wide"
+>
+  Content here
+</AppPageFrame>;
+```
+
+### AppPageSection
+
+Use for content sections within a page.
+
+```tsx
+import { AppPageSection } from "@/components/layout";
+
+<AppPageSection title="Section" variant="quiet">
+  Section content
+</AppPageSection>;
+```
+
+### Loading / Empty / Error States
+
+```tsx
+import { AppLoadingState, AppEmptyState, AppErrorState } from "@/components/layout";
+
+// While loading
+<AppLoadingState label="Loading..." />
+
+// When empty
+<AppEmptyState
+  icon={<FileText className="w-6 h-6" />}
+  title="Nothing here"
+  description="Get started by creating something."
+  action={<button className="btn-primary">Create</button>}
+/>
+
+// On error
+<AppErrorState
+  title="Failed to load"
+  description={error.message}
+  action={<button onClick={refetch}>Retry</button>}
+/>
+```
+
 ## What NOT to Do
 
 - Do NOT use dark glass as the default product UI.
