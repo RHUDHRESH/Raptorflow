@@ -19,10 +19,11 @@ import {
   FileTextIcon,
   GearIcon,
   UploadIcon,
-  LightningBoltIcon,
   MixerHorizontalIcon,
 } from "@radix-ui/react-icons";
 import { cn } from "@/lib/cn";
+import { RaptorMark } from "@/components/brand/RaptorMark";
+import { BrandWordmark } from "@/components/brand/BrandWordmark";
 import { OfficeMiniStrip } from "@/components/office/office-mini-strip";
 import { NotificationPanel } from "@/components/layout/notification-panel";
 import { useOfficeStore } from "@/state/office-store";
@@ -134,15 +135,11 @@ export function ShellSidebar({ identity }: { identity: { userId: string; orgId: 
       >
         <div className="h-16 px-6 flex items-center justify-between border-b border-[var(--sidebar-border)] relative">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-[var(--primary)] flex items-center justify-center rounded-[var(--radius)] transition-transform duration-300 hover:scale-105">
-              <LightningBoltIcon className="w-4 h-4 text-white" />
-            </div>
+            <RaptorMark size={28} className="text-[var(--ink-900)]" />
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-[var(--ink-900)] tracking-tight leading-none">
-                RaptorFlow
-              </span>
+              <BrandWordmark size={90} className="text-[var(--ink-900)]" />
               <span className="text-[9px] font-mono text-[var(--ink-400)] uppercase tracking-widest mt-0.5">
-                EST. 1989
+                AI-NATIVE MARKETING OS
               </span>
             </div>
           </div>
