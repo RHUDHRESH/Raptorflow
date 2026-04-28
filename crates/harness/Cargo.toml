@@ -23,5 +23,4 @@ raptorflow-config = { path = "../config" }
 raptorflow-contracts = { path = "../contracts" }
 raptorflow-eel = { path = "../eel" }
 raptorflow-prl = { path = "../prl" }
-<<<<<<< HEAD
 raptorflow-aws = { path = "../aws" }
