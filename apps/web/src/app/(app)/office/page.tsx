@@ -365,7 +365,7 @@ function OfficeRail() {
     <RfWindowRail>
       <div className="space-y-6">
         <div>
-          <h4 className="eyebrow mb-3">Avatar Roster</h4>
+          <h4 className="eyebrow mb-3">{copy.officeAvatarRosterTitle}</h4>
           <AvatarRoster />
         </div>
         <div className="h-px bg-[var(--border)]" />
@@ -423,7 +423,7 @@ export default function OfficePage(): React.ReactElement {
     >
       <div className="space-y-6">
         <RfWindow
-          title="Morning Briefing"
+          title={copy.officeBriefingTitle}
           eyebrow="OVERVIEW"
           description="Current operational status across all systems."
         >
@@ -432,7 +432,7 @@ export default function OfficePage(): React.ReactElement {
 
         <RfWindowGrid columns={2}>
           <RfWindow
-            title="Campaign Fronts"
+            title={copy.officeCampaignFrontsTitle}
             eyebrow="STRATEGY"
             description="Active and recent campaigns."
           >
@@ -440,7 +440,7 @@ export default function OfficePage(): React.ReactElement {
           </RfWindow>
 
           <RfWindow
-            title="Council Activity"
+            title={copy.officeCouncilActivityTitle}
             eyebrow="OPERATIONS"
             description="Latest council war room sessions."
           >
@@ -449,7 +449,7 @@ export default function OfficePage(): React.ReactElement {
         </RfWindowGrid>
 
         <RfWindow
-          title="Move Ladder"
+          title={copy.officeMoveLadderTitle}
           eyebrow="EXECUTION"
           description="Campaign moves and execution pipeline."
         >
@@ -458,7 +458,7 @@ export default function OfficePage(): React.ReactElement {
 
         <RfWindowGrid columns={2}>
           <RfWindow
-            title="Artifact Ledger"
+            title={copy.officeArtifactLedgerTitle}
             eyebrow="OUTPUT"
             description="Recently generated content artifacts."
           >
@@ -466,7 +466,7 @@ export default function OfficePage(): React.ReactElement {
           </RfWindow>
 
           <RfWindow
-            title="Muse Command"
+            title={copy.officeMuseCommandTitle}
             eyebrow="INPUT"
             description="Direct command to Muse."
           >
