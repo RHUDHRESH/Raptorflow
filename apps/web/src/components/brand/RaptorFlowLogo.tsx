@@ -21,18 +21,15 @@ const sizeMap: Record<LogoSize, { mark: number; wordmark: number }> = {
   lg: { mark: 40, wordmark: 160 },
 };
 
-export function RaptorFlowLogo({ size = "md", variant = "full", className }: RaptorFlowLogoProps) {
-  const { mark: markSize, wordmark: wordmarkSize } = sizeMap[size];
-
-  if (variant === "mark") {
-    return <RaptorMark size={markSize} className={className} aria-label="RaptorFlow" />;
-  }
-
-  if (variant === "wordmark") {
-    return <BrandWordmark size={wordmarkSize} className={className} aria-label="RaptorFlow" />;
-  }
-
-  // variant === "full": try SVG asset first, fallback to mark + wordmark
+function FullRaptorFlowLogo({
+  markSize,
+  wordmarkSize,
+  className,
+}: {
+  markSize: number;
+  wordmarkSize: number;
+  className?: string;
+}) {
   const [assetError, setAssetError] = React.useState(false);
 
   if (!assetError) {
@@ -54,5 +51,21 @@ export function RaptorFlowLogo({ size = "md", variant = "full", className }: Rap
       <RaptorMark size={markSize} />
       <BrandWordmark size={wordmarkSize} />
     </div>
+  );
+}
+
+export function RaptorFlowLogo({ size = "md", variant = "full", className }: RaptorFlowLogoProps) {
+  const { mark: markSize, wordmark: wordmarkSize } = sizeMap[size];
+
+  if (variant === "mark") {
+    return <RaptorMark size={markSize} className={className} aria-label="RaptorFlow" />;
+  }
+
+  if (variant === "wordmark") {
+    return <BrandWordmark size={wordmarkSize} className={className} aria-label="RaptorFlow" />;
+  }
+
+  return (
+    <FullRaptorFlowLogo markSize={markSize} wordmarkSize={wordmarkSize} className={className} />
   );
 }
