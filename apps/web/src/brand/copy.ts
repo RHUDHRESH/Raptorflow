@@ -23,6 +23,15 @@ export const copy = {
   shortPositioning:
     "AI-native marketing operating system for founders who need strategy turned into execution.",
 
+  // Office section titles
+  officeBriefingTitle: "Morning Briefing",
+  officeCampaignFrontsTitle: "Campaign Fronts",
+  officeMoveLadderTitle: "Move Ladder",
+  officeCouncilActivityTitle: "Council Activity",
+  officeArtifactLedgerTitle: "Artifact Ledger",
+  officeMuseCommandTitle: "Muse Command",
+  officeAvatarRosterTitle: "Avatar Roster",
+
   // System labels
   dailyWinsTitle: "Daily Wins",
   intelTitle: "Intel",
