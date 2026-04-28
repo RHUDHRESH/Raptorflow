@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Route } from "next";
@@ -14,17 +13,15 @@ import {
 } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  useCampaign,
+  useCampaignDetail,
   useEvaluateCampaign,
   useGenerateMoves,
-  useUpdateTask,
-  type CampaignMove,
-  type CampaignDetail,
-} from "@/features/campaigns/hooks";
+  useUpdateTaskStatus,
+} from "@/features/campaigns";
+import type { CampaignMove, CampaignTask } from "@/features/campaigns";
 import { Button } from "@/components/ui/button";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
 import { cn } from "@/lib/cn";
-import { usePusherEvent } from "@/lib/pusher/hooks";
 
 function ScoreBadge({ score }: { score: number }): React.ReactElement {
   const color =
@@ -67,14 +64,17 @@ function ChannelBadge({ channel }: { channel: string }): React.ReactElement {
 function MoveCard({
   move,
   campaignId,
+  tasks,
   onToggleTask,
 }: {
   move: CampaignMove;
   campaignId: string;
-  onToggleTask: (taskId: string, moveId: string, currentStatus: string) => void;
+  tasks: CampaignTask[];
+  onToggleTask: (taskId: string, currentStatus: string) => void;
 }): React.ReactElement {
-  const completedCount = move.tasks.filter((t) => t.status === "complete").length;
-  const total = move.tasks.length;
+  const moveTasks = tasks.filter((t) => t.moveId === move.moveId);
+  const completedCount = moveTasks.filter((t) => t.status === "completed").length;
+  const total = moveTasks.length;
   const pct = total > 0 ? (completedCount / total) * 100 : 0;
 
   return (
@@ -85,7 +85,7 @@ function MoveCard({
             className="w-8 h-8 border border-[#E5DED4] flex items-center justify-center font-mono text-xs font-bold text-[#9A948C] flex-shrink-0"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            {move.priority}
+            {move.sequenceNumber}
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -93,11 +93,13 @@ function MoveCard({
                 className="text-base font-bold uppercase tracking-tight text-[#2A2622]"
                 style={{ fontFamily: "'DM Serif Display', serif" }}
               >
-                {move.title}
+                {move.title ?? `${move.moveType} move`}
               </h4>
-              <ChannelBadge channel={move.channel} />
+              <ChannelBadge channel={move.moveType} />
             </div>
-            <p className="text-sm text-[#6B655E] leading-relaxed">{move.description}</p>
+            <p className="text-sm text-[#6B655E] leading-relaxed">
+              {move.description ?? move.expectedImpact ?? move.moveType}
+            </p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -121,30 +123,30 @@ function MoveCard({
         </div>
       </div>
 
-      {move.tasks.length > 0 && (
+      {moveTasks.length > 0 && (
         <div className="divide-y divide-[#F0EBE3]">
-          {move.tasks.map((task) => (
+          {moveTasks.map((task) => (
             <div
-              key={task.id}
+              key={task.taskId}
               className="flex items-center gap-4 px-6 py-3 hover:bg-[#F5F0E8]/50 transition-colors cursor-pointer"
-              onClick={() => onToggleTask(task.id, move.id, task.status)}
+              onClick={() => onToggleTask(task.taskId, task.status)}
             >
               <div
                 className="w-5 h-5 border flex items-center justify-center flex-shrink-0 transition-all"
                 style={{
-                  borderColor: task.status === "complete" ? "var(--leaf-confirm)" : "#D5CBC0",
-                  background: task.status === "complete" ? "var(--leaf-confirm)" : "transparent",
+                  borderColor: task.status === "completed" ? "var(--leaf-confirm)" : "#D5CBC0",
+                  background: task.status === "completed" ? "var(--leaf-confirm)" : "transparent",
                 }}
               >
-                {task.status === "complete" && (
+                {task.status === "completed" && (
                   <CheckCircledIcon className="w-3 h-3 text-white" />
                 )}
               </div>
               <span
                 className="text-sm flex-1"
                 style={{
-                  color: task.status === "complete" ? "#9A948C" : "#2A2622",
-                  textDecoration: task.status === "complete" ? "line-through" : "none",
+                  color: task.status === "completed" ? "#9A948C" : "#2A2622",
+                  textDecoration: task.status === "completed" ? "line-through" : "none",
                 }}
               >
                 {task.title}
@@ -162,44 +164,22 @@ export default function CampaignDetailPage(): React.ReactElement {
   const router = useRouter();
   const campaignId = params.campaignId as string;
 
-  const { data: campaign, isLoading } = useCampaign(campaignId);
+  const { data, isLoading } = useCampaignDetail(campaignId);
   const evaluate = useEvaluateCampaign();
   const generateMoves = useGenerateMoves();
-  const updateTask = useUpdateTask();
+  const updateTask = useUpdateTaskStatus();
 
-  const [confirmRegenerate, setConfirmRegenerate] = useState(false);
+  const [confirmRegenerate, setConfirmRegenerate] = React.useState(false);
   const queryClient = useQueryClient();
 
-  usePusherEvent(`private-campaign-${campaignId}`, "task.updated", (data: { taskId: string; moveId: string; status: string; moveStats: { totalTasks: number; completedTasks: number } }) => {
-    queryClient.setQueryData(["campaigns", campaignId], (old: any) => {
-      if (!old) return old;
-      return {
-        ...old,
-        moves: old.moves.map((move: any) =>
-          move.id === data.moveId
-            ? {
-                ...move,
-                tasks: move.tasks.map((task: any) =>
-                  task.id === data.taskId ? { ...task, status: data.status } : task
-                ),
-              }
-            : move
-        ),
-      };
-    });
-  });
+  const campaign = data?.campaign;
+  const moves = data?.moves ?? [];
+  const tasks = data?.tasks ?? [];
+  const evaluation = data?.evaluation;
 
-  usePusherEvent(`private-campaign-${campaignId}`, "campaign.evaluated", () => {
-    queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId] });
-  });
-
-  usePusherEvent(`private-campaign-${campaignId}`, "moves.generated", () => {
-    queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId] });
-  });
-
-  function handleToggleTask(taskId: string, moveId: string, currentStatus: string) {
-    const next = currentStatus === "complete" ? "pending" : "complete";
-    updateTask.mutate({ campaignId, moveId, taskId, status: next });
+  function handleToggleTask(taskId: string, currentStatus: string) {
+    const next = currentStatus === "completed" ? "pending" : "completed";
+    updateTask.mutate({ campaignId, taskId, status: next });
   }
 
   async function handleRegenerateMoves() {
@@ -235,20 +215,6 @@ export default function CampaignDetailPage(): React.ReactElement {
     );
   }
 
-  const evalResult = campaign.evaluation_result as
-    | {
-        score: number;
-        summary: string;
-        strengths: string[];
-        weaknesses: string[];
-        icp_fit: string;
-        suggested_goal: string;
-        recommended_channels: string[];
-        budget_assessment: string;
-      }
-    | null
-    | undefined;
-
   return (
     <div className="flex flex-col gap-8 py-2">
       <GsapBridge>
@@ -278,7 +244,7 @@ export default function CampaignDetailPage(): React.ReactElement {
                   style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, lineHeight: 1, margin: 0 }}
                   className="text-[#2A2622] mb-4"
                 >
-                  {campaign.title}
+                  {campaign.name}
                 </h1>
                 <div className="flex items-center gap-4 flex-wrap">
                   <span
@@ -308,12 +274,12 @@ export default function CampaignDetailPage(): React.ReactElement {
                   </span>
                   {campaign.goal && (
                     <span className="text-[10px] font-mono text-[#6B655E] uppercase tracking-widest">
-                      {campaign.goal.replace("_", " ")}
+                      {campaign.goal}
                     </span>
                   )}
-                  {evalResult && (
+                  {evaluation && (
                     <div className="flex items-center gap-1.5">
-                      <ScoreBadge score={evalResult.score} />
+                      <ScoreBadge score={evaluation.overallScore} />
                     </div>
                   )}
                 </div>
@@ -338,7 +304,7 @@ export default function CampaignDetailPage(): React.ReactElement {
               </div>
             </div>
 
-            {evalResult && (
+            {evaluation && (
               <div className="border-t border-[#D5CBC0] pt-8 mt-6">
                 <p
                   className="text-[9px] font-mono font-bold uppercase tracking-[0.18em] text-[#9A948C] mb-4"
@@ -347,53 +313,36 @@ export default function CampaignDetailPage(): React.ReactElement {
                 </p>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="space-y-6">
-                    <p
-                      className="text-base leading-relaxed text-[#2A2622] italic"
-                      style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16 }}
-                    >
-                      "{evalResult.summary}"
-                    </p>
-                    {evalResult.icp_fit && (
-                      <div className="border-l-2 border-[#D97757] pl-4">
-                        <p className="text-[9px] font-mono text-[#D97757] uppercase tracking-[0.14em] mb-1">
-                          ICP Fit
-                        </p>
-                        <p className="text-sm text-[#2A2622]">{evalResult.icp_fit}</p>
-                      </div>
+                    {evaluation.summary && (
+                      <p
+                        className="text-base leading-relaxed text-[#2A2622] italic"
+                        style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16 }}
+                      >
+                        "{evaluation.summary}"
+                      </p>
                     )}
                     <div>
                       <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-[0.14em] mb-2">
-                        Suggested Goal
+                        Suggested Actions
                       </p>
-                      <p className="text-sm font-bold text-[#2A2622]">{evalResult.suggested_goal}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-[0.14em] mb-2">
-                        Recommended Channels
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {evalResult.recommended_channels.map((ch) => (
-                          <ChannelBadge key={ch} channel={ch} />
+                      <ul className="space-y-2">
+                        {evaluation.recommendations.slice(0, 5).map((rec, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-[var(--primary)] font-mono text-sm">→</span>
+                            <span className="text-sm text-[#2A2622]">{rec}</span>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
-                    {evalResult.budget_assessment && (
-                      <div>
-                        <p className="text-[9px] font-mono text-[#9A948C] uppercase tracking-[0.14em] mb-1">
-                          Budget Assessment
-                        </p>
-                        <p className="text-sm text-[#6B655E]">{evalResult.budget_assessment}</p>
-                      </div>
-                    )}
                   </div>
 
                   <div className="space-y-6">
                     <div>
                       <p className="text-[9px] font-mono text-[var(--leaf-confirm)] uppercase tracking-[0.14em] mb-3">
-                        Strengths ({evalResult.strengths.length})
+                        Strengths ({evaluation.strengths.length})
                       </p>
                       <ul className="space-y-2">
-                        {evalResult.strengths.map((s, i) => (
+                        {evaluation.strengths.map((s, i) => (
                           <li key={i} className="flex items-start gap-2">
                             <span className="text-[var(--leaf-confirm)] font-mono text-sm">→</span>
                             <span className="text-sm text-[#2A2622]">{s}</span>
@@ -403,10 +352,10 @@ export default function CampaignDetailPage(): React.ReactElement {
                     </div>
                     <div>
                       <p className="text-[9px] font-mono text-[var(--amber-war)] uppercase tracking-[0.14em] mb-3">
-                        Weaknesses ({evalResult.weaknesses.length})
+                        Weaknesses ({evaluation.weaknesses.length})
                       </p>
                       <ul className="space-y-2">
-                        {evalResult.weaknesses.map((w, i) => (
+                        {evaluation.weaknesses.map((w, i) => (
                           <li key={i} className="flex items-start gap-2">
                             <span className="text-[var(--amber-war)] font-mono text-sm">!</span>
                             <span className="text-sm text-[#2A2622]">{w}</span>
@@ -428,7 +377,7 @@ export default function CampaignDetailPage(): React.ReactElement {
             >
               Move Ladder
             </h2>
-            {campaign.moves.length > 0 && (
+            {moves.length > 0 && (
               <Button
                 className="h-9 px-5 text-[9px] font-mono font-bold uppercase tracking-[0.14em] rounded-none border border-[#E5DED4] text-[#9A948C] hover:border-[#D97757] hover:text-[#D97757] bg-transparent disabled:opacity-50"
                 onClick={handleRegenerateMoves}
@@ -439,7 +388,7 @@ export default function CampaignDetailPage(): React.ReactElement {
             )}
           </div>
 
-          {campaign.moves.length === 0 ? (
+          {moves.length === 0 ? (
             <div className="border border-dashed border-[#E5DED4] p-16 text-center space-y-4">
               <TargetIcon className="w-10 h-10 text-[#E5DED4] mx-auto" />
               <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20 }} className="text-[#2A2622]">
@@ -451,18 +400,19 @@ export default function CampaignDetailPage(): React.ReactElement {
               <Button
                 className="h-11 px-8 bg-[#D97757] text-white font-bold uppercase tracking-[0.14em] text-[10px] rounded-none hover:bg-[#c4684a] disabled:opacity-50"
                 onClick={() => generateMoves.mutate({ campaignId })}
-                disabled={!evalResult || generateMoves.isPending}
+                disabled={!evaluation || generateMoves.isPending}
               >
                 {generateMoves.isPending ? "Generating…" : "Generate Move Ladder"}
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
-              {campaign.moves.map((move) => (
+              {moves.map((move) => (
                 <MoveCard
-                  key={move.id}
+                  key={move.moveId}
                   move={move}
                   campaignId={campaignId}
+                  tasks={tasks}
                   onToggleTask={handleToggleTask}
                 />
               ))}

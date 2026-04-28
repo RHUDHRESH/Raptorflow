@@ -3,18 +3,20 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { useCampaign, useUpdateCampaignStatus } from "@/hooks/use-campaigns";
+import { useCampaignDetail, useUpdateCampaignStatus } from "@/features/campaigns";
 import { RouteShell } from "@/components/layout/route-shell";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 
-import { type Campaign } from "@/lib/api";
-
-const STATUS_OPTIONS: Campaign["status"][] = [
-  "draft", "pending_approval", "active", "paused", "completed", "archived"
-];
+const STATUS_OPTIONS = [
+  "draft",
+  "evaluating",
+  "active",
+  "paused",
+  "completed",
+  "archived",
+] as const;
 
 export default function EditCampaignPage({
   params,
@@ -25,12 +27,13 @@ export default function EditCampaignPage({
   const resolvedParams = React.use(params);
   const { campaignId } = resolvedParams;
 
-  const { data: campaign, isLoading } = useCampaign(campaignId);
+  const { data: campaignData, isLoading } = useCampaignDetail(campaignId);
+  const campaign = campaignData?.campaign;
   const updateCampaignStatus = useUpdateCampaignStatus();
 
   const [name, setName] = React.useState("");
   const [goal, setGoal] = React.useState("");
-  const [status, setStatus] = React.useState<Campaign["status"]>("draft");
+  const [status, setStatus] = React.useState<string>("draft");
 
   React.useEffect(() => {
     if (campaign) {
@@ -98,6 +101,9 @@ export default function EditCampaignPage({
                 onChange={(e) => setName(e.target.value)}
                 required
               />
+              <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                Name changes are not yet persisted — backend only supports status updates.
+              </p>
             </div>
 
             <div>
@@ -108,6 +114,9 @@ export default function EditCampaignPage({
                 value={goal}
                 onChange={(e) => setGoal(e.target.value)}
               />
+              <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                Goal changes are not yet persisted — backend only supports status updates.
+              </p>
             </div>
 
             <div>
