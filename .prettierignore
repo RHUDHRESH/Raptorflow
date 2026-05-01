@@ -5,3 +5,9 @@ dist
 coverage
 target
 pnpm-lock.yaml
+docs/archive
+docs/source-digests
+Uploads
+design
+packages/database/src/generated
+.pnpm-approve-builds.yaml

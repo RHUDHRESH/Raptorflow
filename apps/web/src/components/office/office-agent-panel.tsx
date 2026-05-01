@@ -16,10 +16,10 @@ import { useOfficeStore } from "@/state/office-store";
 /* ─── Stance Chip ─────────────────────────────────────────────── */
 function StanceChip({ stance }: { stance: string }): React.ReactElement {
   const stanceMap: Record<string, { label: string; bg: string; color: string }> = {
-    "agreed":    { label: "AGREED",    bg: "var(--leaf-confirm-dim)",  color: "var(--leaf-confirm)"  },
-    "challenged":{ label: "CHALLENGED",bg: "var(--signal-red-dim)",    color: "var(--signal-red)"    },
-    "updated":   { label: "UPDATED",   bg: "var(--amber-war-dim)",     color: "var(--amber-war)"     },
-    "thinking":  { label: "THINKING",  bg: "var(--indigo-muse-dim)",   color: "var(--indigo-muse)"   },
+    agreed: { label: "AGREED", bg: "var(--leaf-confirm-dim)", color: "var(--leaf-confirm)" },
+    challenged: { label: "CHALLENGED", bg: "var(--signal-red-dim)", color: "var(--signal-red)" },
+    updated: { label: "UPDATED", bg: "var(--amber-war-dim)", color: "var(--amber-war)" },
+    thinking: { label: "THINKING", bg: "var(--indigo-muse-dim)", color: "var(--indigo-muse)" },
   };
   const s = stanceMap[stance.toLowerCase()] ?? stanceMap["thinking"];
   return (
@@ -47,12 +47,9 @@ interface AgentPanelProps {
   onClose: () => void;
 }
 
-export function OfficeAgentPanel({
-  agentKey,
-  onClose,
-}: AgentPanelProps): React.ReactElement {
+export function OfficeAgentPanel({ agentKey, onClose }: AgentPanelProps): React.ReactElement {
   const panelRef = useRef<HTMLDivElement>(null);
-  const config   = AGENT_MAP.get(agentKey);
+  const config = AGENT_MAP.get(agentKey);
   const eventLog = useOfficeStore((state) => state.eventLog);
   const ripples = useMemo(() => {
     return eventLog
@@ -62,7 +59,7 @@ export function OfficeAgentPanel({
           event.agentKey === agentKey ||
           payload?.agentKey === agentKey ||
           payload?.sourceAgent === agentKey ||
-          typeof event.type === "string" && event.type.includes(agentKey)
+          (typeof event.type === "string" && event.type.includes(agentKey))
         );
       })
       .slice(-6)
@@ -91,7 +88,7 @@ export function OfficeAgentPanel({
       gsap.fromTo(
         panelRef.current,
         { x: 40, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.28, ease: "power2.out" }
+        { x: 0, opacity: 1, duration: 0.28, ease: "power2.out" },
       );
     }
   }, [agentKey]);
@@ -124,7 +121,6 @@ export function OfficeAgentPanel({
 
       {/* Drawer */}
       <div ref={panelRef} className="agent-drawer" style={{ zIndex: 100 }}>
-
         {/* ── Header ─────────────────────────────────────────── */}
         <div
           className="flex items-start justify-between p-5 border-b-2"
@@ -181,7 +177,6 @@ export function OfficeAgentPanel({
 
         {/* ── Scrollable Body ─────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto">
-
           {/* Essence Core */}
           <div className="p-5 border-b border-[var(--border)]">
             <p
@@ -249,7 +244,7 @@ export function OfficeAgentPanel({
                     marginTop: 2,
                   }}
                 >
-                  Zone: {config.zone}  ·  Last active 3m ago
+                  Zone: {config.zone} · Last active 3m ago
                 </p>
               </div>
             </div>
@@ -272,7 +267,13 @@ export function OfficeAgentPanel({
             </p>
 
             {ripples.length === 0 ? (
-              <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--muted-foreground)" }}>
+              <p
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 10,
+                  color: "var(--muted-foreground)",
+                }}
+              >
                 No ripples yet for this agent.
               </p>
             ) : (
@@ -300,7 +301,14 @@ export function OfficeAgentPanel({
                       >
                         {r.date}
                       </p>
-                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "var(--foreground)", margin: 0 }}>
+                      <p
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 12,
+                          color: "var(--foreground)",
+                          margin: 0,
+                        }}
+                      >
                         {r.text}
                       </p>
                     </div>
@@ -332,7 +340,11 @@ export function OfficeAgentPanel({
                   agent={a}
                   size={32}
                   showName
-                  className={a.key === agentKey ? "opacity-100" : "opacity-60 hover:opacity-100 transition-opacity"}
+                  className={
+                    a.key === agentKey
+                      ? "opacity-100"
+                      : "opacity-60 hover:opacity-100 transition-opacity"
+                  }
                 />
               ))}
             </div>
@@ -341,15 +353,11 @@ export function OfficeAgentPanel({
 
         {/* ── Footer CTAs ──────────────────────────────────────── */}
         <div className="border-t-2 border-[var(--foreground)] p-4 flex gap-3">
-          <button
-            className="flex items-center gap-2 flex-1 justify-center py-2.5 text-xs font-mono uppercase tracking-widest border border-[var(--foreground)] hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all"
-          >
+          <button className="flex items-center gap-2 flex-1 justify-center py-2.5 text-xs font-mono uppercase tracking-widest border border-[var(--foreground)] hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all">
             <ChatBubbleIcon className="h-3 w-3" />
             Ask in Muse
           </button>
-          <button
-            className="flex items-center gap-2 flex-1 justify-center py-2.5 text-xs font-mono uppercase tracking-widest bg-[var(--foreground)] text-[var(--background)] hover:opacity-80 transition-opacity"
-          >
+          <button className="flex items-center gap-2 flex-1 justify-center py-2.5 text-xs font-mono uppercase tracking-widest bg-[var(--foreground)] text-[var(--background)] hover:opacity-80 transition-opacity">
             <ArrowTopRightIcon className="h-3 w-3" />
             Full Profile
           </button>

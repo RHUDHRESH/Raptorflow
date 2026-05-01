@@ -56,8 +56,8 @@ export default function CreateWorkspacePage(): React.ReactElement {
           Create your workspace
         </h2>
         <p className="mt-2 text-sm text-[var(--muted-foreground)] leading-6">
-          A workspace is where your team, campaigns, and agents live. Pick a name
-          for your organization to get started.
+          A workspace is where your team, campaigns, and agents live. Pick a name for your
+          organization to get started.
         </p>
       </div>
 
@@ -75,7 +75,8 @@ export default function CreateWorkspacePage(): React.ReactElement {
               "bg-[var(--background)] border border-[var(--border)] rounded-none h-12 px-4 focus:ring-1 focus:ring-[var(--primary)]",
             formFieldLabel:
               "font-mono uppercase tracking-widest text-[10px] text-[var(--muted-foreground)] mb-1",
-            socialButtonsBlockButton: "border border-[var(--border)] rounded-none h-12 hover:bg-[var(--accent)]",
+            socialButtonsBlockButton:
+              "border border-[var(--border)] rounded-none h-12 hover:bg-[var(--accent)]",
             organizationSwitcherPopoverActionButton:
               "bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 rounded-none",
           },

@@ -25,7 +25,9 @@ export function LandingNav() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-[var(--background)]/95 backdrop-blur-sm shadow-sm paper-soft" : "bg-transparent"
+        isScrolled
+          ? "bg-[var(--background)]/95 backdrop-blur-sm shadow-sm paper-soft"
+          : "bg-transparent"
       }`}
     >
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
@@ -34,9 +36,7 @@ export function LandingNav() {
             <div className="w-8 h-8 rounded-[var(--radius)] bg-[var(--primary)] flex items-center justify-center text-white font-bold transition-transform duration-200 group-hover:scale-105">
               R
             </div>
-            <span className="text-xl font-bold text-[var(--ink-900)] font-display">
-              RaptorFlow
-            </span>
+            <span className="text-xl font-bold text-[var(--ink-900)] font-display">RaptorFlow</span>
           </a>
 
           <div className="hidden md:flex items-center gap-8">

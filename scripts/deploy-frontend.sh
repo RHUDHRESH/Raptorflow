@@ -23,7 +23,7 @@ pnpm --filter @raptorflow/web build
 echo "==> Deploying to Vercel..."
 vercel deploy $PRODUCTION \
   --token="$VERCEL_TOKEN" \
-  --cwd="$ROOT_DIR/apps/web" \
+  --cwd="$ROOT_DIR" \
   --yes
 
 echo "==> Done."

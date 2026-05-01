@@ -13,7 +13,8 @@
     "SENTRY_DSN",
     "SENTRY_AUTH_TOKEN",
     "SENTRY_ORG",
-    "SENTRY_PROJECT"
+    "SENTRY_PROJECT",
+    "SENTRY_UPLOAD_SOURCE_MAPS"
   ],
   "tasks": {
     "build": {

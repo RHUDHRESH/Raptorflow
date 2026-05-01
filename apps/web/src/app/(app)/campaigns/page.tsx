@@ -12,11 +12,7 @@ import {
   LightningBoltIcon,
   BackpackIcon,
 } from "@radix-ui/react-icons";
-import {
-  useCampaigns,
-  useCreateCampaign,
-  useEvaluateCampaign,
-} from "@/features/campaigns";
+import { useCampaigns, useCreateCampaign, useEvaluateCampaign } from "@/features/campaigns";
 import type { CampaignSummary } from "@/features/campaigns";
 import { Button } from "@/components/ui/button";
 import { GsapBridge } from "@/components/ui/gsap-bridge";
@@ -26,12 +22,42 @@ import { cn } from "@/lib/cn";
 import { Rocket } from "lucide-react";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  draft: { bg: "bg-[var(--paper-150)]", text: "text-[var(--ink-400)]", border: "border-[var(--border)]", dot: "bg-[var(--ink-400)]" },
-  evaluating: { bg: "bg-[var(--amber-wash)]", text: "text-[var(--primary)]", border: "border-[var(--amber-stroke)]/30", dot: "bg-[var(--primary)]" },
-  active: { bg: "bg-[var(--leaf-wash)]", text: "text-[var(--leaf-confirm)]", border: "border-[var(--leaf-confirm)]/30", dot: "bg-[var(--leaf-confirm)]" },
-  paused: { bg: "bg-[var(--indigo-wash)]", text: "text-[var(--indigo-muse)]", border: "border-[var(--indigo-muse)]/30", dot: "bg-[var(--indigo-muse)]" },
-  completed: { bg: "bg-[var(--paper-150)]", text: "text-[var(--pod-creative)]", border: "border-[var(--pod-creative)]/30", dot: "bg-[var(--pod-creative)]" },
-  complete: { bg: "bg-[var(--paper-150)]", text: "text-[var(--pod-creative)]", border: "border-[var(--pod-creative)]/30", dot: "bg-[var(--pod-creative)]" },
+  draft: {
+    bg: "bg-[var(--paper-150)]",
+    text: "text-[var(--ink-400)]",
+    border: "border-[var(--border)]",
+    dot: "bg-[var(--ink-400)]",
+  },
+  evaluating: {
+    bg: "bg-[var(--amber-wash)]",
+    text: "text-[var(--primary)]",
+    border: "border-[var(--amber-stroke)]/30",
+    dot: "bg-[var(--primary)]",
+  },
+  active: {
+    bg: "bg-[var(--leaf-wash)]",
+    text: "text-[var(--leaf-confirm)]",
+    border: "border-[var(--leaf-confirm)]/30",
+    dot: "bg-[var(--leaf-confirm)]",
+  },
+  paused: {
+    bg: "bg-[var(--indigo-wash)]",
+    text: "text-[var(--indigo-muse)]",
+    border: "border-[var(--indigo-muse)]/30",
+    dot: "bg-[var(--indigo-muse)]",
+  },
+  completed: {
+    bg: "bg-[var(--paper-150)]",
+    text: "text-[var(--pod-creative)]",
+    border: "border-[var(--pod-creative)]/30",
+    dot: "bg-[var(--pod-creative)]",
+  },
+  complete: {
+    bg: "bg-[var(--paper-150)]",
+    text: "text-[var(--pod-creative)]",
+    border: "border-[var(--pod-creative)]/30",
+    dot: "bg-[var(--pod-creative)]",
+  },
 };
 
 function StatusBadge({ status }: { status: string }): React.ReactElement {
@@ -40,7 +66,9 @@ function StatusBadge({ status }: { status: string }): React.ReactElement {
     <span
       className={cn(
         "inline-flex items-center gap-1.5 border px-3 py-1 text-[9px] font-bold uppercase tracking-[0.14em] font-mono rounded-full",
-        colors.bg, colors.text, colors.border
+        colors.bg,
+        colors.text,
+        colors.border,
       )}
       style={{ borderWidth: 1, borderStyle: "solid" }}
     >
@@ -86,7 +114,10 @@ function NewCampaignModal({
       <div className="relative z-10 w-full max-w-lg card-elevated p-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="display-sm">New Campaign</h2>
-          <button onClick={onClose} className="text-[var(--ink-400)] hover:text-[var(--ink-900)] transition-colors p-1 rounded-[var(--radius)] hover:bg-[var(--paper-150)]">
+          <button
+            onClick={onClose}
+            className="text-[var(--ink-400)] hover:text-[var(--ink-900)] transition-colors p-1 rounded-[var(--radius)] hover:bg-[var(--paper-150)]"
+          >
             ✕
           </button>
         </div>
@@ -120,14 +151,13 @@ function NewCampaignModal({
               className="flex-1 h-12"
               disabled={!isValid || create.isPending || evaluate.isPending}
             >
-              {evaluate.isPending ? "Evaluating…" : create.isPending ? "Creating…" : "Create & Evaluate"}
+              {evaluate.isPending
+                ? "Evaluating…"
+                : create.isPending
+                  ? "Creating…"
+                  : "Create & Evaluate"}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="h-12"
-            >
+            <Button type="button" variant="outline" onClick={onClose} className="h-12">
               Cancel
             </Button>
           </div>
@@ -144,7 +174,9 @@ export default function CampaignsPage(): React.ReactElement {
 
   const campaignList: CampaignSummary[] = campaigns ?? [];
   const activeCount = campaignList.filter((c) => c.status === "active").length;
-  const completedCount = campaignList.filter((c) => c.status === "completed" || c.status === "complete").length;
+  const completedCount = campaignList.filter(
+    (c) => c.status === "completed" || c.status === "complete",
+  ).length;
 
   function handleCreated(campaignId: string) {
     setModalOpen(false);
@@ -154,16 +186,12 @@ export default function CampaignsPage(): React.ReactElement {
   return (
     <div className="flex flex-col gap-12 py-2">
       <GsapBridge stagger>
-
         <header className="gsap-reveal flex items-end justify-between border-b border-[var(--border)] pb-8">
           <div className="space-y-2">
             <p className="eyebrow">Strategy Ledger</p>
             <h1 className="display-md">Campaigns</h1>
           </div>
-          <Button
-            className="h-12 px-8"
-            onClick={() => setModalOpen(true)}
-          >
+          <Button className="h-12 px-8" onClick={() => setModalOpen(true)}>
             <PlusIcon className="w-4 h-4 mr-2" />
             New Campaign
           </Button>
@@ -243,17 +271,13 @@ export default function CampaignsPage(): React.ReactElement {
                         {c.goal && (
                           <>
                             <span className="h-1 w-1 rounded-full bg-[var(--border)]" />
-                            <span className="mono-label">
-                              {c.goal}
-                            </span>
+                            <span className="mono-label">{c.goal}</span>
                           </>
                         )}
                         {c.moveCount != null && c.moveCount > 0 && (
                           <>
                             <span className="h-1 w-1 rounded-full bg-[var(--border)]" />
-                            <span className="mono-label">
-                              {c.moveCount} moves
-                            </span>
+                            <span className="mono-label">{c.moveCount} moves</span>
                           </>
                         )}
                       </div>
@@ -270,8 +294,8 @@ export default function CampaignsPage(): React.ReactElement {
                               c.evaluationScore >= 8
                                 ? "var(--leaf-confirm)"
                                 : c.evaluationScore >= 5
-                                ? "var(--primary)"
-                                : "var(--destructive)",
+                                  ? "var(--primary)"
+                                  : "var(--destructive)",
                           }}
                         >
                           {c.evaluationScore}
@@ -304,23 +328,20 @@ export default function CampaignsPage(): React.ReactElement {
               <p className="text-sm font-bold text-[var(--ink-900)] uppercase tracking-tight">
                 Ready for deployment?
               </p>
-              <p className="mono-label">
-                Create a campaign to begin the evaluation pipeline.
-              </p>
+              <p className="mono-label">Create a campaign to begin the evaluation pipeline.</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            className="h-12 px-8"
-            onClick={() => setModalOpen(true)}
-          >
+          <Button variant="outline" className="h-12 px-8" onClick={() => setModalOpen(true)}>
             New Campaign
           </Button>
         </footer>
-
       </GsapBridge>
 
-      <NewCampaignModal open={modalOpen} onClose={() => setModalOpen(false)} onCreated={handleCreated} />
+      <NewCampaignModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onCreated={handleCreated}
+      />
     </div>
   );
 }

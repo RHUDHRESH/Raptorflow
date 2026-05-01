@@ -32,10 +32,7 @@ export default function ContentPage(): React.ReactElement {
   if (error) {
     return (
       <AppPageFrame eyebrow="Content Engine" title="Content Ledger">
-        <AppErrorState
-          title="Failed to load content"
-          description={error.message}
-        />
+        <AppErrorState title="Failed to load content" description={error.message} />
       </AppPageFrame>
     );
   }
@@ -74,9 +71,7 @@ export default function ContentPage(): React.ReactElement {
               actions={<StatusPill status={item.status} tone="neutral" />}
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  {renderGeneratedContent(item.contentType, item.body)}
-                </div>
+                <div className="flex-1">{renderGeneratedContent(item.contentType, item.body)}</div>
                 <span className="mono-label shrink-0">
                   {new Date(item.createdAt).toLocaleString()}
                 </span>

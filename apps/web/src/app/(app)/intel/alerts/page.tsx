@@ -27,7 +27,10 @@ export default function IntelAlertsPage(): React.ReactElement {
             label: "Intel alert received",
             source: "WebSocket",
             severity,
-            time: new Date(event.timestamp).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }),
+            time: new Date(event.timestamp).toLocaleTimeString("en-IN", {
+              hour: "numeric",
+              minute: "2-digit",
+            }),
             summary: JSON.stringify(event.payload || {}).slice(0, 120),
           };
         })
@@ -35,7 +38,8 @@ export default function IntelAlertsPage(): React.ReactElement {
     [dismissed, eventLog],
   );
 
-  const filtered = filter === "all" ? liveAlerts : liveAlerts.filter((alert) => alert.severity === filter);
+  const filtered =
+    filter === "all" ? liveAlerts : liveAlerts.filter((alert) => alert.severity === filter);
   const sorted = [...filtered].sort(
     (a, b) =>
       (SEVERITY_ORDER[a.severity as keyof typeof SEVERITY_ORDER] ?? 2) -
@@ -116,7 +120,11 @@ export default function IntelAlertsPage(): React.ReactElement {
                   <Button size="sm" variant="secondary">
                     Take action
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setDismissed((current) => new Set([...current, alert.id]))}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setDismissed((current) => new Set([...current, alert.id]))}
+                  >
                     Dismiss
                   </Button>
                 </div>
@@ -131,11 +139,26 @@ export default function IntelAlertsPage(): React.ReactElement {
           <CardTitle className="text-base">📝 What to implement next</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-amber-800">
-          <p><strong>Backend:</strong> Persist alert events in the DB instead of only the client event log.</p>
-          <p><strong>Real-time:</strong> Keep wiring WebSocket <code>intel_alert_received</code> events so they show up here without refresh.</p>
-          <p><strong>Snooze:</strong> "Snooze for 24h" should be a DB-backed state instead of a local dismissal.</p>
-          <p><strong>Take action:</strong> Each alert type should link to the relevant backend context.</p>
-          <p><strong>Push notifications:</strong> Major alerts should trigger browser push notifications once the service worker exists.</p>
+          <p>
+            <strong>Backend:</strong> Persist alert events in the DB instead of only the client
+            event log.
+          </p>
+          <p>
+            <strong>Real-time:</strong> Keep wiring WebSocket <code>intel_alert_received</code>{" "}
+            events so they show up here without refresh.
+          </p>
+          <p>
+            <strong>Snooze:</strong> "Snooze for 24h" should be a DB-backed state instead of a local
+            dismissal.
+          </p>
+          <p>
+            <strong>Take action:</strong> Each alert type should link to the relevant backend
+            context.
+          </p>
+          <p>
+            <strong>Push notifications:</strong> Major alerts should trigger browser push
+            notifications once the service worker exists.
+          </p>
         </CardContent>
       </Card>
     </RouteShell>

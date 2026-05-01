@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 
 interface AgentPortraitProps {
   agent: AgentConfig;
-  size?: number;           // px (default 48)
+  size?: number; // px (default 48)
   showName?: boolean;
   showStatus?: boolean;
   status?: "idle" | "thinking" | "speaking" | "away";
@@ -16,10 +16,10 @@ interface AgentPortraitProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  idle:     "var(--leaf-confirm)",
+  idle: "var(--leaf-confirm)",
   thinking: "var(--indigo-muse)",
   speaking: "var(--amber-war)",
-  away:     "var(--muted-foreground)",
+  away: "var(--muted-foreground)",
 };
 
 /**
@@ -43,7 +43,11 @@ export function AgentPortrait({
 
   return (
     <div
-      className={cn("flex flex-col items-center gap-1 select-none", onClick && "cursor-pointer", className)}
+      className={cn(
+        "flex flex-col items-center gap-1 select-none",
+        onClick && "cursor-pointer",
+        className,
+      )}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -51,10 +55,7 @@ export function AgentPortrait({
       aria-label={agent.displayName}
     >
       {/* Portrait Container */}
-      <div
-        className="relative shrink-0"
-        style={{ width: size, height: size }}
-      >
+      <div className="relative shrink-0" style={{ width: size, height: size }}>
         {agent.portrait ? (
           /* ── Real portrait ─────────────────────────────── */
           <Image
@@ -156,7 +157,7 @@ export function AgentPill({
       className={cn(
         "agent-pill",
         onClick && "cursor-pointer hover:border-[var(--foreground)] transition-colors",
-        className
+        className,
       )}
       onClick={onClick}
       role={onClick ? "button" : undefined}
@@ -181,7 +182,14 @@ export function AgentPill({
             style={{ imageRendering: "pixelated", objectFit: "cover" }}
           />
         ) : (
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, fontWeight: 700, color: "#fff" }}>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 8,
+              fontWeight: 700,
+              color: "#fff",
+            }}
+          >
             {agent.shortName}
           </span>
         )}

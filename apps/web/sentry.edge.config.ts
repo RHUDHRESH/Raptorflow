@@ -1,9 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
-import {
-  sentryEnvironment,
-  sentryRelease,
-  sentryServerDsn,
-} from "./src/lib/sentry";
+import { sentryEnvironment, sentryRelease, sentryServerDsn } from "./src/lib/sentry";
 
 Sentry.init({
   dsn: sentryServerDsn,

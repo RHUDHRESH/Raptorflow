@@ -2,7 +2,13 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { useRipples, useCreateRipple, useDeleteRipple, useRealizeRipple, useRunDecay } from "@/hooks/use-prl";
+import {
+  useRipples,
+  useCreateRipple,
+  useDeleteRipple,
+  useRealizeRipple,
+  useRunDecay,
+} from "@/hooks/use-prl";
 import { AGENTS } from "@/lib/agents";
 import { AgentPill } from "@/components/ui/agent-portrait";
 import {
@@ -24,22 +30,28 @@ import { SignalDot } from "@/components/windows/SignalDot";
 import { cn } from "@/lib/cn";
 
 /* ─── Protection band config ────────────────────────────────────── */
-const BAND_CONFIG: Record<string, { label: string; tone: "neutral" | "success" | "warning" | "danger" | "amber" | "muse" }> = {
-  protected:  { label: "PROTECTED",  tone: "muse" },
-  important:  { label: "IMPORTANT",  tone: "amber" },
-  normal:     { label: "NORMAL",     tone: "success" },
+const BAND_CONFIG: Record<
+  string,
+  { label: string; tone: "neutral" | "success" | "warning" | "danger" | "amber" | "muse" }
+> = {
+  protected: { label: "PROTECTED", tone: "muse" },
+  important: { label: "IMPORTANT", tone: "amber" },
+  normal: { label: "NORMAL", tone: "success" },
   disposable: { label: "DISPOSABLE", tone: "danger" },
 };
 
 /* ─── Confidence bar ────────────────────────────────────────────── */
 function ConfidenceBar({ value }: { value: number }): React.ReactElement {
   const pct = Math.round(value * 100);
-  const color = pct >= 75 ? "var(--leaf-confirm)" : pct >= 40 ? "var(--primary)" : "var(--destructive)";
+  const color =
+    pct >= 75 ? "var(--leaf-confirm)" : pct >= 40 ? "var(--primary)" : "var(--destructive)";
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <span className="mono-label">Confidence</span>
-        <span className="font-mono text-[9px] font-bold" style={{ color }}>{pct}%</span>
+        <span className="font-mono text-[9px] font-bold" style={{ color }}>
+          {pct}%
+        </span>
       </div>
       <div className="h-[3px] bg-[var(--paper-200)] overflow-hidden rounded-full">
         <div
@@ -52,14 +64,23 @@ function ConfidenceBar({ value }: { value: number }): React.ReactElement {
 }
 
 /* ─── Ripple Card ───────────────────────────────────────────────── */
-function RippleCard({ ripple, onRealize, onDelete }: {
+function RippleCard({
+  ripple,
+  onRealize,
+  onDelete,
+}: {
   ripple: any;
   onRealize: () => void;
   onDelete: () => void;
 }): React.ReactElement {
   const band = BAND_CONFIG[ripple.importanceBand] ?? BAND_CONFIG.normal;
-  const sourceAgent = ripple.sourceAgent ? AGENTS.find((a) => a.key === ripple.sourceAgent || a.displayName === ripple.sourceAgent) : undefined;
-  const dateStr = new Date(ripple.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  const sourceAgent = ripple.sourceAgent
+    ? AGENTS.find((a) => a.key === ripple.sourceAgent || a.displayName === ripple.sourceAgent)
+    : undefined;
+  const dateStr = new Date(ripple.createdAt).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+  });
 
   return (
     <AppPageSection
@@ -107,7 +128,10 @@ function RippleCard({ ripple, onRealize, onDelete }: {
 }
 
 /* ─── New Ripple Slide-in Panel ─────────────────────────────────── */
-function NewRipplePanel({ onClose, onCreate }: {
+function NewRipplePanel({
+  onClose,
+  onCreate,
+}: {
   onClose: () => void;
   onCreate: (data: { coreClaim: string; keyReasoning: string }) => void;
 }): React.ReactElement {
@@ -115,7 +139,9 @@ function NewRipplePanel({ onClose, onCreate }: {
   const [reasoning, setReasoning] = useState("");
 
   React.useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
@@ -126,7 +152,10 @@ function NewRipplePanel({ onClose, onCreate }: {
       <div className="fixed right-0 top-0 bottom-0 z-50 flex flex-col border-l border-[var(--border)] bg-[var(--background)] w-full max-w-md">
         <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
           <h2 className="h2">New Ripple</h2>
-          <button onClick={onClose} className="p-1 hover:bg-[var(--paper-150)] rounded-[var(--radius)] transition-colors">
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-[var(--paper-150)] rounded-[var(--radius)] transition-colors"
+          >
             <Cross2Icon className="h-4 w-4" />
           </button>
         </div>
@@ -159,7 +188,9 @@ function NewRipplePanel({ onClose, onCreate }: {
             Cancel
           </button>
           <button
-            onClick={() => { if (claim.trim()) onCreate({ coreClaim: claim, keyReasoning: reasoning }); }}
+            onClick={() => {
+              if (claim.trim()) onCreate({ coreClaim: claim, keyReasoning: reasoning });
+            }}
             disabled={!claim.trim()}
             className="btn-primary flex-1 disabled:opacity-30"
           >
@@ -176,25 +207,30 @@ type BandFilter = "all" | "protected" | "important" | "normal" | "disposable";
 
 export default function RipplesPage(): React.ReactElement {
   const { data: ripples, isLoading, error } = useRipples();
-  const createRipple  = useCreateRipple();
-  const deleteRipple  = useDeleteRipple();
+  const createRipple = useCreateRipple();
+  const deleteRipple = useDeleteRipple();
   const realizeRipple = useRealizeRipple();
-  const runDecay      = useRunDecay();
+  const runDecay = useRunDecay();
 
   const [filter, setFilter] = useState<BandFilter>("all");
   const [showPanel, setShowPanel] = useState(false);
 
   const displayRipples = ripples ?? [];
-  const filtered = displayRipples.filter((r: any) => filter === "all" || r.importanceBand === filter);
+  const filtered = displayRipples.filter(
+    (r: any) => filter === "all" || r.importanceBand === filter,
+  );
 
   const handleCreate = (data: { coreClaim: string; keyReasoning: string }) => {
-    createRipple.mutate({
-      summaryText: data.coreClaim,
-      rawText: data.keyReasoning,
-      confidence: 0.8,
-      importanceBand: "normal",
-      sourceAgent: "System"
-    }, { onSuccess: () => setShowPanel(false) });
+    createRipple.mutate(
+      {
+        summaryText: data.coreClaim,
+        rawText: data.keyReasoning,
+        confidence: 0.8,
+        importanceBand: "normal",
+        sourceAgent: "System",
+      },
+      { onSuccess: () => setShowPanel(false) },
+    );
   };
 
   if (isLoading) {
@@ -208,10 +244,7 @@ export default function RipplesPage(): React.ReactElement {
   if (error) {
     return (
       <AppPageFrame eyebrow="PRL" title="Memory Ripples">
-        <AppErrorState
-          title="Failed to load ripples"
-          description={error.message}
-        />
+        <AppErrorState title="Failed to load ripples" description={error.message} />
       </AppPageFrame>
     );
   }
@@ -262,7 +295,11 @@ export default function RipplesPage(): React.ReactElement {
         <AppEmptyState
           icon={<Activity className="w-6 h-6 text-[var(--ink-400)]" />}
           title={filter === "all" ? "No ripples yet" : `No ${filter} ripples`}
-          description={filter === "all" ? "Create your first ripple to begin tracking." : `No ripples in the ${filter} band.`}
+          description={
+            filter === "all"
+              ? "Create your first ripple to begin tracking."
+              : `No ripples in the ${filter} band.`
+          }
         />
       )}
 
@@ -272,17 +309,14 @@ export default function RipplesPage(): React.ReactElement {
             key={ripple.rippleId}
             ripple={ripple}
             onRealize={() => realizeRipple.mutate(ripple.rippleId)}
-            onDelete={() => { if (confirm("Delete this ripple?")) deleteRipple.mutate(ripple.rippleId); }}
+            onDelete={() => {
+              if (confirm("Delete this ripple?")) deleteRipple.mutate(ripple.rippleId);
+            }}
           />
         ))}
       </div>
 
-      {showPanel && (
-        <NewRipplePanel
-          onClose={() => setShowPanel(false)}
-          onCreate={handleCreate}
-        />
-      )}
+      {showPanel && <NewRipplePanel onClose={() => setShowPanel(false)} onCreate={handleCreate} />}
     </AppPageFrame>
   );
 }

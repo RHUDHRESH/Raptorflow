@@ -9,8 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const CHANNEL_OPTIONS = [
-  "LinkedIn", "Twitter", "Email", "Blog", "Webinar", "Podcast",
-  "YouTube", "Instagram", "TikTok", "Reddit", "SEO", "PPC"
+  "LinkedIn",
+  "Twitter",
+  "Email",
+  "Blog",
+  "Webinar",
+  "Podcast",
+  "YouTube",
+  "Instagram",
+  "TikTok",
+  "Reddit",
+  "SEO",
+  "PPC",
 ];
 
 export default function NewCampaignPage(): React.ReactElement {
@@ -23,9 +33,7 @@ export default function NewCampaignPage(): React.ReactElement {
   const [channels, setChannels] = React.useState<string[]>([]);
 
   const toggleChannel = (ch: string) => {
-    setChannels((prev) =>
-      prev.includes(ch) ? prev.filter((c) => c !== ch) : [...prev, ch]
-    );
+    setChannels((prev) => (prev.includes(ch) ? prev.filter((c) => c !== ch) : [...prev, ch]));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -37,7 +45,7 @@ export default function NewCampaignPage(): React.ReactElement {
         onSuccess: (campaign) => {
           router.push(`/campaigns/${campaign.campaignId}` as Route);
         },
-      }
+      },
     );
   };
 
@@ -112,11 +120,7 @@ export default function NewCampaignPage(): React.ReactElement {
               <Button type="submit" disabled={createCampaign.isPending || !name.trim()}>
                 {createCampaign.isPending ? "Creating..." : "Create campaign"}
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => router.back()}
-              >
+              <Button type="button" variant="ghost" onClick={() => router.back()}>
                 Cancel
               </Button>
             </div>

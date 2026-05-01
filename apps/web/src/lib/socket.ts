@@ -131,7 +131,7 @@ export class OfficeSocket {
     const payload = event.payload ?? {};
     const agentKey = (payload.agent_key || payload.agentKey) as any;
     store.logEvent({ type: event.event_type, agentKey });
-    
+
     switch (event.event_type) {
       case "morning_meeting_start":
         store.setMode("active");

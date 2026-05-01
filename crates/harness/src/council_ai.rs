@@ -81,7 +81,7 @@ Respond as JSON only:
     );
 
     let parsed: AiInstinctFrame = bedrock
-        .converse_json(&bedrock.fast_model(), &prompt, 600)
+        .converse_json(bedrock.fast_model(), &prompt, 600)
         .await
         .ok()?;
 
@@ -129,7 +129,7 @@ Respond as JSON only:
     );
 
     let parsed: AiChallengeResponse = bedrock
-        .converse_json(&bedrock.fast_model(), &prompt, 400)
+        .converse_json(bedrock.fast_model(), &prompt, 400)
         .await
         .ok()?;
 
@@ -177,7 +177,7 @@ Respond as JSON only:
     );
 
     let parsed: AiSynthesisResponse = bedrock
-        .converse_json(&bedrock.strategist_model(), &prompt, 1200)
+        .converse_json(bedrock.strategist_model(), &prompt, 1200)
         .await
         .ok()?;
 

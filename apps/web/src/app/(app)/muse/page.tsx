@@ -21,11 +21,31 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 
 const ROUTE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  tactical: { bg: "bg-[var(--indigo-wash)]", text: "text-[var(--indigo-muse)]", border: "border-[var(--indigo-muse)]/30" },
-  strategic: { bg: "bg-[var(--paper-150)]", text: "text-[var(--pod-creative)]", border: "border-[var(--pod-creative)]/30" },
-  campaign: { bg: "bg-[var(--leaf-wash)]", text: "text-[var(--leaf-confirm)]", border: "border-[var(--leaf-confirm)]/30" },
-  council: { bg: "bg-[var(--amber-wash)]", text: "text-[var(--primary)]", border: "border-[var(--primary)]/30" },
-  foundation: { bg: "bg-[var(--paper-150)]", text: "text-[var(--ink-500)]", border: "border-[var(--ink-400)]/30" },
+  tactical: {
+    bg: "bg-[var(--indigo-wash)]",
+    text: "text-[var(--indigo-muse)]",
+    border: "border-[var(--indigo-muse)]/30",
+  },
+  strategic: {
+    bg: "bg-[var(--paper-150)]",
+    text: "text-[var(--pod-creative)]",
+    border: "border-[var(--pod-creative)]/30",
+  },
+  campaign: {
+    bg: "bg-[var(--leaf-wash)]",
+    text: "text-[var(--leaf-confirm)]",
+    border: "border-[var(--leaf-confirm)]/30",
+  },
+  council: {
+    bg: "bg-[var(--amber-wash)]",
+    text: "text-[var(--primary)]",
+    border: "border-[var(--primary)]/30",
+  },
+  foundation: {
+    bg: "bg-[var(--paper-150)]",
+    text: "text-[var(--ink-500)]",
+    border: "border-[var(--ink-400)]/30",
+  },
 };
 
 const SUGGESTION_CHIPS = [
@@ -41,7 +61,9 @@ function RouteBadge({ route }: { route: string }): React.ReactElement {
     <span
       className={cn(
         "inline-block border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.14em] font-mono rounded-full",
-        colors.bg, colors.text, colors.border
+        colors.bg,
+        colors.text,
+        colors.border,
       )}
       style={{ borderWidth: 1, borderStyle: "solid" }}
     >
@@ -65,19 +87,15 @@ function MessageBubble({
           "max-w-[80%] rounded-[var(--radius-lg)] px-5 py-4 text-sm leading-relaxed border transition-all duration-200",
           isUser
             ? "rounded-tr-none bg-[var(--amber-wash)] border-[var(--primary)]/20 text-[var(--ink-900)]"
-            : "rounded-tl-none bg-white border-[var(--border)] text-[var(--ink-900)]"
+            : "rounded-tl-none bg-white border-[var(--border)] text-[var(--ink-900)]",
         )}
       >
         <p style={{ whiteSpace: "pre-wrap" }}>{message.content}</p>
       </div>
       <div className="flex items-center gap-2">
         {!isUser && message.route && <RouteBadge route={message.route} />}
-        {isUser && (
-          <span className="mono-label">you</span>
-        )}
-        {!isUser && !message.route && (
-          <span className="mono-label">muse</span>
-        )}
+        {isUser && <span className="mono-label">you</span>}
+        {!isUser && !message.route && <span className="mono-label">muse</span>}
       </div>
     </div>
   );
@@ -192,19 +210,14 @@ export default function MusePage(): React.ReactElement {
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden -mx-6 -my-8 md:-mx-10">
       <aside className="w-72 shrink-0 border-r border-[var(--border)] bg-[var(--sidebar-background)] flex flex-col paper-soft">
         <div className="border-b border-[var(--border)] p-4">
-          <Button
-            onClick={handleNewConversation}
-            className="h-10 w-full"
-          >
+          <Button onClick={handleNewConversation} className="h-10 w-full">
             <PlusIcon className="mr-2 h-4 w-4" />
             New Conversation
           </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
-          <div className="px-3 py-3 eyebrow">
-            Conversations
-          </div>
+          <div className="px-3 py-3 eyebrow">Conversations</div>
 
           {convQuery.isLoading ? (
             <div className="p-2 space-y-2">
@@ -226,7 +239,9 @@ export default function MusePage(): React.ReactElement {
                   onClick={() => setSelectedId(conv.id)}
                   className={cn(
                     "w-full rounded-[var(--radius)] px-3 py-3 text-left transition-all duration-200",
-                    selectedId === conv.id ? "bg-[var(--amber-wash)] shadow-sm" : "hover:bg-[var(--paper-150)]"
+                    selectedId === conv.id
+                      ? "bg-[var(--amber-wash)] shadow-sm"
+                      : "hover:bg-[var(--paper-150)]",
                   )}
                 >
                   <div className="truncate text-xs font-medium text-[var(--ink-900)]">
@@ -282,14 +297,22 @@ export default function MusePage(): React.ReactElement {
             ) : isLoadingConversation ? (
               <div className="space-y-4">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className={cn(`h-16 rounded-[var(--radius-lg)] bg-[var(--paper-200)] animate-pulse`, i % 2 === 1 ? "ml-auto max-w-[70%]" : "")} />
+                  <div
+                    key={i}
+                    className={cn(
+                      `h-16 rounded-[var(--radius-lg)] bg-[var(--paper-200)] animate-pulse`,
+                      i % 2 === 1 ? "ml-auto max-w-[70%]" : "",
+                    )}
+                  />
                 ))}
               </div>
             ) : messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
                 <div className="space-y-3">
                   <p className="display-sm">Ask about strategy, campaigns, or your Foundation</p>
-                  <p className="body-muted">Muse classifies your message and routes it to the right handler</p>
+                  <p className="body-muted">
+                    Muse classifies your message and routes it to the right handler
+                  </p>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2">
                   {SUGGESTION_CHIPS.map((chip) => (

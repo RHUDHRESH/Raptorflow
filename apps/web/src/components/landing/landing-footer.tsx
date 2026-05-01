@@ -65,7 +65,8 @@ export function LandingFooter() {
             </div>
 
             <p className="text-[var(--ink-400)] leading-relaxed mb-8 max-w-sm">
-              The marketing intelligence platform for Indian B2B SaaS founders. Sign in once and use the full product immediately.
+              The marketing intelligence platform for Indian B2B SaaS founders. Sign in once and use
+              the full product immediately.
             </p>
 
             <div className="flex flex-col gap-3">

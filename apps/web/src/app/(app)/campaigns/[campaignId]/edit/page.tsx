@@ -53,7 +53,7 @@ export default function EditCampaignPage({
         onSuccess: () => {
           router.push(`/campaigns/${campaignId}` as Route);
         },
-      }
+      },
     );
   };
 
@@ -131,7 +131,7 @@ export default function EditCampaignPage({
                       "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                       status === s
                         ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "border-[var(--border)] bg-white text-[var(--foreground)] hover:bg-[var(--muted)]"
+                        : "border-[var(--border)] bg-white text-[var(--foreground)] hover:bg-[var(--muted)]",
                     )}
                   >
                     {s.replace("_", " ")}
@@ -144,11 +144,7 @@ export default function EditCampaignPage({
               <Button type="submit" disabled={updateCampaignStatus.isPending}>
                 {updateCampaignStatus.isPending ? "Saving..." : "Save status"}
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => router.back()}
-              >
+              <Button type="button" variant="ghost" onClick={() => router.back()}>
                 Cancel
               </Button>
             </div>

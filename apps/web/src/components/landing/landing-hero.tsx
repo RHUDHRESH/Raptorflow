@@ -24,7 +24,8 @@ export function LandingHero() {
             <span className="italic text-[var(--primary)]">with worse products</span>
           </h1>
           <p className="text-lg sm:text-xl text-[var(--ink-500)] max-w-2xl mx-auto leading-relaxed">
-            RaptorFlow is your outsourced marketing team. Sign in once, then research your market, monitor competitors, and execute from the same workspace.
+            RaptorFlow is your outsourced marketing team. Sign in once, then research your market,
+            monitor competitors, and execute from the same workspace.
           </p>
         </div>
 
@@ -118,7 +119,9 @@ export function LandingHero() {
 
                 <div className="space-y-4">
                   <div className="bg-white rounded-[var(--radius-lg)] p-4 shadow-sm border border-[var(--border)]">
-                    <div className="text-2xl font-bold font-display text-[var(--ink-900)]">340%</div>
+                    <div className="text-2xl font-bold font-display text-[var(--ink-900)]">
+                      340%
+                    </div>
                     <div className="text-sm text-[var(--ink-500)]">Organic growth</div>
                     <div className="mt-2 h-1.5 bg-[var(--paper-150)] rounded-full overflow-hidden">
                       <div className="h-full w-3/4 bg-[var(--primary)] rounded-full" />

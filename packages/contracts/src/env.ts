@@ -20,8 +20,6 @@ export interface BackendEnv {
   QDRANT_API_KEY: string;
   DATABASE_URL: string;
   DIRECT_DATABASE_URL: string;
-  PRISMA_ACCELERATE_URL: string;
-  PRISMA_PULSE_API_KEY: string;
   RAPTORFLOW_S3_BUCKET: string;
   RAPTORFLOW_SQS_BASE_URL: string;
   RAPTORFLOW_SQS_EMBEDDING_QUEUE: string;
@@ -45,4 +43,5 @@ export interface BackendEnv {
   RAPTORFLOW_RESEND_API_KEY: string;
   RAPTORFLOW_RESEND_FROM_EMAIL: string;
   RAPTORFLOW_RESEND_WEBHOOK_SECRET: string;
+  CRON_SECRET: string;
 }

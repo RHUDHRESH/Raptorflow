@@ -22,10 +22,34 @@ import Link from "next/link";
 
 /* ─── Alert severity config ─────────────────────────────────────── */
 const SEVERITY_CONFIG = {
-  high:   { label: "HIGH",   color: "var(--signal-red)",   bg: "var(--signal-red-dim,   rgba(220,38,38,0.05))",  icon: CrossCircledIcon,        border: "var(--signal-red)"   },
-  medium: { label: "MED",    color: "var(--amber-war)",    bg: "var(--amber-war-dim,    rgba(196,128,30,0.06))", icon: ExclamationTriangleIcon, border: "var(--amber-war)"    },
-  low:    { label: "LOW",    color: "var(--leaf-confirm)", bg: "var(--leaf-confirm-dim, rgba(34,197,94,0.05))",  icon: InfoCircledIcon,         border: "var(--leaf-confirm)" },
-  system: { label: "SYS",   color: "var(--indigo-muse)",  bg: "rgba(99,102,241,0.05)",                          icon: CheckCircledIcon,        border: "var(--indigo-muse)"  },
+  high: {
+    label: "HIGH",
+    color: "var(--signal-red)",
+    bg: "var(--signal-red-dim,   rgba(220,38,38,0.05))",
+    icon: CrossCircledIcon,
+    border: "var(--signal-red)",
+  },
+  medium: {
+    label: "MED",
+    color: "var(--amber-war)",
+    bg: "var(--amber-war-dim,    rgba(196,128,30,0.06))",
+    icon: ExclamationTriangleIcon,
+    border: "var(--amber-war)",
+  },
+  low: {
+    label: "LOW",
+    color: "var(--leaf-confirm)",
+    bg: "var(--leaf-confirm-dim, rgba(34,197,94,0.05))",
+    icon: InfoCircledIcon,
+    border: "var(--leaf-confirm)",
+  },
+  system: {
+    label: "SYS",
+    color: "var(--indigo-muse)",
+    bg: "rgba(99,102,241,0.05)",
+    icon: CheckCircledIcon,
+    border: "var(--indigo-muse)",
+  },
 } as const;
 
 type Severity = "high" | "medium" | "low" | "system";
@@ -73,13 +97,31 @@ function RadarEmpty(): React.ReactElement {
           />
         </div>
         {/* Center dot */}
-        <div className="absolute inset-[48%] rounded-full" style={{ background: "var(--leaf-confirm)" }} />
+        <div
+          className="absolute inset-[48%] rounded-full"
+          style={{ background: "var(--leaf-confirm)" }}
+        />
       </div>
       <div className="text-center">
-        <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--foreground)", marginBottom: 6 }}>
+        <p
+          style={{
+            fontFamily: "'DM Serif Display', serif",
+            fontSize: 22,
+            color: "var(--foreground)",
+            marginBottom: 6,
+          }}
+        >
           System Nominal
         </p>
-        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted-foreground)" }}>
+        <p
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 9,
+            textTransform: "uppercase",
+            letterSpacing: "0.18em",
+            color: "var(--muted-foreground)",
+          }}
+        >
           No active alerts · All clear
         </p>
       </div>
@@ -88,25 +130,38 @@ function RadarEmpty(): React.ReactElement {
 }
 
 /* ─── Alert Card ────────────────────────────────────────────────── */
-function AlertCard({ nudge, onDismiss }: { nudge: Nudge; onDismiss: () => void }): React.ReactElement {
+function AlertCard({
+  nudge,
+  onDismiss,
+}: {
+  nudge: Nudge;
+  onDismiss: () => void;
+}): React.ReactElement {
   const sevKey = priorityToSeverity(nudge.priority);
-  const sev  = SEVERITY_CONFIG[sevKey];
+  const sev = SEVERITY_CONFIG[sevKey];
   const Icon = sev.icon;
   const typeLabel = (nudge.type || "SYSTEM").toUpperCase();
 
   const elapsed = Date.now() - new Date(nudge.createdAt).getTime();
-  const elapsedStr = elapsed < 60000
-    ? "just now"
-    : elapsed < 3600000
-    ? `${Math.floor(elapsed / 60000)}m ago`
-    : `${Math.floor(elapsed / 3600000)}h ago`;
+  const elapsedStr =
+    elapsed < 60000
+      ? "just now"
+      : elapsed < 3600000
+        ? `${Math.floor(elapsed / 60000)}m ago`
+        : `${Math.floor(elapsed / 3600000)}h ago`;
 
   const ctaHref = nudge.ctaHref ?? "#";
 
   return (
     <div
       className="flex border transition-all hover:border-[var(--foreground)]"
-      style={{ background: sev.bg, borderLeft: `3px solid ${sev.color}`, borderTop: `1px solid var(--border)`, borderRight: `1px solid var(--border)`, borderBottom: `1px solid var(--border)` }}
+      style={{
+        background: sev.bg,
+        borderLeft: `3px solid ${sev.color}`,
+        borderTop: `1px solid var(--border)`,
+        borderRight: `1px solid var(--border)`,
+        borderBottom: `1px solid var(--border)`,
+      }}
     >
       {/* Severity icon */}
       <div className="flex items-start px-4 pt-4 shrink-0">
@@ -144,27 +199,66 @@ function AlertCard({ nudge, onDismiss }: { nudge: Nudge; onDismiss: () => void }
               {typeLabel}
             </span>
           </div>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)", whiteSpace: "nowrap", flexShrink: 0 }}>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 8,
+              color: "var(--muted-foreground)",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
             {elapsedStr}
           </span>
         </div>
 
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>
+        <p
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 12,
+            fontWeight: 600,
+            color: "var(--foreground)",
+            marginBottom: 4,
+          }}
+        >
           {nudge.title}
         </p>
-        <p className="line-clamp-2" style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, lineHeight: 1.5, color: "var(--muted-foreground)" }}>
+        <p
+          className="line-clamp-2"
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 11,
+            lineHeight: 1.5,
+            color: "var(--muted-foreground)",
+          }}
+        >
           {nudge.body}
         </p>
 
         {/* Footer */}
         <div className="flex items-center justify-between mt-3">
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: "var(--muted-foreground)" }}>System</span>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 8,
+              color: "var(--muted-foreground)",
+            }}
+          >
+            System
+          </span>
           <div className="flex gap-1">
             {nudge.ctaHref && (
               <Link
                 href={ctaHref}
                 className="flex items-center gap-1 px-2 py-1 border border-[var(--border)] hover:border-[var(--foreground)] transition-all"
-                style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted-foreground)" }}
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 7,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "var(--muted-foreground)",
+                }}
               >
                 <LightningBoltIcon className="h-2.5 w-2.5" />
                 {nudge.cta ?? "Act"}
@@ -198,36 +292,70 @@ export default function NudgesPage(): React.ReactElement {
     dismissNudge.mutate(id);
   };
 
-  const wsSeverityColor = wsStatus === "connected" ? "var(--leaf-confirm)" : wsStatus === "connecting" ? "var(--amber-war)" : "var(--signal-red)";
+  const wsSeverityColor =
+    wsStatus === "connected"
+      ? "var(--leaf-confirm)"
+      : wsStatus === "connecting"
+        ? "var(--amber-war)"
+        : "var(--signal-red)";
   const filtered = nudges.filter((nudge) => {
     if (sevFilter === "all") return true;
     return priorityToSeverity(nudge.priority) === sevFilter;
   });
 
-  const highCount = filtered.filter((nudge) => priorityToSeverity(nudge.priority) === "high").length;
-  const medCount  = filtered.filter((nudge) => priorityToSeverity(nudge.priority) === "medium").length;
-  const lowCount  = filtered.filter((nudge) => priorityToSeverity(nudge.priority) === "low").length;
-  const sysCount  = filtered.filter((nudge) => priorityToSeverity(nudge.priority) === "system").length;
+  const highCount = filtered.filter(
+    (nudge) => priorityToSeverity(nudge.priority) === "high",
+  ).length;
+  const medCount = filtered.filter(
+    (nudge) => priorityToSeverity(nudge.priority) === "medium",
+  ).length;
+  const lowCount = filtered.filter((nudge) => priorityToSeverity(nudge.priority) === "low").length;
+  const sysCount = filtered.filter(
+    (nudge) => priorityToSeverity(nudge.priority) === "system",
+  ).length;
 
   return (
     <div className="flex flex-col gap-8 py-2">
-
       {/* ── Header ────────────────────────────────────────── */}
       <header className="flex items-end justify-between border-b-2 border-[var(--foreground)] pb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <ActivityLogIcon className="h-4 w-4" style={{ color: "var(--amber-war)" }} />
-            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>
+            <p
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: "var(--muted-foreground)",
+              }}
+            >
               Alert Command Center
             </p>
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full" style={{ background: wsSeverityColor }} />
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted-foreground)" }}>
+              <span
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 8,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "var(--muted-foreground)",
+                }}
+              >
                 WS: {wsStatus}
               </span>
             </div>
           </div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, lineHeight: 1, margin: 0 }}>
+          <h1
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontSize: 40,
+              lineHeight: 1,
+              margin: 0,
+            }}
+          >
             Nudges
           </h1>
         </div>
@@ -235,16 +363,73 @@ export default function NudgesPage(): React.ReactElement {
         {/* Severity summary */}
         <div className="flex items-center gap-6 shrink-0">
           <div className="text-right">
-            <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: "var(--signal-red)", lineHeight: 1 }}>{highCount}</p>
-            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--muted-foreground)" }}>HIGH</p>
+            <p
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                fontSize: 28,
+                color: "var(--signal-red)",
+                lineHeight: 1,
+              }}
+            >
+              {highCount}
+            </p>
+            <p
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 8,
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                color: "var(--muted-foreground)",
+              }}
+            >
+              HIGH
+            </p>
           </div>
           <div className="text-right">
-            <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: "var(--amber-war)", lineHeight: 1 }}>{medCount}</p>
-            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--muted-foreground)" }}>MED</p>
+            <p
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                fontSize: 28,
+                color: "var(--amber-war)",
+                lineHeight: 1,
+              }}
+            >
+              {medCount}
+            </p>
+            <p
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 8,
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                color: "var(--muted-foreground)",
+              }}
+            >
+              MED
+            </p>
           </div>
           <div className="text-right">
-            <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: "var(--leaf-confirm)", lineHeight: 1 }}>{lowCount}</p>
-            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--muted-foreground)" }}>LOW</p>
+            <p
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                fontSize: 28,
+                color: "var(--leaf-confirm)",
+                lineHeight: 1,
+              }}
+            >
+              {lowCount}
+            </p>
+            <p
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 8,
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                color: "var(--muted-foreground)",
+              }}
+            >
+              LOW
+            </p>
           </div>
         </div>
       </header>
@@ -267,7 +452,9 @@ export default function NudgesPage(): React.ReactElement {
                   textTransform: "uppercase",
                   letterSpacing: "0.12em",
                   background: isActive ? (conf?.color ?? "var(--foreground)") : "transparent",
-                  color: isActive ? "var(--background)" : conf?.color ?? "var(--muted-foreground)",
+                  color: isActive
+                    ? "var(--background)"
+                    : (conf?.color ?? "var(--muted-foreground)"),
                   borderColor: isActive ? (conf?.color ?? "var(--foreground)") : "var(--border)",
                   borderLeft: s === "all" ? "1px solid var(--border)" : "none",
                 }}
@@ -282,14 +469,22 @@ export default function NudgesPage(): React.ReactElement {
       {/* ── Alert List ─────────────────────────────────────── */}
       {isLoading ? (
         <div className="flex flex-col gap-2">
-           {[1,2,3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
         </div>
       ) : error ? (
         <div className="p-12 border border-[var(--signal-red)] bg-[#F5F0E8]/10 text-center">
-           <p className="font-mono text-xs text-[var(--signal-red)] uppercase tracking-widest">Telemetry Error: Failed to fetch nudges from command core.</p>
+          <p className="font-mono text-xs text-[var(--signal-red)] uppercase tracking-widest">
+            Telemetry Error: Failed to fetch nudges from command core.
+          </p>
         </div>
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Bell} title="All clear" description="No nudges right now. Keep executing." />
+        <EmptyState
+          icon={Bell}
+          title="All clear"
+          description="No nudges right now. Keep executing."
+        />
       ) : (
         <div className="flex flex-col gap-0 border border-[var(--border)]">
           {filtered.map((nudge) => (
@@ -301,18 +496,45 @@ export default function NudgesPage(): React.ReactElement {
       {/* ── WS Event Log ───────────────────────────────────── */}
       {eventLog.length > 0 && (
         <div>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted-foreground)", marginBottom: 12 }}>
+          <p
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 9,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.18em",
+              color: "var(--muted-foreground)",
+              marginBottom: 12,
+            }}
+          >
             Live WebSocket Events
           </p>
           <div className="border border-[var(--border)]" style={{ background: "var(--card)" }}>
-            {[...eventLog].reverse().slice(0, 10).map((ev, i) => (
-              <div key={i} className="flex items-start gap-3 px-4 py-3 border-b border-[var(--border)] last:border-0">
-                <span className="h-1.5 w-1.5 rounded-full mt-1.5 shrink-0" style={{ background: "var(--amber-war)" }} />
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--foreground)" }}>
-                  {ev.type || ev.eventType}
-                </span>
-              </div>
-            ))}
+            {[...eventLog]
+              .reverse()
+              .slice(0, 10)
+              .map((ev, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 px-4 py-3 border-b border-[var(--border)] last:border-0"
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full mt-1.5 shrink-0"
+                    style={{ background: "var(--amber-war)" }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 9,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      color: "var(--foreground)",
+                    }}
+                  >
+                    {ev.type || ev.eventType}
+                  </span>
+                </div>
+              ))}
           </div>
         </div>
       )}

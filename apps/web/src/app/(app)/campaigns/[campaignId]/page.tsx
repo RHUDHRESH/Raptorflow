@@ -31,7 +31,10 @@ function ScoreBadge({ score }: { score: number }): React.ReactElement {
       className="inline-flex flex-col items-center justify-center border px-4 py-2"
       style={{ borderColor: color, background: `${color}10` }}
     >
-      <span className="text-3xl font-bold" style={{ color, fontFamily: "'DM Serif Display', serif" }}>
+      <span
+        className="text-3xl font-bold"
+        style={{ color, fontFamily: "'DM Serif Display', serif" }}
+      >
         {score}
       </span>
       <span className="text-[8px] font-mono uppercase tracking-[0.18em]" style={{ color }}>
@@ -53,7 +56,10 @@ function ChannelBadge({ channel }: { channel: string }): React.ReactElement {
   const cls = colors[channel] ?? "bg-gray-500/10 text-gray-600 border-gray-500/30";
   return (
     <span
-      className={cn("text-[8px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 border font-mono", cls)}
+      className={cn(
+        "text-[8px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 border font-mono",
+        cls,
+      )}
       style={{ borderWidth: 1 }}
     >
       {channel}
@@ -138,9 +144,7 @@ function MoveCard({
                   background: task.status === "completed" ? "var(--leaf-confirm)" : "transparent",
                 }}
               >
-                {task.status === "completed" && (
-                  <CheckCircledIcon className="w-3 h-3 text-white" />
-                )}
+                {task.status === "completed" && <CheckCircledIcon className="w-3 h-3 text-white" />}
               </div>
               <span
                 className="text-sm flex-1"
@@ -208,7 +212,10 @@ export default function CampaignDetailPage(): React.ReactElement {
     return (
       <div className="p-12 text-center">
         <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>Campaign not found</p>
-        <Link href="/campaigns" className="mt-4 text-sm font-mono text-[#9A948C] hover:text-[#2A2622]">
+        <Link
+          href="/campaigns"
+          className="mt-4 text-sm font-mono text-[#9A948C] hover:text-[#2A2622]"
+        >
           ← Back to campaigns
         </Link>
       </div>
@@ -218,7 +225,6 @@ export default function CampaignDetailPage(): React.ReactElement {
   return (
     <div className="flex flex-col gap-8 py-2">
       <GsapBridge>
-
         <Link
           href="/campaigns"
           className="flex w-fit items-center gap-2 hover:underline"
@@ -241,7 +247,12 @@ export default function CampaignDetailPage(): React.ReactElement {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
               <div>
                 <h1
-                  style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, lineHeight: 1, margin: 0 }}
+                  style={{
+                    fontFamily: "'DM Serif Display', serif",
+                    fontSize: 48,
+                    lineHeight: 1,
+                    margin: 0,
+                  }}
                   className="text-[#2A2622] mb-4"
                 >
                   {campaign.name}
@@ -254,20 +265,20 @@ export default function CampaignDetailPage(): React.ReactElement {
                         campaign.status === "active"
                           ? "var(--leaf-confirm)"
                           : campaign.status === "evaluating"
-                          ? "var(--amber-war)"
-                          : "#9A948C",
+                            ? "var(--amber-war)"
+                            : "#9A948C",
                       borderColor:
                         campaign.status === "active"
                           ? "var(--leaf-confirm)"
                           : campaign.status === "evaluating"
-                          ? "var(--amber-war)"
-                          : "#E5DED4",
+                            ? "var(--amber-war)"
+                            : "#E5DED4",
                       background:
                         campaign.status === "active"
                           ? "rgba(34,197,94,0.08)"
                           : campaign.status === "evaluating"
-                          ? "rgba(255,180,0,0.08)"
-                          : "transparent",
+                            ? "rgba(255,180,0,0.08)"
+                            : "transparent",
                     }}
                   >
                     {campaign.status}
@@ -306,9 +317,7 @@ export default function CampaignDetailPage(): React.ReactElement {
 
             {evaluation && (
               <div className="border-t border-[#D5CBC0] pt-8 mt-6">
-                <p
-                  className="text-[9px] font-mono font-bold uppercase tracking-[0.18em] text-[#9A948C] mb-4"
-                >
+                <p className="text-[9px] font-mono font-bold uppercase tracking-[0.18em] text-[#9A948C] mb-4">
                   Strategic Evaluation
                 </p>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -372,9 +381,7 @@ export default function CampaignDetailPage(): React.ReactElement {
 
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2
-              className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-[#9A948C]"
-            >
+            <h2 className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-[#9A948C]">
               Move Ladder
             </h2>
             {moves.length > 0 && (
@@ -391,7 +398,10 @@ export default function CampaignDetailPage(): React.ReactElement {
           {moves.length === 0 ? (
             <div className="border border-dashed border-[#E5DED4] p-16 text-center space-y-4">
               <TargetIcon className="w-10 h-10 text-[#E5DED4] mx-auto" />
-              <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20 }} className="text-[#2A2622]">
+              <p
+                style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20 }}
+                className="text-[#2A2622]"
+              >
                 No moves generated yet
               </p>
               <p className="text-[10px] font-mono text-[#9A948C] uppercase tracking-widest">
@@ -428,7 +438,6 @@ export default function CampaignDetailPage(): React.ReactElement {
             </div>
           )}
         </div>
-
       </GsapBridge>
     </div>
   );

@@ -1,6 +1,12 @@
 .vercel
+.next
+.turbo
+node_modules
+test-results
+playwright/.clerk
+playwright-report
+blob-report
 
 # Sentry
 .sentryclirc
 sentry.properties
-.vercel

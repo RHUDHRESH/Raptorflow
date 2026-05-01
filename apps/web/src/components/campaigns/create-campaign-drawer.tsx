@@ -2,16 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  X, 
-  Radio, 
-  Users, 
-  ShoppingCart, 
-  Heart, 
+import {
+  X,
+  Radio,
+  Users,
+  ShoppingCart,
+  Heart,
   RefreshCcw,
   Plus,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +26,7 @@ interface DrawerProps {
 const STEPS = {
   1: "New campaign",
   2: "Reviewing your brief...",
-  3: "Your campaign is ready"
+  3: "Your campaign is ready",
 } as const;
 
 export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
@@ -50,7 +50,8 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Helper: Strategist Initials
-  const strategistName = typeof window !== 'undefined' ? localStorage.getItem("strategist_name") || "S" : "S";
+  const strategistName =
+    typeof window !== "undefined" ? localStorage.getItem("strategist_name") || "S" : "S";
 
   // Reset State
   const handleClose = () => {
@@ -74,20 +75,21 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
   const createBrief = useMutation({
     mutationFn: async () => {
       const token = await getAuthToken();
-      const timeline_days = timelineMode === "Custom" ? parseInt(customDays) : parseInt(timelineMode);
+      const timeline_days =
+        timelineMode === "Custom" ? parseInt(customDays) : parseInt(timelineMode);
       const res = await fetch(`${getApiBaseUrl()}/api/v1/campaigns/brief`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           goal_type: goalType,
           goal_statement: goalStatement,
           timeline_days,
           budget_range: budgetRange,
-          notes
-        })
+          notes,
+        }),
       });
       if (!res.ok) throw new Error("Brief submission failed");
       return res.json() as Promise<{ campaign_id: string }>;
@@ -95,7 +97,7 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
     onSuccess: (data) => {
       setCampaignId(data.campaign_id);
       setStep(2);
-    }
+    },
   });
 
   const { data: campaignData, isLoading: isCampaignLoading } = useQuery({
@@ -104,10 +106,10 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
     queryFn: async () => {
       const token = await getAuthToken();
       const res = await fetch(`${getApiBaseUrl()}/api/v1/campaigns/${campaignId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       return res.json();
-    }
+    },
   });
 
   const approveCampaign = useMutation({
@@ -115,7 +117,7 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
       const token = await getAuthToken();
       const res = await fetch(`${getApiBaseUrl()}/api/v1/campaigns/${campaignId}/approve`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       return res.json();
     },
@@ -123,7 +125,7 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
       showToast("Campaign activated ✓");
       handleClose();
-    }
+    },
   });
 
   const reviseCampaign = useMutation({
@@ -133,9 +135,9 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ revision_notes: revisionNotes })
+        body: JSON.stringify({ revision_notes: revisionNotes }),
       });
       return res.json();
     },
@@ -144,7 +146,7 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
       setBriefStatus("evaluating");
       setRevisionMode(false);
       setRevisionNotes("");
-    }
+    },
   });
 
   // ─── Step 2 Polling ──────────────────────────────────────────
@@ -156,9 +158,12 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
       interval = setInterval(async () => {
         try {
           const token = await getAuthToken();
-          const res = await fetch(`${getApiBaseUrl()}/api/v1/campaigns/${campaignId}/brief-status`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const res = await fetch(
+            `${getApiBaseUrl()}/api/v1/campaigns/${campaignId}/brief-status`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
           const data = await res.json();
           setBriefStatus(data.status);
 
@@ -177,8 +182,8 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
   // Agent Visibility Delay
   useEffect(() => {
     if (briefStatus === "council_session") {
-      const timerIds = [400, 800, 1200, 1600, 2000].map((delay, idx) => 
-        setTimeout(() => setAgentsVisible(idx + 1), delay)
+      const timerIds = [400, 800, 1200, 1600, 2000].map((delay, idx) =>
+        setTimeout(() => setAgentsVisible(idx + 1), delay),
       );
       return () => timerIds.forEach(clearTimeout);
     } else {
@@ -202,48 +207,82 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
     { name: "Patel", action: "analysing channel mix..." },
     { name: "Vaynerchuk", action: "evaluating reach strategy..." },
     { name: "Analytics Director", action: "projecting outcomes..." },
-    { name: "Hopkins", action: "stress-testing conversion logic..." }
+    { name: "Hopkins", action: "stress-testing conversion logic..." },
   ];
 
   const goalOptions = [
-    { id: "awareness", icon: Radio, title: "Build awareness", desc: "Expand reach and brand recognition" },
-    { id: "leads", icon: Users, title: "Generate leads", desc: "Fill the pipeline with qualified prospects" },
-    { id: "conversion", icon: ShoppingCart, title: "Drive conversions", desc: "Turn leads into customers" },
-    { id: "retention", icon: Heart, title: "Retain customers", desc: "Reduce churn, increase loyalty" },
-    { id: "re_engagement", icon: RefreshCcw, title: "Re-engage audience", desc: "Wake up a cold audience" },
+    {
+      id: "awareness",
+      icon: Radio,
+      title: "Build awareness",
+      desc: "Expand reach and brand recognition",
+    },
+    {
+      id: "leads",
+      icon: Users,
+      title: "Generate leads",
+      desc: "Fill the pipeline with qualified prospects",
+    },
+    {
+      id: "conversion",
+      icon: ShoppingCart,
+      title: "Drive conversions",
+      desc: "Turn leads into customers",
+    },
+    {
+      id: "retention",
+      icon: Heart,
+      title: "Retain customers",
+      desc: "Reduce churn, increase loyalty",
+    },
+    {
+      id: "re_engagement",
+      icon: RefreshCcw,
+      title: "Re-engage audience",
+      desc: "Wake up a cold audience",
+    },
   ];
 
   return (
     <>
       <div className={cn("fixed inset-0 z-50 pointer-events-none", open && "pointer-events-auto")}>
         {/* Backdrop */}
-        <div 
+        <div
           className={cn(
             "fixed inset-0 bg-black/60 transition-opacity duration-300",
-            open ? "opacity-100" : "opacity-0 pointer-events-none"
+            open ? "opacity-100" : "opacity-0 pointer-events-none",
           )}
           onClick={handleClose}
         />
 
         {/* Panel */}
-        <div 
+        <div
           className={cn(
             "fixed right-0 top-0 h-full w-[480px] max-w-full bg-[#FBF8F2] border-l border-[#E5DED4] flex flex-col transition-transform duration-300 ease-in-out",
-            open ? "translate-x-0" : "translate-x-full"
+            open ? "translate-x-0" : "translate-x-full",
           )}
         >
           {/* Header */}
           <div className="flex-shrink-0 px-6 py-5 border-b border-[#E5DED4] flex justify-between items-center">
             <h2 className="text-xl font-semibold text-[#2A2622] tracking-tight">{STEPS[step]}</h2>
-            <button onClick={handleClose} className="text-[#6B655E] hover:text-[#2A2622] transition-colors">
+            <button
+              onClick={handleClose}
+              className="text-[#6B655E] hover:text-[#2A2622] transition-colors"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Stepper Dots */}
           <div className="px-6 pt-4 flex-shrink-0 flex gap-2">
-            {[1, 2, 3].map(i => (
-              <div key={i} className={cn("w-2 h-2 rounded-full transition-colors", step >= i ? "bg-[#D97757]" : "bg-[#D5CBC0]")} />
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-colors",
+                  step >= i ? "bg-[#D97757]" : "bg-[#D5CBC0]",
+                )}
+              />
             ))}
           </div>
 
@@ -251,25 +290,36 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
           <div className="flex-1 overflow-y-auto px-6 py-5 scrollbar-hide">
             {step === 1 && (
               <div className="animate-in fade-in slide-in-from-right-2 duration-300">
-                <p className="text-xs text-[#6B655E] uppercase tracking-wider mb-3">What's the goal?</p>
+                <p className="text-xs text-[#6B655E] uppercase tracking-wider mb-3">
+                  What's the goal?
+                </p>
                 <div className="space-y-2 mb-6">
-                  {goalOptions.map(opt => {
+                  {goalOptions.map((opt) => {
                     const isSelected = goalType === opt.id;
                     const Icon = opt.icon;
                     return (
-                      <div 
+                      <div
                         key={opt.id}
                         onClick={() => setGoalType(opt.id)}
                         className={cn(
                           "flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all",
-                          isSelected ? "border-[#D97757] bg-[#FBE9DE]" : "border-[#D5CBC0] bg-[#262626] hover:border-[#D5CBC0]"
+                          isSelected
+                            ? "border-[#D97757] bg-[#FBE9DE]"
+                            : "border-[#D5CBC0] bg-[#262626] hover:border-[#D5CBC0]",
                         )}
                       >
-                         <Icon className={cn("w-5 h-5", isSelected ? "text-[#D97757]" : "text-[#6B655E]")} />
-                         <div>
-                            <p className="text-sm text-[#2A2622] font-mediumLeading-none mb-1">{opt.title}</p>
-                            <p className="text-xs text-[#6B655E]">{opt.desc}</p>
-                         </div>
+                        <Icon
+                          className={cn(
+                            "w-5 h-5",
+                            isSelected ? "text-[#D97757]" : "text-[#6B655E]",
+                          )}
+                        />
+                        <div>
+                          <p className="text-sm text-[#2A2622] font-mediumLeading-none mb-1">
+                            {opt.title}
+                          </p>
+                          <p className="text-xs text-[#6B655E]">{opt.desc}</p>
+                        </div>
                       </div>
                     );
                   })}
@@ -277,8 +327,10 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
 
                 {goalType && (
                   <div className="animate-in fade-in duration-500 slide-in-from-top-2">
-                    <p className="text-xs text-[#6B655E] uppercase tracking-wider mb-3">Describe what you want to achieve</p>
-                    <textarea 
+                    <p className="text-xs text-[#6B655E] uppercase tracking-wider mb-3">
+                      Describe what you want to achieve
+                    </p>
+                    <textarea
                       rows={4}
                       className="bg-[#FBF8F2] border border-[#D5CBC0] rounded-xl px-4 py-3 text-sm text-[#2A2622] placeholder:text-[#9A948C] focus:border-[#D97757] focus:outline-none w-full mb-6 resize-none"
                       placeholder="e.g. 50 qualified leads from LinkedIn in 60 days targeting founder-stage D2C brands."
@@ -288,21 +340,24 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
 
                     <p className="text-xs text-[#6B655E] uppercase tracking-wider mb-3">Timeline</p>
                     <div className="flex flex-wrap gap-2 mb-2">
-                      {["30", "60", "90", "Custom"].map(t => (
+                      {["30", "60", "90", "Custom"].map((t) => (
                         <button
                           key={t}
                           onClick={() => setTimelineMode(t)}
                           className={cn(
                             "px-4 py-2 rounded-full border text-sm transition-all",
-                            timelineMode === t ? "border-[#D97757] text-[#2A2622] bg-[#FBE9DE]" : "border-[#D5CBC0] text-[#6B655E] hover:border-[#D5CBC0]"
+                            timelineMode === t
+                              ? "border-[#D97757] text-[#2A2622] bg-[#FBE9DE]"
+                              : "border-[#D5CBC0] text-[#6B655E] hover:border-[#D5CBC0]",
                           )}
                         >
-                          {t}{t !== "Custom" ? " days" : ""}
+                          {t}
+                          {t !== "Custom" ? " days" : ""}
                         </button>
                       ))}
                     </div>
                     {timelineMode === "Custom" && (
-                      <input 
+                      <input
                         type="number"
                         className="bg-[#FBF8F2] border border-[#D5CBC0] rounded-xl px-4 py-3 text-sm text-[#2A2622] w-full mb-6 placeholder-zinc-600 focus:border-[#D97757] focus:outline-none"
                         placeholder="Number of days"
@@ -312,15 +367,25 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
                     )}
 
                     <div className="mt-6">
-                      <p className="text-xs text-[#6B655E] uppercase tracking-wider mb-3">Budget for this campaign</p>
+                      <p className="text-xs text-[#6B655E] uppercase tracking-wider mb-3">
+                        Budget for this campaign
+                      </p>
                       <div className="space-y-2 mb-6">
-                        {["₹0 — Organic only", "₹10,000 – ₹50,000", "₹50,00,00 – ₹2,00,000", "₹2,00,000 – ₹10,00,000", "₹10,00,000+"].map(b => (
-                          <div 
+                        {[
+                          "₹0 — Organic only",
+                          "₹10,000 – ₹50,000",
+                          "₹50,00,00 – ₹2,00,000",
+                          "₹2,00,000 – ₹10,00,000",
+                          "₹10,00,000+",
+                        ].map((b) => (
+                          <div
                             key={b}
                             onClick={() => setBudgetRange(b)}
                             className={cn(
                               "p-4 rounded-xl border cursor-pointer transition-all text-sm",
-                              budgetRange === b ? "border-[#D97757] bg-[#FBE9DE] text-[#2A2622]" : "border-[#D5CBC0] bg-[#262626] text-[#6B655E] hover:border-[#D5CBC0]"
+                              budgetRange === b
+                                ? "border-[#D97757] bg-[#FBE9DE] text-[#2A2622]"
+                                : "border-[#D5CBC0] bg-[#262626] text-[#6B655E] hover:border-[#D5CBC0]",
                             )}
                           >
                             {b}
@@ -329,8 +394,10 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
                       </div>
                     </div>
 
-                    <p className="text-xs text-[#6B655E] uppercase tracking-wider mb-3">Anything else the Council should know? (optional)</p>
-                    <textarea 
+                    <p className="text-xs text-[#6B655E] uppercase tracking-wider mb-3">
+                      Anything else the Council should know? (optional)
+                    </p>
+                    <textarea
                       rows={2}
                       className="bg-[#FBF8F2] border border-[#D5CBC0] rounded-xl px-4 py-3 text-sm text-[#2A2622] placeholder:text-[#9A948C] focus:border-[#D97757] focus:outline-none w-full mb-6 resize-none"
                       placeholder="Context, constraints, or specific direction..."
@@ -347,13 +414,13 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
                 {briefStatus === "evaluating" && (
                   <div className="flex flex-col items-center gap-4 py-12">
                     <div className="w-12 h-12 rounded-full bg-[#FBE9DE] flex items-center justify-center text-[#D97757] font-bold border border-[#D97757]/20 text-xl font-serif">
-                       {strategistName.charAt(0)}
+                      {strategistName.charAt(0)}
                     </div>
                     <p className="text-base text-[#2A2622] font-medium">Reviewing your brief...</p>
                     <div className="flex gap-2">
-                       <span className="bg-[#D97757] w-2 h-2 rounded-full animate-bounce [animation-delay:0ms]" />
-                       <span className="bg-[#D97757] w-2 h-2 rounded-full animate-bounce [animation-delay:150ms]" />
-                       <span className="bg-[#D97757] w-2 h-2 rounded-full animate-bounce [animation-delay:300ms]" />
+                      <span className="bg-[#D97757] w-2 h-2 rounded-full animate-bounce [animation-delay:0ms]" />
+                      <span className="bg-[#D97757] w-2 h-2 rounded-full animate-bounce [animation-delay:150ms]" />
+                      <span className="bg-[#D97757] w-2 h-2 rounded-full animate-bounce [animation-delay:300ms]" />
                     </div>
                   </div>
                 )}
@@ -361,24 +428,26 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
                 {briefStatus === "council_session" && (
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-base text-[#2A2622] font-medium mb-1 tracking-tight">The Council is deliberating</h3>
+                      <h3 className="text-base text-[#2A2622] font-medium mb-1 tracking-tight">
+                        The Council is deliberating
+                      </h3>
                       <p className="text-sm text-[#6B655E]">This typically takes 1–3 minutes.</p>
                     </div>
                     <div className="space-y-4 pt-4">
-                       {agentActivity.map((agent, i) => (
-                         <div 
+                      {agentActivity.map((agent, i) => (
+                        <div
                           key={agent.name}
                           className={cn(
                             "flex items-center gap-3 transition-opacity duration-500",
-                            agentsVisible > i ? "opacity-100" : "opacity-0"
+                            agentsVisible > i ? "opacity-100" : "opacity-0",
                           )}
-                         >
-                            <div className="w-2 h-2 rounded-full bg-[#D97757] animate-pulse flex-shrink-0" />
-                            <p className="text-sm text-[#9A948C]">
-                              <span className="font-bold">{agent.name}</span> — {agent.action}
-                            </p>
-                         </div>
-                       ))}
+                        >
+                          <div className="w-2 h-2 rounded-full bg-[#D97757] animate-pulse flex-shrink-0" />
+                          <p className="text-sm text-[#9A948C]">
+                            <span className="font-bold">{agent.name}</span> — {agent.action}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -400,50 +469,65 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
                 {isCampaignLoading ? (
                   <div className="space-y-8">
-                     <Skeleton className="h-32 rounded-xl" />
-                     <Skeleton className="h-8 w-48" />
-                     <div className="space-y-4">
-                        <Skeleton className="h-16 rounded-lg" />
-                        <Skeleton className="h-16 rounded-lg" />
-                     </div>
+                    <Skeleton className="h-32 rounded-xl" />
+                    <Skeleton className="h-8 w-48" />
+                    <div className="space-y-4">
+                      <Skeleton className="h-16 rounded-lg" />
+                      <Skeleton className="h-16 rounded-lg" />
+                    </div>
                   </div>
-                ) : campaignData && (
-                  <>
-                    <div className="bg-[#FBF8F2] rounded-xl p-4 border-l-4 border-[#D97757] mb-6">
-                      <p className="text-[10px] text-[#6B655E] uppercase font-bold tracking-widest mb-2">Council synthesis</p>
-                      <p className="text-sm text-[#9A948C] italic leading-relaxed">
-                        "{campaignData.council_rationale?.synthesis}"
-                      </p>
-                    </div>
-
-                    <h3 className="text-xl text-[#2A2622] font-bold mb-6 tracking-tight leading-none">{campaignData.name}</h3>
-
-                    <p className="text-xs text-[#6B655E] uppercase font-bold tracking-widest mb-3">Campaign structure</p>
-                    <div className="space-y-1 mb-8">
-                       {campaignData.moves?.map((move: any, idx: number) => (
-                         <div key={move.move_id} className="flex items-start gap-4 py-4 border-b border-[#D5CBC0] last:border-0 grow">
-                            <div className="w-7 h-7 rounded-full bg-[#262626] border border-[#D5CBC0] flex items-center justify-center text-[10px] text-[#6B655E] font-mono font-bold flex-shrink-0">
-                               {idx + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                               <p className="text-sm text-[#2A2622] font-medium mb-1 truncate">{move.name}</p>
-                               <p className="text-[10px] text-[#6B655E] uppercase font-bold tracking-widest">
-                                 {move.type} · {move.duration_days} days
-                               </p>
-                            </div>
-                         </div>
-                       ))}
-                    </div>
-
-                    {campaignData.outcome_projection && (
-                      <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-4 mb-4">
-                        <p className="text-[10px] text-green-500 uppercase font-bold tracking-widest mb-1.5 leading-none">Projected outcome</p>
-                        <p className="text-sm text-green-300 font-medium">
-                          {campaignData.outcome_projection}
+                ) : (
+                  campaignData && (
+                    <>
+                      <div className="bg-[#FBF8F2] rounded-xl p-4 border-l-4 border-[#D97757] mb-6">
+                        <p className="text-[10px] text-[#6B655E] uppercase font-bold tracking-widest mb-2">
+                          Council synthesis
+                        </p>
+                        <p className="text-sm text-[#9A948C] italic leading-relaxed">
+                          "{campaignData.council_rationale?.synthesis}"
                         </p>
                       </div>
-                    )}
-                  </>
+
+                      <h3 className="text-xl text-[#2A2622] font-bold mb-6 tracking-tight leading-none">
+                        {campaignData.name}
+                      </h3>
+
+                      <p className="text-xs text-[#6B655E] uppercase font-bold tracking-widest mb-3">
+                        Campaign structure
+                      </p>
+                      <div className="space-y-1 mb-8">
+                        {campaignData.moves?.map((move: any, idx: number) => (
+                          <div
+                            key={move.move_id}
+                            className="flex items-start gap-4 py-4 border-b border-[#D5CBC0] last:border-0 grow"
+                          >
+                            <div className="w-7 h-7 rounded-full bg-[#262626] border border-[#D5CBC0] flex items-center justify-center text-[10px] text-[#6B655E] font-mono font-bold flex-shrink-0">
+                              {idx + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-[#2A2622] font-medium mb-1 truncate">
+                                {move.name}
+                              </p>
+                              <p className="text-[10px] text-[#6B655E] uppercase font-bold tracking-widest">
+                                {move.type} · {move.duration_days} days
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {campaignData.outcome_projection && (
+                        <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-4 mb-4">
+                          <p className="text-[10px] text-green-500 uppercase font-bold tracking-widest mb-1.5 leading-none">
+                            Projected outcome
+                          </p>
+                          <p className="text-sm text-green-300 font-medium">
+                            {campaignData.outcome_projection}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )
                 )}
               </div>
             )}
@@ -452,26 +536,36 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
           {/* Footer */}
           <div className="flex-shrink-0 px-6 py-5 border-t border-[#E5DED4] bg-[#FBF8F2]">
             {step === 1 && (
-              <Button 
+              <Button
                 className="w-full bg-[#D97757] text-black rounded-lg h-12 font-bold uppercase tracking-widest flex items-center justify-center gap-2"
                 disabled={!step1Valid || createBrief.isPending}
                 onClick={() => createBrief.mutate()}
               >
-                {createBrief.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Submit brief <Plus className="w-4 h-4" /></>}
+                {createBrief.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    Submit brief <Plus className="w-4 h-4" />
+                  </>
+                )}
               </Button>
             )}
 
             {step === 3 && (
               <div className="space-y-4">
                 <div className="flex gap-3">
-                  <Button 
+                  <Button
                     className="flex-1 bg-[#D97757] text-black h-12 font-bold uppercase tracking-widest"
                     disabled={approveCampaign.isPending}
                     onClick={() => approveCampaign.mutate()}
                   >
-                    {approveCampaign.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Approve →"}
+                    {approveCampaign.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Approve →"
+                    )}
                   </Button>
-                  <Button 
+                  <Button
                     variant="outline"
                     className="flex-1 border-[#D5CBC0] text-[#9A948C] h-12 hover:border-[#D5CBC0] hover:text-[#2A2622] uppercase font-bold tracking-widest text-xs"
                     onClick={() => setRevisionMode(!revisionMode)}
@@ -479,22 +573,26 @@ export function CreateCampaignDrawer({ open, onClose }: DrawerProps) {
                     Request changes
                   </Button>
                 </div>
-                
+
                 {revisionMode && (
                   <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <textarea 
+                    <textarea
                       className="w-full bg-[#FBF8F2] border border-[#D5CBC0] rounded-xl px-4 py-3 text-sm text-[#2A2622] placeholder:text-[#9A948C] focus:border-[#D97757] focus:outline-none resize-none"
                       rows={3}
                       placeholder="What would you like changed?"
                       value={revisionNotes}
                       onChange={(e) => setRevisionNotes(e.target.value)}
                     />
-                    <Button 
+                    <Button
                       className="w-full bg-[#D97757] text-black h-10 font-bold uppercase tracking-widest text-xs"
                       onClick={() => reviseCampaign.mutate()}
                       disabled={!revisionNotes.trim() || reviseCampaign.isPending}
                     >
-                      {reviseCampaign.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send revision"}
+                      {reviseCampaign.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Send revision"
+                      )}
                     </Button>
                   </div>
                 )}

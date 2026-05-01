@@ -6,7 +6,9 @@ export async function ensureCollection(): Promise<void> {
   const listResponse = await fetch(`${baseUrl}/collections`, { headers });
 
   if (!listResponse.ok) {
-    throw new Error(`Qdrant list collections failed: ${listResponse.status} ${listResponse.statusText}`);
+    throw new Error(
+      `Qdrant list collections failed: ${listResponse.status} ${listResponse.statusText}`,
+    );
   }
 
   const listPayload = (await listResponse.json()) as {
@@ -32,7 +34,9 @@ export async function ensureCollection(): Promise<void> {
     });
 
     if (!createResponse.ok) {
-      throw new Error(`Qdrant create collection failed: ${createResponse.status} ${createResponse.statusText}`);
+      throw new Error(
+        `Qdrant create collection failed: ${createResponse.status} ${createResponse.statusText}`,
+      );
     }
   }
 }

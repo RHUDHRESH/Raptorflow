@@ -4,11 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import * as Sentry from "@sentry/nextjs";
 import { Button } from "@/components/ui/button";
-import {
-  ExclamationTriangleIcon,
-  UpdateIcon,
-  HomeIcon,
-} from "@radix-ui/react-icons";
+import { ExclamationTriangleIcon, UpdateIcon, HomeIcon } from "@radix-ui/react-icons";
 
 export default function GlobalError({
   error,
@@ -36,9 +32,8 @@ export default function GlobalError({
               Something broke at the root boundary
             </h1>
             <p className="mb-6 text-sm leading-6 text-[#5E5A53]">
-              The application hit an unexpected error. Sentry has been notified
-              so the failure can be inspected with the current release, route,
-              and stack trace.
+              The application hit an unexpected error. Sentry has been notified so the failure can
+              be inspected with the current release, route, and stack trace.
             </p>
             {error.digest ? (
               <p className="mb-6 rounded bg-[#F7F4EE] px-3 py-2 font-mono text-xs text-[#6B655E]">

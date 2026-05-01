@@ -36,7 +36,9 @@ export default function IntelOverviewPage(): React.ReactElement {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     return {
       total: signals.length,
-      highPriority: signals.filter((signal) => signal.severity === "high" || signal.severity === "critical").length,
+      highPriority: signals.filter(
+        (signal) => signal.severity === "high" || signal.severity === "critical",
+      ).length,
       thisWeek: signals.filter((signal) => new Date(signal.created_at).getTime() > weekAgo).length,
     };
   }, [signals]);
@@ -63,7 +65,11 @@ export default function IntelOverviewPage(): React.ReactElement {
                   </div>
                   <Badge
                     variant="outline"
-                    className={feed.id === "seo" ? "border-amber-200 bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700 border-blue-200"}
+                    className={
+                      feed.id === "seo"
+                        ? "border-amber-200 bg-amber-50 text-amber-700"
+                        : "bg-blue-50 text-blue-700 border-blue-200"
+                    }
                   >
                     live
                   </Badge>
@@ -76,7 +82,9 @@ export default function IntelOverviewPage(): React.ReactElement {
 
       <div>
         <h2 className="text-lg font-semibold">Recent artifacts</h2>
-        <p className="text-sm text-[var(--muted-foreground)]">Latest documents returned by the intel backend</p>
+        <p className="text-sm text-[var(--muted-foreground)]">
+          Latest documents returned by the intel backend
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -102,15 +110,23 @@ export default function IntelOverviewPage(): React.ReactElement {
                         </Badge>
                         <span className="h-2 w-2 rounded-full bg-blue-500" />
                       </div>
-                      <p className="mt-2 font-medium leading-snug">{artifact.title ?? artifact.url ?? "Research document"}</p>
+                      <p className="mt-2 font-medium leading-snug">
+                        {artifact.title ?? artifact.url ?? "Research document"}
+                      </p>
                       <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                        {artifact.domain ?? artifact.source_type ?? "intel"} · {artifact.created_at ?? artifact.fetched_at ?? "recent"}
+                        {artifact.domain ?? artifact.source_type ?? "intel"} ·{" "}
+                        {artifact.created_at ?? artifact.fetched_at ?? "recent"}
                       </p>
                       {artifact.content_preview && (
-                        <p className="mt-2 text-sm text-[var(--muted-foreground)]">{artifact.content_preview}</p>
+                        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+                          {artifact.content_preview}
+                        </p>
                       )}
                       <div className="mt-3">
-                        <Link href={`/intel/overview/${artifactId}` as Route} className="text-xs text-[var(--accent)] hover:underline">
+                        <Link
+                          href={`/intel/overview/${artifactId}` as Route}
+                          className="text-xs text-[var(--accent)] hover:underline"
+                        >
                           Open artifact →
                         </Link>
                       </div>
@@ -125,7 +141,9 @@ export default function IntelOverviewPage(): React.ReactElement {
 
       {overviewLoading ? (
         <Card className="border-amber-200 bg-amber-50/50">
-          <CardContent className="p-4 text-sm text-amber-800">Loading overview metrics…</CardContent>
+          <CardContent className="p-4 text-sm text-amber-800">
+            Loading overview metrics…
+          </CardContent>
         </Card>
       ) : (
         <Card className="border-blue-200 bg-blue-50/50">

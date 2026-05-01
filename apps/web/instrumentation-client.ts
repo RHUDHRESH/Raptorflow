@@ -1,9 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
-import {
-  sentryEnvironment,
-  sentryPublicDsn,
-  sentryRelease,
-} from "./src/lib/sentry";
+import { sentryEnvironment, sentryPublicDsn, sentryRelease } from "./src/lib/sentry";
 
 Sentry.init({
   dsn: sentryPublicDsn,

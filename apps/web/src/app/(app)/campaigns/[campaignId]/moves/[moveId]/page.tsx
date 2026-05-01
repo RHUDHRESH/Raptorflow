@@ -43,14 +43,19 @@ export default function CampaignMoveDetailPage({
   const totalCount = moveTasks.length;
 
   if (movesLoading || tasksLoading) {
-    return <div className="py-8 text-sm text-[var(--muted-foreground)]">Loading move from backend…</div>;
+    return (
+      <div className="py-8 text-sm text-[var(--muted-foreground)]">Loading move from backend…</div>
+    );
   }
 
   if (!move) {
     return (
       <div className="py-12 text-center">
         <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>Move not found</p>
-        <Link href={`/campaigns/${campaignId}/moves` as Route} className="mt-4 text-sm font-mono text-[#9A948C] hover:text-[#2A2622]">
+        <Link
+          href={`/campaigns/${campaignId}/moves` as Route}
+          className="mt-4 text-sm font-mono text-[#9A948C] hover:text-[#2A2622]"
+        >
           ← Back to moves
         </Link>
       </div>
@@ -91,7 +96,14 @@ export default function CampaignMoveDetailPage({
               Move Detail // {move.moveId.slice(0, 8).toUpperCase()}
             </p>
           </div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, lineHeight: 1, margin: 0 }}>
+          <h1
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontSize: 40,
+              lineHeight: 1,
+              margin: 0,
+            }}
+          >
             {move.title ?? `${move.moveType} move`}
           </h1>
         </div>
@@ -108,7 +120,13 @@ export default function CampaignMoveDetailPage({
           >
             {move.status}
           </Badge>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--foreground)" }}>
+          <p
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              color: "var(--foreground)",
+            }}
+          >
             {move.sequenceNumber} of sequence
           </p>
         </div>
@@ -119,7 +137,9 @@ export default function CampaignMoveDetailPage({
           <section className="border-2 border-[var(--foreground)] bg-[var(--card)] p-8">
             <div className="flex items-start justify-between mb-8">
               <div className="space-y-4 max-w-xl">
-                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>Move Narrative</h3>
+                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>
+                  Move Narrative
+                </h3>
                 <p className="text-[#6B655E] font-light italic leading-relaxed">
                   {move.description ?? move.expectedImpact ?? move.moveType}
                 </p>
@@ -128,19 +148,29 @@ export default function CampaignMoveDetailPage({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-[#E5DED4]">
               <div>
-                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Type</p>
+                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">
+                  Type
+                </p>
                 <p className="text-sm font-medium">{move.moveType}</p>
               </div>
               <div>
-                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Tasks</p>
-                <p className="text-sm font-medium">{completedCount}/{totalCount} completed</p>
+                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">
+                  Tasks
+                </p>
+                <p className="text-sm font-medium">
+                  {completedCount}/{totalCount} completed
+                </p>
               </div>
               <div>
-                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Status</p>
+                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">
+                  Status
+                </p>
                 <p className="text-sm font-medium">{move.status}</p>
               </div>
               <div>
-                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">Sequence</p>
+                <p className="font-mono text-[8px] text-[#9A948C] uppercase tracking-widest mb-1">
+                  Sequence
+                </p>
                 <p className="text-sm font-medium">#{move.sequenceNumber}</p>
               </div>
             </div>
@@ -161,7 +191,11 @@ export default function CampaignMoveDetailPage({
                 Operational Ledger
               </p>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" className="h-7 px-2 text-[9px] font-mono text-[#9A948C] uppercase" asChild>
+                <Button
+                  variant="ghost"
+                  className="h-7 px-2 text-[9px] font-mono text-[#9A948C] uppercase"
+                  asChild
+                >
                   <Link href={`/campaigns/${campaignId}` as Route}>Open campaign</Link>
                 </Button>
               </div>
@@ -173,7 +207,10 @@ export default function CampaignMoveDetailPage({
                 </div>
               ) : (
                 moveTasks.map((task) => (
-                  <div key={task.taskId} className="p-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+                  <div
+                    key={task.taskId}
+                    className="p-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors"
+                  >
                     <div className="flex items-center gap-4">
                       <div
                         className={`h-2 w-2 rounded-full ${
@@ -224,7 +261,16 @@ export default function CampaignMoveDetailPage({
               href={`/campaigns/${campaignId}` as Route}
               className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all group"
             >
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Open Campaign</span>
+              <span
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                }}
+              >
+                Open Campaign
+              </span>
               <MixerHorizontalIcon className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
             </Link>
           </div>

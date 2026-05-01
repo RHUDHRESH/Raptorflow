@@ -9,5 +9,5 @@ interface SessionState {
 export const useSessionStore = create<SessionState>((set) => ({
   activeOrgId: undefined,
   activeSessionId: undefined,
-  setSession: (payload) => set(payload)
+  setSession: (payload) => set(payload),
 }));

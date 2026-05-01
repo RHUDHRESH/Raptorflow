@@ -13,9 +13,9 @@ export function getQueryClient(): QueryClient {
     defaultOptions: {
       queries: {
         staleTime: 30_000,
-        refetchOnWindowFocus: false
-      }
-    }
+        refetchOnWindowFocus: false,
+      },
+    },
   });
 
   return browserQueryClient;

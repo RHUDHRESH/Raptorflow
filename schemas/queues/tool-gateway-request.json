@@ -3,7 +3,15 @@
   "$id": "https://raptorflow.dev/schemas/queues/tool-gateway-request.json",
   "title": "ToolGatewayRequestEnvelope",
   "type": "object",
-  "required": ["job_type", "org_id", "request_id", "tool_name", "arguments", "timeout_ms", "enqueued_at"],
+  "required": [
+    "job_type",
+    "org_id",
+    "request_id",
+    "tool_name",
+    "arguments",
+    "timeout_ms",
+    "enqueued_at"
+  ],
   "properties": {
     "job_type": {
       "const": "tool.gateway"

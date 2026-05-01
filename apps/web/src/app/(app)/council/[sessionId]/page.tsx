@@ -42,11 +42,9 @@ function toTitleCase(str: string): string {
   return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function extractConfidence(
-  rippleData?: {
-    ripple_candidates?: Array<{ salience: number }>;
-  },
-): number | undefined {
+function extractConfidence(rippleData?: {
+  ripple_candidates?: Array<{ salience: number }>;
+}): number | undefined {
   if (!rippleData?.ripple_candidates?.length) return undefined;
   const confidences = rippleData.ripple_candidates.map((rc) => rc.salience);
   return confidences.reduce((a, b) => a + b, 0) / confidences.length;
@@ -59,7 +57,9 @@ export default function CouncilSessionPage(): React.ReactElement {
   const [status, setStatus] = React.useState<string>("pending");
   const [positions, setPositions] = React.useState<Position[]>([]);
   const [synthesis, setSynthesis] = React.useState<Synthesis | null>(null);
-  const [connectionState, setConnectionState] = React.useState<"connecting" | "polling" | "complete" | "error">("connecting");
+  const [connectionState, setConnectionState] = React.useState<
+    "connecting" | "polling" | "complete" | "error"
+  >("connecting");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [synthesisWarning, setSynthesisWarning] = React.useState<string | null>(null);
 
@@ -107,7 +107,11 @@ export default function CouncilSessionPage(): React.ReactElement {
         setConnectionState("complete");
         clearPolling();
 
-        if (SHOULD_SYNTHESIZE.has(sessionStatus) && !synthesisCalledRef.current && normalizedPositions.length >= 2) {
+        if (
+          SHOULD_SYNTHESIZE.has(sessionStatus) &&
+          !synthesisCalledRef.current &&
+          normalizedPositions.length >= 2
+        ) {
           synthesisCalledRef.current = true;
           setSynthesisWarning(null);
           try {
@@ -122,7 +126,8 @@ export default function CouncilSessionPage(): React.ReactElement {
               });
             }
           } catch (synthErr) {
-            const msg = synthErr instanceof ApiError ? synthErr.message : "Failed to fetch synthesis";
+            const msg =
+              synthErr instanceof ApiError ? synthErr.message : "Failed to fetch synthesis";
             setSynthesisWarning(msg);
           }
         } else if (normalizedPositions.length < 2) {
@@ -160,16 +165,17 @@ export default function CouncilSessionPage(): React.ReactElement {
     };
   }, [sessionId, fetchSessionAndMessages, startPolling, clearPolling]);
 
-  const statusLabel = {
-    pending: "Waiting…",
-    generating: "Council deliberating…",
-    synthesizing: "Strategist synthesizing…",
-    complete: "Complete",
-    failed: "Failed",
-    running: "Council deliberating…",
-    positions_ready: "Positions ready",
-    synthesized: "Synthesized",
-  }[status] ?? status;
+  const statusLabel =
+    {
+      pending: "Waiting…",
+      generating: "Council deliberating…",
+      synthesizing: "Strategist synthesizing…",
+      complete: "Complete",
+      failed: "Failed",
+      running: "Council deliberating…",
+      positions_ready: "Positions ready",
+      synthesized: "Synthesized",
+    }[status] ?? status;
 
   const progressPct =
     status === "generating" || status === "running"
@@ -410,7 +416,10 @@ export default function CouncilSessionPage(): React.ReactElement {
               <span style={{ fontSize: 18 }}>⚡</span>
             </div>
             <div>
-              <div className="font-bold" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16 }}>
+              <div
+                className="font-bold"
+                style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16 }}
+              >
                 The Strategist
               </div>
               <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
@@ -421,7 +430,10 @@ export default function CouncilSessionPage(): React.ReactElement {
 
           <div
             className="mb-6 rounded-xl p-6"
-            style={{ background: "rgba(139,92,246,0.05)", border: "1px solid rgba(139,92,246,0.2)" }}
+            style={{
+              background: "rgba(139,92,246,0.05)",
+              border: "1px solid rgba(139,92,246,0.2)",
+            }}
           >
             <div
               className="mb-1 text-sm font-semibold"
@@ -440,40 +452,47 @@ export default function CouncilSessionPage(): React.ReactElement {
           </div>
 
           {synthesis.rationale && (
-            <p className="mb-6 text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+            <p
+              className="mb-6 text-sm leading-relaxed"
+              style={{ color: "var(--muted-foreground)" }}
+            >
               {synthesis.rationale}
             </p>
           )}
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {Array.isArray(synthesis.immediate_actions) && synthesis.immediate_actions.length > 0 && (
-              <div>
-                <div
-                  className="mb-3 font-semibold"
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.14em",
-                    fontSize: 9,
-                  }}
-                >
-                  Immediate Actions
+            {Array.isArray(synthesis.immediate_actions) &&
+              synthesis.immediate_actions.length > 0 && (
+                <div>
+                  <div
+                    className="mb-3 font-semibold"
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.14em",
+                      fontSize: 9,
+                    }}
+                  >
+                    Immediate Actions
+                  </div>
+                  <ol className="space-y-2">
+                    {synthesis.immediate_actions.map((action, i) => (
+                      <li key={i} className="flex gap-2 text-sm">
+                        <span
+                          className="font-bold"
+                          style={{
+                            color: "var(--leaf-confirm)",
+                            fontFamily: "'JetBrains Mono', monospace",
+                          }}
+                        >
+                          {i + 1}.
+                        </span>
+                        <span>{action}</span>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
-                <ol className="space-y-2">
-                  {synthesis.immediate_actions.map((action, i) => (
-                    <li key={i} className="flex gap-2 text-sm">
-                      <span
-                        className="font-bold"
-                        style={{ color: "var(--leaf-confirm)", fontFamily: "'JetBrains Mono', monospace" }}
-                      >
-                        {i + 1}.
-                      </span>
-                      <span>{action}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
+              )}
 
             {Array.isArray(synthesis.watch_outs) && synthesis.watch_outs.length > 0 && (
               <div>

@@ -62,9 +62,6 @@ for (const route of routes) {
         !entry.includes("script-src") &&
         !entry.includes("default-src"),
     );
-    expect(
-      relevantConsoleErrors,
-      `Console errors for ${route}`,
-    ).toEqual([]);
+    expect(relevantConsoleErrors, `Console errors for ${route}`).toEqual([]);
   });
 }

@@ -3,11 +3,11 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { 
-  CheckCircle2, 
-  ChevronRight, 
-  Clock, 
-  ArrowRight, 
+import {
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  ArrowRight,
   AlertCircle,
   FileText,
   Calendar,
@@ -15,7 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   LayoutDashboard,
-  Trophy
+  Trophy,
 } from "lucide-react";
 import { dailyWinsApi } from "@/lib/api";
 import type { DailyWin } from "@/lib/api";
@@ -28,15 +28,20 @@ import Link from "next/link";
 
 /**
  * Daily Wins Page
- * 
- * The command-center dashboard for RaptorFlow. Delivers a curated, 
+ *
+ * The command-center dashboard for RaptorFlow. Delivers a curated,
  * Strategist-driven briefing every morning.
  */
 export default function DailyWinsPage() {
   const queryClient = useQueryClient();
   const [archiveOpen, setArchiveOpen] = useState(false);
 
-  const { data: win, isLoading, error, refetch } = useQuery({
+  const {
+    data: win,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["daily-wins", "today"],
     queryFn: () => dailyWinsApi.getToday(),
   });
@@ -51,7 +56,7 @@ export default function DailyWinsPage() {
     mutationFn: (winId: string) => dailyWinsApi.markAsRead(winId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-wins", "today"] });
-    }
+    },
   });
 
   // ─── Rendering Helpers ───────────────────────────────────────
@@ -65,7 +70,11 @@ export default function DailyWinsPage() {
         <p className="text-[#6B655E] font-mono text-sm uppercase tracking-widest">
           Telemetry uplink failed
         </p>
-        <Button variant="outline" onClick={() => refetch()} className="border-[#E5DED4] text-[#6B655E] hover:text-[#2A2622]">
+        <Button
+          variant="outline"
+          onClick={() => refetch()}
+          className="border-[#E5DED4] text-[#6B655E] hover:text-[#2A2622]"
+        >
           Retry Uplink
         </Button>
       </div>
@@ -99,7 +108,7 @@ export default function DailyWinsPage() {
     approve_content: "/content",
     review_campaign: `/campaigns/${win.todays_focus.action_data.campaign_id}`,
     respond_to_intel: "/intel",
-    strategic_review: "/muse"
+    strategic_review: "/muse",
   };
 
   return (
@@ -107,12 +116,8 @@ export default function DailyWinsPage() {
       {/* ── Page Header ────────────────────────────────────────── */}
       <header className="flex items-end justify-between border-b border-[#D5CBC0] pb-8">
         <div className="space-y-1">
-          <p className="text-2xl font-light text-[#6B655E]">
-            {format(new Date(), "EEEE, d MMMM")}
-          </p>
-          <h1 className="text-5xl text-[#2A2622] font-bold tracking-tight">
-            Good morning.
-          </h1>
+          <p className="text-2xl font-light text-[#6B655E]">{format(new Date(), "EEEE, d MMMM")}</p>
+          <h1 className="text-5xl text-[#2A2622] font-bold tracking-tight">Good morning.</h1>
         </div>
         <div className="flex items-center gap-3 bg-[#F5F0E8]/50 border border-[#E5DED4] rounded-full pl-2 pr-4 py-1.5">
           <div className="w-8 h-8 rounded-full bg-[#D97757]/20 border border-[#D97757]/30 flex items-center justify-center text-[#D97757] text-xs font-bold font-serif">
@@ -132,7 +137,7 @@ export default function DailyWinsPage() {
       {/* ── Section 1: The Lead ────────────────────────────────── */}
       <section className="relative bg-[#FBF8F2] rounded-2xl p-8 border border-[#E5DED4]/80 group">
         <div className="absolute left-0 top-6 bottom-6 w-1 bg-[#D97757] rounded-r-lg shadow-[0_0_12px_rgba(217,119,87,0.4)]" />
-        
+
         <div className="space-y-6">
           <div className="flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-[#9A948C]" />
@@ -140,16 +145,20 @@ export default function DailyWinsPage() {
               Today's Lead
             </span>
           </div>
-          
+
           <div className="space-y-5 text-lg text-[#9A948C] font-light leading-relaxed max-w-3xl">
-            {win.lead.text.split('\n\n').map((para, i) => (
+            {win.lead.text.split("\n\n").map((para, i) => (
               <p key={i}>{para}</p>
             ))}
           </div>
 
           <div className="pt-4">
-            <Badge variant="outline" className="bg-[#E5DED4]/40 border-[#E5DED4] text-[10px] text-[#6B655E] font-normal px-4 py-1.5 rounded-full">
-              Why this matters: <span className="text-[#4A4540] ml-1.5">{win.lead.significance}</span>
+            <Badge
+              variant="outline"
+              className="bg-[#E5DED4]/40 border-[#E5DED4] text-[10px] text-[#6B655E] font-normal px-4 py-1.5 rounded-full"
+            >
+              Why this matters:{" "}
+              <span className="text-[#4A4540] ml-1.5">{win.lead.significance}</span>
             </Badge>
           </div>
         </div>
@@ -159,12 +168,15 @@ export default function DailyWinsPage() {
       {win.context && win.context.length > 0 && (
         <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {win.context.map((item, i) => (
-            <div key={i} className="bg-[#262626] rounded-2xl p-6 border border-[#E5DED4] flex flex-col justify-between h-40">
+            <div
+              key={i}
+              className="bg-[#262626] rounded-2xl p-6 border border-[#E5DED4] flex flex-col justify-between h-40"
+            >
               <div className="space-y-3">
-                <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-[#9A948C]">Context Item</span>
-                <p className="text-sm text-[#9A948C] line-clamp-3 leading-relaxed">
-                  {item.text}
-                </p>
+                <span className="text-[9px] uppercase font-bold tracking-[0.2em] text-[#9A948C]">
+                  Context Item
+                </span>
+                <p className="text-sm text-[#9A948C] line-clamp-3 leading-relaxed">{item.text}</p>
               </div>
               <div className="flex items-center gap-1.5 opacity-50">
                 <FileText className="w-3 h-3 text-[#6B655E]" />
@@ -181,7 +193,7 @@ export default function DailyWinsPage() {
       <section className="bg-[#FBE9DE] rounded-2xl p-10 border border-[#D97757]/20 relative overflow-hidden group">
         {/* Animated Background Pulse */}
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#FBE9DE] rounded-full blur-[80px] group-hover:bg-[#FBE9DE] transition-colors" />
-        
+
         <div className="relative z-10 space-y-6">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[#D97757] animate-pulse" />
@@ -201,10 +213,10 @@ export default function DailyWinsPage() {
 
           <Link href={(ctaLinks[win.todays_focus.action_type] || "/daily-wins") as any}>
             <Button className="h-14 px-10 bg-[#D97757] hover:bg-amber-400 text-black font-bold uppercase tracking-widest text-sm transition-all hover:translate-x-1">
-              {win.todays_focus.action_type === 'approve_content' && "Review & Approve Content"}
-              {win.todays_focus.action_type === 'review_campaign' && "Open Campaign Details"}
-              {win.todays_focus.action_type === 'respond_to_intel' && "View Intel Directive"}
-              {win.todays_focus.action_type === 'strategic_review' && "Consult the Muse"}
+              {win.todays_focus.action_type === "approve_content" && "Review & Approve Content"}
+              {win.todays_focus.action_type === "review_campaign" && "Open Campaign Details"}
+              {win.todays_focus.action_type === "respond_to_intel" && "View Intel Directive"}
+              {win.todays_focus.action_type === "strategic_review" && "Consult the Muse"}
               <ArrowRight className="ml-3 w-5 h-5" />
             </Button>
           </Link>
@@ -213,7 +225,7 @@ export default function DailyWinsPage() {
 
       {/* ── Footer / Mark as Read ─────────────────────────────── */}
       <footer className="text-center pt-8">
-        <button 
+        <button
           onClick={handleMarkAsRead}
           className="text-[#9A948C] hover:text-[#6B655E] transition-colors text-xs font-mono uppercase tracking-[0.2em] underline underline-offset-8 decoration-zinc-800"
         >
@@ -223,7 +235,7 @@ export default function DailyWinsPage() {
 
       {/* ── Archive Section ───────────────────────────────────── */}
       <section className="pt-12 border-t border-[#D5CBC0]">
-        <button 
+        <button
           onClick={() => setArchiveOpen(!archiveOpen)}
           className="flex items-center gap-2 text-[#6B655E] hover:text-[#2A2622] transition-colors text-xs font-bold uppercase tracking-widest"
         >
@@ -235,7 +247,9 @@ export default function DailyWinsPage() {
           <div className="mt-8 space-y-6">
             {!archive ? (
               <div className="space-y-4">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
               </div>
             ) : archive.length === 0 ? (
               <p className="text-[#9A948C] text-xs italic font-mono uppercase tracking-widest">
@@ -244,8 +258,8 @@ export default function DailyWinsPage() {
             ) : (
               <div className="space-y-4 relative pl-4 border-l border-[#D5CBC0] ml-2">
                 {archive.map((item) => (
-                  <Link 
-                    key={item.win_id} 
+                  <Link
+                    key={item.win_id}
                     href={`/daily-wins/${item.win_id}` as any}
                     className="flex flex-col group"
                   >

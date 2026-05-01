@@ -1,138 +1,130 @@
 # Scripts
 
-Automation for validation, contract syncing, and bootstrapping. This page tells you what each script does and when to run it.
+Scripts are grouped around setup, validation, contract maintenance, smoke checks,
+and deployment.
 
----
+## Pre-Commit
 
-## The pre-commit chain (runs automatically)
-
-Every `git commit` triggers this chain via `.githooks/pre-commit`:
-
-```
-git commit
-  └── pnpm lint-staged
-        ├── pnpm lint
-        │     ├── ESLint (apps/web)
-        │     └── cargo fmt --check (crates/)
-        │
-        ├── pnpm docs:check
-        │     └── scripts/check-docs.mjs
-        │           ├── 18 uploads match SHA-256 checksums
-        │           ├── All digest files exist and are non-empty
-        │           ├── Prompt contracts present and non-empty
-        │           └── Vol.3 duplicate group verified
-        │
-        └── pnpm scaffold:check
-              ├── scripts/check-foundation-screens.mjs   ← 21 screens exist
-              ├── scripts/check-office-events.mjs        ← Event catalog matches code
-              └── scripts/check-job-registry.mjs         ← Job registry complete
-```
-
-If any step fails, the commit is rejected. The error message tells you which check failed and why.
-
----
-
-## Scripts you run manually
-
-### `pnpm contracts:sync` — after creating or changing a schema
+`.githooks/pre-commit` runs:
 
 ```bash
-pnpm contracts:sync
+pnpm lint-staged
 ```
 
-Reads every JSON schema in `schemas/` and regenerates:
-
-- `crates/contracts/src/lib.rs` — Rust struct definitions
-- `packages/contracts/src/` — TypeScript type definitions
-
-**Always run this after changing a schema, before committing.**
-
-Then commit both the schema change AND the generated code in the same commit. The diff in `crates/` and `packages/` is what reviewers look at to understand the API contract change.
-
-### `pnpm contracts:check` — before opening a PR that touches schemas
+The `lint-staged` script is intentionally repo-wide despite the name:
 
 ```bash
-pnpm contracts:check
+pnpm lint
+pnpm typecheck
+pnpm docs:check
+pnpm scaffold:check
+pnpm smoke
 ```
 
-Validates that the generated Rust and TypeScript code matches the schemas. This catches cases where someone edited generated code directly (which they shouldn't do) or where a schema change wasn't synced.
+## Local Verification
 
-**CI runs this automatically.** Running it locally saves you a failed CI build.
+```bash
+pnpm verify
+```
 
-### `pnpm smoke` — fast stack health check before a demo
+Runs the main local confidence chain:
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm docs:check`
+- `pnpm contracts:check`
+- `pnpm scaffold:check`
+- `pnpm structural:check`
+- `pnpm smoke`
+
+CI also runs Rust formatting, clippy, and `cargo check --workspace`.
+
+## Contract Scripts
+
+### `pnpm contracts:sync`
+
+Regenerates Rust and TypeScript contract code from `schemas/`. Run this after
+changing any schema.
+
+### `pnpm contracts:check`
+
+Verifies the committed contract files still match the schema expectations.
+
+## Documentation Check
+
+```bash
+pnpm docs:check
+```
+
+Validates the source corpus and prompt-contract docs:
+
+- `Uploads/` matches `docs/canonical/source-manifest.json`
+- SHA-256 checksums match
+- source digest files exist and are non-empty
+- prompt contract files exist and are non-empty
+- the duplicate Vol. 3 source is recorded correctly
+
+## Scaffold Checks
+
+```bash
+pnpm scaffold:check
+```
+
+Runs:
+
+- `scripts/check-foundation-screens.mjs`
+- `scripts/check-office-events.mjs`
+- `scripts/check-job-registry.mjs`
+
+These checks protect expected route, event, and job registry coverage.
+
+## Structural Checks
+
+```bash
+pnpm structural:check
+```
+
+Runs:
+
+- `scripts/check-no-prisma-product-runtime.mjs`
+- `scripts/check-route-parity.mjs`
+
+Current known Prisma gaps are reported as warnings unless
+`ALLOW_PRISMA_GAPS=0` is set.
+
+## Smoke Check
 
 ```bash
 pnpm smoke
 ```
 
-Three fast validations:
+The smoke check is intentionally fast. It verifies:
 
-1. `docker compose config` — validates the compose file is parseable
-2. `cargo check --workspace` — ensures Rust compiles
-3. `pnpm build` — ensures frontend builds
+- app route metadata maps to real Next.js page files
+- sidebar navigation renders from `routeGroups`
+- sidebar icon coverage matches the route metadata
+- auth middleware and protected router markers exist
+- root `vercel.json` is the only Vercel config
+- Vercel cron paths map to real route handlers
 
-This is not a full test suite. It's what you run before showing someone the app.
-
-### `bootstrap.sh` / `bootstrap.ps1` — first-time machine setup
-
-Runs once per new machine. Installs Rust, Node, pnpm, enables corepack, and runs `pnpm setup:hooks`.
-
----
-
-## The scaffold validation scripts
-
-These are fully automated in the pre-commit chain. You don't need to run them manually, but here's what they check:
-
-| Script                         | What it validates                                                                      |
-| ------------------------------ | -------------------------------------------------------------------------------------- |
-| `check-foundation-screens.mjs` | All 21 foundation screen routes exist in `apps/web/src/app/(app)/foundation/`          |
-| `check-office-events.mjs`      | The office event catalog in `crates/office/src/lib.rs` matches expected events         |
-| `check-job-registry.mjs`       | `crates/jobs/src/lib.rs` contains all expected job types                               |
-| `check-docs.mjs`               | Source corpus integrity: checksums, digest files, prompt contracts, duplicate handling |
-
-### `check-docs.mjs` — the source corpus
-
-This script validates that the `Uploads/` directory (the original Word/Markdown documents that informed the scaffold) hasn't been corrupted or modified:
-
-- Every upload file matches its recorded SHA-256 checksum
-- Every digest file in `docs/source-digests/` exists and is non-empty
-- Every prompt contract in `docs/prompt-contracts/` exists and is non-empty
-- The Vol.3 duplicate group (two identical Office documents) is handled correctly
-
-This ensures the scaffold can always be traced back to its source material.
-
----
-
-## When to run what
-
-| Situation                                | Run                                                       |
-| ---------------------------------------- | --------------------------------------------------------- |
-| You added or changed a JSON schema       | `pnpm contracts:sync`                                     |
-| You're opening a PR that touches schemas | `pnpm contracts:check`                                    |
-| Pre-commit failed on your commit         | Read the error — fix the issue, don't bypass the hook     |
-| CI failed on contracts check             | `pnpm contracts:sync && pnpm contracts:check`             |
-| New machine, first time setup            | `bootstrap.sh` (Linux/macOS) or `bootstrap.ps1` (Windows) |
-| Before a demo                            | `pnpm smoke`                                              |
-| Regular development (no schema changes)  | Nothing — pre-commit handles everything                   |
-
----
-
-## Local development
-
-Stage 1 uses the real local stack: Postgres, PgBouncer, and Qdrant for data, plus the Rust API and Next.js frontend. There is no mock offline AI or offline WebSocket stack in the current setup.
-
-### `scripts/deploy-frontend.sh` — deploy to Vercel
+## Bootstrap
 
 ```bash
-# Preview deployment
-./scripts/deploy-frontend.sh
+./scripts/bootstrap.sh
+# or
+./scripts/bootstrap.ps1
+```
 
-# Production deployment
+Bootstraps a new machine with Corepack, dependencies, git hooks, scaffold checks,
+the smoke check, and Docker image pulls.
+
+## Frontend Deploy
+
+```bash
+./scripts/deploy-frontend.sh
 ./scripts/deploy-frontend.sh --production
 ```
 
-Requires `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` environment variables.
-
-### Switching environments
-
-Use `apps/web/.env.local` and the root `.env` file to point the frontend and backend at the environment you want. Clerk, Bedrock, and database URLs determine whether you are talking to local or cloud infrastructure.
+Requires `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`. The script
+builds `@raptorflow/web` and deploys from the repository root so it uses the root
+`vercel.json`.

@@ -60,13 +60,27 @@ export default function CampaignMovesPage({
           >
             Campaign Journey Map
           </p>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, lineHeight: 1, margin: 0 }}>
+          <h1
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontSize: 40,
+              lineHeight: 1,
+              margin: 0,
+            }}
+          >
             Move Sequence
           </h1>
         </div>
 
         <div className="text-right shrink-0">
-          <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: "var(--foreground)", lineHeight: 1 }}>
+          <p
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontSize: 28,
+              color: "var(--foreground)",
+              lineHeight: 1,
+            }}
+          >
             {progress}%
           </p>
           <p
@@ -81,7 +95,9 @@ export default function CampaignMovesPage({
             {completedCount}/{moveList.length} completed
           </p>
           <div style={{ height: 2, background: "var(--muted)", marginTop: 6, width: 120 }}>
-            <div style={{ height: "100%", width: `${progress}%`, background: "var(--amber-war)" }} />
+            <div
+              style={{ height: "100%", width: `${progress}%`, background: "var(--amber-war)" }}
+            />
           </div>
         </div>
       </header>
@@ -128,14 +144,25 @@ export default function CampaignMovesPage({
                     <div
                       className="flex h-9 w-9 items-center justify-center border-2 shrink-0"
                       style={{
-                        background: isCompleted ? "var(--foreground)" : isActive ? typeColor : "var(--card)",
-                        borderColor: isCompleted ? "var(--foreground)" : isActive ? typeColor : "var(--border)",
+                        background: isCompleted
+                          ? "var(--foreground)"
+                          : isActive
+                            ? typeColor
+                            : "var(--card)",
+                        borderColor: isCompleted
+                          ? "var(--foreground)"
+                          : isActive
+                            ? typeColor
+                            : "var(--border)",
                       }}
                     >
                       {isCompleted ? (
                         <CheckIcon className="h-4 w-4 text-[var(--background)]" />
                       ) : isActive ? (
-                        <DotFilledIcon className="h-4 w-4 animate-pulse" style={{ color: "var(--background)" }} />
+                        <DotFilledIcon
+                          className="h-4 w-4 animate-pulse"
+                          style={{ color: "var(--background)" }}
+                        />
                       ) : (
                         <span
                           style={{
@@ -185,7 +212,11 @@ export default function CampaignMovesPage({
                               fontSize: 8,
                               textTransform: "uppercase",
                               letterSpacing: "0.1em",
-                              color: isActive ? "var(--amber-war)" : isCompleted ? "var(--leaf-confirm)" : "var(--muted-foreground)",
+                              color: isActive
+                                ? "var(--amber-war)"
+                                : isCompleted
+                                  ? "var(--leaf-confirm)"
+                                  : "var(--muted-foreground)",
                             }}
                           >
                             {move.status}
@@ -205,7 +236,15 @@ export default function CampaignMovesPage({
                       >
                         {move.title ?? `${move.moveType} move`}
                       </h3>
-                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, lineHeight: 1.6, color: "var(--muted-foreground)", margin: 0 }}>
+                      <p
+                        style={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: 11,
+                          lineHeight: 1.6,
+                          color: "var(--muted-foreground)",
+                          margin: 0,
+                        }}
+                      >
                         {move.description ?? move.expectedImpact ?? move.moveType}
                       </p>
                     </div>

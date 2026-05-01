@@ -19,6 +19,7 @@
 - `database/migrations`: PostgreSQL schema
 - `infra/tofu`: production infrastructure
 - `docs`: canonical specs, ADRs, runbooks, prompt contracts
+- `docs/archive`: historical reports and old specs, not operational truth
 - `scripts`: validation and bootstrap helpers
 
 ## Naming rules

@@ -7,12 +7,7 @@
   "properties": {
     "type": {
       "type": "string",
-      "enum": [
-        "council.started",
-        "council.position",
-        "council.synthesis",
-        "council.reconnect"
-      ]
+      "enum": ["council.started", "council.position", "council.synthesis", "council.reconnect"]
     },
     "session_id": {
       "type": "string"

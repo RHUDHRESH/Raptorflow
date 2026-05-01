@@ -11,5 +11,5 @@ export const useAppShellStore = create<AppShellState>((set) => ({
   sidebarOpen: true,
   commandPaletteOpen: false,
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-  setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open })
+  setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
 }));

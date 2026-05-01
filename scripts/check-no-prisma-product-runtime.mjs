@@ -102,16 +102,14 @@ async function main() {
       const rel = toForwardSlash(relative(process.cwd(), file));
       const content = await readFile(file, "utf8");
 
-      for (const forbidden of FORBIDDEN_IMPORTS) {
-        if (content.includes(forbidden)) {
-          const apiRouteKey = rel.split("/").slice(0, 6).join("/");
-          const rustEquivs = RUST_EQUIVALENTS[apiRouteKey];
+      if (FORBIDDEN_IMPORTS.some((forbidden) => content.includes(forbidden))) {
+        const apiRouteKey = rel.split("/").slice(0, 6).join("/");
+        const rustEquivs = RUST_EQUIVALENTS[apiRouteKey];
 
-          if (rustEquivs && rustEquivs.has(rel)) {
-            violations.push(`${rel}: Prisma in route with Rust equivalent`);
-          } else {
-            docGaps.push(`${rel}: Prisma in route without Rust equivalent (documented gap)`);
-          }
+        if (rustEquivs && rustEquivs.has(rel)) {
+          violations.push(`${rel}: Prisma in route with Rust equivalent`);
+        } else {
+          docGaps.push(`${rel}: Prisma in route without Rust equivalent (documented gap)`);
         }
       }
     }

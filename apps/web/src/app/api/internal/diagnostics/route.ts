@@ -16,6 +16,6 @@ export async function GET(): Promise<NextResponse> {
     ok: true,
     route: "internal.diagnostics",
     authenticated: true,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 }

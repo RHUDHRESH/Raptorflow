@@ -3,21 +3,45 @@
 ## Prerequisites
 
 - Docker Desktop
-- Rust 1.94+
-- Node 22+
-- pnpm via Corepack
+- Node 22 with Corepack
+- pnpm 10.33.0
+- Rust 1.94.0 from `rust-toolchain.toml`
+- `sqlx-cli` for local database migrations
 
-## Steps
+## Environment
 
-1. `corepack enable`
-2. `pnpm install --frozen-lockfile`
-3. Copy `.env.example` to `.env` and fill Clerk, database, Bedrock, Qdrant, Razorpay, and Sentry values.
-4. Start local services: `docker compose up -d postgres pgbouncer qdrant`
-5. Run migrations directly against Postgres: `sqlx migrate run --database-url $RAPTORFLOW_DIRECT_DATABASE_URL`
-6. Start the app: `pnpm dev`
+1. Copy `.env.example` to `.env`.
+2. Fill Clerk, Bedrock, Qdrant, S3/SQS, Resend, Razorpay, Sentry, and `CRON_SECRET` values as needed.
+3. For frontend-only work, copy `apps/web/.env.example` to `apps/web/.env.local`.
 
-## Important rules
+Never commit `.env`, `.env.local`, Playwright auth state, test results, or local
+logs.
 
-- Run migrations through `RAPTORFLOW_DIRECT_DATABASE_URL`, not PgBouncer.
-- Do not use offline mock mode in the active stack.
+## Services
+
+```bash
+docker compose up -d postgres pgbouncer qdrant
+sqlx migrate run --database-url $RAPTORFLOW_DIRECT_DATABASE_URL
+pnpm dev
+```
+
+Use PgBouncer on port `6432` for runtime traffic. Run migrations against direct
+Postgres on port `5432`.
+
+## Checks
+
+```bash
+pnpm verify
+docker compose config
+cargo check --workspace
+```
+
+`pnpm smoke` is the fast local wiring check. It verifies navigation route files,
+cron route files, auth middleware markers, and the root Vercel config.
+
+## Active Rules
+
 - Auth is Clerk-only.
+- AI inference is AWS Bedrock only.
+- There is no active offline mock mode.
+- `schemas/` is the contract source of truth.

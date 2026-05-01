@@ -4,9 +4,7 @@
   "source_root": "Uploads",
   "digest_root": "docs/source-digests",
   "source_count": 18,
-  "checks": [
-    "scripts/check-docs.mjs"
-  ],
+  "checks": ["scripts/check-docs.mjs"],
   "duplicate_policy": {
     "group_id": "vol3-office",
     "canonical_source": "Vol3_TheOffice_FULL.docx",
@@ -19,72 +17,56 @@
       "upload_path": "Uploads/deep-research-report.md",
       "digest_file": "docs/source-digests/01-deep-research-report.md",
       "checksum_sha256": "f013fea4308e98fca853e4c89b91a22fb21ea8be41e41e13783c95cefdbe7e74",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "AddendumA_RippleCreation.md",
       "upload_path": "Uploads/AddendumA_RippleCreation.md",
       "digest_file": "docs/source-digests/02-addendum-a-ripple-creation.md",
       "checksum_sha256": "657bd430807cbfeeb7ac52e32c10e1875b6638e6ce48ef7991159f576c9cb54f",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "AddendumB_PromptLibrary.md",
       "upload_path": "Uploads/AddendumB_PromptLibrary.md",
       "digest_file": "docs/source-digests/03-addendum-b-prompt-library.md",
       "checksum_sha256": "8265fb0c3ac8122fe04bd3d92c5c0d2ff73d1027024d7bc47bb928aff5c1cb13",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "AddendumCDE_OfficeInternClosedLoops (1).md",
       "upload_path": "Uploads/AddendumCDE_OfficeInternClosedLoops (1).md",
       "digest_file": "docs/source-digests/04-addendum-cde-office-intern-closed-loops.md",
       "checksum_sha256": "a4fe5959beebd581ea263f3a4720247e82a7ec48fb6ffe491074b076d7995cd6",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "RedTeam_Audit.md",
       "upload_path": "Uploads/RedTeam_Audit.md",
       "digest_file": "docs/source-digests/05-red-team-audit.md",
       "checksum_sha256": "ba5e6864c3246532aa5cb1bcc0410b0984e1523e90a331f656fa9e866bf3d3e9",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol1_Vision_FULL.docx",
       "upload_path": "Uploads/Vol1_Vision_FULL.docx",
       "digest_file": "docs/source-digests/06-vol1-vision.md",
       "checksum_sha256": "0307d387c5bdf517373599cf7f8190bdc9019ce331fd032acb38afba8ef6e263",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol2_Foundation_FULL.docx",
       "upload_path": "Uploads/Vol2_Foundation_FULL.docx",
       "digest_file": "docs/source-digests/07-vol2-foundation.md",
       "checksum_sha256": "fea045b3d1fcc4ac0b3c7a80fe800cc43f945a616265a56853d0afecd2784810",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol3_TheOffice_FULL.docx",
       "upload_path": "Uploads/Vol3_TheOffice_FULL.docx",
       "digest_file": "docs/source-digests/08-vol3-office-primary.md",
       "checksum_sha256": "a66c2f60025adfbc0eb74cabf94326bc56a2806242a562b439e0787b726ce93b",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ],
+      "checks": ["scripts/check-docs.mjs"],
       "duplicate_group": "vol3-office",
       "canonical": true
     },
@@ -93,9 +75,7 @@
       "upload_path": "Uploads/Vol3_TheOffice_FULL (1).docx",
       "digest_file": "docs/source-digests/09-vol3-office-duplicate.md",
       "checksum_sha256": "a66c2f60025adfbc0eb74cabf94326bc56a2806242a562b439e0787b726ce93b",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ],
+      "checks": ["scripts/check-docs.mjs"],
       "duplicate_group": "vol3-office",
       "duplicate_of": "Vol3_TheOffice_FULL.docx"
     },
@@ -104,81 +84,63 @@
       "upload_path": "Uploads/Vol4_AgentAvatars_FULL.docx",
       "digest_file": "docs/source-digests/10-vol4-agent-avatars.md",
       "checksum_sha256": "23155a9929a5d941bf06c82e46a24239f165bd54e7db3ba44c8e7718e60754c2",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol5_PRL_FULL.docx",
       "upload_path": "Uploads/Vol5_PRL_FULL.docx",
       "digest_file": "docs/source-digests/11-vol5-prl.md",
       "checksum_sha256": "7d238b5653deb1edb7da00fcbf4a53066db0e326ae9f1cd789895cb838f7ba16",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol6_EEL_FULL.docx",
       "upload_path": "Uploads/Vol6_EEL_FULL.docx",
       "digest_file": "docs/source-digests/12-vol6-eel.md",
       "checksum_sha256": "98805bb72276b6ac826b8ab12d8cac06d07355221d5d19a47decf6dbb1f6d9a8",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol7_Harness_FULL.docx",
       "upload_path": "Uploads/Vol7_Harness_FULL.docx",
       "digest_file": "docs/source-digests/13-vol7-harness.md",
       "checksum_sha256": "18d6b4d413c1eb1161234076346d6dd81740639323ebdcce6aa0733cf89c8138",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol8_Campaigns_FULL.docx",
       "upload_path": "Uploads/Vol8_Campaigns_FULL.docx",
       "digest_file": "docs/source-digests/14-vol8-campaigns.md",
       "checksum_sha256": "048a8a483fca12ac55014669e03772b4da617e96d9ea34e09ab3fc0044cd931e",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol9_Muse_Intel_DailyWins.md",
       "upload_path": "Uploads/Vol9_Muse_Intel_DailyWins.md",
       "digest_file": "docs/source-digests/15-vol9-muse-intel-daily-wins.md",
       "checksum_sha256": "83d130ea4cbe0a395d5efd985f25fa19853ff6baacdef5d84b1b35ed7c029847",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol10_Council.md",
       "upload_path": "Uploads/Vol10_Council.md",
       "digest_file": "docs/source-digests/16-vol10-council.md",
       "checksum_sha256": "d812005626768aa37bb9e65f20321796886dea5d6026bc3ee1d85c24461c84f7",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol11_FeaturesEndToEnd.md",
       "upload_path": "Uploads/Vol11_FeaturesEndToEnd.md",
       "digest_file": "docs/source-digests/17-vol11-features-end-to-end.md",
       "checksum_sha256": "cf8542003b2b1ea307991dd3b3cdd67966acb10e4936464670a3a6ec2a902150",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     },
     {
       "upload_name": "Vol12_Architecture.md",
       "upload_path": "Uploads/Vol12_Architecture.md",
       "digest_file": "docs/source-digests/18-vol12-architecture.md",
       "checksum_sha256": "30d5b44e60042fa852b87fefa4422de53fb204364f74bf47d95ffd1ff0b86abd",
-      "checks": [
-        "scripts/check-docs.mjs"
-      ]
+      "checks": ["scripts/check-docs.mjs"]
     }
   ]
 }

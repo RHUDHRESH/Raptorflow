@@ -275,9 +275,7 @@ async function main() {
   const resolvedOrgId = orgId || (clerkOrgId ? deriveInternalOrgId(clerkOrgId) : "");
 
   if (resolvedOrgId && !/^[0-9a-fA-F-]{36}$/.test(resolvedOrgId)) {
-    throw new Error(
-      `LIVE_SMOKE_ORG_ID must be a UUID if provided, received: ${resolvedOrgId}`,
-    );
+    throw new Error(`LIVE_SMOKE_ORG_ID must be a UUID if provided, received: ${resolvedOrgId}`);
   }
 
   await seedPrismaDb({ userId, email, orgId: resolvedOrgId || undefined });
@@ -300,10 +298,7 @@ main().catch((error) => {
 });
 
 function deriveInternalOrgId(clerkOrgId) {
-  const digest = createHash("sha256")
-    .update("raptorflow-clerk-org:")
-    .update(clerkOrgId)
-    .digest();
+  const digest = createHash("sha256").update("raptorflow-clerk-org:").update(clerkOrgId).digest();
   const bytes = Buffer.from(digest.subarray(0, 16));
   bytes[6] = (bytes[6] & 0x0f) | 0x50;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;

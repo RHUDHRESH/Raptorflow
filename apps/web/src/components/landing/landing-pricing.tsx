@@ -25,7 +25,10 @@ export function LandingPricing() {
               "Live backend, no mock access wall",
               "Everything unlocked after login",
             ].map((item) => (
-              <div key={item} className="bg-white rounded-[var(--radius-lg)] p-6 border border-[var(--border)] card-elevated">
+              <div
+                key={item}
+                className="bg-white rounded-[var(--radius-lg)] p-6 border border-[var(--border)] card-elevated"
+              >
                 <div className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-[var(--primary)] shrink-0 mt-0.5" />
                   <p className="text-[var(--ink-700)]">{item}</p>

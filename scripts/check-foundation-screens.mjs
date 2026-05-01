@@ -2,7 +2,16 @@ import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { join } from "node:path";
 
-const pageFile = join(process.cwd(), "apps", "web", "src", "app", "(app)", "foundation", "page.tsx");
+const pageFile = join(
+  process.cwd(),
+  "apps",
+  "web",
+  "src",
+  "app",
+  "(app)",
+  "foundation",
+  "page.tsx",
+);
 const routeFile = join(
   process.cwd(),
   "apps",
@@ -12,7 +21,7 @@ const routeFile = join(
   "(app)",
   "foundation",
   "[step]",
-  "page.tsx"
+  "page.tsx",
 );
 
 const expectedScreens = [
@@ -36,7 +45,7 @@ const expectedScreens = [
   { slug: "current-frustrations", title: "Current Frustrations" },
   { slug: "existing-tools", title: "Existing Tools" },
   { slug: "reference-brands", title: "Reference Brands" },
-  { slug: "campaign-strategist", title: "Campaign Strategist" }
+  { slug: "campaign-strategist", title: "Campaign Strategist" },
 ];
 
 function extractScreenEntries(source) {
@@ -45,9 +54,9 @@ function extractScreenEntries(source) {
     throw new Error("Foundation screens array missing.");
   }
 
-  return [...block.groups.items.matchAll(/\{\s*slug:\s*"([^"]+)"\s*,\s*title:\s*"([^"]+)"\s*\}/g)].map(
-    (match) => ({ slug: match[1], title: match[2] })
-  );
+  return [
+    ...block.groups.items.matchAll(/\{\s*slug:\s*"([^"]+)"\s*,\s*title:\s*"([^"]+)"\s*\}/g),
+  ].map((match) => ({ slug: match[1], title: match[2] }));
 }
 
 function assertExactList(label, actual, expected) {
@@ -68,7 +77,7 @@ async function main() {
 
   if (
     !content.includes(
-      "Reserved route content, form contract, websocket hooks, and autosave behavior."
+      "Reserved route content, form contract, websocket hooks, and autosave behavior.",
     )
   ) {
     throw new Error("Foundation scaffold body text missing.");

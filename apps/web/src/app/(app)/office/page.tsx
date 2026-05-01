@@ -3,19 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  AppPageFrame,
-  AppEmptyState,
-  AppErrorState,
-  AppLoadingState,
-} from "@/components/layout";
-import {
-  RfWindow,
-  RfWindowGrid,
-  RfWindowRail,
-  StatusPill,
-  SignalDot,
-} from "@/components/windows";
+import { AppPageFrame, AppEmptyState, AppErrorState, AppLoadingState } from "@/components/layout";
+import { RfWindow, RfWindowGrid, RfWindowRail, StatusPill, SignalDot } from "@/components/windows";
 import {
   useOfficeState,
   useOfficeCampaignFronts,
@@ -50,13 +39,8 @@ function MorningBriefingWindow() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
       {items.map((item) => (
-        <div
-          key={item.label}
-          className="paper-card p-4 flex flex-col gap-1"
-        >
-          <span className="mono-label text-[var(--ink-500)]">
-            {item.label}
-          </span>
+        <div key={item.label} className="paper-card p-4 flex flex-col gap-1">
+          <span className="mono-label text-[var(--ink-500)]">{item.label}</span>
           <span className="h2">{item.value}</span>
         </div>
       ))}
@@ -70,10 +54,7 @@ function CampaignFrontsWindow() {
   if (isLoading) return <AppLoadingState label="Loading campaigns..." />;
   if (error)
     return (
-      <AppErrorState
-        title="Campaigns unavailable"
-        description="Could not load campaign data."
-      />
+      <AppErrorState title="Campaigns unavailable" description="Could not load campaign data." />
     );
   if (!data || data.length === 0) {
     return (
@@ -104,9 +85,7 @@ function CampaignFrontsWindow() {
               {campaign.name ?? campaign.title ?? "Untitled Campaign"}
             </p>
             {campaign.goal && (
-              <p className="text-sm text-[var(--ink-500)] truncate">
-                {campaign.goal}
-              </p>
+              <p className="text-sm text-[var(--ink-500)] truncate">{campaign.goal}</p>
             )}
           </div>
           <div className="flex items-center gap-3 shrink-0 ml-4">
@@ -225,12 +204,8 @@ function CouncilActivityWindow() {
     <div className="space-y-3">
       <div className="flex items-center justify-between p-3 rounded-lg border border-[var(--border)] bg-[var(--paper-100)]">
         <div>
-          <p className="font-medium text-[var(--ink-900)]">
-            {latest.mode ?? "Council Session"}
-          </p>
-          <p className="text-sm text-[var(--ink-500)]">
-            {latest.status ?? "unknown status"}
-          </p>
+          <p className="font-medium text-[var(--ink-900)]">{latest.mode ?? "Council Session"}</p>
+          <p className="text-sm text-[var(--ink-500)]">{latest.status ?? "unknown status"}</p>
         </div>
         <StatusPill
           status={latest.status ?? "unknown"}
@@ -337,15 +312,10 @@ function AvatarRoster() {
   return (
     <div className="space-y-3">
       {CANONICAL_AVATARS.map((avatar) => (
-        <div
-          key={avatar.key}
-          className="flex items-center gap-3"
-        >
+        <div key={avatar.key} className="flex items-center gap-3">
           <SignalDot tone="neutral" />
           <div className="min-w-0">
-            <p className="text-sm font-medium text-[var(--ink-900)]">
-              {avatar.label}
-            </p>
+            <p className="text-sm font-medium text-[var(--ink-900)]">{avatar.label}</p>
             <p className="text-xs text-[var(--ink-500)]">{avatar.role}</p>
           </div>
           <span className="ml-auto mono-label text-[var(--ink-400)] capitalize">
@@ -376,9 +346,7 @@ function SystemSignals() {
         <SignalDot
           tone={data && data.activeCouncilSessions > 0 ? "amber" : "neutral"}
           label={
-            data && data.activeCouncilSessions > 0
-              ? `${data.activeCouncilSessions} active`
-              : "Idle"
+            data && data.activeCouncilSessions > 0 ? `${data.activeCouncilSessions} active` : "Idle"
           }
         />
       </div>
@@ -438,10 +406,8 @@ export default function OfficePage(): React.ReactElement {
   const { data: officeState, isLoading, error } = useOfficeState();
 
   const statusNode = React.useMemo(() => {
-    if (isLoading)
-      return <StatusPill status="Loading..." tone="neutral" />;
-    if (error)
-      return <StatusPill status="Unavailable" tone="danger" />;
+    if (isLoading) return <StatusPill status="Loading..." tone="neutral" />;
+    if (error) return <StatusPill status="Unavailable" tone="danger" />;
     return <StatusPill status="Office online" tone="success" />;
   }, [isLoading, error]);
 

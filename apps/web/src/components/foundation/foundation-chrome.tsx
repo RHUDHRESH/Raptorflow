@@ -41,15 +41,15 @@ export function FoundationChrome() {
       {/* 3. STEP COUNTER & 4. SAVE INDICATOR */}
       <div className="fixed top-4 right-6 z-50 flex flex-col items-end gap-1">
         {currentStep > 1 && (
-          <span className="text-sm text-[#6B655E] font-mono">
-            Step {currentStep} of 21
-          </span>
+          <span className="text-sm text-[#6B655E] font-mono">Step {currentStep} of 21</span>
         )}
-        
-        <div className={cn(
-          "text-[10px] text-[#6B655E] font-mono transition-opacity duration-300",
-          isAutoSaving ? "opacity-100" : "opacity-0"
-        )}>
+
+        <div
+          className={cn(
+            "text-[10px] text-[#6B655E] font-mono transition-opacity duration-300",
+            isAutoSaving ? "opacity-100" : "opacity-0",
+          )}
+        >
           Saving...
         </div>
       </div>

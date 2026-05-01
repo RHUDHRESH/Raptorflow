@@ -4,7 +4,7 @@ export const queueNames = {
   researchRequest: "research-request",
   internTask: "intern-task",
   toolGateway: "tool-gateway",
-  eventHarvester: "event-harvester"
+  eventHarvester: "event-harvester",
 } as const;
 
 export interface QueueEnvelope<TPayload> {

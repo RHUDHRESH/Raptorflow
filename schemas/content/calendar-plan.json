@@ -15,7 +15,10 @@
         "properties": {
           "week": { "type": "integer", "minimum": 1, "maximum": 52 },
           "date": { "type": "string", "format": "date" },
-          "content_type": { "type": "string", "enum": ["blog", "social", "email", "video", "podcast", "webinar"] },
+          "content_type": {
+            "type": "string",
+            "enum": ["blog", "social", "email", "video", "podcast", "webinar"]
+          },
           "platform": { "type": "string", "minLength": 2 },
           "topic": { "type": "string", "minLength": 5 },
           "angle": { "type": "string" },
