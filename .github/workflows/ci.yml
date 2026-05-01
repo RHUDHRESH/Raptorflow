@@ -6,41 +6,113 @@ on:
     branches:
       - main
 
+env:
+  DATABASE_URL: postgresql://placeholder:placeholder@placeholder:5432/placeholder
+
 jobs:
-  web-and-docs:
+  web:
+    name: Web (TypeScript / Next.js)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.0
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm build
-        env:
-          DATABASE_URL: postgresql://placeholder:placeholder@placeholder:5432/placeholder
-      - run: pnpm docs:check
-      - run: pnpm contracts:check
+
+      - name: Check formatting
+        run: pnpm format
+
+      - name: Generate Prisma client
+        run: pnpm --filter @raptorflow/database generate
+
+      - name: TypeScript lint
+        run: pnpm lint
+
+      - name: TypeScript typecheck
+        run: pnpm typecheck
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Validate contract schemas
+        run: pnpm contracts:check
+
+      - name: Validate docs integrity
+        run: pnpm docs:check
 
   rust:
+    name: Rust
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.94.0
           components: rustfmt, clippy
-      - run: cargo fmt --check
-      - run: cargo clippy --workspace --all-features --lib --bins
-      - run: cargo check --workspace
 
-  compose:
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Check compilation
+        run: cargo check --workspace --all-targets
+
+      - name: Clippy lint
+        run: cargo clippy --workspace --all-targets
+
+      - name: Run unit tests
+        run: cargo test --workspace --lib
+
+  structural:
+    name: Structural Integrity
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.0
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @raptorflow/database generate
+
+      - name: Check route parity (frontend vs Rust)
+        run: pnpm route-parity:check
+
+      - name: Check no Prisma in product runtime
+        run: pnpm runtime-authority:check
+
+      - name: Validate scaffold coverage
+        run: pnpm scaffold:check
+
+  compose:
+    name: Docker Compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       - run: docker compose config
