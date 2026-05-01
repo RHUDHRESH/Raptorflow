@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useFoundationStore } from "@/state/foundation-store";
 import { cn } from "@/lib/utils";
+import { getApiBaseUrl } from "@/lib/api";
 
 /**
  * Foundation Screen 3: Business Stage and Team Size
@@ -41,12 +42,12 @@ export default function FoundationStep3() {
 
     try {
       const token = await getToken();
-      
+
       // Save locally
       setSectionData("business_stage", data);
 
       // Save to backend
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/section/business_stage`, {
+      await fetch(`${getApiBaseUrl()}/api/v1/foundation/section/business_stage`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -66,11 +67,8 @@ export default function FoundationStep3() {
   return (
     <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[560px] space-y-10">
-        
         {/* HEADER */}
-        <h1 className="text-3xl font-bold text-[#2A2622]">
-          Where are you in your growth journey?
-        </h1>
+        <h1 className="text-3xl font-bold text-[#2A2622]">Where are you in your growth journey?</h1>
 
         {/* STAGE SELECTOR */}
         <div className="flex flex-col gap-3">
@@ -82,21 +80,21 @@ export default function FoundationStep3() {
                 onClick={() => setSelectedStage(stage.id)}
                 className={cn(
                   "flex items-center gap-4 p-5 rounded-xl cursor-pointer border transition-all duration-200",
-                  isSelected 
-                    ? "border-[#f59e0b] bg-[#f59e0b]/10" 
-                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]"
+                  isSelected
+                    ? "border-[#f59e0b] bg-[#f59e0b]/10"
+                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]",
                 )}
               >
                 {/* Number Badge */}
-                <div className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-mono transition-colors",
-                  isSelected 
-                    ? "bg-[#f59e0b] text-black" 
-                    : "bg-[#D5CBC0] text-[#6B655E]"
-                )}>
+                <div
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-mono transition-colors",
+                    isSelected ? "bg-[#f59e0b] text-black" : "bg-[#D5CBC0] text-[#6B655E]",
+                  )}
+                >
                   {index + 1}
                 </div>
-                
+
                 <div className="flex flex-col">
                   <span className="font-medium text-[#2A2622]">{stage.title}</span>
                   <span className="text-sm text-[#6B655E]">{stage.desc}</span>
@@ -122,7 +120,7 @@ export default function FoundationStep3() {
                     "px-4 py-2 rounded-full border text-sm transition-all duration-200",
                     isSelected
                       ? "border-[#f59e0b] bg-[#f59e0b]/10 text-[#2A2622]"
-                      : "border-[#D5CBC0] bg-transparent text-[#9A948C] hover:border-[#D5CBC0]"
+                      : "border-[#D5CBC0] bg-transparent text-[#9A948C] hover:border-[#D5CBC0]",
                   )}
                 >
                   {size}
@@ -140,7 +138,6 @@ export default function FoundationStep3() {
         >
           {isSubmitting ? "Saving..." : "Continue"}
         </button>
-
       </div>
     </div>
   );

@@ -53,7 +53,7 @@ tofu plan
 tofu apply
 ```
 
-**In CI:** `tofu plan` runs on every PR as a check. `tofu apply` runs on merge to `main` for dev, and is manually triggered for staging/prod via the GitHub Actions workflow.
+**In CI:** `tofu plan`/`apply` is not yet automated in GitHub Actions. Run `tofu plan` locally before any PR that changes infrastructure. `tofu apply` must be run manually with appropriate AWS credentials.
 
 ---
 
@@ -111,4 +111,3 @@ See `infra/tofu/modules/compute/ecs-task.tf` for the pattern.
 - Vercel project setup
 - Cost alarms and billing alerts
 - Disaster recovery procedures
-

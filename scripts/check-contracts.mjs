@@ -54,13 +54,129 @@ for (const token of officeEventTypes) {
 }
 
 const foundationRouteTokens = [
+  "/scan/start",
   "/scan/quick",
   "/scan/deep",
-  "/scan/:scan_id",
-  "/versions",
-  "/versions/:version_id",
-  "/versions/:version_id/sections/:section",
+  "/scan/status",
+  "/scan/{scan_id}",
 ];
+
+// ─── Route Diffing ──────────────────────────────────────────────────────
+// Extract routes from the Rust router, OpenAPI spec, and frontend API client
+// to ensure they stay in sync.
+
+function extractRouterRoutes(content) {
+  // Match patterns like "/api/v1/foo/bar" or "/api/v1/foo/{bar}" in router.rs
+  const routes = new Set();
+  const regex = /"(\/api\/v1\/[^"]+)"/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    routes.add(match[1]);
+  }
+  return routes;
+}
+
+function extractOpenApiRoutes(content) {
+  // Match paths like /api/v1/foo/bar or /api/v1/foo/{bar} in OpenAPI yaml
+  const routes = new Set();
+  const regex = /^  \/api\/v1\/[^\s:]+/gm;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    routes.add(match[0].trim());
+  }
+  return routes;
+}
+
+function extractFrontendRoutes(content) {
+  // Match fetch/base URL paths like /api/v1/foo/bar in api.ts
+  const routes = new Set();
+  const regex = /"(\/api\/v1\/[^"]+)"/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    routes.add(match[1]);
+  }
+  return routes;
+}
+
+const routerContent = await readFile(
+  join(process.cwd(), "crates", "http", "src", "router.rs"),
+  "utf8",
+);
+const frontendApiContent = await readFile(
+  join(process.cwd(), "apps", "web", "src", "lib", "api.ts"),
+  "utf8",
+);
+
+const routerRoutes = extractRouterRoutes(routerContent);
+const openApiRoutes = extractOpenApiRoutes(openApiContract);
+const frontendRoutes = extractFrontendRoutes(frontendApiContent);
+
+// Known OpenAPI routes that are documented but not yet implemented in the router
+const knownOpenApiGaps = new Set([
+  "/api/v1/billing",
+  "/api/v1/billing/orders",
+  "/api/v1/billing/subscriptions/{id}",
+  "/api/v1/billing/subscriptions/{id}/cancel",
+  "/api/v1/uploads",
+  "/api/v1/uploads/download",
+  "/api/v1/uploads/{key}",
+  "/api/v1/screenshots",
+  "/api/v1/exports",
+  "/api/v1/exports/download",
+  "/api/v1/foundation/versions/{versionId}",
+  "/api/v1/foundation/versions/{versionId}/sections/{section}",
+]);
+
+let routeDiffErrors = 0;
+let knownGapsFound = 0;
+
+// Check OpenAPI routes exist in router
+for (const route of openApiRoutes) {
+  if (knownOpenApiGaps.has(route)) {
+    knownGapsFound++;
+    continue;
+  }
+  // Normalize OpenAPI {param} to router {param} and /scan/{scan_id} to /scan/{scan_id}
+  const normalized = route.replace(/\{(\w+)\}/g, "{$1}");
+  const matchInRouter = Array.from(routerRoutes).some((r) => {
+    const rNormalized = r.replace(/\{(\w+)\}/g, "{$1}");
+    return rNormalized === normalized;
+  });
+  if (!matchInRouter) {
+    console.error(`ROUTE DRIFT: OpenAPI path "${route}" not found in Rust router.`);
+    routeDiffErrors++;
+  }
+}
+
+// Check frontend API routes exist in router (or OpenAPI)
+for (const route of frontendRoutes) {
+  if (route.includes("${")) continue; // Skip template literals
+  const matchInRouter = Array.from(routerRoutes).some((r) => {
+    const rSegments = r.split("/");
+    const fSegments = route.split("/");
+    if (rSegments.length !== fSegments.length) return false;
+    return rSegments.every((seg, i) => {
+      return seg.startsWith("{") || seg === fSegments[i];
+    });
+  });
+  if (!matchInRouter) {
+    // Known template pattern — skip dynamic paths
+    if (route.includes(":") || route.includes("?")) continue;
+    console.error(
+      `ROUTE DRIFT: Frontend calls "${route}" but no matching route exists in Rust router.`,
+    );
+    routeDiffErrors++;
+  }
+}
+
+if (knownGapsFound > 0) {
+  console.log(`Known unimplemented routes (documented, not yet in router): ${knownGapsFound}`);
+}
+if (routeDiffErrors > 0) {
+  console.error(`\nRoute drift detected: ${routeDiffErrors} mismatches.`);
+  process.exit(1);
+}
+console.log("Route diff check passed — router, OpenAPI, and frontend are in sync.");
 
 for (const token of foundationRouteTokens) {
   if (!foundationRust.includes(token)) {
@@ -70,12 +186,11 @@ for (const token of foundationRouteTokens) {
 }
 
 const foundationRestTokens = [
+  "/api/v1/foundation/scan/start",
   "/api/v1/foundation/scan/quick",
   "/api/v1/foundation/scan/deep",
-  "/api/v1/foundation/scans/:scanId",
-  "/api/v1/foundation/versions",
-  "/api/v1/foundation/versions/:versionId",
-  "/api/v1/foundation/versions/:versionId/sections/:section",
+  "/api/v1/foundation/scan/status",
+  "/api/v1/foundation/scan/{scan_id}",
 ];
 
 for (const token of foundationRestTokens) {
@@ -86,12 +201,11 @@ for (const token of foundationRestTokens) {
 }
 
 const foundationOpenApiTokens = [
+  "/api/v1/foundation/scan/start",
   "/api/v1/foundation/scan/quick",
   "/api/v1/foundation/scan/deep",
-  "/api/v1/foundation/scans/{scanId}",
-  "/api/v1/foundation/versions",
-  "/api/v1/foundation/versions/{versionId}",
-  "/api/v1/foundation/versions/{versionId}/sections/{section}",
+  "/api/v1/foundation/scan/{scan_id}",
+  "/api/v1/foundation/scan/status",
 ];
 
 for (const token of foundationOpenApiTokens) {
@@ -131,12 +245,11 @@ for (const token of [
 }
 
 for (const token of [
+  "/api/v1/foundation/scan/start",
   "/api/v1/foundation/scan/quick",
   "/api/v1/foundation/scan/deep",
-  "/api/v1/foundation/scans/{scanId}",
-  "/api/v1/foundation/versions",
-  "/api/v1/foundation/versions/{versionId}",
-  "/api/v1/foundation/versions/{versionId}/sections/{section}",
+  "/api/v1/foundation/scan/{scan_id}",
+  "/api/v1/foundation/scan/status",
 ]) {
   if (!openApiContract?.includes(token)) {
     console.error(`Missing OpenAPI foundation scaffold coverage: ${token}`);
@@ -148,10 +261,7 @@ for (const namespace of [
   "/api/v1/foundation",
   "/api/v1/foundation/scan/quick",
   "/api/v1/foundation/scan/deep",
-  "/api/v1/foundation/scans/:scanId",
-  "/api/v1/foundation/versions",
-  "/api/v1/foundation/versions/:versionId",
-  "/api/v1/foundation/versions/:versionId/sections/:section",
+  "/api/v1/foundation/scan/{scan_id}",
   "/api/v1/campaigns",
   "/api/v1/council",
   "/api/v1/muse",

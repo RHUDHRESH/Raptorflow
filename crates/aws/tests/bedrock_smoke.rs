@@ -118,7 +118,7 @@ async fn bedrock_smoke_real_inference() {
         .await
     {
         Ok(o) => {
-            println!("[SMOKE BEDROCK] Raw response: {:?}", output);
+            println!("[SMOKE BEDROCK] Raw response: {:?}", o);
             o
         }
         Err(e) => {

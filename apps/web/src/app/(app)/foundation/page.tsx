@@ -39,7 +39,7 @@ const screens = [
   { slug: "current-frustrations", title: "Current Frustrations" },
   { slug: "existing-tools", title: "Existing Tools" },
   { slug: "reference-brands", title: "Reference Brands" },
-  { slug: "campaign-strategist", title: "Campaign Strategist" }
+  { slug: "campaign-strategist", title: "Campaign Strategist" },
 ];
 
 function relativeTime(isoString: string): string {
@@ -54,8 +54,7 @@ function relativeTime(isoString: string): string {
 
 function ScoreCircle({ score }: { score: number }) {
   const pct = Math.round((score / 10) * 100);
-  const color =
-    score >= 7 ? "#16a34a" : score >= 4 ? "#d97706" : "#dc2626";
+  const color = score >= 7 ? "#16a34a" : score >= 4 ? "#d97706" : "#dc2626";
   const bg = score >= 7 ? "#dcfce7" : score >= 4 ? "#fef9c3" : "#fee2e2";
 
   return (
@@ -63,8 +62,12 @@ function ScoreCircle({ score }: { score: number }) {
       <svg className="w-16 h-16 -rotate-90" viewBox="0 0 36 36">
         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3" />
         <circle
-          cx="18" cy="18" r="15.9" fill="none"
-          stroke={color} strokeWidth="3"
+          cx="18"
+          cy="18"
+          r="15.9"
+          fill="none"
+          stroke={color}
+          strokeWidth="3"
           strokeDasharray={`${pct} 100`}
           strokeLinecap="round"
         />
@@ -79,13 +82,7 @@ function ScoreCircle({ score }: { score: number }) {
   );
 }
 
-function ScanResultCard({
-  scan,
-  lastScannedAt,
-}: {
-  scan: QuickScanResult;
-  lastScannedAt: string;
-}) {
+function ScanResultCard({ scan, lastScannedAt }: { scan: QuickScanResult; lastScannedAt: string }) {
   return (
     <div className="border border-[var(--border)] bg-[var(--card)] divide-y divide-[var(--border)]">
       {/* Header */}
@@ -103,9 +100,7 @@ function ScanResultCard({
 
       {/* Summary */}
       <div className="px-6 py-4 bg-[var(--primary)]/5">
-        <p className="text-sm text-[var(--foreground)] leading-relaxed italic">
-          {scan.summary}
-        </p>
+        <p className="text-sm text-[var(--foreground)] leading-relaxed italic">{scan.summary}</p>
         <p className="mt-2 text-[10px] font-mono text-[var(--muted-foreground)] uppercase tracking-widest">
           Last scanned {relativeTime(lastScannedAt)}
         </p>
@@ -175,7 +170,8 @@ function EmptyScanState({ onScan }: { onScan: () => void }) {
         Your Foundation hasn&apos;t been scanned yet
       </h2>
       <p className="text-sm text-[var(--muted-foreground)] max-w-sm mb-8 leading-relaxed">
-        Run a quick scan to get your strategic analysis — strengths, gaps, and actionable recommendations from Mistral Large.
+        Run a quick scan to get your strategic analysis — strengths, gaps, and actionable
+        recommendations from Mistral Large.
       </p>
       <button
         onClick={onScan}
@@ -247,10 +243,26 @@ export default function FoundationIndexPage(): React.ReactElement {
         {/* Header */}
         <header className="gsap-reveal flex items-end justify-between border-b-2 border-[var(--foreground)] pb-8">
           <div className="space-y-2">
-            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>
+            <p
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: "var(--muted-foreground)",
+              }}
+            >
               System Asset
             </p>
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, lineHeight: 1, margin: 0 }}>
+            <h1
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                fontSize: 48,
+                lineHeight: 1,
+                margin: 0,
+              }}
+            >
               The Foundation
             </h1>
           </div>
@@ -261,9 +273,13 @@ export default function FoundationIndexPage(): React.ReactElement {
               className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 rounded text-xs font-mono uppercase tracking-widest transition-opacity"
             >
               {quickScan.isPending ? (
-                <><Loader2 className="w-3 h-3 animate-spin" /> Scanning...</>
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" /> Scanning...
+                </>
               ) : (
-                <><Zap className="w-3 h-3" /> Run Quick Scan</>
+                <>
+                  <Zap className="w-3 h-3" /> Run Quick Scan
+                </>
               )}
             </button>
           </div>
@@ -297,7 +313,7 @@ export default function FoundationIndexPage(): React.ReactElement {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="font-mono text-[9px] text-[#9A948C] font-bold tracking-widest uppercase">
-                      Node_{String(i + 1).padStart(2, '0')}
+                      Node_{String(i + 1).padStart(2, "0")}
                     </span>
                     {isFilled ? (
                       <div className="h-1.5 w-1.5 rounded-full bg-[#D97757]" />
@@ -314,7 +330,9 @@ export default function FoundationIndexPage(): React.ReactElement {
                 </div>
 
                 <div className="pt-4 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#D97757] font-bold">Edit Node</span>
+                  <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#D97757] font-bold">
+                    Edit Node
+                  </span>
                   <ChevronRightIcon className="w-4 h-4 text-[#D97757]" />
                 </div>
               </Link>

@@ -6,6 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { X, Plus, AlertCircle } from "lucide-react";
 import { useFoundationStore } from "@/state/foundation-store";
 import { cn } from "@/lib/utils";
+import { getApiBaseUrl } from "@/lib/api";
 
 interface KeywordEntry {
   text: string;
@@ -44,17 +45,17 @@ export default function FoundationStep12() {
 
   const addKeyword = () => {
     const trimmed = newKeyword.trim().toLowerCase();
-    if (!trimmed || keywords.some(k => k.text.toLowerCase() === trimmed)) return;
-    
-    setKeywords(prev => [...prev, { text: trimmed, competition: "medium", userAdded: true }]);
+    if (!trimmed || keywords.some((k) => k.text.toLowerCase() === trimmed)) return;
+
+    setKeywords((prev) => [...prev, { text: trimmed, competition: "medium", userAdded: true }]);
     setNewKeyword("");
   };
 
   const removeKeyword = (text: string) => {
-    setKeywords(prev => prev.filter(k => k.text !== text));
+    setKeywords((prev) => prev.filter((k) => k.text !== text));
   };
 
-  const hasHighComp = keywords.some(k => k.competition === "high");
+  const hasHighComp = keywords.some((k) => k.competition === "high");
 
   const handleContinue = async () => {
     if (keywords.length < 3) return;
@@ -66,7 +67,7 @@ export default function FoundationStep12() {
       const token = await getToken();
       setSectionData("keywords", data);
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/section/keywords`, {
+      await fetch(`${getApiBaseUrl()}/api/v1/foundation/section/keywords`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -86,7 +87,6 @@ export default function FoundationStep12() {
   return (
     <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[600px] space-y-10">
-        
         {/* HEADER */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-[#2A2622] leading-tight">
@@ -101,15 +101,22 @@ export default function FoundationStep12() {
         <div className="space-y-6">
           <div className="flex flex-wrap gap-x-2 gap-y-4">
             {keywords.map((kw) => (
-              <div key={kw.text} className="flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
-                <div className={cn(
-                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-all shadow-sm",
-                  kw.competition === "high" ? "border-red-900 bg-red-950/30 text-red-300" :
-                  kw.competition === "medium" ? "border-amber-900 bg-amber-950/30 text-amber-300" :
-                  "border-green-900 bg-green-950/30 text-green-300"
-                )}>
+              <div
+                key={kw.text}
+                className="flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200"
+              >
+                <div
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-all shadow-sm",
+                    kw.competition === "high"
+                      ? "border-red-900 bg-red-950/30 text-red-300"
+                      : kw.competition === "medium"
+                        ? "border-amber-900 bg-amber-950/30 text-amber-300"
+                        : "border-green-900 bg-green-950/30 text-green-300",
+                  )}
+                >
                   <span>{kw.text}</span>
-                  <button 
+                  <button
                     onClick={() => removeKeyword(kw.text)}
                     className="p-0.5 hover:bg-[#F5F0E8] rounded-full transition-colors"
                   >
@@ -132,7 +139,8 @@ export default function FoundationStep12() {
                 <span className="text-red-400 font-bold inline-flex items-center gap-1.5 mr-1 uppercase tracking-widest">
                   <AlertCircle className="w-3 h-3" /> Note:
                 </span>
-                Very competitive keywords are valuable but take time. Your AI team will suggest lower-competition long-tail variants soon.
+                Very competitive keywords are valuable but take time. Your AI team will suggest
+                lower-competition long-tail variants soon.
               </p>
             </div>
           )}
@@ -156,7 +164,9 @@ export default function FoundationStep12() {
               Add
             </button>
           </div>
-          <p className="text-[10px] text-[#9A948C] uppercase tracking-widest">At least 3 keywords required to build your SEO profile</p>
+          <p className="text-[10px] text-[#9A948C] uppercase tracking-widest">
+            At least 3 keywords required to build your SEO profile
+          </p>
         </div>
 
         {/* CTA */}
@@ -167,7 +177,6 @@ export default function FoundationStep12() {
         >
           {isSubmitting ? "Building Search Profile..." : "Continue"}
         </button>
-
       </div>
     </div>
   );

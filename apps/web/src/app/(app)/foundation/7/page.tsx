@@ -6,6 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { ArrowRight, ArrowDown, Info } from "lucide-react";
 import { useFoundationStore } from "@/state/foundation-store";
 import { cn } from "@/lib/utils";
+import { getApiBaseUrl } from "@/lib/api";
 
 /**
  * Foundation Screen 7: The Transformation Promise
@@ -33,7 +34,9 @@ export default function FoundationStep7() {
 
   const handleContinue = async () => {
     if (before.trim().length < 20 || after.trim().length < 20) {
-      setError("Please provide at least 20 characters for both the Before and After states to ensure clarity.");
+      setError(
+        "Please provide at least 20 characters for both the Before and After states to ensure clarity.",
+      );
       return;
     }
 
@@ -44,7 +47,7 @@ export default function FoundationStep7() {
       const token = await getToken();
       setSectionData("transformation", data);
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/section/transformation`, {
+      await fetch(`${getApiBaseUrl()}/api/v1/foundation/section/transformation`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -65,28 +68,31 @@ export default function FoundationStep7() {
   return (
     <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[580px] space-y-10">
-        
         {/* HEADER */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-[#2A2622]">
             What does life look like after working with you?
           </h1>
           <p className="text-base text-[#6B655E]">
-            Not your features. The actual before and after. What is measurably or emotionally different for your customer?
+            Not your features. The actual before and after. What is measurably or emotionally
+            different for your customer?
           </p>
         </div>
 
         {/* TRANSFORMATION GRID */}
         <div className="relative group">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
-            
             {/* BEFORE CARD */}
             <div className="bg-[#262626] border border-[#E5DED4] rounded-2xl p-5 space-y-4">
               <div className="inline-block px-2 py-0.5 bg-red-400/10 rounded-full">
-                <span className="text-[10px] font-mono font-bold tracking-widest text-red-400 uppercase">Before</span>
+                <span className="text-[10px] font-mono font-bold tracking-widest text-red-400 uppercase">
+                  Before
+                </span>
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-[#6B655E]">What their life looked like before you</label>
+                <label className="text-sm text-[#6B655E]">
+                  What their life looked like before you
+                </label>
                 <textarea
                   rows={4}
                   className="w-full bg-[#FBF8F2] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-red-400 transition-colors resize-none"
@@ -106,10 +112,14 @@ export default function FoundationStep7() {
             {/* AFTER CARD */}
             <div className="bg-[#262626] border border-[#E5DED4] rounded-2xl p-5 space-y-4">
               <div className="inline-block px-2 py-0.5 bg-green-400/10 rounded-full">
-                <span className="text-[10px] font-mono font-bold tracking-widest text-green-400 uppercase">After</span>
+                <span className="text-[10px] font-mono font-bold tracking-widest text-green-400 uppercase">
+                  After
+                </span>
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-[#6B655E]">What their life looks like after you</label>
+                <label className="text-sm text-[#6B655E]">
+                  What their life looks like after you
+                </label>
                 <textarea
                   rows={4}
                   className="w-full bg-[#FBF8F2] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-green-400 transition-colors resize-none"
@@ -119,7 +129,6 @@ export default function FoundationStep7() {
                 />
               </div>
             </div>
-
           </div>
         </div>
 
@@ -139,7 +148,21 @@ export default function FoundationStep7() {
                 <span className="text-[#f59e0b]">Pro Tip</span>
               </p>
               <p className="text-sm text-[#6B655E] leading-relaxed">
-                The best &quot;after&quot; statements are specific and measurable. <span className="text-[#4A4540] font-medium italic">&quot;Save time&quot;</span> is weak. <span className="text-green-400 font-medium italic">&quot;Two fewer hours per day on reporting&quot;</span> is strong. <span className="text-[#4A4540] font-medium italic">&quot;Feel less stressed&quot;</span> is weak. <span className="text-green-400 font-medium italic">&quot;Know exactly what to post three days ahead&quot;</span> is strong.
+                The best &quot;after&quot; statements are specific and measurable.{" "}
+                <span className="text-[#4A4540] font-medium italic">&quot;Save time&quot;</span> is
+                weak.{" "}
+                <span className="text-green-400 font-medium italic">
+                  &quot;Two fewer hours per day on reporting&quot;
+                </span>{" "}
+                is strong.{" "}
+                <span className="text-[#4A4540] font-medium italic">
+                  &quot;Feel less stressed&quot;
+                </span>{" "}
+                is weak.{" "}
+                <span className="text-green-400 font-medium italic">
+                  &quot;Know exactly what to post three days ahead&quot;
+                </span>{" "}
+                is strong.
               </p>
             </div>
           )}
@@ -147,7 +170,11 @@ export default function FoundationStep7() {
 
         {/* ERROR & CTA */}
         <div className="space-y-4 pt-4">
-          {error && <p className="text-center text-sm text-red-500 animate-in fade-in duration-200">{error}</p>}
+          {error && (
+            <p className="text-center text-sm text-red-500 animate-in fade-in duration-200">
+              {error}
+            </p>
+          )}
           <button
             onClick={handleContinue}
             disabled={isSubmitting}
@@ -156,7 +183,6 @@ export default function FoundationStep7() {
             {isSubmitting ? "Saving..." : "Continue"}
           </button>
         </div>
-
       </div>
     </div>
   );

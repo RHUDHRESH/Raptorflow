@@ -13,11 +13,9 @@ GitHub Actions: cargo build --release
     ↓
 Docker build → ECR push
     ↓
-ECS migration task (runs sqlx migrate)
+ECS migration task (runs sqlx migrate — pipeline waits for completion)
     ↓
-ECS rolling deployment (zero-downtime)
-    ↓
-Health validation (5xx check + smoke test)
+ECS rolling deployment (new task definition with pushed image)
 ```
 
 ### Manual deployment (infra engineers only)
@@ -60,13 +58,14 @@ curl https://api.raptorflow.dev/health/ready
 
 ## Frontend deployment (Vercel)
 
-Frontend deploys automatically on every push to `main` via Vercel's GitHub integration.
+Frontend deployment is configured by the root `vercel.json`. Manual deploys and
+GitHub-triggered deploys should use the same build command, cron routes,
+headers, and rewrites.
 
 ### Manual deployment
 
 ```bash
-# Via Vercel CLI
-vercel --prod
+./scripts/deploy-frontend.sh --production
 ```
 
 ### Verifying
@@ -157,7 +156,8 @@ Check the Vercel function logs in the Vercel dashboard. Common causes:
 ### Vercel build fails
 
 ```bash
-# Run the build locally first
+# Run the local verification chain first
+pnpm verify
 pnpm build
 ```
 
@@ -173,4 +173,4 @@ Before merging any PR that changes the schema, database, or environment variable
 - [ ] Migration: tested locally with `sqlx migrate run`
 - [ ] New env var: added to `crates/config/src/lib.rs` AND `infra/tofu/environments/<env>/main.tf`
 - [ ] New secret: created in AWS Secrets Manager AND added to ECS task definition
-- [ ] Frontend still builds: `pnpm build` passes locally
+- [ ] Frontend still verifies and builds: `pnpm verify && pnpm build` passes locally

@@ -53,13 +53,14 @@ services:
       RAPTORFLOW_DIRECT_DATABASE_URL: postgres://raptorflow:raptorflow@postgres:5432/raptorflow
       RAPTORFLOW_QDRANT_URL: http://qdrant:6333
       RAPTORFLOW_QDRANT_API_KEY:
-      RAPTORFLOW_S3_BUCKET: raptorflow-dev
-      RAPTORFLOW_SQS_BASE_URL: https://sqs.ap-south-1.amazonaws.com
-      RAPTORFLOW_SQS_EMBEDDING_QUEUE: raptorflow-dev-embedding
-      RAPTORFLOW_SQS_CONTENT_QUEUE: raptorflow-dev-content-pregeneration
-      RAPTORFLOW_BEDROCK_REGION: ap-south-1
-      RAPTORFLOW_BEDROCK_MODEL_STRATEGIST: mistral.mistral-large-3-675b-instruct
-      RAPTORFLOW_BEDROCK_MODEL_FAST: mistral.ministral-3-8b-instruct
+      RAPTORFLOW_S3_BUCKET: ${RAPTORFLOW_S3_BUCKET:-raptorflow-local}
+      RAPTORFLOW_SQS_BASE_URL: ${RAPTORFLOW_SQS_BASE_URL:-}
+      RAPTORFLOW_SQS_EMBEDDING_QUEUE: ${RAPTORFLOW_SQS_EMBEDDING_QUEUE:-raptorflow-local-embedding}
+      RAPTORFLOW_SQS_CONTENT_QUEUE: ${RAPTORFLOW_SQS_CONTENT_QUEUE:-raptorflow-local-content-pregeneration}
+      RAPTORFLOW_BEDROCK_REGION: ${RAPTORFLOW_BEDROCK_REGION:-}
+      RAPTORFLOW_BEDROCK_MODEL_STRATEGIST: ${RAPTORFLOW_BEDROCK_MODEL_STRATEGIST:-}
+      RAPTORFLOW_BEDROCK_MODEL_FAST: ${RAPTORFLOW_BEDROCK_MODEL_FAST:-}
+      ALLOW_LIVE_AWS_WRITES: ${ALLOW_LIVE_AWS_WRITES:-0}
       RAPTORFLOW_SEARXNG_URL: http://searxng:8080
       RAPTORFLOW_CLERK_JWKS_URL: https://funky-scorpion-21.clerk.accounts.dev/.well-known/jwks.json
       RAPTORFLOW_CLERK_ISSUER: https://funky-scorpion-21.clerk.accounts.dev

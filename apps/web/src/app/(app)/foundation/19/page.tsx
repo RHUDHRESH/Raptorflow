@@ -6,6 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { Info, Check } from "lucide-react";
 import { useFoundationStore } from "@/state/foundation-store";
 import { cn } from "@/lib/utils";
+import { getApiBaseUrl } from "@/lib/api";
 
 interface ToolUsage {
   id: string;
@@ -41,7 +42,12 @@ export default function FoundationStep19() {
 
   const TOOLS = [
     { id: "ga", name: "Google Analytics", icon: "📊", desc: "Website traffic and conversions" },
-    { id: "meta", name: "Meta Business Suite", icon: "📱", desc: "Facebook and Instagram analytics" },
+    {
+      id: "meta",
+      name: "Meta Business Suite",
+      icon: "📱",
+      desc: "Facebook and Instagram analytics",
+    },
     { id: "gsc", name: "Google Search Console", icon: "🔍", desc: "Search presence and keywords" },
     { id: "hotjar", name: "Hotjar or similar", icon: "🔥", desc: "Heatmaps and recordings" },
     { id: "none", name: "None of these", icon: "❌", desc: "Not tracking anything yet" },
@@ -50,32 +56,32 @@ export default function FoundationStep19() {
   const FREQUENCIES = ["Yes, weekly", "Sometimes", "I have access but rarely use it"];
 
   const toggleTool = (id: string) => {
-    setSelectedToolIds(prev => {
+    setSelectedToolIds((prev) => {
       if (id === "none") return ["none"];
-      const filtered = prev.filter(t => t !== "none");
-      return filtered.includes(id) ? filtered.filter(t => t !== id) : [...filtered, id];
+      const filtered = prev.filter((t) => t !== "none");
+      return filtered.includes(id) ? filtered.filter((t) => t !== id) : [...filtered, id];
     });
   };
 
   const handleFrequencySelect = (toolId: string, freq: string) => {
-    setUsageMap(prev => ({ ...prev, [toolId]: freq }));
+    setUsageMap((prev) => ({ ...prev, [toolId]: freq }));
   };
 
   const handleContinue = async () => {
     setIsSubmitting(true);
     const data = {
-      tools: selectedToolIds.map(id => ({
+      tools: selectedToolIds.map((id) => ({
         id,
-        name: TOOLS.find(t => t.id === id)?.name || "",
-        usageFrequency: usageMap[id] || "Sometimes"
-      }))
+        name: TOOLS.find((t) => t.id === id)?.name || "",
+        usageFrequency: usageMap[id] || "Sometimes",
+      })),
     };
 
     try {
       const token = await getToken();
       setSectionData("analytics_tracking", data);
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/section/analytics_tracking`, {
+      await fetch(`${getApiBaseUrl()}/api/v1/foundation/section/analytics_tracking`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -92,12 +98,11 @@ export default function FoundationStep19() {
     }
   };
 
-  const activeTools = TOOLS.filter(t => selectedToolIds.includes(t.id) && t.id !== "none");
+  const activeTools = TOOLS.filter((t) => selectedToolIds.includes(t.id) && t.id !== "none");
 
   return (
     <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[560px] space-y-10">
-        
         {/* HEADER */}
         <h1 className="text-3xl font-bold text-[#2A2622] text-center sm:text-left">
           What are you already tracking?
@@ -113,9 +118,9 @@ export default function FoundationStep19() {
                 onClick={() => toggleTool(tool.id)}
                 className={cn(
                   "group relative p-4 rounded-xl border flex flex-col gap-2 transition-all duration-300 cursor-pointer",
-                  isSelected 
-                    ? "border-[#f59e0b] bg-[#f59e0b]/10" 
-                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]"
+                  isSelected
+                    ? "border-[#f59e0b] bg-[#f59e0b]/10"
+                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]",
                 )}
               >
                 {isSelected && (
@@ -139,10 +144,11 @@ export default function FoundationStep19() {
             {activeTools.map((tool) => (
               <div key={tool.id} className="space-y-4">
                 <p className="text-sm font-medium text-[#9A948C]">
-                  Are you actually looking at <span className="text-[#2A2622] font-bold">{tool.name}</span> regularly?
+                  Are you actually looking at{" "}
+                  <span className="text-[#2A2622] font-bold">{tool.name}</span> regularly?
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {FREQUENCIES.map(freq => {
+                  {FREQUENCIES.map((freq) => {
                     const isSelected = usageMap[tool.id] === freq;
                     return (
                       <button
@@ -152,7 +158,7 @@ export default function FoundationStep19() {
                           "px-4 py-2 rounded-full border text-[11px] font-bold uppercase tracking-wider transition-all",
                           isSelected
                             ? "border-[#f59e0b] bg-[#f59e0b]/10 text-[#2A2622]"
-                            : "border-[#D5CBC0] bg-transparent text-[#6B655E] hover:border-[#D5CBC0]"
+                            : "border-[#D5CBC0] bg-transparent text-[#6B655E] hover:border-[#D5CBC0]",
                         )}
                       >
                         {freq}
@@ -173,7 +179,8 @@ export default function FoundationStep19() {
           </div>
           <div className="space-y-1">
             <p className="text-sm text-[#9A948C] leading-relaxed font-medium">
-              RaptorFlow will track what matters for your campaigns and surface it in Daily Wins — so you don&apos;t need to check dashboards separately.
+              RaptorFlow will track what matters for your campaigns and surface it in Daily Wins —
+              so you don&apos;t need to check dashboards separately.
             </p>
             <p className="text-xs text-[#6B655E] italic">
               We don&apos;t replace these tools. We filter the signal from the noise.
@@ -189,7 +196,6 @@ export default function FoundationStep19() {
         >
           {isSubmitting ? "Finalizing Stack..." : "Continue"}
         </button>
-
       </div>
     </div>
   );
