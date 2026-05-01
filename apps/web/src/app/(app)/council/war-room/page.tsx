@@ -15,10 +15,7 @@ import { CouncilTimeline } from "@/components/council/CouncilTimeline";
 import { CouncilChallengeMap } from "@/components/council/CouncilChallengeMap";
 import { CouncilSynthesisCards } from "@/components/council/CouncilSynthesisCards";
 import { CouncilPresenceGrid } from "@/components/council/CouncilPresenceGrid";
-import {
-  CreateCouncilOrchestrationRequest,
-  CouncilOrchestrationRun,
-} from "@/lib/api";
+import { CreateCouncilOrchestrationRequest, CouncilOrchestrationRun } from "@/lib/api";
 
 const TERMINAL_STATUSES = ["completed", "failed", "cancelled"];
 
@@ -97,12 +94,8 @@ export default function WarRoomPage() {
           </div>
           {selectedRun.data && (
             <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-500 uppercase">
-                {selectedRun.data.status}
-              </span>
-              {!isTerminal && (
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              )}
+              <span className="text-xs text-slate-500 uppercase">{selectedRun.data.status}</span>
+              {!isTerminal && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
             </div>
           )}
         </div>
@@ -134,9 +127,7 @@ export default function WarRoomPage() {
                     />
                   </div>
                   <div className="col-span-12 md:col-span-6">
-                    <CouncilChallengeMap
-                      debateEvents={debateEvents.data ?? []}
-                    />
+                    <CouncilChallengeMap debateEvents={debateEvents.data ?? []} />
                   </div>
                 </div>
                 <CouncilTimeline

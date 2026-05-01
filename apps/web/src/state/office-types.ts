@@ -62,7 +62,7 @@ export const officeEventTypes = [
   "council_debate",
   "council_synthesis",
   "snark_refresh",
-  "campaign_task_ready"
+  "campaign_task_ready",
 ] as const;
 
 export const officeFloorPlan: OfficeZone[] = [
@@ -72,7 +72,7 @@ export const officeFloorPlan: OfficeZone[] = [
     kind: "entry",
     capacity: "1-2 visitors",
     status: "quiet",
-    note: "Intake and entry-state coordination."
+    note: "Intake and entry-state coordination.",
   },
   {
     id: "strategist-office",
@@ -80,7 +80,7 @@ export const officeFloorPlan: OfficeZone[] = [
     kind: "workspace",
     capacity: "1 strategist",
     status: "active",
-    note: "Foundation-aware synthesis and daily routing."
+    note: "Foundation-aware synthesis and daily routing.",
   },
   {
     id: "conference-room",
@@ -88,7 +88,7 @@ export const officeFloorPlan: OfficeZone[] = [
     kind: "meeting",
     capacity: "4-8 agents",
     status: "instrumented",
-    note: "Council debates, walk-backs, and synthesis playback."
+    note: "Council debates, walk-backs, and synthesis playback.",
   },
   {
     id: "research-station",
@@ -96,7 +96,7 @@ export const officeFloorPlan: OfficeZone[] = [
     kind: "research",
     capacity: "2 interns",
     status: "active",
-    note: "Blocking and background research requests."
+    note: "Blocking and background research requests.",
   },
   {
     id: "creative-pod",
@@ -104,7 +104,7 @@ export const officeFloorPlan: OfficeZone[] = [
     kind: "workspace",
     capacity: "Copy and content",
     status: "paused",
-    note: "Campaign content prep and snark generation."
+    note: "Campaign content prep and snark generation.",
   },
   {
     id: "digital-pod",
@@ -112,7 +112,7 @@ export const officeFloorPlan: OfficeZone[] = [
     kind: "workspace",
     capacity: "Performance and paid",
     status: "quiet",
-    note: "Channel-specific execution and adjustments."
+    note: "Channel-specific execution and adjustments.",
   },
   {
     id: "debug-nook",
@@ -120,7 +120,7 @@ export const officeFloorPlan: OfficeZone[] = [
     kind: "debug",
     capacity: "Operators only",
     status: "instrumented",
-    note: "Transport, cache, and contract inspection."
+    note: "Transport, cache, and contract inspection.",
   },
   {
     id: "intern-bay",
@@ -128,8 +128,8 @@ export const officeFloorPlan: OfficeZone[] = [
     kind: "workspace",
     capacity: "Rotating interns",
     status: "active",
-    note: "Task delegation and return-path tracking."
-  }
+    note: "Task delegation and return-path tracking.",
+  },
 ];
 
 export const officeRoster: OfficeAgent[] = [
@@ -139,7 +139,7 @@ export const officeRoster: OfficeAgent[] = [
     role: "Session orchestrator",
     zoneId: "strategist-office",
     posture: "reading Foundation",
-    status: "working"
+    status: "working",
   },
   {
     agentKey: "ogilvy",
@@ -147,7 +147,7 @@ export const officeRoster: OfficeAgent[] = [
     role: "Copy and positioning",
     zoneId: "creative-pod",
     posture: "reviewing copy",
-    status: "speaking"
+    status: "speaking",
   },
   {
     agentKey: "patel",
@@ -155,7 +155,7 @@ export const officeRoster: OfficeAgent[] = [
     role: "Analytics and pressure testing",
     zoneId: "digital-pod",
     posture: "checking measurements",
-    status: "working"
+    status: "working",
   },
   {
     agentKey: "sharp",
@@ -163,7 +163,7 @@ export const officeRoster: OfficeAgent[] = [
     role: "Research and evidence",
     zoneId: "research-station",
     posture: "cross-checking sources",
-    status: "researching"
+    status: "researching",
   },
   {
     agentKey: "cialdini",
@@ -171,7 +171,7 @@ export const officeRoster: OfficeAgent[] = [
     role: "Behavior and persuasion",
     zoneId: "conference-room",
     posture: "listening for cues",
-    status: "idle"
+    status: "idle",
   },
   {
     agentKey: "qa-director",
@@ -179,8 +179,8 @@ export const officeRoster: OfficeAgent[] = [
     role: "Quality gate and review",
     zoneId: "debug-nook",
     posture: "watching for regressions",
-    status: "idle"
-  }
+    status: "idle",
+  },
 ];
 
 export const officeSnarkLines: OfficeSnarkLine[] = [
@@ -188,20 +188,20 @@ export const officeSnarkLines: OfficeSnarkLine[] = [
     id: "snark-1",
     speaker: "QA Director",
     body: "If the office says it's moving, I expect the camera to agree.",
-    tone: "needle"
+    tone: "needle",
   },
   {
     id: "snark-2",
     speaker: "Ogilvy",
     body: "Nobody touches the brief until the evidence is in the room.",
-    tone: "dry"
+    tone: "dry",
   },
   {
     id: "snark-3",
     speaker: "Cialdini",
     body: "The room looks calmer when the snark is in the right channel.",
-    tone: "warm"
-  }
+    tone: "warm",
+  },
 ];
 
 export const officeDebugSurfaces: OfficeDebugSurface[] = [
@@ -209,20 +209,20 @@ export const officeDebugSurfaces: OfficeDebugSurface[] = [
     id: "transport",
     label: "Transport",
     value: "WebSocket scaffold active",
-    hint: "Session and council streams remain separate surfaces."
+    hint: "Session and council streams remain separate surfaces.",
   },
   {
     id: "cache",
     label: "Cache",
     value: "Foundation cache reserved",
-    hint: "Invalidation hooks will hang off this surface."
+    hint: "Invalidation hooks will hang off this surface.",
   },
   {
     id: "contracts",
     label: "Contracts",
     value: "Office event schema expanded",
-    hint: "Payloads are still stubbed by design."
-  }
+    hint: "Payloads are still stubbed by design.",
+  },
 ];
 
 export const officeSeedEvents: OfficeEventMessage[] = [
@@ -232,8 +232,8 @@ export const officeSeedEvents: OfficeEventMessage[] = [
     eventType: "morning_meeting_start",
     payload: {
       room: "conference-room",
-      speaker: "Strategist"
-    }
+      speaker: "Strategist",
+    },
   },
   {
     orgId: "00000000-0000-0000-0000-000000000000",
@@ -241,8 +241,8 @@ export const officeSeedEvents: OfficeEventMessage[] = [
     eventType: "speech_bubble",
     payload: {
       agent: "ogilvy",
-      content: "The brief is not a suggestion."
-    }
+      content: "The brief is not a suggestion.",
+    },
   },
   {
     orgId: "00000000-0000-0000-0000-000000000000",
@@ -250,7 +250,7 @@ export const officeSeedEvents: OfficeEventMessage[] = [
     eventType: "intel_alert_received",
     payload: {
       zone: "debug-nook",
-      severity: "major"
-    }
-  }
+      severity: "major",
+    },
+  },
 ];

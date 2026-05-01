@@ -47,11 +47,15 @@ export default function InternalDebugPage(): React.ReactElement {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">WebSocket connection</CardTitle>
-              <Badge className={
-                connectionStatus === "connected" ? "bg-green-100 text-green-700" :
-                connectionStatus === "connecting" ? "bg-amber-100 text-amber-700" :
-                "bg-red-100 text-red-700"
-              }>
+              <Badge
+                className={
+                  connectionStatus === "connected"
+                    ? "bg-green-100 text-green-700"
+                    : connectionStatus === "connecting"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-red-100 text-red-700"
+                }
+              >
                 {connectionStatus}
               </Badge>
             </div>
@@ -86,11 +90,15 @@ export default function InternalDebugPage(): React.ReactElement {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--muted-foreground)]">Sections loaded</span>
-              <span className="font-medium">{foundation?.sections ? Object.keys(foundation.sections).length : 0}</span>
+              <span className="font-medium">
+                {foundation?.sections ? Object.keys(foundation.sections).length : 0}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--muted-foreground)]">Updated at</span>
-              <span className="font-mono text-xs">{foundation?.updatedAt ? new Date(foundation.updatedAt).toLocaleString() : "—"}</span>
+              <span className="font-mono text-xs">
+                {foundation?.updatedAt ? new Date(foundation.updatedAt).toLocaleString() : "—"}
+              </span>
             </div>
             <Button size="sm" variant="secondary" className="w-full">
               Invalidate cache
@@ -102,7 +110,11 @@ export default function InternalDebugPage(): React.ReactElement {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Recent event log (last 10)</CardTitle>
-              <Button size="sm" variant="ghost" onClick={() => useOfficeStore.getState().clearEvents()}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => useOfficeStore.getState().clearEvents()}
+              >
                 Clear log
               </Button>
             </div>
@@ -114,16 +126,22 @@ export default function InternalDebugPage(): React.ReactElement {
               </p>
             ) : (
               <div className="space-y-2">
-                {eventLog.slice(-10).reverse().map((e, i) => (
-                  <div key={i} className="flex items-start gap-3 rounded-lg border border-[var(--border)] px-3 py-2 text-xs">
-                    <span className="flex-shrink-0 rounded bg-[var(--muted)] px-1.5 py-0.5 font-mono">
-                      {e.eventType}
-                    </span>
-                    <span className="truncate text-[var(--muted-foreground)]">
-                      {JSON.stringify(e.payload).slice(0, 100)}
-                    </span>
-                  </div>
-                ))}
+                {eventLog
+                  .slice(-10)
+                  .reverse()
+                  .map((e, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 rounded-lg border border-[var(--border)] px-3 py-2 text-xs"
+                    >
+                      <span className="flex-shrink-0 rounded bg-[var(--muted)] px-1.5 py-0.5 font-mono">
+                        {e.eventType}
+                      </span>
+                      <span className="truncate text-[var(--muted-foreground)]">
+                        {JSON.stringify(e.payload).slice(0, 100)}
+                      </span>
+                    </div>
+                  ))}
               </div>
             )}
           </CardContent>
@@ -135,7 +153,9 @@ export default function InternalDebugPage(): React.ReactElement {
           <CardTitle className="text-base">⚠️ Production warning</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-red-800">
-          This page exposes internal system state. It should only be accessible in non-production environments. Gate with <code>APP_ENV != "prod"</code> check at the route level before deployment.
+          This page exposes internal system state. It should only be accessible in non-production
+          environments. Gate with <code>APP_ENV != "prod"</code> check at the route level before
+          deployment.
         </CardContent>
       </Card>
     </RouteShell>

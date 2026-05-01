@@ -10,11 +10,14 @@ import { GsapBridge } from "@/components/ui/gsap-bridge";
 import { CheckCircle2, ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
-const SECTION_CONFIG: Record<string, {
-  title: string;
-  description: string;
-  fields: { key: string; label: string; type: "text" | "textarea" | "select" | "slider" }[];
-}> = {
+const SECTION_CONFIG: Record<
+  string,
+  {
+    title: string;
+    description: string;
+    fields: { key: string; label: string; type: "text" | "textarea" | "select" | "slider" }[];
+  }
+> = {
   identity: {
     title: "Identity",
     description: "Your company's core identifying information.",
@@ -47,58 +50,42 @@ const SECTION_CONFIG: Record<string, {
   icp: {
     title: "Ideal Customer Profile",
     description: "Your primary target customer.",
-    fields: [
-      { key: "targetAudience", label: "Target Audience (ICP)", type: "textarea" },
-    ],
+    fields: [{ key: "targetAudience", label: "Target Audience (ICP)", type: "textarea" }],
   },
   competitors: {
     title: "Competitors",
     description: "Your competitive landscape.",
-    fields: [
-      { key: "competitors", label: "Competitor List", type: "textarea" },
-    ],
+    fields: [{ key: "competitors", label: "Competitor List", type: "textarea" }],
   },
   positioning: {
     title: "Positioning",
     description: "Your market position and unique value.",
-    fields: [
-      { key: "positioning", label: "Positioning Statement", type: "textarea" },
-    ],
+    fields: [{ key: "positioning", label: "Positioning Statement", type: "textarea" }],
   },
   channels: {
     title: "Channels",
     description: "Your marketing channels.",
-    fields: [
-      { key: "channelPerformance", label: "Channel Performance", type: "textarea" },
-    ],
+    fields: [{ key: "channelPerformance", label: "Channel Performance", type: "textarea" }],
   },
   products: {
     title: "Products",
     description: "Your product or service catalog.",
-    fields: [
-      { key: "productCatalog", label: "Product Catalog", type: "textarea" },
-    ],
+    fields: [{ key: "productCatalog", label: "Product Catalog", type: "textarea" }],
   },
   content: {
     title: "Content",
     description: "Your content territories.",
-    fields: [
-      { key: "contentTerritories", label: "Content Territories", type: "textarea" },
-    ],
+    fields: [{ key: "contentTerritories", label: "Content Territories", type: "textarea" }],
   },
   seo: {
     title: "SEO & Keywords",
     description: "Your search and keyword strategy.",
-    fields: [
-      { key: "seoKeywords", label: "SEO Keywords", type: "textarea" },
-    ],
+    fields: [{ key: "seoKeywords", label: "SEO Keywords", type: "textarea" }],
   },
   assets: {
     title: "Assets",
     description: "Your existing brand and marketing assets.",
-    fields: [
-      { key: "assetInventory", label: "Asset Inventory", type: "textarea" },
-    ],
+    fields: [{ key: "assetInventory", label: "Asset Inventory", type: "textarea" }],
   },
   goals: {
     title: "Goals & KPIs",
@@ -194,7 +181,11 @@ export default function FoundationSectionPage({
       try {
         const parsed: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(newValues)) {
-          try { parsed[key] = JSON.parse(value); } catch { parsed[key] = value; }
+          try {
+            parsed[key] = JSON.parse(value);
+          } catch {
+            parsed[key] = value;
+          }
         }
         await saveMutation.mutateAsync(parsed);
         setLastSaved(new Date());
@@ -327,9 +318,18 @@ export default function FoundationSectionPage({
 
 function Loader2({ className }: { className?: string }) {
   return (
-    <svg className={`animate-spin ${className ?? ""}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <svg
+      className={`animate-spin ${className ?? ""}`}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      />
     </svg>
   );
 }

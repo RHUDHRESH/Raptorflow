@@ -20,14 +20,13 @@
 - Aurora PostgreSQL 16
 - PgBouncer
 - Qdrant
-- Prisma Accelerate
-- Prisma Pulse
+- AWS SQS
+- Prisma 7 for TypeScript-side database tooling
 - AWS Bedrock
 - S3
-- SQS
 
 ## Payments and observability
 
-- Razorpay
+- Razorpay integration fields are reserved, but app access is not paywalled in the current stage
 - Sentry
 - CloudWatch

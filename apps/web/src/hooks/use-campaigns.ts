@@ -2,7 +2,13 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { campaignsApi } from "@/lib/api";
-import type { Campaign, CreateCampaignRequest, CreateMoveRequest, CreateTaskRequest, CreateBriefRequest } from "@/lib/api";
+import type {
+  Campaign,
+  CreateCampaignRequest,
+  CreateMoveRequest,
+  CreateTaskRequest,
+  CreateBriefRequest,
+} from "@/lib/api";
 
 export function useCampaigns() {
   return useQuery({
@@ -71,8 +77,15 @@ export function useCampaignTasks(id: string) {
 export function useUpdateTaskStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ campaignId, taskId, status }: { campaignId: string; taskId: string; status: string }) =>
-      campaignsApi.updateTaskStatus(campaignId, taskId, status),
+    mutationFn: ({
+      campaignId,
+      taskId,
+      status,
+    }: {
+      campaignId: string;
+      taskId: string;
+      status: string;
+    }) => campaignsApi.updateTaskStatus(campaignId, taskId, status),
     onSuccess: (_, { campaignId }) => {
       queryClient.invalidateQueries({ queryKey: ["campaigns", campaignId, "tasks"] });
     },

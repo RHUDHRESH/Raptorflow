@@ -1,115 +1,139 @@
-import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
+import { access, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const appFiles = [
-  "apps/web/src/app/(app)/app/page.tsx",
+const root = process.cwd();
+
+const requiredFiles = [
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "Cargo.toml",
+  "docker-compose.yml",
+  "vercel.json",
   "apps/web/src/app/(app)/layout.tsx",
-  "apps/web/src/app/(app)/billing/page.tsx",
-  "apps/web/src/app/(app)/campaigns/page.tsx",
-  "apps/web/src/app/(app)/campaigns/[campaignId]/page.tsx",
-  "apps/web/src/app/(app)/campaigns/[campaignId]/moves/page.tsx",
-  "apps/web/src/app/(app)/campaigns/[campaignId]/moves/[moveId]/page.tsx",
-  "apps/web/src/app/(app)/campaigns/[campaignId]/tasks/page.tsx",
-  "apps/web/src/app/(app)/campaigns/[campaignId]/tasks/[taskId]/page.tsx",
-  "apps/web/src/app/(app)/campaigns/[campaignId]/replanning/page.tsx",
-  "apps/web/src/app/(app)/campaigns/[campaignId]/performance/page.tsx",
-  "apps/web/src/app/(app)/foundation/page.tsx",
-  "apps/web/src/app/(app)/foundation/[step]/page.tsx",
-  "apps/web/src/app/(app)/intel/page.tsx",
-  "apps/web/src/app/(app)/intel/[artifactId]/page.tsx",
-  "apps/web/src/app/(app)/nudges/page.tsx",
-  "apps/web/src/app/(app)/nudges/[nudgeId]/page.tsx",
-  "apps/web/src/app/(app)/office/page.tsx",
-  "apps/web/src/app/(app)/muse/page.tsx",
-  "apps/web/src/app/(app)/council/page.tsx",
-  "apps/web/src/app/(app)/daily-wins/page.tsx",
-  "apps/web/src/app/(app)/internal/debug/page.tsx",
-  "apps/web/src/app/(app)/uploads/page.tsx",
-  "apps/web/src/app/(app)/uploads/assets/page.tsx",
-  "apps/web/src/app/(app)/uploads/assets/[assetId]/page.tsx",
-  "apps/web/src/app/(app)/settings/page.tsx",
-  "apps/web/src/components/layout/app-shell.tsx",
-  "apps/web/src/components/layout/route-shell.tsx",
+  "apps/web/src/app/api/health/route.ts",
+  "apps/web/src/brand/routes.ts",
   "apps/web/src/components/layout/shell-sidebar.tsx",
   "crates/auth/src/lib.rs",
   "crates/http/src/lib.rs",
-  "crates/jobs/src/lib.rs"
+  "crates/http/src/middleware/auth.rs",
+  "crates/http/src/router.rs",
+  "crates/jobs/src/lib.rs",
 ];
 
-const expectedNav = [
-  "/app",
-  "/foundation",
-  "/campaigns",
-  "/intel",
-  "/nudges",
-  "/uploads",
-  "/office",
-  "/muse",
-  "/council",
-  "/daily-wins",
-  "/billing",
-  "/settings"
-];
-
-const authMarkers = ["protected_router", "websocket_bootstrap", "AuthContext", "TenantContext"];
+const authMarkers = ["ClerkWebhookEvent", "JwtValidator", "TenantContext"];
+const httpAuthMarkers = ["AuthContext", "auth_middleware", "require_auth"];
 
 function filePath(relativePath) {
-  return join(process.cwd(), ...relativePath.split("/"));
+  return join(root, ...relativePath.split("/"));
+}
+
+async function fileExists(relativePath) {
+  try {
+    await access(filePath(relativePath), constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function assertFilesExist(files) {
+  const missing = [];
   for (const relativePath of files) {
-    await access(filePath(relativePath), constants.F_OK);
+    if (!(await fileExists(relativePath))) {
+      missing.push(relativePath);
+    }
+  }
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required files:\n${missing.map((file) => `  - ${file}`).join("\n")}`);
   }
 }
 
-function extractNavigation(source) {
-  const block = source.match(/const navigation = \[(?<items>[\s\S]*?)\]\s*(?:as const[\s\S]*?)?;/);
-  if (!block?.groups?.items) {
-    throw new Error("Sidebar navigation array missing.");
-  }
-
-  return [...block.groups.items.matchAll(/href:\s*"([^"]+)"/g)].map((match) => match[1]);
+function extractRouteHrefs(source) {
+  return [...new Set([...source.matchAll(/href:\s*"([^"]+)"/g)].map((match) => match[1]))];
 }
 
-function assertExactList(label, actual, expected) {
-  const actualJson = JSON.stringify(actual);
-  const expectedJson = JSON.stringify(expected);
-  if (actualJson !== expectedJson) {
-    throw new Error(`${label} mismatch.\nexpected: ${expectedJson}\nactual:   ${actualJson}`);
+function appPageForRoute(href) {
+  const segments = href.split("/").filter(Boolean);
+  return ["apps/web/src/app/(app)", ...segments, "page.tsx"].join("/");
+}
+
+function extractIconRoutes(sidebarSource) {
+  const iconMap = sidebarSource.match(/const iconMap:[\s\S]*?=\s*\{(?<body>[\s\S]*?)\};/);
+  if (!iconMap?.groups?.body) {
+    throw new Error("Sidebar icon map missing.");
   }
+
+  return [...iconMap.groups.body.matchAll(/"([^"]+)":/g)].map((match) => match[1]);
+}
+
+function cronRouteFile(cronPath) {
+  const segments = cronPath.split("/").filter(Boolean);
+  return ["apps/web/src/app", ...segments, "route.ts"].join("/");
 }
 
 async function main() {
-  await assertFilesExist(appFiles);
+  await assertFilesExist(requiredFiles);
 
-  const sidebar = await readFile(
-    filePath("apps/web/src/components/layout/shell-sidebar.tsx"),
-    "utf8"
-  );
-  const navigation = extractNavigation(sidebar);
-  assertExactList("sidebar navigation", navigation, expectedNav);
+  if (await fileExists("apps/web/vercel.json")) {
+    throw new Error("Use the root vercel.json only; apps/web/vercel.json must not exist.");
+  }
 
-  const auth = await readFile(filePath("crates/auth/src/lib.rs"), "utf8");
-  const http = await readFile(filePath("crates/http/src/lib.rs"), "utf8");
+  const [routesSource, sidebarSource, authSource, httpAuthSource, routerSource, vercelSource] =
+    await Promise.all([
+      readFile(filePath("apps/web/src/brand/routes.ts"), "utf8"),
+      readFile(filePath("apps/web/src/components/layout/shell-sidebar.tsx"), "utf8"),
+      readFile(filePath("crates/auth/src/lib.rs"), "utf8"),
+      readFile(filePath("crates/http/src/middleware/auth.rs"), "utf8"),
+      readFile(filePath("crates/http/src/router.rs"), "utf8"),
+      readFile(filePath("vercel.json"), "utf8"),
+    ]);
+
+  const routeHrefs = extractRouteHrefs(routesSource);
+  if (routeHrefs.length === 0) {
+    throw new Error("No route metadata found in apps/web/src/brand/routes.ts.");
+  }
+
+  await assertFilesExist(routeHrefs.map(appPageForRoute));
+
+  if (!sidebarSource.includes("routeGroups.map")) {
+    throw new Error("Sidebar must render from routeGroups so navigation has one metadata source.");
+  }
+
+  const iconRoutes = new Set(extractIconRoutes(sidebarSource));
+  const missingIcons = routeHrefs.filter((href) => !iconRoutes.has(href));
+  if (missingIcons.length > 0) {
+    throw new Error(`Sidebar icon map is missing routes: ${missingIcons.join(", ")}`);
+  }
 
   for (const marker of authMarkers) {
-    if (!auth.includes(marker)) {
+    if (!authSource.includes(marker)) {
       throw new Error(`Auth scaffold is missing marker: ${marker}`);
     }
   }
 
-  if (!http.includes("protected_router(settings.clone()")) {
+  for (const marker of httpAuthMarkers) {
+    if (!httpAuthSource.includes(marker)) {
+      throw new Error(`HTTP auth middleware is missing marker: ${marker}`);
+    }
+  }
+
+  if (!routerSource.includes("protected_router(shared_state.clone())")) {
     throw new Error("HTTP router is missing protected route wrapping.");
   }
 
-  if (!http.includes("ws_router")) {
-    throw new Error("HTTP router is missing websocket routing.");
+  if (!routerSource.includes('"/api/v1/office/ws"')) {
+    throw new Error("HTTP router is missing office websocket routing.");
   }
 
+  const vercelConfig = JSON.parse(vercelSource);
+  const cronFiles = (vercelConfig.crons ?? []).map((cron) => cronRouteFile(cron.path));
+  await assertFilesExist(cronFiles);
+
   console.log(
-    `smoke check passed (${appFiles.length} files, ${navigation.length} nav entries, auth wired)`
+    `smoke check passed (${routeHrefs.length} nav routes, ${cronFiles.length} cron routes, root deploy config)`,
   );
 }
 

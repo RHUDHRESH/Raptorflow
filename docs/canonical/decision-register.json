@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "last_updated": "2026-04-03",
+  "last_updated": "2026-05-01",
   "canonical_source": "user-specified stack on 2026-04-03 plus uploaded corpus digests",
   "source_traceability": {
     "manifest": "docs/canonical/source-manifest.json",
@@ -53,7 +53,7 @@
     "primary_db": "Aurora PostgreSQL 16 Serverless v2",
     "vector_secondary": "Qdrant",
     "pgvector": true,
-    "cache_pubsub": "Prisma Accelerate (query acceleration), Prisma Pulse (realtime DB events)",
+    "cache_pubsub": "PostgreSQL via PgBouncer for app state, AWS SQS for durable async jobs, and the Rust websocket layer for realtime fan-out; Prisma Accelerate and Prisma Pulse are not active runtime dependencies",
     "object_storage": "S3",
     "queueing": "AWS SQS"
   },

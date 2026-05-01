@@ -4,23 +4,18 @@
  * portrait: null = use brutalist monogram filler (intentional, not broken)
  */
 
-export type AgentPod =
-  | "creative"
-  | "digital"
-  | "strategy"
-  | "support"
-  | "strategist";
+export type AgentPod = "creative" | "digital" | "strategy" | "support" | "strategist";
 
 export interface AgentConfig {
   key: string;
   displayName: string;
-  shortName: string;       // 2-char monogram
+  shortName: string; // 2-char monogram
   role: string;
   pod: AgentPod;
-  color: string;           // CSS var or hex — used on canvas + UI
+  color: string; // CSS var or hex — used on canvas + UI
   portrait: string | null; // /agents/{name}.png or null → filler
-  essenceCore: string;     // Single-sentence identity summary
-  zone: string;            // Default office zone
+  essenceCore: string; // Single-sentence identity summary
+  zone: string; // Default office zone
 }
 
 export const AGENTS: AgentConfig[] = [
@@ -32,7 +27,7 @@ export const AGENTS: AgentConfig[] = [
     role: "Campaign Strategist",
     pod: "strategist",
     color: "#2A2529",
-    portrait: null, // TODO: generate portrait
+    portrait: null,
     essenceCore: "Synthesises expert disagreement into executable action for real businesses.",
     zone: "strategist-office",
   },
@@ -57,7 +52,8 @@ export const AGENTS: AgentConfig[] = [
     pod: "creative",
     color: "#0d9488",
     portrait: "/agents/bernbach.png",
-    essenceCore: "Originality is the most powerful differentiator. Rules exist to be broken wisely.",
+    essenceCore:
+      "Originality is the most powerful differentiator. Rules exist to be broken wisely.",
     zone: "creative-pod",
   },
   {
@@ -68,7 +64,8 @@ export const AGENTS: AgentConfig[] = [
     pod: "creative",
     color: "#b45309",
     portrait: "/agents/hopkins.png",
-    essenceCore: "Advertising is a science. Every ad is an experiment that produces actionable data.",
+    essenceCore:
+      "Advertising is a science. Every ad is an experiment that produces actionable data.",
     zone: "creative-pod",
   },
   {
@@ -138,7 +135,8 @@ export const AGENTS: AgentConfig[] = [
     pod: "strategy",
     color: "#0f766e",
     portrait: null,
-    essenceCore: "Marketing is a systematic discipline. Price, product, place, promotion are one system.",
+    essenceCore:
+      "Marketing is a systematic discipline. Price, product, place, promotion are one system.",
     zone: "conference-room",
   },
   {
@@ -160,7 +158,8 @@ export const AGENTS: AgentConfig[] = [
     pod: "strategy",
     color: "#a16207",
     portrait: null,
-    essenceCore: "The six principles are not manipulation — they are how human psychology actually works.",
+    essenceCore:
+      "The six principles are not manipulation — they are how human psychology actually works.",
     zone: "conference-room",
   },
   {
@@ -206,7 +205,8 @@ export const AGENTS: AgentConfig[] = [
     pod: "support",
     color: "#0284c7",
     portrait: null,
-    essenceCore: "Performance data tells a story. Understanding it requires statistics and business judgment.",
+    essenceCore:
+      "Performance data tells a story. Understanding it requires statistics and business judgment.",
     zone: "research-station",
   },
   {
@@ -239,7 +239,8 @@ export const AGENTS: AgentConfig[] = [
     pod: "support",
     color: "#059669",
     portrait: null,
-    essenceCore: "Advertising budget is finite. Imprecise allocation is waste as real as any other.",
+    essenceCore:
+      "Advertising budget is finite. Imprecise allocation is waste as real as any other.",
     zone: "intern-bay",
   },
   {
@@ -250,7 +251,8 @@ export const AGENTS: AgentConfig[] = [
     pod: "support",
     color: "#ca8a04",
     portrait: null,
-    essenceCore: "A brand's reputation is its most valuable and fragile asset. Prevention beats reaction.",
+    essenceCore:
+      "A brand's reputation is its most valuable and fragile asset. Prevention beats reaction.",
     zone: "intern-bay",
   },
   {
@@ -261,15 +263,14 @@ export const AGENTS: AgentConfig[] = [
     pod: "support",
     color: "#ea580c",
     portrait: null,
-    essenceCore: "Growth is an engineering problem, not a creativity problem. Find the latent mechanism.",
+    essenceCore:
+      "Growth is an engineering problem, not a creativity problem. Find the latent mechanism.",
     zone: "intern-bay",
   },
 ];
 
 /** Lookup by key */
-export const AGENT_MAP = new Map<string, AgentConfig>(
-  AGENTS.map((a) => [a.key, a])
-);
+export const AGENT_MAP = new Map<string, AgentConfig>(AGENTS.map((a) => [a.key, a]));
 
 /** Agents in a zone */
 export function agentsInZone(zoneId: string): AgentConfig[] {

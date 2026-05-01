@@ -5,6 +5,10 @@
 | Phase | Name | Status | Plans |
 |-------|------|--------|-------|
 | 1 | Frontend Foundation | planned | 0 |
+| 2 | Backend Integration | planned | 0 |
+| 3 | Office OS | planned | 0 |
+| 4 | PRL + Council | planned | 0 |
+| 5 | Security Audit & Red Teaming | **planned** | **4** |
 
 ---
 
@@ -52,3 +56,19 @@ WebSocket-driven office canvas, agent avatars, nudge system.
 ## Phase 4: PRL + Council (planned)
 
 Ripple propagation, council deliberation sessions.
+
+## Phase 5: Security Audit & Red Teaming
+
+**Status:** planned  
+**Goal:** Remediate all P0-P3 findings from the full-system red-team audit. Fix AWS credential safety, tenant isolation/RLS, deploy pipeline safety, CI/CD security scanning, API env var consistency, source map exposure, and documentation accuracy.
+
+**Requirements:** TBD  
+**Depends on:** Phase 4  
+**Plans:** 4 plans
+
+### Plans
+
+- [x] 05-01-PLAN.md — P0 Critical Remediation (AWS credentials, legacy auth, Playwright auth state)
+- [x] 05-02-PLAN.md — Tenant Isolation & Database RLS Enforcement
+- [x] 05-03-PLAN.md — Deploy Pipeline Safety & CI/CD Security Automation
+- [x] 05-04-PLAN.md — Frontend Security Fixes, Contract Validation & Documentation Accuracy

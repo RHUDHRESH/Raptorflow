@@ -11,7 +11,16 @@ node_modules/
 .next/
 dist/
 coverage/
+package-lock.json
+**/package-lock.json
 playwright/.clerk/
+**/playwright/.clerk/
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
+blob-report/
+**/blob-report/
 
 # Rust
 target/
@@ -40,6 +49,8 @@ tmp/
 artifacts/
 logs/
 *.log
+api-*.txt
+web-*.txt
 
 # Terraform / OpenTofu
 .terraform/

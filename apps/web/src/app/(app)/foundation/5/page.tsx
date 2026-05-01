@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useFoundationStore } from "@/state/foundation-store";
+import { getApiBaseUrl } from "@/lib/api";
 
 /**
  * Foundation Screen 5: The Customer Problem
@@ -53,7 +54,7 @@ export default function FoundationStep5() {
       const token = await getToken();
       setSectionData("customer_problem", data);
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/section/customer_problem`, {
+      await fetch(`${getApiBaseUrl()}/api/v1/foundation/section/customer_problem`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -74,15 +75,13 @@ export default function FoundationStep5() {
   return (
     <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[580px] space-y-10">
-        
         {/* HEADER */}
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold text-[#2A2622]">
-            What problem do you solve?
-          </h1>
+          <h1 className="text-3xl font-bold text-[#2A2622]">What problem do you solve?</h1>
           <p className="text-base text-[#6B655E] leading-relaxed">
-            Not a description of your product. The actual pain your customer was living with before they found you. 
-            The frustration they had at 11pm. The thing that made them search for a solution.
+            Not a description of your product. The actual pain your customer was living with before
+            they found you. The frustration they had at 11pm. The thing that made them search for a
+            solution.
           </p>
         </div>
 
@@ -97,7 +96,10 @@ export default function FoundationStep5() {
                 &quot;{scanProblem}&quot;
               </p>
               <button
-                onClick={() => { setProblemStatement(scanProblem); setUsedScanSuggestion(true); }}
+                onClick={() => {
+                  setProblemStatement(scanProblem);
+                  setUsedScanSuggestion(true);
+                }}
                 className="mt-2 text-xs text-[#6B655E] underline hover:text-[#2A2622] transition-colors"
               >
                 Use this as a starting point
@@ -116,13 +118,11 @@ export default function FoundationStep5() {
             value={problemStatement}
             onChange={(e) => setProblemStatement(e.target.value)}
           />
-          
+
           <div className="flex items-center justify-between min-h-[20px] gap-3">
             <div className="text-[10px] font-mono">
               {problemStatement.length >= 480 && (
-                <span className="text-[#f59e0b]">
-                  We&apos;ll use the first 500 characters
-                </span>
+                <span className="text-[#f59e0b]">We&apos;ll use the first 500 characters</span>
               )}
             </div>
 
@@ -155,7 +155,6 @@ export default function FoundationStep5() {
             {isSubmitting ? "Saving..." : "Continue"}
           </button>
         </div>
-
       </div>
     </div>
   );

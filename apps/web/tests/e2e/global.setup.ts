@@ -27,11 +27,7 @@ setup("authenticate live smoke user and seed data", async ({ page }) => {
   await signInLiveSmokeUser(page);
   const organizationId = await createLiveSmokeOrganization(identity.userId, identity.orgName);
   const internalOrgId = deriveInternalOrgId(organizationId);
-  await stampLiveSmokeOrganizationMetadata(
-    organizationId,
-    internalOrgId,
-    identity.orgRole,
-  );
+  await stampLiveSmokeOrganizationMetadata(organizationId, internalOrgId, identity.orgRole);
   await activateLiveSmokeOrganization(page, organizationId);
 
   const token = await readSessionToken(page);
@@ -54,9 +50,7 @@ setup("authenticate live smoke user and seed data", async ({ page }) => {
   }
 
   if (!clerkOrgId) {
-    throw new Error(
-      "Clerk session token did not include an active organization claim.",
-    );
+    throw new Error("Clerk session token did not include an active organization claim.");
   }
 
   if (!/^[0-9a-fA-F-]{36}$/.test(orgId)) {

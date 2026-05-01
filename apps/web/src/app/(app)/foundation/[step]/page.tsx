@@ -18,7 +18,7 @@ function getStepIndex(id: string) {
 }
 
 export default function FoundationStepPage({
-  params
+  params,
 }: {
   params: Promise<{ step: string }>;
 }): React.ReactElement {
@@ -33,7 +33,7 @@ export default function FoundationStepPage({
   const updateSection = useUpdateFoundationSection();
 
   const [value, setValue] = useState<string>(
-    () => (foundation?.sections?.[currentStep.section] as string) ?? ""
+    () => (foundation?.sections?.[currentStep.section] as string) ?? "",
   );
   const [saved, setSaved] = useState(false);
 
@@ -56,7 +56,7 @@ export default function FoundationStepPage({
         router.push("/app");
       }
     } catch (err) {
-       console.error("Save failed", err);
+      console.error("Save failed", err);
     }
   };
 
@@ -66,7 +66,7 @@ export default function FoundationStepPage({
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-       console.error("Save draft failed", err);
+      console.error("Save draft failed", err);
     }
   };
 
@@ -80,8 +80,8 @@ export default function FoundationStepPage({
       hasSaved={saved}
       onSaveAndContinue={handleSaveAndContinue}
       onSaveDraft={handleSaveDraft}
-      prevHref={prevStep ? `/foundation/${prevStep.id}` as Route : undefined}
-      nextHref={nextStep ? `/foundation/${nextStep.id}` as Route : undefined}
+      prevHref={prevStep ? (`/foundation/${prevStep.id}` as Route) : undefined}
+      nextHref={nextStep ? (`/foundation/${nextStep.id}` as Route) : undefined}
     >
       <div className="flex flex-col space-y-4">
         {stepIndex === 0 ? (
@@ -89,37 +89,43 @@ export default function FoundationStepPage({
             <label className="text-xs uppercase tracking-widest font-mono text-[var(--muted-foreground)] mb-3 block">
               Website URL
             </label>
-            <input 
+            <input
               type="url"
               placeholder={"placeholder" in currentStep ? currentStep.placeholder : undefined}
               value={value}
-              onChange={(e) => { setValue(e.target.value); setSaved(false); }}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setSaved(false);
+              }}
               className="w-full h-16 bg-transparent border border-[var(--border)] px-4 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] font-mono text-lg transition-shadow"
             />
           </div>
         ) : (
           <div>
-             <label className="text-xs uppercase tracking-widest font-mono text-[var(--muted-foreground)] mb-3 block">
+            <label className="text-xs uppercase tracking-widest font-mono text-[var(--muted-foreground)] mb-3 block">
               Provide Context
             </label>
             <textarea
               className="w-full min-h-[240px] bg-transparent border border-[var(--border)] p-5 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-base leading-relaxed resize-y transition-shadow"
               placeholder={`Elaborate on your ${currentStep.title.toLowerCase()}...`}
               value={value}
-              onChange={(e) => { setValue(e.target.value); setSaved(false); }}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setSaved(false);
+              }}
             />
           </div>
         )}
-        
+
         {/* Minimalist Hint Bar */}
         <div className="border border-[var(--border)] bg-black/5 p-4 flex gap-3 text-sm">
           <span className="font-mono text-[var(--primary)]">✦</span>
           <p className="text-[var(--muted-foreground)]">
-            Remember: Be exceptionally clear here. Your strategy outputs are entirely dependent on the quality of these constraints.
+            Remember: Be exceptionally clear here. Your strategy outputs are entirely dependent on
+            the quality of these constraints.
           </p>
         </div>
       </div>
     </FoundationShell>
   );
 }
-

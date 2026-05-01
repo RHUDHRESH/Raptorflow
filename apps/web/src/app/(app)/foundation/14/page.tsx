@@ -3,20 +3,21 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { 
-  Video, 
-  FileText, 
-  Mail, 
-  TrendingUp, 
-  Users, 
-  Share2, 
-  Monitor, 
-  Mic, 
+import {
+  Video,
+  FileText,
+  Mail,
+  TrendingUp,
+  Users,
+  Share2,
+  Monitor,
+  Mic,
   Package,
-  Check
+  Check,
 } from "lucide-react";
 import { useFoundationStore } from "@/state/foundation-store";
 import { cn } from "@/lib/utils";
+import { getApiBaseUrl } from "@/lib/api";
 
 /**
  * Foundation Screen 14: Content History
@@ -43,21 +44,23 @@ export default function FoundationStep14() {
   }, [setStep, sectionData]);
 
   const CONTENT_TYPES = [
-    { id: "video",      label: "Short-form video",   desc: "Reels, Shorts, TikTok",  icon: Video },
-    { id: "blog",       label: "Articles or blogs",  desc: "Long-form written",    icon: FileText },
-    { id: "email",      label: "Email newsletters",  desc: "Direct-to-inbox",        icon: Mail },
-    { id: "ads",        label: "Paid ads",           desc: "Google, Meta",           icon: TrendingUp },
-    { id: "influencer", label: "Influencer",         desc: "Partnerships",           icon: Users },
-    { id: "social",     label: "Organic social",     desc: "Standard posts",         icon: Share2 },
-    { id: "events",     label: "Webinars/Events",     desc: "Live engagement",        icon: Monitor },
-    { id: "podcast",    label: "Podcast",            desc: "Audio content",          icon: Mic },
-    { id: "none",       label: "None yet",           desc: "Starting from scratch",  icon: Package },
+    { id: "video", label: "Short-form video", desc: "Reels, Shorts, TikTok", icon: Video },
+    { id: "blog", label: "Articles or blogs", desc: "Long-form written", icon: FileText },
+    { id: "email", label: "Email newsletters", desc: "Direct-to-inbox", icon: Mail },
+    { id: "ads", label: "Paid ads", desc: "Google, Meta", icon: TrendingUp },
+    { id: "influencer", label: "Influencer", desc: "Partnerships", icon: Users },
+    { id: "social", label: "Organic social", desc: "Standard posts", icon: Share2 },
+    { id: "events", label: "Webinars/Events", desc: "Live engagement", icon: Monitor },
+    { id: "podcast", label: "Podcast", desc: "Audio content", icon: Mic },
+    { id: "none", label: "None yet", desc: "Starting from scratch", icon: Package },
   ];
 
   const toggleType = (id: string) => {
     setSelectedTypes((prev) => {
       if (id === "none") return ["none"];
-      const next = prev.includes(id) ? prev.filter((t) => t !== id) : [...prev.filter((t) => t !== "none"), id];
+      const next = prev.includes(id)
+        ? prev.filter((t) => t !== id)
+        : [...prev.filter((t) => t !== "none"), id];
       return next;
     });
   };
@@ -81,7 +84,7 @@ export default function FoundationStep14() {
       const token = await getToken();
       setSectionData("content_history", data);
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/section/content_history`, {
+      await fetch(`${getApiBaseUrl()}/api/v1/foundation/section/content_history`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -103,7 +106,6 @@ export default function FoundationStep14() {
   return (
     <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[600px] space-y-12">
-        
         {/* HEADER */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-[#2A2622] leading-tight">
@@ -124,9 +126,9 @@ export default function FoundationStep14() {
                 onClick={() => toggleType(type.id)}
                 className={cn(
                   "relative p-4 rounded-xl cursor-pointer border transition-all duration-200",
-                  isSelected 
-                    ? "border-[#f59e0b] bg-[#f59e0b]/10 shadow-[0_0_15px_rgba(217,119,87,0.1)]" 
-                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]"
+                  isSelected
+                    ? "border-[#f59e0b] bg-[#f59e0b]/10 shadow-[0_0_15px_rgba(217,119,87,0.1)]"
+                    : "bg-[#262626] border-[#D5CBC0] hover:border-[#D5CBC0]",
                 )}
               >
                 {isSelected && (
@@ -135,7 +137,9 @@ export default function FoundationStep14() {
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
-                  <type.icon className={cn("w-5 h-5", isSelected ? "text-[#f59e0b]" : "text-[#6B655E]")} />
+                  <type.icon
+                    className={cn("w-5 h-5", isSelected ? "text-[#f59e0b]" : "text-[#6B655E]")}
+                  />
                   <div className="space-y-0.5">
                     <p className="text-sm font-bold text-[#2A2622] leading-tight">{type.label}</p>
                     <p className="text-[11px] text-[#6B655E] leading-tight">{type.desc}</p>
@@ -157,12 +161,16 @@ export default function FoundationStep14() {
                   <div key={typeId} className="space-y-6">
                     <div className="flex items-center gap-4">
                       <div className="h-[1px] flex-1 bg-[#E5DED4]" />
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-[#f59e0b]/60">{label} History</span>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-[#f59e0b]/60">
+                        {label} History
+                      </span>
                       <div className="h-[1px] flex-1 bg-[#E5DED4]" />
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-[#6B655E] uppercase tracking-wider">What worked?</label>
+                        <label className="text-xs font-bold text-[#6B655E] uppercase tracking-wider">
+                          What worked?
+                        </label>
                         <textarea
                           rows={2}
                           className="w-full bg-[#262626] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] transition-colors resize-none"
@@ -172,7 +180,9 @@ export default function FoundationStep14() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-[#6B655E] uppercase tracking-wider">What didn&apos;t?</label>
+                        <label className="text-xs font-bold text-[#6B655E] uppercase tracking-wider">
+                          What didn&apos;t?
+                        </label>
                         <textarea
                           rows={2}
                           className="w-full bg-[#262626] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] transition-colors resize-none"
@@ -190,7 +200,9 @@ export default function FoundationStep14() {
 
           {realSelected.length > 3 && (
             <div className="space-y-4 p-5 bg-[#262626]/50 border border-[#E5DED4] rounded-xl">
-              <label className="text-sm font-bold text-[#9A948C]">You&apos;ve tried a lot. Give us the highlights — what worked, what didn&apos;t?</label>
+              <label className="text-sm font-bold text-[#9A948C]">
+                You&apos;ve tried a lot. Give us the highlights — what worked, what didn&apos;t?
+              </label>
               <textarea
                 rows={5}
                 className="w-full bg-[#FBF8F2] border border-[#D5CBC0] rounded-lg px-4 py-3 text-[#2A2622] placeholder:text-[#9A948C] focus:outline-none focus:border-[#f59e0b] transition-colors resize-y"
@@ -210,7 +222,6 @@ export default function FoundationStep14() {
         >
           {isSubmitting ? "Updating Market Memory..." : "Continue"}
         </button>
-
       </div>
     </div>
   );

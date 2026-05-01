@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useFoundationStore } from "@/state/foundation-store";
 import { cn } from "@/lib/utils";
+import { getApiBaseUrl } from "@/lib/api";
 
 /**
  * Foundation Screen 1: The URL Entry
@@ -54,12 +55,12 @@ export default function FoundationStep1() {
 
     try {
       const token = await getToken();
-      
+
       // Save to store immediately
       setSectionData("url", { url: validatedUrl });
 
       // Fire the scan start
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/scan/start`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/foundation/scan/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,7 +76,8 @@ export default function FoundationStep1() {
         router.push("/foundation/2");
       } else {
         // Handle reachable/system errors from API
-        const errorMsg = data.message || "We couldn't reach this website. Please check the address and try again.";
+        const errorMsg =
+          data.message || "We couldn't reach this website. Please check the address and try again.";
         setError(errorMsg);
         setIsLoading(false);
       }
@@ -89,37 +91,40 @@ export default function FoundationStep1() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#FBF8F2] px-6">
       <div className="flex w-full max-w-[440px] flex-col items-center">
-        
         {/* WORDMARK */}
-        <div className={cn(
-          "mb-4 transition-all duration-500 ease-out",
-          mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-        )}>
-          <h1 className="text-4xl font-bold tracking-tighter text-[#2A2622]">
-            RaptorFlow
-          </h1>
+        <div
+          className={cn(
+            "mb-4 transition-all duration-500 ease-out",
+            mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
+          )}
+        >
+          <h1 className="text-4xl font-bold tracking-tighter text-[#2A2622]">RaptorFlow</h1>
         </div>
 
         {/* SEPARATOR */}
-        <div className={cn(
-          "mb-10 w-16 h-[1px] bg-[#f59e0b] transition-all duration-500 ease-out delay-[100ms]",
-          mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-        )} />
+        <div
+          className={cn(
+            "mb-10 w-16 h-[1px] bg-[#f59e0b] transition-all duration-500 ease-out delay-[100ms]",
+            mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
+          )}
+        />
 
         {/* QUESTION */}
-        <p className={cn(
-          "mb-8 text-center text-xl text-[#2A2622] transition-all duration-500 ease-out delay-[200ms]",
-          mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-        )}>
+        <p
+          className={cn(
+            "mb-8 text-center text-xl text-[#2A2622] transition-all duration-500 ease-out delay-[200ms]",
+            mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
+          )}
+        >
           What is your business website?
         </p>
 
         {/* INPUT STACK */}
-        <form 
-          onSubmit={handleSubmit} 
+        <form
+          onSubmit={handleSubmit}
           className={cn(
             "w-full space-y-4 transition-all duration-500 ease-out delay-[300ms]",
-            mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+            mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
           )}
         >
           <input
@@ -132,10 +137,12 @@ export default function FoundationStep1() {
             className="w-full bg-[#262626] border border-[#D5CBC0] rounded-xl px-5 py-3 text-lg text-[#2A2622] placeholder:text-[#6B655E] focus:outline-none focus:border-[#f59e0b] transition-colors"
           />
 
-          <div className={cn(
-            "pt-2 transition-all duration-500 ease-out delay-[400ms]",
-            mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-          )}>
+          <div
+            className={cn(
+              "pt-2 transition-all duration-500 ease-out delay-[400ms]",
+              mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
+            )}
+          >
             <button
               type="submit"
               disabled={isLoading || !url.trim()}
@@ -153,13 +160,8 @@ export default function FoundationStep1() {
           </div>
 
           {/* ERROR MESSAGE */}
-          {error && (
-            <p className="pt-2 text-center text-sm text-red-400">
-              {error}
-            </p>
-          )}
+          {error && <p className="pt-2 text-center text-sm text-red-400">{error}</p>}
         </form>
-
       </div>
     </div>
   );

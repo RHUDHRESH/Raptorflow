@@ -8,8 +8,7 @@ const steps = [
   {
     number: "01",
     title: "Tell us about your business",
-    description:
-      "Fill out the foundation. We learn your product, customers, and competitors.",
+    description: "Fill out the foundation. We learn your product, customers, and competitors.",
   },
   {
     number: "02",

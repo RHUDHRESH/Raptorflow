@@ -20,12 +20,14 @@
 //! ## Foundation scan routes
 //!
 //! The following scan routes are available:
+//! - `/scan/start` — start a foundation scan
 //! - `/scan/quick` — lightweight website scan
 //! - `/scan/deep` — comprehensive website analysis
-//! - `/scan/:scan_id` — get scan by ID
+//! - `/scan/{scan_id}` — get scan by ID
+//! - `/scan/status` — get latest scan status
 //! - `/versions` — list foundation versions
-//! - `/versions/:version_id` — get specific version
-//! - `/versions/:version_id/sections/:section` — get specific section from version
+//! - `/versions/{version_id}` — get specific version
+//! - `/versions/{version_id}/sections/{section}` — get specific section from version
 //!
 //! ## Data contracts
 //!

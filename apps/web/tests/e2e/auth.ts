@@ -5,8 +5,7 @@ import type { Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 
 export const E2E_AUTH_STATE_PATH = "playwright/.clerk/user.json";
-export const E2E_CLERK_EMAIL =
-  process.env.E2E_CLERK_USER_EMAIL ?? "e2e+clerk_test@example.com";
+export const E2E_CLERK_EMAIL = process.env.E2E_CLERK_USER_EMAIL ?? "e2e+clerk_test@example.com";
 export const E2E_CLERK_PASSWORD = "LiveSmoke!12345";
 
 type LiveSmokeIdentity = {
@@ -17,10 +16,7 @@ type LiveSmokeIdentity = {
 };
 
 export function deriveInternalOrgId(clerkOrgId: string): string {
-  const digest = createHash("sha256")
-    .update("raptorflow-clerk-org:")
-    .update(clerkOrgId)
-    .digest();
+  const digest = createHash("sha256").update("raptorflow-clerk-org:").update(clerkOrgId).digest();
   const bytes = Buffer.from(digest.subarray(0, 16));
   bytes[6] = (bytes[6] & 0x0f) | 0x50;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
@@ -149,7 +145,10 @@ export async function signInLiveSmokeUser(page: Page): Promise<void> {
         return;
       }
     } catch (error) {
-      console.warn("[auth] Failed to reuse saved Clerk auth state, falling back to UI sign-in:", error);
+      console.warn(
+        "[auth] Failed to reuse saved Clerk auth state, falling back to UI sign-in:",
+        error,
+      );
     }
   }
 
@@ -165,7 +164,12 @@ export async function signInLiveSmokeUser(page: Page): Promise<void> {
       throw error;
     }
   }
-  if (await page.getByRole("button", { name: /open user menu/i }).isVisible().catch(() => false)) {
+  if (
+    await page
+      .getByRole("button", { name: /open user menu/i })
+      .isVisible()
+      .catch(() => false)
+  ) {
     return;
   }
 
@@ -194,10 +198,7 @@ export async function signInLiveSmokeUser(page: Page): Promise<void> {
   }
 }
 
-export async function activateLiveSmokeOrganization(
-  page: Page,
-  orgId: string,
-): Promise<void> {
+export async function activateLiveSmokeOrganization(page: Page, orgId: string): Promise<void> {
   const cookies = await page.context().cookies();
   if (
     cookies.some(
@@ -213,22 +214,26 @@ export async function activateLiveSmokeOrganization(
   }
 
   await page.waitForFunction(() => {
-    const clerk = (window as Window & {
-      Clerk?: {
-        loaded?: boolean;
-        setActive?: (options: { organization: string }) => Promise<void>;
-      };
-    }).Clerk;
+    const clerk = (
+      window as Window & {
+        Clerk?: {
+          loaded?: boolean;
+          setActive?: (options: { organization: string }) => Promise<void>;
+        };
+      }
+    ).Clerk;
 
     return Boolean(clerk?.loaded);
   });
   try {
     await page.evaluate((organizationId) => {
-      const clerk = (window as Window & {
-        Clerk?: {
-          setActive?: (options: { organization: string }) => Promise<void>;
-        };
-      }).Clerk;
+      const clerk = (
+        window as Window & {
+          Clerk?: {
+            setActive?: (options: { organization: string }) => Promise<void>;
+          };
+        }
+      ).Clerk;
 
       if (!clerk) {
         throw new Error("Clerk is not available in the browser context");
@@ -246,19 +251,23 @@ export async function activateLiveSmokeOrganization(
   await page.waitForLoadState("domcontentloaded").catch(() => {});
   await page.waitForTimeout(1000);
 
-  await page.waitForFunction(
-    (organizationId) => {
-      const clerk = (window as Window & {
-        Clerk?: {
-          organization?: { id?: string };
-        };
-      }).Clerk;
+  await page
+    .waitForFunction(
+      (organizationId) => {
+        const clerk = (
+          window as Window & {
+            Clerk?: {
+              organization?: { id?: string };
+            };
+          }
+        ).Clerk;
 
-      return clerk?.organization?.id === organizationId;
-    },
-    orgId,
-    { timeout: 15_000 },
-  ).catch(() => {});
+        return clerk?.organization?.id === organizationId;
+      },
+      orgId,
+      { timeout: 15_000 },
+    )
+    .catch(() => {});
 }
 
 export async function prepareLiveSmokePage(page: Page): Promise<void> {
@@ -267,23 +276,21 @@ export async function prepareLiveSmokePage(page: Page): Promise<void> {
   await signInLiveSmokeUser(page);
   const organizationId = await createLiveSmokeOrganization(identity.userId, identity.orgName);
   const internalOrgId = deriveInternalOrgId(organizationId);
-  await stampLiveSmokeOrganizationMetadata(
-    organizationId,
-    internalOrgId,
-    identity.orgRole,
-  );
+  await stampLiveSmokeOrganizationMetadata(organizationId, internalOrgId, identity.orgRole);
   await activateLiveSmokeOrganization(page, organizationId);
 }
 
 export async function readSessionToken(page: Page): Promise<string> {
   const token = await page.evaluate(async () => {
-    const clerk = (window as Window & {
-      Clerk?: {
-        session?: {
-          getToken?: () => Promise<string | null>;
+    const clerk = (
+      window as Window & {
+        Clerk?: {
+          session?: {
+            getToken?: () => Promise<string | null>;
+          };
         };
-      };
-    }).Clerk;
+      }
+    ).Clerk;
 
     return clerk?.session?.getToken ? clerk.session.getToken() : null;
   });
@@ -294,9 +301,7 @@ export async function readSessionToken(page: Page): Promise<string> {
 
   const cookies = await page.context().cookies();
   const sessionCookie = cookies.find(
-    (cookie) =>
-      cookie.name === "__session" ||
-      cookie.name.startsWith("__session_"),
+    (cookie) => cookie.name === "__session" || cookie.name.startsWith("__session_"),
   )?.value;
 
   if (sessionCookie) {
@@ -312,8 +317,5 @@ export function decodeJwtPayload(token: string): Record<string, unknown> {
     throw new Error("Invalid JWT token");
   }
 
-  return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Record<
-    string,
-    unknown
-  >;
+  return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Record<string, unknown>;
 }

@@ -1,25 +1,27 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
-import {
-  sentryAuthToken,
-  sentryOrg,
-  sentryProject,
-  sentryRelease,
-} from "./src/lib/sentry";
+import { sentryAuthToken, sentryOrg, sentryProject, sentryRelease } from "./src/lib/sentry";
+
+const shouldUploadSentrySourceMaps = Boolean(
+  sentryAuthToken &&
+    (process.env.CI === "true" ||
+      process.env.VERCEL === "1" ||
+      process.env.SENTRY_UPLOAD_SOURCE_MAPS === "1"),
+);
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(process.cwd(), "../.."),
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: shouldUploadSentrySourceMaps,
   transpilePackages: ["@raptorflow/database", "@raptorflow/contracts"],
 };
 
 const sentryConfig = {
   org: sentryOrg,
   project: sentryProject,
-  authToken: sentryAuthToken,
-  silent: !sentryAuthToken,
+  authToken: shouldUploadSentrySourceMaps ? sentryAuthToken : undefined,
+  silent: !shouldUploadSentrySourceMaps,
   debug: process.env.NODE_ENV === "development",
   widenClientFileUpload: true,
   release: {

@@ -3688,22 +3688,26 @@ pub async fn get_avatar_identity_state(
     Ok(row)
 }
 
+pub struct AvatarIdentityStateUpsert<'a> {
+    pub identity_state_id: &'a str,
+    pub org_id: uuid::Uuid,
+    pub avatar_id: &'a str,
+    pub mood_confidence: f64,
+    pub mood_skepticism: f64,
+    pub mood_creativity: f64,
+    pub mood_urgency: f64,
+    pub ego_drift_accumulator: &'a serde_json::Value,
+    pub total_debates_participated: i32,
+    pub total_challenges_issued: i32,
+    pub total_challenges_received: i32,
+    pub total_challenges_won: i32,
+    pub total_syntheses_influenced: i32,
+    pub personality_summary: &'a str,
+}
+
 pub async fn upsert_avatar_identity_state(
     pool: &PgPool,
-    identity_state_id: &str,
-    org_id: uuid::Uuid,
-    avatar_id: &str,
-    mood_confidence: f64,
-    mood_skepticism: f64,
-    mood_creativity: f64,
-    mood_urgency: f64,
-    ego_drift_accumulator: &serde_json::Value,
-    total_debates_participated: i32,
-    total_challenges_issued: i32,
-    total_challenges_received: i32,
-    total_challenges_won: i32,
-    total_syntheses_influenced: i32,
-    personality_summary: &str,
+    state: AvatarIdentityStateUpsert<'_>,
 ) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
@@ -3731,20 +3735,20 @@ pub async fn upsert_avatar_identity_state(
             updated_at = now()
         "#,
     )
-    .bind(identity_state_id)
-    .bind(org_id)
-    .bind(avatar_id)
-    .bind(mood_confidence)
-    .bind(mood_skepticism)
-    .bind(mood_creativity)
-    .bind(mood_urgency)
-    .bind(ego_drift_accumulator)
-    .bind(total_debates_participated)
-    .bind(total_challenges_issued)
-    .bind(total_challenges_received)
-    .bind(total_challenges_won)
-    .bind(total_syntheses_influenced)
-    .bind(personality_summary)
+    .bind(state.identity_state_id)
+    .bind(state.org_id)
+    .bind(state.avatar_id)
+    .bind(state.mood_confidence)
+    .bind(state.mood_skepticism)
+    .bind(state.mood_creativity)
+    .bind(state.mood_urgency)
+    .bind(state.ego_drift_accumulator)
+    .bind(state.total_debates_participated)
+    .bind(state.total_challenges_issued)
+    .bind(state.total_challenges_received)
+    .bind(state.total_challenges_won)
+    .bind(state.total_syntheses_influenced)
+    .bind(state.personality_summary)
     .execute(pool)
     .await?;
     Ok(())

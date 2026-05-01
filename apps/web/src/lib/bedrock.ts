@@ -1,6 +1,7 @@
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
 
-const MODEL_STRATEGIST = process.env.BEDROCK_MODEL_STRATEGIST ?? "mistral.mistral-large-3-675b-instruct";
+const MODEL_STRATEGIST =
+  process.env.BEDROCK_MODEL_STRATEGIST ?? "mistral.mistral-large-3-675b-instruct";
 const MODEL_FAST = process.env.BEDROCK_MODEL_FAST ?? "mistral.ministral-3-8b-instruct";
 const AWS_REGION = process.env.AWS_REGION ?? "ap-south-1";
 

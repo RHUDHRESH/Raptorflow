@@ -3,7 +3,7 @@ export const sessionEventTypes = [
   "session.progress",
   "session.stream",
   "session.completed",
-  "session.reconnect"
+  "session.reconnect",
 ] as const;
 
 export const foundationEventTypes = [
@@ -14,14 +14,14 @@ export const foundationEventTypes = [
   "foundation.version.updated",
   "foundation.section.injected",
   "foundation.snapshot.ready",
-  "foundation.reconnect"
+  "foundation.reconnect",
 ] as const;
 
 export const councilEventTypes = [
   "council.started",
   "council.position",
   "council.synthesis",
-  "council.reconnect"
+  "council.reconnect",
 ] as const;
 
 export const officeEventTypes = [
@@ -50,7 +50,7 @@ export const officeEventTypes = [
   "council_synthesis",
   "snark_refresh",
   "campaign_task_ready",
-  "file_delivery_complete"
+  "file_delivery_complete",
 ] as const;
 
 export const wsEventTypes = [
@@ -63,7 +63,7 @@ export const wsEventTypes = [
   "research.completed",
   "tool.requested",
   "tool.completed",
-  "harvester.recorded"
+  "harvester.recorded",
 ] as const;
 
 export type WsEventType = (typeof wsEventTypes)[number];

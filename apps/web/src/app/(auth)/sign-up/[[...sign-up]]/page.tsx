@@ -24,7 +24,8 @@ export default function SignUpPage(): React.ReactElement {
           formFieldLabel:
             "font-mono uppercase tracking-widest text-[10px] text-[var(--muted-foreground)] mb-1",
           footerActionLink: "text-[var(--primary)] hover:text-[var(--primary)]/80 font-bold",
-          socialButtonsBlockButton: "border border-[var(--border)] rounded-none h-12 hover:bg-[var(--accent)]",
+          socialButtonsBlockButton:
+            "border border-[var(--border)] rounded-none h-12 hover:bg-[var(--accent)]",
           dividerLine: "bg-[var(--border)]",
           dividerText: "text-[var(--muted-foreground)] font-mono uppercase text-[10px]",
         },

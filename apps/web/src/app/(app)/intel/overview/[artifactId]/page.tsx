@@ -28,10 +28,16 @@ export default function IntelOverviewArtifactPage({
     fetched_at?: string;
   }>;
 
-  const artifact = docs.find((doc) => doc.document_id === artifactId || doc.url === artifactId || doc.title === artifactId);
+  const artifact = docs.find(
+    (doc) => doc.document_id === artifactId || doc.url === artifactId || doc.title === artifactId,
+  );
 
   if (isLoading) {
-    return <div className="py-8 text-sm text-[var(--muted-foreground)]">Loading artifact from backend…</div>;
+    return (
+      <div className="py-8 text-sm text-[var(--muted-foreground)]">
+        Loading artifact from backend…
+      </div>
+    );
   }
 
   if (!artifact) {
@@ -83,7 +89,9 @@ export default function IntelOverviewArtifactPage({
                 </div>
                 <div>
                   <p className="text-[var(--muted-foreground)]">Source</p>
-                  <p className="font-medium">{artifact.domain ?? artifact.source_type ?? "intel"}</p>
+                  <p className="font-medium">
+                    {artifact.domain ?? artifact.source_type ?? "intel"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-[var(--muted-foreground)]">Artifact ID</p>
@@ -91,7 +99,9 @@ export default function IntelOverviewArtifactPage({
                 </div>
                 <div>
                   <p className="text-[var(--muted-foreground)]">Captured</p>
-                  <p className="font-medium">{artifact.created_at ?? artifact.fetched_at ?? "recent"}</p>
+                  <p className="font-medium">
+                    {artifact.created_at ?? artifact.fetched_at ?? "recent"}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -122,7 +132,10 @@ export default function IntelOverviewArtifactPage({
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-amber-800">
               <p>This detail page is backed by the live intel document feed.</p>
-              <p>If you need more artifact metadata, extend the intel backend rather than adding local mock data.</p>
+              <p>
+                If you need more artifact metadata, extend the intel backend rather than adding
+                local mock data.
+              </p>
             </CardContent>
           </Card>
         </div>

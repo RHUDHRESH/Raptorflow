@@ -6,6 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { Check, X, Upload, Plus } from "lucide-react";
 import { useFoundationStore } from "@/state/foundation-store";
 import { cn } from "@/lib/utils";
+import { getApiBaseUrl } from "@/lib/api";
 
 interface AssetFile {
   name: string;
@@ -30,11 +31,35 @@ export default function FoundationStep17() {
   const { sectionData, setSectionData, setStep } = useFoundationStore();
 
   const [assets, setAssets] = useState<AssetType[]>([
-    { id: "brand", label: "Brand guidelines & logo files", accepts: ".pdf,.ai,.png,.jpg,.zip", checked: false, files: [] },
-    { id: "ads", label: "Past advertising creative", accepts: ".png,.jpg,.mp4,.zip", checked: false, files: [] },
-    { id: "testimonials", label: "Customer testimonials", accepts: ".pdf,.txt,.docx", checked: false, files: [] },
+    {
+      id: "brand",
+      label: "Brand guidelines & logo files",
+      accepts: ".pdf,.ai,.png,.jpg,.zip",
+      checked: false,
+      files: [],
+    },
+    {
+      id: "ads",
+      label: "Past advertising creative",
+      accepts: ".png,.jpg,.mp4,.zip",
+      checked: false,
+      files: [],
+    },
+    {
+      id: "testimonials",
+      label: "Customer testimonials",
+      accepts: ".pdf,.txt,.docx",
+      checked: false,
+      files: [],
+    },
     { id: "case_studies", label: "Case studies", accepts: ".pdf,.docx", checked: false, files: [] },
-    { id: "product", label: "Product photos or video", accepts: ".png,.jpg,.mp4", checked: false, files: [] },
+    {
+      id: "product",
+      label: "Product photos or video",
+      accepts: ".png,.jpg,.mp4",
+      checked: false,
+      files: [],
+    },
     { id: "email", label: "Email templates", accepts: ".html,.zip", checked: false, files: [] },
   ]);
 
@@ -57,16 +82,18 @@ export default function FoundationStep17() {
     if (existing) {
       if (existing.socialHandles) setSocialHandles(existing.socialHandles);
       if (existing.assets) {
-        setAssets(prev => prev.map(a => {
-          const ext = existing.assets.find((ea: any) => ea.id === a.id);
-          return ext ? { ...a, ...ext } : a;
-        }));
+        setAssets((prev) =>
+          prev.map((a) => {
+            const ext = existing.assets.find((ea: any) => ea.id === a.id);
+            return ext ? { ...a, ...ext } : a;
+          }),
+        );
       }
     }
   }, [setStep, sectionData]);
 
   const toggleAsset = (id: string) => {
-    setAssets(prev => prev.map(a => a.id === id ? { ...a, checked: !a.checked } : a));
+    setAssets((prev) => prev.map((a) => (a.id === id ? { ...a, checked: !a.checked } : a)));
   };
 
   const handleFileUploadClick = (id: string) => {
@@ -81,34 +108,43 @@ export default function FoundationStep17() {
     const sizeStr = (file.size / (1024 * 1024)).toFixed(1) + " MB";
     const newFile = { name: file.name, size: sizeStr };
 
-    setAssets(prev => prev.map(a => {
-      if (a.id === activeAssetId) {
-        if (a.files.length >= 3) return a;
-        return { ...a, files: [...a.files, newFile] };
-      }
-      return a;
-    }));
+    setAssets((prev) =>
+      prev.map((a) => {
+        if (a.id === activeAssetId) {
+          if (a.files.length >= 3) return a;
+          return { ...a, files: [...a.files, newFile] };
+        }
+        return a;
+      }),
+    );
     e.target.value = ""; // Reset
   };
 
   const removeFile = (assetId: string, fileName: string) => {
-    setAssets(prev => prev.map(a => 
-      a.id === assetId ? { ...a, files: a.files.filter(f => f.name !== fileName) } : a
-    ));
+    setAssets((prev) =>
+      prev.map((a) =>
+        a.id === assetId ? { ...a, files: a.files.filter((f) => f.name !== fileName) } : a,
+      ),
+    );
   };
 
   const handleContinue = async () => {
     setIsSubmitting(true);
     const data = {
-      assets: assets.map(a => ({ id: a.id, label: a.label, checked: a.checked, fileNames: a.files.map(f => f.name) })),
-      socialHandles
+      assets: assets.map((a) => ({
+        id: a.id,
+        label: a.label,
+        checked: a.checked,
+        fileNames: a.files.map((f) => f.name),
+      })),
+      socialHandles,
     };
 
     try {
       const token = await getToken();
       setSectionData("existing_assets", data);
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/foundation/section/existing_assets`, {
+      await fetch(`${getApiBaseUrl()}/api/v1/foundation/section/existing_assets`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -128,39 +164,49 @@ export default function FoundationStep17() {
   return (
     <div className="flex flex-col items-center px-6 pt-20 pb-24 min-h-screen bg-[#FBF8F2]">
       <div className="w-full max-w-[640px] space-y-10">
-        
         {/* HEADER */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-[#2A2622]">What do you already have?</h1>
-          <p className="text-base text-[#6B655E]">Your AI team will build on what exists, not duplicate it.</p>
+          <p className="text-base text-[#6B655E]">
+            Your AI team will build on what exists, not duplicate it.
+          </p>
         </div>
 
         {/* ASSET CHECKLIST */}
         <div className="space-y-3">
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={onFileChange} 
-            className="hidden" 
-            accept={assets.find(a => a.id === activeAssetId)?.accepts}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={onFileChange}
+            className="hidden"
+            accept={assets.find((a) => a.id === activeAssetId)?.accepts}
           />
           {assets.map((asset) => (
             <div key={asset.id} className="space-y-2">
-              <div 
+              <div
                 onClick={() => toggleAsset(asset.id)}
                 className={cn(
                   "flex items-center justify-between p-4 rounded-xl border transition-all duration-300 cursor-pointer",
-                  asset.checked ? "bg-[#262626] border-[#D5CBC0] shadow-lg" : "bg-[#FBF8F2] border-[#E5DED4] hover:border-[#D5CBC0]"
+                  asset.checked
+                    ? "bg-[#262626] border-[#D5CBC0] shadow-lg"
+                    : "bg-[#FBF8F2] border-[#E5DED4] hover:border-[#D5CBC0]",
                 )}
               >
                 <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all",
-                    asset.checked ? "bg-[#f59e0b] border-[#f59e0b]" : "border-[#D5CBC0]"
-                  )}>
+                  <div
+                    className={cn(
+                      "w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all",
+                      asset.checked ? "bg-[#f59e0b] border-[#f59e0b]" : "border-[#D5CBC0]",
+                    )}
+                  >
                     {asset.checked && <Check className="w-3.5 h-3.5 text-black" />}
                   </div>
-                  <span className={cn("text-sm font-medium transition-colors", asset.checked ? "text-[#2A2622]" : "text-[#6B655E]")}>
+                  <span
+                    className={cn(
+                      "text-sm font-medium transition-colors",
+                      asset.checked ? "text-[#2A2622]" : "text-[#6B655E]",
+                    )}
+                  >
                     {asset.label}
                   </span>
                   {asset.files.length > 0 && asset.checked && (
@@ -172,7 +218,10 @@ export default function FoundationStep17() {
 
                 {asset.checked && asset.files.length < 3 && (
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleFileUploadClick(asset.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFileUploadClick(asset.id);
+                    }}
                     className="flex items-center gap-1.5 px-3 py-1 border border-[#D5CBC0] rounded-lg text-xs text-[#6B655E] hover:text-[#2A2622] hover:border-[#D5CBC0] transition-all font-bold uppercase tracking-wider"
                   >
                     <Upload className="w-3 h-3" />
@@ -188,7 +237,7 @@ export default function FoundationStep17() {
                     <div key={file.name} className="flex items-center gap-2">
                       <span className="truncate max-w-[200px]">{file.name}</span>
                       <span className="text-[10px] opacity-60">· {file.size}</span>
-                      <button 
+                      <button
                         onClick={() => removeFile(asset.id, file.name)}
                         className="p-1 hover:text-red-400 transition-colors"
                       >
@@ -206,15 +255,32 @@ export default function FoundationStep17() {
         <div className="pt-6 border-t border-[#E5DED4] space-y-8">
           <div className="space-y-1">
             <h2 className="text-lg font-medium text-[#2A2622]">Social media and ad accounts</h2>
-            <p className="text-sm text-[#6B655E]">These get added to your monitoring stack immediately.</p>
+            <p className="text-sm text-[#6B655E]">
+              These get added to your monitoring stack immediately.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
               { id: "instagram", label: "Instagram", icon: "📸", placeholder: "@yourbrand" },
-              { id: "linkedin", label: "LinkedIn", icon: "💼", placeholder: "linkedin.com/company/brand" },
-              { id: "facebook", label: "Facebook", icon: "👍", placeholder: "facebook.com/yourbrand" },
-              { id: "youtube", label: "YouTube", icon: "📹", placeholder: "youtube.com/@yourbrand" },
+              {
+                id: "linkedin",
+                label: "LinkedIn",
+                icon: "💼",
+                placeholder: "linkedin.com/company/brand",
+              },
+              {
+                id: "facebook",
+                label: "Facebook",
+                icon: "👍",
+                placeholder: "facebook.com/yourbrand",
+              },
+              {
+                id: "youtube",
+                label: "YouTube",
+                icon: "📹",
+                placeholder: "youtube.com/@yourbrand",
+              },
               { id: "twitter", label: "Twitter / X", icon: "🐦", placeholder: "@yourbrand" },
               { id: "whatsapp", label: "WhatsApp", icon: "💬", placeholder: "+91 XXXXX XXXXX" },
             ].map((p) => (
@@ -242,7 +308,6 @@ export default function FoundationStep17() {
         >
           {isSubmitting ? "Processing Assets..." : "Continue"}
         </button>
-
       </div>
     </div>
   );

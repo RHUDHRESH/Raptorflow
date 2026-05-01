@@ -6,18 +6,18 @@ import { Viewport } from "pixi-viewport";
 import { gsap } from "gsap";
 import { useOfficeStore } from "@/state/office-store";
 import { useFoundationStore } from "@/state/foundation-store";
-import { 
-  CANVAS_COLORS, 
-  OFFICE_ZONES, 
-  PLACEHOLDER_COLORS, 
+import {
+  CANVAS_COLORS,
+  OFFICE_ZONES,
+  PLACEHOLDER_COLORS,
   ZOOM_LEVELS,
   ANIMATION_DURATIONS,
-  type AgentKey
+  type AgentKey,
 } from "@/lib/office-constants";
 
 /**
  * RaptorFlow Office Canvas (PixiJS v8 Implementation)
- * 
+ *
  * This component manages the WebGL rendering of the 1980s office environment.
  * It strictly separates Layer 1 (Canvas) from Layer 2 (UI Chrome).
  */
@@ -64,11 +64,7 @@ export function OfficeCanvas({ onAgentClick }: { onAgentClick?: (key: AgentKey) 
       app.stage.addChild(viewport);
       viewportRef.current = viewport;
 
-      viewport
-        .drag()
-        .pinch()
-        .wheel()
-        .decelerate();
+      viewport.drag().pinch().wheel().decelerate();
 
       viewport.setZoom(zoom, true);
 
@@ -95,36 +91,34 @@ export function OfficeCanvas({ onAgentClick }: { onAgentClick?: (key: AgentKey) 
   /* ─── Environment Rendering ─── */
   const renderEnvironment = (viewport: Viewport) => {
     const floor = new PIXI.Graphics();
-    
+
     // Draw Carpet
-    floor.poly([
-      0, 0,
-      1000, 0,
-      1000, 1000,
-      0, 1000
-    ]);
+    floor.poly([0, 0, 1000, 0, 1000, 1000, 0, 1000]);
     floor.fill(CANVAS_COLORS.env.carpet_b);
-    
+
     // Draw Zones
-    Object.values(OFFICE_ZONES).forEach(zone => {
+    Object.values(OFFICE_ZONES).forEach((zone) => {
       const zoneGfx = new PIXI.Graphics();
-      const label = zone.id === 'strategist_office' ? `${strategistName.toUpperCase()}'S ${zone.label}` : zone.label;
-      
+      const label =
+        zone.id === "strategist_office"
+          ? `${strategistName.toUpperCase()}'S ${zone.label}`
+          : zone.label;
+
       zoneGfx.rect(zone.defaultPosition.x, zone.defaultPosition.y, 250, 180);
       zoneGfx.fill(zone.isPrivate ? CANVAS_COLORS.env.wood : CANVAS_COLORS.env.wall);
       zoneGfx.stroke({ color: CANVAS_COLORS.env.carpet_a, width: 2 });
-      
+
       const text = new PIXI.Text({
         text: label,
         style: {
-          fontFamily: 'JetBrains Mono',
+          fontFamily: "JetBrains Mono",
           fontSize: 12,
           fill: zone.isPrivate ? CANVAS_COLORS.env.light_wash : CANVAS_COLORS.env.carpet_a,
-          fontWeight: 'bold',
-        }
+          fontWeight: "bold",
+        },
       });
       text.position.set(zone.defaultPosition.x + 10, zone.defaultPosition.y + 10);
-      
+
       viewport.addChild(zoneGfx);
       viewport.addChild(text);
     });
@@ -146,12 +140,12 @@ export function OfficeCanvas({ onAgentClick }: { onAgentClick?: (key: AgentKey) 
         const body = new PIXI.Graphics();
         body.rect(-16, -16, 32, 32);
         body.fill(PLACEHOLDER_COLORS[key as AgentKey]);
-        body.stroke({ color: '#000000', width: 2 });
-        
+        body.stroke({ color: "#000000", width: 2 });
+
         agent.addChild(body);
         agent.interactive = true;
-        agent.cursor = 'pointer';
-        agent.on('pointerdown', () => onAgentClick?.(key as AgentKey));
+        agent.cursor = "pointer";
+        agent.on("pointerdown", () => onAgentClick?.(key as AgentKey));
 
         viewport.addChild(agent);
         agentSprites.current.set(key as AgentKey, agent);
@@ -163,7 +157,7 @@ export function OfficeCanvas({ onAgentClick }: { onAgentClick?: (key: AgentKey) 
           duration: ANIMATION_DURATIONS.BREATHE + Math.random(),
           repeat: -1,
           yoyo: true,
-          ease: "sine.inOut"
+          ease: "sine.inOut",
         } as const);
       }
 
@@ -173,17 +167,17 @@ export function OfficeCanvas({ onAgentClick }: { onAgentClick?: (key: AgentKey) 
         x: zone.defaultPosition.x + 50,
         y: zone.defaultPosition.y + 50,
         duration: 1.5,
-        ease: "power2.inOut"
+        ease: "power2.inOut",
       } as const);
 
       // Speaking Glow
       const glow = agent.getChildAt(0) as PIXI.Graphics;
-      if (status.status === 'speaking') {
+      if (status.status === "speaking") {
         gsap.to(glow, {
           alpha: 0.5,
           duration: 0.4,
           repeat: -1,
-          yoyo: true
+          yoyo: true,
         } as const);
       } else {
         gsap.killTweensOf(glow);
@@ -198,10 +192,10 @@ export function OfficeCanvas({ onAgentClick }: { onAgentClick?: (key: AgentKey) 
   }, [zoom]);
 
   return (
-    <div 
-      ref={containerRef} 
-      className="w-full h-full min-h-[500px] bg-[#FBF8F2] relative overflow-hidden" 
-      style={{ cursor: 'crosshair' }}
+    <div
+      ref={containerRef}
+      className="w-full h-full min-h-[500px] bg-[#FBF8F2] relative overflow-hidden"
+      style={{ cursor: "crosshair" }}
     />
   );
 }

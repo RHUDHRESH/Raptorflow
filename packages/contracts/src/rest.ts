@@ -1,8 +1,10 @@
 export const restNamespaces = [
   "/api/v1/foundation",
+  "/api/v1/foundation/scan/start",
   "/api/v1/foundation/scan/quick",
   "/api/v1/foundation/scan/deep",
-  "/api/v1/foundation/scans/:scanId",
+  "/api/v1/foundation/scan/status",
+  "/api/v1/foundation/scan/{scan_id}",
   "/api/v1/foundation/versions",
   "/api/v1/foundation/versions/:versionId",
   "/api/v1/foundation/versions/:versionId/sections/:section",

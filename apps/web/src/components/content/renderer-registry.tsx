@@ -18,10 +18,7 @@ const KNOWN_TYPES = [
 
 export type KnownContentType = (typeof KNOWN_TYPES)[number];
 
-export function renderGeneratedContent(
-  contentType: string,
-  body: unknown,
-): ReactNode {
+export function renderGeneratedContent(contentType: string, body: unknown): ReactNode {
   switch (contentType) {
     case "council-synthesis":
       return <CouncilSynthesisRenderer body={body} />;

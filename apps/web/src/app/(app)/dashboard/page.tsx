@@ -72,7 +72,9 @@ export default function DashboardPage(): React.ReactElement {
 
       {/* ── Today's Briefing ─────────────────────────────────── */}
       {data?.todayWin ? (
-        <div className={cn("gsap-reveal card-elevated p-6 border transition-all", momentumBg(score))}>
+        <div
+          className={cn("gsap-reveal card-elevated p-6 border transition-all", momentumBg(score))}
+        >
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -152,10 +154,10 @@ export default function DashboardPage(): React.ReactElement {
             !data?.stats.foundationScore
               ? "gray"
               : data.stats.foundationScore >= 7
-              ? "leaf"
-              : data.stats.foundationScore >= 4
-              ? "amber"
-              : "destructive"
+                ? "leaf"
+                : data.stats.foundationScore >= 4
+                  ? "amber"
+                  : "destructive"
           }
           icon={HomeIcon}
         />
@@ -196,11 +198,16 @@ export default function DashboardPage(): React.ReactElement {
               </div>
             )}
             {data?.activityFeed.map((item) => (
-              <div key={item.id} className="flex items-start gap-3 py-3 border-b border-[var(--border)] last:border-0 group">
+              <div
+                key={item.id}
+                className="flex items-start gap-3 py-3 border-b border-[var(--border)] last:border-0 group"
+              >
                 <span className="text-lg shrink-0">{item.icon}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-[var(--ink-900)]">{item.content}</p>
-                  <p className="text-xs text-[var(--ink-400)] mono-label">{timeAgo(item.createdAt)}</p>
+                  <p className="text-xs text-[var(--ink-400)] mono-label">
+                    {timeAgo(item.createdAt)}
+                  </p>
                 </div>
               </div>
             ))}
@@ -210,7 +217,10 @@ export default function DashboardPage(): React.ReactElement {
         <div className="card-elevated p-6">
           <div className="flex justify-between items-center mb-5">
             <h2 className="h3">Nudges</h2>
-            <Link href="/nudges" className="text-xs text-[var(--primary)] link-underline font-medium">
+            <Link
+              href="/nudges"
+              className="text-xs text-[var(--primary)] link-underline font-medium"
+            >
               See all
             </Link>
           </div>
@@ -228,10 +238,10 @@ export default function DashboardPage(): React.ReactElement {
                   nudge.type === "warning"
                     ? "border-[var(--primary)] bg-[var(--amber-wash)]"
                     : nudge.type === "action"
-                    ? "border-[var(--indigo-muse)] bg-[var(--indigo-wash)]"
-                    : nudge.type === "celebration"
-                    ? "border-[var(--leaf-confirm)] bg-[var(--leaf-wash)]"
-                    : "border-[var(--pod-creative)] bg-[var(--paper-150)]",
+                      ? "border-[var(--indigo-muse)] bg-[var(--indigo-wash)]"
+                      : nudge.type === "celebration"
+                        ? "border-[var(--leaf-confirm)] bg-[var(--leaf-wash)]"
+                        : "border-[var(--pod-creative)] bg-[var(--paper-150)]",
                 )}
               >
                 <div className="font-medium text-sm text-[var(--ink-900)]">{nudge.title}</div>
@@ -369,11 +379,7 @@ function GenerateBriefingButton() {
   };
 
   return (
-    <button
-      onClick={generate}
-      disabled={loading}
-      className="btn-primary disabled:opacity-50"
-    >
+    <button onClick={generate} disabled={loading} className="btn-primary disabled:opacity-50">
       {loading ? "Generating…" : "Generate today's briefing"}
     </button>
   );

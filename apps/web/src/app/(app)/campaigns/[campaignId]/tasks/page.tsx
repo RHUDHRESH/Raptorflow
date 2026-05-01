@@ -75,7 +75,14 @@ export default function CampaignTasksPage({
           >
             Campaign Task Board
           </p>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, lineHeight: 1, margin: 0 }}>
+          <h1
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontSize: 40,
+              lineHeight: 1,
+              margin: 0,
+            }}
+          >
             Tasks
           </h1>
           <p
@@ -88,7 +95,8 @@ export default function CampaignTasksPage({
               color: "var(--muted-foreground)",
             }}
           >
-            {completedCount}/{taskList.length} complete · {inProgressCount} in progress · {pendingCount} pending
+            {completedCount}/{taskList.length} complete · {inProgressCount} in progress ·{" "}
+            {pendingCount} pending
           </p>
         </div>
       </header>
@@ -133,9 +141,7 @@ export default function CampaignTasksPage({
                             : "neutral"
                     }
                   />
-                  <span className="mono-label text-[var(--ink-500)]">
-                    {statusTasks.length}
-                  </span>
+                  <span className="mono-label text-[var(--ink-500)]">{statusTasks.length}</span>
                 </div>
                 <div className="space-y-2">
                   {statusTasks.map((task) => (
@@ -144,13 +150,9 @@ export default function CampaignTasksPage({
                       className="flex items-center justify-between p-4 border border-[var(--border)] bg-[var(--paper-100)] hover:bg-[var(--paper-150)] transition-colors"
                     >
                       <div className="min-w-0">
-                        <p className="font-medium text-[var(--ink-900)]">
-                          {task.title}
-                        </p>
+                        <p className="font-medium text-[var(--ink-900)]">{task.title}</p>
                         {task.description && (
-                          <p className="text-sm text-[var(--ink-500)]">
-                            {task.description}
-                          </p>
+                          <p className="text-sm text-[var(--ink-500)]">{task.description}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-3 shrink-0 ml-4">
@@ -160,16 +162,14 @@ export default function CampaignTasksPage({
                           </span>
                         )}
                         {task.owner && (
-                          <span className="text-xs text-[var(--ink-500)]">
-                            {task.owner}
-                          </span>
+                          <span className="text-xs text-[var(--ink-500)]">{task.owner}</span>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            )
+            ),
           )}
         </div>
       )}

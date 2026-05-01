@@ -38,7 +38,7 @@ Migrations live in `database/migrations/` (the authoritative source). They are a
 
 ```bash
 psql "postgres://testuser:testpass@localhost:5432/raptorflow_test" \
-  -f database/migrations/0001_initial.sql
+  -f database/migrations/0001_platform_core.sql
 
 psql "postgres://testuser:testpass@localhost:5432/raptorflow_test" \
   -f database/migrations/0002_something.sql

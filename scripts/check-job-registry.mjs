@@ -20,7 +20,7 @@ const expectedJobs = [
   "tool-gateway",
   "intern-dispatch",
   "stream-coordinator",
-  "event-harvester"
+  "event-harvester",
 ];
 
 const expectedSurfaces = [
@@ -28,7 +28,7 @@ const expectedSurfaces = [
   "tool-gateway",
   "intern-dispatch",
   "stream-coordinator",
-  "event-harvester"
+  "event-harvester",
 ];
 
 const expectedRoutes = [
@@ -38,7 +38,7 @@ const expectedRoutes = [
   "/tool-gateway",
   "/intern-dispatch",
   "/stream-coordinator",
-  "/event-harvester"
+  "/event-harvester",
 ];
 
 function extractSection(source, startMarker, endMarker) {
@@ -78,17 +78,17 @@ async function main() {
   const registrySection = extractSection(
     source,
     "pub fn registry() -> Vec<JobRegistration> {",
-    "pub fn harness_surfaces() -> Vec<HarnessSurface> {"
+    "pub fn harness_surfaces() -> Vec<HarnessSurface> {",
   );
   const harnessSection = extractSection(
     source,
     "pub fn harness_surfaces() -> Vec<HarnessSurface> {",
-    "pub fn router() -> Router {"
+    "pub fn router() -> Router {",
   );
   const routerSection = extractSection(
     source,
     "pub fn router() -> Router {",
-    "async fn trigger_job() -> Json<Value> {"
+    "async fn trigger_job() -> Json<Value> {",
   );
 
   const actualJobs = extractKeys(registrySection);
@@ -100,7 +100,7 @@ async function main() {
   assertExactList("job routes", actualRoutes, expectedRoutes);
 
   console.log(
-    `job registry check passed (${actualJobs.length} jobs, ${actualSurfaces.length} surfaces, ${actualRoutes.length} routes)`
+    `job registry check passed (${actualJobs.length} jobs, ${actualSurfaces.length} surfaces, ${actualRoutes.length} routes)`,
   );
 }
 

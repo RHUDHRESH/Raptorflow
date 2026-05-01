@@ -55,7 +55,7 @@ impl TenantDbPool {
         org_id: Uuid,
     ) -> Result<sqlx::pool::PoolConnection<Postgres>, sqlx::Error> {
         let mut conn = self.inner.acquire().await?;
-        sqlx::query("SET LOCAL app.current_org_id = $1")
+        sqlx::query("SET SESSION app.current_org_id = $1")
             .bind(org_id)
             .execute(&mut *conn)
             .await?;

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { getWsBaseUrl } from "@/lib/api";
 
 /**
  * RaptorFlow Muse Message Type
@@ -28,7 +29,7 @@ interface MuseSocketState {
 
 /**
  * useMuseSocket Hook
- * 
+ *
  * Manages the live conversational session with the RaptorFlow Muse.
  * Handles streaming tokens, agent attribution, and automatic reconnection.
  */
@@ -38,7 +39,7 @@ export function useMuseSocket(): MuseSocketState {
   const [isConnected, setIsConnected] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  
+
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectAttempts = useRef(0);
   const maxRetries = 5;
@@ -50,11 +51,8 @@ export function useMuseSocket(): MuseSocketState {
 
     try {
       const token = await getToken();
-      // Derive WS URL from API URL if WS_URL not explicitly set
-      const baseUrl = process.env.NEXT_PUBLIC_WS_URL || 
-                      process.env.NEXT_PUBLIC_API_URL?.replace(/^http/, "ws");
-      
-      const wsUrl = `${baseUrl}/api/v1/ws?token=${token}`;
+
+      const wsUrl = `${getWsBaseUrl()}/api/v1/office/ws?token=${encodeURIComponent(token ?? "")}`;
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
@@ -72,10 +70,7 @@ export function useMuseSocket(): MuseSocketState {
             setMessages((prev) => {
               const last = prev[prev.length - 1];
               if (last && last.role === "assistant" && last.isStreaming) {
-                return [
-                  ...prev.slice(0, -1),
-                  { ...last, content: last.content + data.token },
-                ];
+                return [...prev.slice(0, -1), { ...last, content: last.content + data.token }];
               }
               return prev;
             });
@@ -88,11 +83,11 @@ export function useMuseSocket(): MuseSocketState {
               if (last && last.role === "assistant") {
                 return [
                   ...prev.slice(0, -1),
-                  { 
-                    ...last, 
-                    isStreaming: false, 
-                    agentKey: data.agent_key, 
-                    agentName: data.agent_name 
+                  {
+                    ...last,
+                    isStreaming: false,
+                    agentKey: data.agent_key,
+                    agentName: data.agent_name,
                   },
                 ];
               }
@@ -140,37 +135,42 @@ export function useMuseSocket(): MuseSocketState {
 
   // ─── Actions ─────────────────────────────────────────────────
 
-  const sendMessage = useCallback((text: string, context?: { current_route: string; campaign_id?: string }) => {
-    if (!socketRef.current || !sessionId) return;
+  const sendMessage = useCallback(
+    (text: string, context?: { current_route: string; campaign_id?: string }) => {
+      if (!socketRef.current || !sessionId) return;
 
-    // 1. Optimistic User Message
-    const userMsg: Message = {
-      id: Math.random().toString(36).substring(7),
-      role: "user",
-      content: text,
-      isStreaming: false,
-      timestamp: Date.now(),
-    };
+      // 1. Optimistic User Message
+      const userMsg: Message = {
+        id: Math.random().toString(36).substring(7),
+        role: "user",
+        content: text,
+        isStreaming: false,
+        timestamp: Date.now(),
+      };
 
-    // 2. Prep Empty Assistant Message
-    const assistantMsg: Message = {
-      id: Math.random().toString(36).substring(7),
-      role: "assistant",
-      content: "",
-      isStreaming: true,
-      timestamp: Date.now(),
-    };
+      // 2. Prep Empty Assistant Message
+      const assistantMsg: Message = {
+        id: Math.random().toString(36).substring(7),
+        role: "assistant",
+        content: "",
+        isStreaming: true,
+        timestamp: Date.now(),
+      };
 
-    setMessages((prev) => [...prev, userMsg, assistantMsg]);
+      setMessages((prev) => [...prev, userMsg, assistantMsg]);
 
-    // 3. Send over Wire
-    socketRef.current.send(JSON.stringify({
-      type: "muse.send",
-      message: text,
-      session_id: sessionId,
-      context: context || { current_route: window.location.pathname }
-    }));
-  }, [sessionId]);
+      // 3. Send over Wire
+      socketRef.current.send(
+        JSON.stringify({
+          type: "muse.send",
+          message: text,
+          session_id: sessionId,
+          context: context || { current_route: window.location.pathname },
+        }),
+      );
+    },
+    [sessionId],
+  );
 
   return {
     messages,

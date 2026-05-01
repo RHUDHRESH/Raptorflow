@@ -14,28 +14,28 @@ export async function getAuthToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
 
   try {
-    const clerk = (
-      window as Window & {
-        Clerk?: {
-          loaded?: boolean;
-          session?: {
-            getToken?: (options?: { template?: string }) => Promise<string | null>;
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const clerk = (
+        window as Window & {
+          Clerk?: {
+            loaded?: boolean;
+            session?: {
+              getToken?: (options?: { template?: string }) => Promise<string | null>;
+            };
           };
-        };
-      }
-    ).Clerk;
+        }
+      ).Clerk;
 
-    for (let attempt = 0; attempt < 100; attempt += 1) {
       if (clerk?.loaded && clerk.session?.getToken) {
         const token = await Promise.race([
           clerk.session.getToken({ template: "backend" } as never).catch(() => null),
           clerk.session.getToken().catch(() => null),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000)),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 500)),
         ]);
         if (token) return token;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
   } catch {
     // Clerk not loaded yet or session expired
