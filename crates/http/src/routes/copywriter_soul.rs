@@ -1,25 +1,12 @@
-use axum::{Json, Router, extract::Extension, http::StatusCode, routing::post};
+use axum::{Json, Router, extract::Extension, routing::post};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::sync::Arc;
 
+use crate::error::{AppResult, bad_request, internal_route_error};
 use crate::middleware::AppState;
 use raptorflow_auth::TenantContext;
 use raptorflow_db::TenantDbPool;
-
-type AppResult<T> = Result<T, (StatusCode, Json<Value>)>;
-
-fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, Json<Value>) {
-    tracing::error!("CopywriterSoul route error: {e}");
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({ "error": "copywriter_soul_internal_error" })),
-    )
-}
-
-fn bad_request(msg: &str) -> (StatusCode, Json<Value>) {
-    (StatusCode::BAD_REQUEST, Json(json!({ "error": msg })))
-}
 
 #[derive(Debug, Deserialize)]
 pub struct CopywriterDryRunRequest {
@@ -141,7 +128,13 @@ pub async fn ensure_copywriter_default(
 
     let result = raptorflow_harness::copywriter_soul::ensure_copywriter_soul(pool, org_id)
         .await
-        .map_err(internal_error)?;
+        .map_err(|e| {
+            internal_route_error(
+                "CopywriterSoul route error",
+                "copywriter_soul_internal_error",
+                e,
+            )
+        })?;
 
     Ok(Json(json!({
         "avatar_id": result.avatar_id,
@@ -175,7 +168,13 @@ pub async fn run_copywriter_dry_run(
 
     let result = raptorflow_harness::copywriter_soul::run_copywriter_dry_run(pool, org_id, input)
         .await
-        .map_err(internal_error)?;
+        .map_err(|e| {
+            internal_route_error(
+                "CopywriterSoul route error",
+                "copywriter_soul_internal_error",
+                e,
+            )
+        })?;
 
     let presence_state = result.presence_state.map(|p| CopywriterPresenceResponse {
         presence_id: p.presence_id,
