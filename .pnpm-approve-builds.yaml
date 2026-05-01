@@ -1,1 +1,2 @@
-@sentry/cli@2.58.5, esbuild@0.27.7
+- "@sentry/cli@2.58.5"
+- "esbuild@0.27.7"
