@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 // =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct FoundationData {
     // ─────────────────────────────────────────────────────────────────────────
     // Legacy fields (for backward compatibility)
@@ -297,6 +298,7 @@ pub struct Competitor {
 // Screen 10: Positioning
 // =============================================================================
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(default)]
 pub struct Positioning {
     // Legacy fields
     pub tagline: Option<String>,

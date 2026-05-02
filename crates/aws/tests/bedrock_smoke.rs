@@ -129,7 +129,7 @@ async fn bedrock_smoke_real_inference() {
     println!("[SMOKE BEDROCK] Raw output: {:?}", output);
 
     // Parse JSON response
-    let parsed: SmokeResponse = match serde_json::from_str(&output) {
+    let parsed: SmokeResponse = match serde_json::from_str::<SmokeResponse>(&output) {
         Ok(p) => {
             println!(
                 "[SMOKE BEDROCK] Parsed JSON: ok={}, component={}",

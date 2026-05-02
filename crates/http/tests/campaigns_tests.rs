@@ -8,11 +8,7 @@ use tower::ServiceExt;
 fn test_app_state() -> AppState {
     let mut settings = Settings::from_env().expect("settings");
     settings.app_env = "dev".to_string();
-    AppState::new(
-        None,
-        "example.clerk.accounts.dev".to_string(),
-        Arc::new(settings),
-    )
+    AppState::new(None, None, None, Arc::new(settings))
 }
 
 fn auth_header(org_id: &str, user_id: &str) -> String {
@@ -261,7 +257,7 @@ async fn campaigns_brief_returns_null_for_campaign_without_brief() {
 #[tokio::test]
 async fn generate_moves_transaction_rollback_on_validation_failure() {
     use raptorflow_db::queries;
-    use sqlx::PgPoolOptions;
+    use sqlx::postgres::PgPoolOptions;
 
     let database_url =
         std::env::var("TEST_DATABASE_URL").expect("TEST_DATABASE_URL must be set for this test");

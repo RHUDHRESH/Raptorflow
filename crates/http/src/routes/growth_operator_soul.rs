@@ -1,25 +1,12 @@
-use axum::{Json, Router, extract::Extension, http::StatusCode, routing::post};
+use axum::{Json, Router, extract::Extension, routing::post};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::sync::Arc;
 
+use crate::error::{AppResult, bad_request, internal_route_error};
 use crate::middleware::AppState;
 use raptorflow_auth::TenantContext;
 use raptorflow_db::TenantDbPool;
-
-type AppResult<T> = Result<T, (StatusCode, Json<Value>)>;
-
-fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, Json<Value>) {
-    tracing::error!("GrowthOperatorSoul route error: {e}");
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({ "error": "growth_operator_soul_internal_error" })),
-    )
-}
-
-fn bad_request(msg: &str) -> (StatusCode, Json<Value>) {
-    (StatusCode::BAD_REQUEST, Json(json!({ "error": msg })))
-}
 
 #[derive(Debug, Deserialize)]
 pub struct GrowthOperatorDryRunRequest {
@@ -143,7 +130,13 @@ pub async fn ensure_growth_operator_default(
     let result =
         raptorflow_harness::growth_operator_soul::ensure_growth_operator_soul(pool, org_id)
             .await
-            .map_err(internal_error)?;
+            .map_err(|e| {
+                internal_route_error(
+                    "GrowthOperatorSoul route error",
+                    "growth_operator_soul_internal_error",
+                    e,
+                )
+            })?;
 
     Ok(Json(json!({
         "avatar_id": result.avatar_id,
@@ -178,7 +171,13 @@ pub async fn run_growth_operator_dry_run(
     let result =
         raptorflow_harness::growth_operator_soul::run_growth_operator_dry_run(pool, org_id, input)
             .await
-            .map_err(internal_error)?;
+            .map_err(|e| {
+                internal_route_error(
+                    "GrowthOperatorSoul route error",
+                    "growth_operator_soul_internal_error",
+                    e,
+                )
+            })?;
 
     let presence_state = result
         .presence_state

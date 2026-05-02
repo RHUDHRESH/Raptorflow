@@ -8,11 +8,7 @@ use tower::ServiceExt;
 fn test_app_state() -> AppState {
     let mut settings = Settings::from_env().expect("settings");
     settings.app_env = "dev".to_string();
-    AppState::new(
-        None,
-        "example.clerk.accounts.dev".to_string(),
-        Arc::new(settings),
-    )
+    AppState::new(None, None, None, Arc::new(settings))
 }
 
 fn auth_header(org_id: &str, user_id: &str) -> String {

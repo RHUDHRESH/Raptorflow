@@ -22,6 +22,7 @@
 //! - [`AuthMiddleware`] — JWT validation via Clerk JWKS on all `/api/v1/*` routes
 //! - [`TraceLayer`] — request tracing via `tracing`
 
+pub mod error;
 pub mod middleware;
 pub mod router;
 pub mod routes;

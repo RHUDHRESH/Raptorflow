@@ -180,7 +180,7 @@ impl RippleHarvester {
         let lower = text.to_lowercase();
 
         if capability_key.contains("copy") || capability_key.contains("hooks") {
-            if lower.contains("hook") {
+            if capability_key.contains("hooks") || lower.contains("hook") {
                 return "hook_learning".to_string();
             }
             if lower.contains("proof")

@@ -116,10 +116,21 @@ mod tests {
     #[test]
     fn test_valid_synthesis() {
         let body = json!({
-            "decision": "Focus on AI marketing",
-            "rationale": "Council determined AI is the highest-leverage opportunity based on competitive analysis.",
-            "risks": ["Validation needed"],
-            "next_actions": ["Build prototype"]
+            "known_facts": ["Competitive analysis shows AI marketing demand is increasing."],
+            "assumptions": ["The team can validate the prototype with target users this sprint."],
+            "risks": [{
+                "risk": "Validation may not confirm demand",
+                "severity": "medium",
+                "mitigation": "Run customer interviews before scaling build-out"
+            }],
+            "next_actions": [{
+                "action": "Build prototype",
+                "owner": "product",
+                "priority": "high"
+            }],
+            "open_questions": ["Which ICP segment should be tested first?"],
+            "strategic_recommendation": "Focus on AI marketing after validating the strongest ICP segment.",
+            "synthesized_by": "council"
         });
         assert!(validate_content("council_synthesis", &body).is_ok());
     }

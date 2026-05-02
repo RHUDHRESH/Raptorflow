@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(process.cwd(), "../.."),
   productionBrowserSourceMaps: shouldUploadSentrySourceMaps,
   transpilePackages: ["@raptorflow/database", "@raptorflow/contracts"],
+  webpack(config) {
+    config.resolve.extensionAlias = {
+      ...config.resolve.extensionAlias,
+      ".js": [".ts", ".tsx", ".js", ".jsx"],
+    };
+    return config;
+  },
 };
 
 const sentryConfig = {
