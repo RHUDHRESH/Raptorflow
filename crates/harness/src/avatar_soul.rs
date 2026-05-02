@@ -193,7 +193,9 @@ pub fn derive_instinct_frame(
         || task_lower.contains("assert")
         || task_lower.contains("believe")
         || task_lower.contains("statistic")
-        || task_lower.contains("metric");
+        || task_lower.contains("metric")
+        || task_lower.contains("best")
+        || task_lower.contains("proven");
 
     if has_proof_obsession && mentions_claims {
         risk_flags.push("proof_required".to_string());
@@ -454,6 +456,10 @@ pub fn classify_strategist_memory(
         return StrategistMemoryClassification::Proof;
     }
 
+    if all_text.contains("sequencing") || all_text.contains("timing matters") {
+        return StrategistMemoryClassification::Instinct;
+    }
+
     if all_text.contains("competitor")
         || all_text.contains("category")
         || all_text.contains("market")
@@ -649,6 +655,12 @@ pub fn strategist_challenge_decision(
         .and_then(|v| v.as_str())
         .unwrap_or_default()
         .to_lowercase();
+    let speaker_is_copywriter = target_event
+        .speaker_avatar_id
+        .as_deref()
+        .unwrap_or_default()
+        .to_lowercase()
+        .contains("copywriter");
 
     let challengeable_types = ["position", "challenge", "refinement"];
 
@@ -685,11 +697,14 @@ pub fn strategist_challenge_decision(
         && !event_text.contains("according to")
         && !event_text.contains("source:");
 
-    let has_no_icp_copy = event_text.contains("copy")
+    let has_no_icp_copy = (speaker_is_copywriter
+        && (event_text.contains("say ") || event_text.contains('\'') || event_text.contains('"')))
+        || event_text.contains("copy")
         || event_text.contains("messaging")
         || event_text.contains("content")
         || event_text.contains("hook")
         || event_text.contains("headline")
+        || event_text.contains("say ")
         || event_text.contains("ad")
         || event_text.contains("campaign");
 
@@ -824,15 +839,6 @@ pub fn classify_researcher_memory(
             .join(" ")
     );
 
-    if all_text.contains("verified")
-        || all_text.contains("source")
-        || all_text.contains("evidence")
-        || all_text.contains("citation")
-        || all_text.contains("case study")
-    {
-        return ResearcherMemoryClassification::Proof;
-    }
-
     if all_text.contains("unsupported")
         || all_text.contains("unverified")
         || all_text.contains("hallucinated")
@@ -840,6 +846,15 @@ pub fn classify_researcher_memory(
         || all_text.contains("invented")
     {
         return ResearcherMemoryClassification::Warning;
+    }
+
+    if all_text.contains("verified")
+        || all_text.contains("source")
+        || all_text.contains("evidence")
+        || all_text.contains("citation")
+        || all_text.contains("case study")
+    {
+        return ResearcherMemoryClassification::Proof;
     }
 
     if all_text.contains("wrong")
@@ -941,16 +956,16 @@ pub fn classify_claim_evidence(claim: &str, context_summary: &str) -> EvidenceLe
         return EvidenceLevel::Contradicted;
     }
 
-    if has_numbers && !has_source_words {
-        return EvidenceLevel::Unsupported;
-    }
-
-    if has_source_words && (has_numbers || claim_lower.len() > 30) {
+    if has_source_words && (has_numbers || claim_lower.len() > 20) {
         return EvidenceLevel::SourceBacked;
     }
 
     if has_uncertain {
         return EvidenceLevel::PlausibleButUnverified;
+    }
+
+    if has_numbers && !has_source_words {
+        return EvidenceLevel::Unsupported;
     }
 
     EvidenceLevel::Assumption
@@ -989,12 +1004,18 @@ pub fn derive_researcher_instinct_frame(
         || task_lower.contains("customer said")
         || task_lower.contains("customers say");
 
-    let has_source = context_lower.contains("source")
-        || context_lower.contains("verified")
-        || context_lower.contains("citation")
-        || context_lower.contains("data")
-        || context_lower.contains("study")
-        || context_lower.contains("customer quote");
+    let source_negated = context_lower.contains("without source")
+        || context_lower.contains("without sources")
+        || context_lower.contains("no source")
+        || context_lower.contains("no sources")
+        || context_lower.contains("missing source");
+    let has_source = !source_negated
+        && (context_lower.contains("source")
+            || context_lower.contains("verified")
+            || context_lower.contains("citation")
+            || context_lower.contains("data")
+            || context_lower.contains("study")
+            || context_lower.contains("customer quote"));
 
     if has_numbers && !has_source {
         risk_flags.push("unsupported_metric".to_string());
@@ -2297,14 +2318,20 @@ pub fn derive_analyst_instinct_frame(
     let task_lower = task_summary.to_lowercase();
     let context_lower = context_summary.to_lowercase();
 
-    let has_metric = context_lower.contains("metric")
-        || context_lower.contains("kpi")
-        || context_lower.contains("impression")
-        || context_lower.contains("conversion")
-        || context_lower.contains("revenue")
-        || context_lower.contains("ctr")
-        || context_lower.contains("clicks")
-        || context_lower.contains("leads");
+    let metric_negated = context_lower.contains("no metric")
+        || context_lower.contains("no metrics")
+        || context_lower.contains("without metric")
+        || context_lower.contains("without metrics")
+        || context_lower.contains("missing metric");
+    let has_metric = !metric_negated
+        && (context_lower.contains("metric")
+            || context_lower.contains("kpi")
+            || context_lower.contains("impression")
+            || context_lower.contains("conversion")
+            || context_lower.contains("revenue")
+            || context_lower.contains("ctr")
+            || context_lower.contains("clicks")
+            || context_lower.contains("leads"));
 
     let has_baseline = context_lower.contains("baseline")
         || context_lower.contains("previous")

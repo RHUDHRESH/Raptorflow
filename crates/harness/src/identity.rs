@@ -211,6 +211,8 @@ impl AvatarIdentityState {
                 | ExperienceType::PositionRejected
                 | ExperienceType::ChallengeIssued
                 | ExperienceType::ChallengeReceived
+                | ExperienceType::ChallengeWon
+                | ExperienceType::ChallengeLost
         ) {
             self.total_debates += 1;
         }

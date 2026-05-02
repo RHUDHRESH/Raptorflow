@@ -620,7 +620,7 @@ fn perform_signal_quality_review(
     known_facts.push("Context contains metric-related language".to_string());
 
     let has_strong_signal = metrics.iter().any(|m| m.signal_strength == "strong");
-    let recommended_decision = if missing_metrics.len() > 2 || attribution_limits.len() > 1 {
+    let recommended_decision = if !missing_metrics.is_empty() || attribution_limits.len() > 1 {
         "investigate".to_string()
     } else if vanity_metrics.len() > 2 && !metrics.iter().any(|m| m.metric_type == "outcome") {
         "iterate".to_string()
