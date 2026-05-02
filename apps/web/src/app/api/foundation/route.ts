@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { ingestRipple } from "@/lib/prl/ingest";
 import { broadcast, channels } from "@/lib/pusher/server";
-
-const RUST_API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+import { getApiBaseUrl } from "@/lib/api";
 
 const ALL_SECTION_KEYS = [
   "company_url",
@@ -57,7 +56,7 @@ function deepEqual(a: unknown, b: unknown): boolean {
 }
 
 async function rustFetch(path: string, token: string, options?: RequestInit): Promise<Response> {
-  return fetch(`${RUST_API}${path}`, {
+  return fetch(`${getApiBaseUrl()}${path}`, {
     ...options,
     headers: {
       Authorization: `Bearer ${token}`,
