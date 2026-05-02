@@ -1,3 +1,4 @@
+use sqlx::Transaction;
 use sqlx::postgres::{PgPool as SqlxPgPool, PgPoolOptions, Postgres};
 use std::time::Duration;
 use uuid::Uuid;
@@ -55,11 +56,23 @@ impl TenantDbPool {
         org_id: Uuid,
     ) -> Result<sqlx::pool::PoolConnection<Postgres>, sqlx::Error> {
         let mut conn = self.inner.acquire().await?;
-        sqlx::query("SET SESSION app.current_org_id = $1")
-            .bind(org_id)
+        sqlx::query("SELECT set_config('app.current_org_id', $1, false)")
+            .bind(org_id.to_string())
             .execute(&mut *conn)
             .await?;
         Ok(conn)
+    }
+
+    pub async fn begin_for_tenant(
+        &self,
+        org_id: Uuid,
+    ) -> Result<Transaction<'static, Postgres>, sqlx::Error> {
+        let mut tx = self.inner.begin().await?;
+        sqlx::query("SELECT set_config('app.current_org_id', $1, true)")
+            .bind(org_id.to_string())
+            .execute(&mut *tx)
+            .await?;
+        Ok(tx)
     }
 
     pub fn pool(&self) -> &PgPool {

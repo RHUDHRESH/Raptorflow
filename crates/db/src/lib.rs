@@ -18,8 +18,9 @@
 //! ## RLS
 //!
 //! All tenant-scoped tables use Row Level Security via `app.current_org_id()`.
-//! The application must `SET LOCAL app.current_org_id = '{org_id}'` before
-//! executing queries on behalf of a tenant.
+//! Code that relies on database-enforced RLS should use
+//! [`TenantDbPool::begin_for_tenant`] so `app.current_org_id` is set with
+//! transaction-local scope.
 
 pub mod models;
 pub mod pool;
