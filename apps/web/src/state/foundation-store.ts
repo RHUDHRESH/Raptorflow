@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { apiFetch } from "@/lib/api";
 
 /**
  * Valid Foundation Section IDs — 22 screens mapped to Rust model fields
@@ -287,22 +288,12 @@ export function useFoundationAutoSave(sectionId: FoundationSectionId, data: any)
       setIsAutoSaving(true);
       const token = await getToken();
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/foundation/section/${sectionId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ data }),
-        },
-      );
-
-      if (!response.ok) {
-        console.error(`[FoundationAutoSave] Failed to save section ${sectionId}`);
-        return;
-      }
+      await apiFetch<void>(`/api/v1/foundation/section/${sectionId}`, {
+        method: "PATCH",
+        body: { data },
+        auth: true,
+        token,
+      });
 
       // Mark current step as complete on successful save
       const stepForSection = FOUNDATION_STEPS.find((s) => s.section === sectionId)?.step;

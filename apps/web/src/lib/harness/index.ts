@@ -1,5 +1,6 @@
 import { cortexSearch, type CortexResult } from "@/lib/prl/cortex";
 import { enrichAvatarContext, type EELContextPack } from "@/lib/eel/enrich";
+import { apiFetch } from "@/lib/api";
 
 export type SessionMode = "council" | "strategist" | "muse" | "scan" | "evaluation";
 
@@ -32,18 +33,15 @@ export interface HarnessContextPack {
   };
 }
 
-const RUST_API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
-
 async function fetchFoundationSections(
   userId: string,
   token: string,
 ): Promise<Record<string, unknown> | null> {
   try {
-    const res = await fetch(`${RUST_API}/api/v1/foundation`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const body = await apiFetch<{ sections?: Record<string, unknown> }>("/api/v1/foundation", {
+      auth: true,
+      token,
     });
-    if (!res.ok) return null;
-    const body = (await res.json()) as { sections?: Record<string, unknown> };
     return body.sections ?? null;
   } catch {
     return null;
