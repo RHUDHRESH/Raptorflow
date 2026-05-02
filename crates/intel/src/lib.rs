@@ -493,14 +493,21 @@ pub async fn list_competitor_snapshots(
 
     let rows: Vec<CompetitorRow> = sqlx::query_as(
         r#"
-        SELECT id, user_id, competitor_name, website, snapshot, last_analyzed_at, created_at
+        SELECT
+            snapshot_id,
+            org_id::text,
+            competitor_name,
+            competitor_url,
+            COALESCE(payload, scrape_data, '{}'::jsonb),
+            COALESCE(captured_at, updated_at, created_at),
+            created_at
         FROM competitor_snapshots
-        WHERE user_id = $1
-        ORDER BY last_analyzed_at DESC
+        WHERE org_id = $1
+        ORDER BY COALESCE(captured_at, updated_at, created_at) DESC
         LIMIT 50
         "#,
     )
-    .bind(&tenant.user_id)
+    .bind(tenant.org_id)
     .fetch_all(&mut *conn)
     .await
     .map_err(internal_error)?;
@@ -538,14 +545,26 @@ pub async fn create_competitor_snapshot(
 
     sqlx::query(
         r#"
-        INSERT INTO competitor_snapshots (id, user_id, competitor_name, website, snapshot, last_analyzed_at, created_at)
-        VALUES ($1, $2, $3, $4, '{}', now(), now())
+        INSERT INTO competitor_snapshots (
+            snapshot_id,
+            org_id,
+            competitor_name,
+            competitor_url,
+            snapshot_type,
+            payload,
+            captured_at,
+            status,
+            created_at,
+            updated_at
+        )
+        VALUES ($1, $2, $3, $4, 'manual', $5, now(), 'completed', now(), now())
         "#,
     )
     .bind(&snapshot_id)
-    .bind(&tenant.user_id)
+    .bind(tenant.org_id)
     .bind(&payload.competitor_name)
     .bind(&payload.website)
+    .bind(json!({ "website": payload.website }))
     .execute(&mut *conn)
     .await
     .map_err(internal_error)?;

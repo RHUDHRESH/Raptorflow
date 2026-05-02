@@ -295,6 +295,44 @@ paths:
       responses:
         "200":
           description: Research documents
+  /api/v1/intel/signals:
+    get:
+      summary: List intel signals
+      parameters:
+        - in: query
+          name: type
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Intel signal list
+  /api/v1/intel/signals/{id}:
+    get:
+      summary: Get intel signal
+      responses:
+        "200":
+          description: Intel signal
+        "404":
+          description: Signal not found
+    patch:
+      summary: Update intel signal flags
+      responses:
+        "200":
+          description: Signal updated
+        "404":
+          description: Signal not found
+  /api/v1/intel/competitors:
+    get:
+      summary: List competitor snapshots
+      responses:
+        "200":
+          description: Competitor snapshot list
+    post:
+      summary: Create competitor snapshot
+      responses:
+        "200":
+          description: Competitor snapshot created
   /api/v1/jobs/research:
     post:
       summary: Execute research request
