@@ -50,5 +50,18 @@ jobs:
             exit 1
           fi
           echo "Migration completed successfully"
-      - name: Trigger rolling update
-        run: aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" --task-definition "${{ steps.render-task-def.outputs.new-task-def-arn }}" --force-new-deployment
+      - name: Deploy and wait for service stability
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --task-definition "${{ steps.render-task-def.outputs.new-task-def-arn }}" \
+            --force-new-deployment
+
+          echo "Waiting for $ECS_SERVICE in $ECS_CLUSTER to become stable..."
+          aws ecs wait services-stable --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE"
+          aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" \
+            --query 'services[0].deployments[].{status:status,rolloutState:rolloutState,taskDefinition:taskDefinition,desired:desiredCount,running:runningCount,pending:pendingCount}' \
+            --output table
