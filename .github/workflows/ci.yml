@@ -70,6 +70,9 @@ jobs:
       - name: Check compilation
         run: cargo check --workspace --all-targets
 
+      - name: Compile Bedrock smoke test
+        run: cargo test -p raptorflow-aws --test bedrock_smoke --no-run
+
       - name: Clippy lint
         run: cargo clippy --workspace --all-targets
 
