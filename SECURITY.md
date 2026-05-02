@@ -31,7 +31,7 @@ ALB (TLS termination)
 
 ### Tenant isolation ✅
 
-Every database query includes `org_id` via PostgreSQL Row Level Security. The `app.current_org_id()` session variable is set from the JWT `org_id` claim before any query executes. S3 paths follow `{bucket}/{org_id}/`.
+Tenant-owned tables carry `org_id` and are covered by PostgreSQL Row Level Security policies against `app.current_org_id()`. New migrations are checked by a database validation test that fails when an `org_id` table is created without `ENABLE ROW LEVEL SECURITY`. Code paths that need database-enforced RLS should use a tenant transaction (`TenantDbPool::begin_for_tenant`) so `app.current_org_id` is scoped to the transaction. S3 paths follow `{bucket}/{org_id}/`.
 
 ### JWT authentication ✅
 
