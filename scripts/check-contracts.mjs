@@ -111,29 +111,59 @@ const routerRoutes = extractRouterRoutes(routerContent);
 const openApiRoutes = extractOpenApiRoutes(openApiContract);
 const frontendRoutes = extractFrontendRoutes(frontendApiContent);
 
-// Known OpenAPI routes that are documented but not yet implemented in the router
-const knownOpenApiGaps = new Set([
-  "/api/v1/billing",
-  "/api/v1/billing/orders",
-  "/api/v1/billing/subscriptions/{id}",
-  "/api/v1/billing/subscriptions/{id}/cancel",
-  "/api/v1/uploads",
-  "/api/v1/uploads/download",
-  "/api/v1/uploads/{key}",
-  "/api/v1/screenshots",
-  "/api/v1/exports",
-  "/api/v1/exports/download",
-  "/api/v1/foundation/versions/{versionId}",
-  "/api/v1/foundation/versions/{versionId}/sections/{section}",
+// Intentional OpenAPI routes that are documented ahead of router support.
+// Keep this list small and rationale-backed; stale entries fail below.
+const knownOpenApiGaps = new Map([
+  ["/api/v1/billing", "Billing read APIs are still owned by app-side payment flows."],
+  ["/api/v1/billing/orders", "Order creation is deferred until Razorpay command routing lands."],
+  [
+    "/api/v1/billing/subscriptions/{id}",
+    "Subscription reads are deferred until billing state has a Rust persistence model.",
+  ],
+  [
+    "/api/v1/billing/subscriptions/{id}/cancel",
+    "Cancellation is deferred until billing commands are moved behind Rust auth.",
+  ],
+  [
+    "/api/v1/uploads",
+    "Upload URL generation exists in Rust code but is not mounted until S3 config is safe.",
+  ],
+  [
+    "/api/v1/uploads/download",
+    "Download URL generation waits on the same S3 mounting decision as uploads.",
+  ],
+  ["/api/v1/uploads/{key}", "Delete upload waits on mounted S3 key ownership checks."],
+  ["/api/v1/screenshots", "Screenshot upload URL routing waits on mounted S3 config."],
+  ["/api/v1/exports", "Export URL routing waits on mounted S3 config."],
+  ["/api/v1/exports/download", "Export download routing waits on mounted S3 config."],
+  [
+    "/api/v1/foundation/versions/{versionId}",
+    "Foundation version detail is documented but only list versions is mounted today.",
+  ],
+  [
+    "/api/v1/foundation/versions/{versionId}/sections/{section}",
+    "Foundation version section reads are deferred with the version-detail route.",
+  ],
 ]);
 
 let routeDiffErrors = 0;
-let knownGapsFound = 0;
+const knownGapsFound = [];
+
+for (const [route, reason] of knownOpenApiGaps) {
+  if (!openApiRoutes.has(route)) {
+    console.error(`STALE KNOWN GAP: "${route}" is no longer present in OpenAPI.`);
+    routeDiffErrors++;
+  }
+  if (!reason || reason.length < 24) {
+    console.error(`UNDOCUMENTED KNOWN GAP: "${route}" needs a concrete rationale.`);
+    routeDiffErrors++;
+  }
+}
 
 // Check OpenAPI routes exist in router
 for (const route of openApiRoutes) {
   if (knownOpenApiGaps.has(route)) {
-    knownGapsFound++;
+    knownGapsFound.push([route, knownOpenApiGaps.get(route)]);
     continue;
   }
   // Normalize OpenAPI {param} to router {param} and /scan/{scan_id} to /scan/{scan_id}
@@ -169,8 +199,13 @@ for (const route of frontendRoutes) {
   }
 }
 
-if (knownGapsFound > 0) {
-  console.log(`Known unimplemented routes (documented, not yet in router): ${knownGapsFound}`);
+if (knownGapsFound.length > 0) {
+  console.log(
+    `Known unimplemented routes (intentional, documented, not yet in router): ${knownGapsFound.length}`,
+  );
+  for (const [route, reason] of knownGapsFound) {
+    console.log(`  ${route} - ${reason}`);
+  }
 }
 if (routeDiffErrors > 0) {
   console.error(`\nRoute drift detected: ${routeDiffErrors} mismatches.`);
@@ -266,6 +301,9 @@ for (const namespace of [
   "/api/v1/council",
   "/api/v1/muse",
   "/api/v1/intel",
+  "/api/v1/intel/signals",
+  "/api/v1/intel/signals/{id}",
+  "/api/v1/intel/competitors",
   "/api/v1/daily-wins",
   "/api/v1/nudges",
   "/api/v1/billing",
