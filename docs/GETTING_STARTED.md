@@ -22,6 +22,12 @@ RaptorFlow is a pnpm + Cargo monorepo with:
 The frontend runs at `http://localhost:3000`. The Rust API runs at
 `http://localhost:8080`.
 
+Local AWS writes are disabled by default with `ALLOW_LIVE_AWS_WRITES=0`.
+Do not use root AWS access keys; the bootstrap guard refuses root principals and
+only warns when AWS credentials or the AWS CLI are absent. Docker Compose uses
+`RAPTORFLOW_LOCAL_AWS_*` variables for container AWS credentials so ordinary
+host AWS variables are not forwarded by default.
+
 ## Validation
 
 Run these before pushing changes:

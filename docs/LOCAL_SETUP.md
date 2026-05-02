@@ -17,6 +17,16 @@
 Never commit `.env`, `.env.local`, Playwright auth state, test results, or local
 logs.
 
+Local AWS writes are opt-in. Keep `ALLOW_LIVE_AWS_WRITES=0` unless you are
+intentionally testing live S3/SQS behavior with a least-privileged IAM principal.
+Root AWS principals are refused by `scripts/guard-aws-root.mjs`; missing AWS
+credentials or a missing AWS CLI only produce a local warning.
+
+Docker Compose does not forward `AWS_ACCESS_KEY_ID` or
+`AWS_SECRET_ACCESS_KEY`. If a local container must call AWS, set the
+`RAPTORFLOW_LOCAL_AWS_*` variables in `.env` and keep
+`ALLOW_LIVE_AWS_WRITES=0` unless live S3/SQS writes are the test target.
+
 ## Services
 
 ```bash
