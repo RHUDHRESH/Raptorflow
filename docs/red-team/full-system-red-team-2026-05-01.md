@@ -18,6 +18,7 @@ Baseline classification:
 - Repro command: load only AWS vars from `.env`, then run `aws sts get-caller-identity --output json`.
 - Impact: any local leak, shell history accident, malware, or committed env mistake gives full account-level AWS control. Local Compose also passes AWS credentials into the API container, so a dev run can accidentally mutate live AWS with root credentials.
 - Recommended fix direction: immediately revoke the root access key, rotate any downstream credentials touched by it, require IAM Identity Center/OIDC/least-privileged IAM roles, and add a preflight guard that refuses root AWS principals for local smoke/deploy scripts.
+- Remediation status as of 2026-05-02: repo-side local safety controls landed in Session 4. `scripts/guard-aws-root.mjs` refuses root principals, missing AWS CLI/credentials are local warnings, Docker Compose uses `RAPTORFLOW_LOCAL_AWS_*` container credentials instead of forwarding host AWS credentials by default, and live AWS writes require `ALLOW_LIVE_AWS_WRITES=1`. Credential revocation/rotation remains an operator task outside source control.
 
 ### P0 - `HEAD` password reset endpoint exposes account takeover tokens
 
@@ -40,7 +41,7 @@ Baseline classification:
 ### P1 - Tenant isolation contract is not actually enforced across the DB surface
 
 - Module: `db`, `http`, RLS, tenant scoping.
-- Baseline classification: `HEAD defect`; current tree still has it.
+- Baseline classification: `HEAD defect`; fixed in Session 5.
 - Evidence:
   - `crates/db/src/pool.rs:53` runs `SET LOCAL app.current_org_id = $1` on a plain acquired connection, outside an explicit transaction. `SET LOCAL` is transaction-scoped, so it is not a reliable tenant context for later statements on that connection.
   - Static migration scan found 22 `org_id` tables without `ENABLE ROW LEVEL SECURITY`: `avatars`, `harness_runs`, `harness_steps`, `council_orchestration_runs`, `council_avatar_turns`, `avatar_souls`, `avatar_memory_edges`, `avatar_presence_states`, `avatar_debate_events`, `avatar_instinct_frames`, `avatar_identity_states`, `avatar_experience_log`, `avatar_artifact_trails`, `avatar_capability_grants`, `capability_runs`, `capability_artifacts`, `artifact_versions`, `artifact_ripple_links`, `harness_context_packs`, `org_members`, `research`, `sessions`.
@@ -48,6 +49,7 @@ Baseline classification:
 - Repro command: scan `database/migrations/*.sql` for `CREATE TABLE ... org_id` without matching `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`; inspect `TenantDbPool::acquire_for_tenant`.
 - Impact: the code relies on ad hoc `WHERE org_id = $1` filters for many sensitive tables, while the documented RLS safety net is incomplete. Any missed predicate or raw SQL path can become a tenant data escape.
 - Recommended fix direction: make tenant DB access transaction-scoped or use session-level `SET` with guaranteed reset, add RLS policies for every tenant table, and add an automated migration test that fails if any `org_id` table lacks RLS and policies.
+- Remediation status as of 2026-05-02: Session 5 added `TenantDbPool::begin_for_tenant`, migration `0026_rls_enforcement.sql`, and validation coverage for future `org_id` tables without RLS. Runtime paths that need database-enforced tenant context should use the transaction-scoped helper.
 
 ### P1 - Backend production deployment can push a new image without running it
 
@@ -60,20 +62,22 @@ Baseline classification:
 - Repro command: inspect `.github/workflows/deploy-backend.yml`, `infra/tofu/environments/prod/main.tf`, and `infra/tofu/environments/dev/main.tf`.
 - Impact: a green backend deploy can leave ECS running the previous task definition, skip migration failure detection, and create staging/prod resources carrying dev wiring. That is a production deploy blocker.
 - Recommended fix direction: make the pipeline render/register the task definition with the pushed image URI, wait for migration task completion, fail on non-zero container exit, then wait for service stability. Split staging/prod overlays so they do not source dev environment config.
+- Remediation status as of 2026-05-02: Session 6 updated `deploy-backend.yml` to register a task definition with the pushed image, wait for migrations, fail on non-zero migration exit, update ECS with the new task definition, and wait for service stability. Staging/prod OpenTofu entrypoints no longer source `../dev`.
 
 ### P1 - Bedrock live smoke test does not compile
 
 - Module: `aws`, testing, runtime smoke.
-- Baseline classification: `HEAD defect`; current tree still has it.
+- Baseline classification: `HEAD defect`; fixed in Session 6.
 - Evidence: `cargo test -p raptorflow-aws --test bedrock_smoke -- --nocapture --test-threads=1` fails with `E0425 cannot find value output in this scope` at `crates/aws/tests/bedrock_smoke.rs:121`.
 - Repro command: same as above. No AWS inference call is reached.
 - Impact: the requested Bedrock smoke path cannot verify live inference, and normal `cargo check --workspace` plus `cargo clippy --workspace --all-features --lib --bins` do not compile this integration test. The manual CI Bedrock workflow would fail before reaching Bedrock.
 - Recommended fix direction: fix the stale debug print, add `cargo test --workspace --no-run` or targeted integration-test compilation to CI, and keep the actual Bedrock call gated behind `BEDROCK_SMOKE_TEST=1`.
+- Remediation status as of 2026-05-02: `crates/aws/tests/bedrock_smoke.rs` now parses with `serde_json::from_str::<SmokeResponse>`, and CI compiles the test with `cargo test -p raptorflow-aws --test bedrock_smoke --no-run`. The live Bedrock call remains manual and credential-gated.
 
 ### P1 - Foundation and task pages call an undocumented API env var
 
 - Module: frontend app, env contracts, API client.
-- Baseline classification: `HEAD defect`; current tree still has it.
+- Baseline classification: `HEAD defect`; fixed in Session 3.
 - Evidence:
   - `.env.example`, `apps/web/.env.example`, `apps/web/src/lib/env.ts`, and `packages/contracts/src/env.ts` define `NEXT_PUBLIC_API_BASE_URL`.
   - Current and `HEAD` frontend pages use `process.env.NEXT_PUBLIC_API_URL` in 26 call sites, including `apps/web/src/app/(app)/foundation/1/page.tsx:63`, `foundation/2/page.tsx:59`, `foundation/21/page.tsx:58`, and `apps/web/src/app/(app)/campaigns/[campaignId]/tasks/[taskId]/page.tsx:104`.
@@ -81,6 +85,7 @@ Baseline classification:
 - Repro command: `git grep -n -E "NEXT_PUBLIC_API_URL|NEXT_PUBLIC_WS_URL" -- apps/web/src`.
 - Impact: these routes construct URLs like `undefined/api/v1/...` in real browser sessions unless an undocumented env var is manually supplied. Core foundation onboarding and task approval workflows are affected.
 - Recommended fix direction: route all frontend API calls through `apiFetch`/`getApiBaseUrl`, delete direct `process.env.NEXT_PUBLIC_API_URL` usage, and expand route-parity checks to scan direct `fetch` and WebSocket URLs, not only `apps/web/src/lib/api.ts`.
+- Remediation status as of 2026-05-02: direct `NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_WS_URL` reads were removed from `apps/web/src`; frontend Rust API and WebSocket URL construction now goes through the shared API/env helpers.
 
 ### P1 - Local runtime defaults can mutate live AWS from dev containers
 
@@ -90,11 +95,12 @@ Baseline classification:
 - Repro command: inspect `docker-compose.yml` API environment block and run the redacted AWS STS check.
 - Impact: starting local Compose with the current env can let development requests write to real S3/SQS/Bedrock surfaces with root permissions. This violates the "minimal reversible smoke" constraint.
 - Recommended fix direction: make local AWS integrations opt-in, default to LocalStack or no-op queues, require a non-root AWS principal, and add startup guards that refuse live AWS writes unless an explicit `ALLOW_LIVE_AWS_WRITES=1` style flag is set.
+- Remediation status as of 2026-05-02: fixed in Session 4. Docker Compose now maps container AWS credentials from `RAPTORFLOW_LOCAL_AWS_*`, defaults `ALLOW_LIVE_AWS_WRITES=0`, and does not default SQS/S3 config to live AWS targets.
 
 ### P2 - Muse WebSocket hook points to an unmounted route
 
 - Module: frontend hooks, WebSocket contracts, Rust `http`.
-- Baseline classification: `HEAD defect`; current tree still has it.
+- Baseline classification: `HEAD defect`; fixed in Session 3.
 - Evidence:
   - `apps/web/src/hooks/use-muse-socket.ts:57` connects to `/api/v1/ws?token=...`.
   - `crates/http/src/router.rs:344` mounts `/api/v1/office/ws`, and no `/api/v1/ws` route exists.
@@ -102,16 +108,18 @@ Baseline classification:
 - Repro command: `git grep -n "useMuseSocket\\|/api/v1/ws\\|/api/v1/office/ws" -- apps/web/src crates/http/src`.
 - Impact: any consumer of `useMuseSocket` will silently reconnect against an invalid endpoint. Even if currently unused, it is stale product code that can be reintroduced without guard coverage.
 - Recommended fix direction: either remove the unused Muse socket hook or align it to a mounted Rust WebSocket route and the shared `getWsBaseUrl()` helper.
+- Remediation status as of 2026-05-02: `useMuseSocket` now connects through `getWsBaseUrl()` to the mounted `/api/v1/office/ws` route.
 
 ### P2 - Contract checks are presence checks, not contract validation
 
 - Module: `schemas/`, `packages/contracts`, OpenAPI, structural checks.
-- Baseline classification: `HEAD defect`; current tree still has it.
+- Baseline classification: `HEAD defect`; partially fixed in Session 7.
 - Evidence:
   - `scripts/sync-contracts.mjs` only prints that code generation is scaffolded.
   - `scripts/check-contracts.mjs` checks for string/token presence.
   - Concrete drift: `schemas/openapi/api-v1.yaml` advertises `/api/v1/foundation/scans/{scanId}`, while `crates/http/src/router.rs` mounts `/api/v1/foundation/scan/{scan_id}`.
 - Repro command: inspect `scripts/sync-contracts.mjs`, `scripts/check-contracts.mjs`, `schemas/openapi/api-v1.yaml`, and `crates/http/src/router.rs`.
+- Remediation status as of 2026-05-02: Session 7 aligned the foundation scan path to `/api/v1/foundation/scan/{scan_id}` and tightened `contracts:check` so router/OpenAPI/frontend route drift fails while intentional gaps remain documented.
 - Impact: CI can report "contract files are present" while REST clients, OpenAPI, and mounted Rust routes diverge.
 - Recommended fix direction: choose a real source of truth, generate TS/OpenAPI from it, and add route diffing that compares router mounts, OpenAPI paths, and frontend calls.
 
