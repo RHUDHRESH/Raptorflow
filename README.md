@@ -86,3 +86,14 @@ cargo check --workspace
 | [Rust crates](./crates/README.md)                    | Current backend crate map                 |
 | [Repository map](./docs/scaffold-file-by-file.md)    | Practical file and folder orientation     |
 | [Deployment runbook](./docs/runbooks/deployments.md) | Production deploy and rollback flow       |
+
+## Earlier versions and components
+
+- [Raptorflow_v1](https://github.com/RHUDHRESH/Raptorflow_v1): the earlier Python (FastAPI) version of RaptorFlow.
+- [raptorflow-lead-engine](https://github.com/RHUDHRESH/raptorflow-lead-engine): local-first lead discovery and enrichment.
+- [Red2](https://github.com/RHUDHRESH/Red2): Geo-Strategist AI, a local-first marketing engine.
+- [Intake](https://github.com/RHUDHRESH/Intake): LangGraph intake and research components.
+
+---
+
+Built by [Rhudhresh R](https://github.com/RHUDHRESH)
